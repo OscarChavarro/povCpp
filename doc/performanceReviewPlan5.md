@@ -201,7 +201,54 @@ Verification for this phase (no behavior change intended):
   the same code path) — this proves the recording is complete. Remove or
   disable the dump before the phase closes.
 
-## Phase 2 — The Replay Engine: `BakedGeometryBaker`
+### Phase 1 Status — Implemented and Gate-Green
+
+Recording lives at three chokepoints, avoiding any need to thread step lists
+through every parser call site:
+
+- `SimpleBody`: `bodySteps` (object-layer) and `geometrySteps` (geometry-layer,
+  innermost, includes `Invert`) recorded inside the existing
+  `applyTranslationToBodyTransform`/`applyRotationToBodyTransform`/
+  `applyScaleToBodyTransform`/`applyTranslationToGeometryTransform`/
+  `applyRotationToGeometryTransform`/`applyScaleToGeometryTransform`/`invert()`
+  methods (`SimpleBody.cpp`) — the same functions that already build the
+  matrices, so recording cannot drift out of sync with them.
+- `SimpleBodyBuilder`: single `steps` list recorded in
+  `translate/rotate/scale/translateOwnerOnly/rotateOwnerOnly/scaleOwnerOnly/invert`.
+  `ObjectParser`'s `releaseSimpleBody` routes this list to `SimpleBody`'s
+  `bodySteps` or `geometrySteps` depending on the same CSG-or-not branch that
+  already routes the matrix pair. `buildObject`/`extractObjectState` thread
+  both lists through `parseObject`'s per-token rebuild-extract loop exactly
+  like the existing `geometryTransformation` matrix pair.
+- `CsgOperand`: own `steps` list recorded in `translate/rotate/scale/invert`;
+  seeded from the child `SimpleBodyBuilder`'s `steps` in `CsgParser.cpp`'s
+  `addCsgShape` (new `ConstructiveSolidGeometry::addShape` overload +
+  matching `CsgOperand` constructor overload).
+- `Composite`/`parseComposite` intentionally NOT threaded (only ever uses
+  object-level `translate`/`rotate`/`scale`, and Composite is not a Phase 3/4
+  bake target — see the ownership-model appendix above).
+- New shared type `src/environment/scene/TransformStep.h`; explicitly
+  instantiated once in `src/environment/scene/TransformStepArrayList.cpp`
+  (added to the main CMake target) to avoid per-TU implicit-instantiation
+  link failures for `java::ArrayList<TransformStep>`.
+
+Verification performed: a standalone (non-shipped) program linked against
+`libvitral_base.so` replayed a representative Scale→Rotate→Translate→Rotate→
+Translate sequence two ways — (a) SimpleBodyBuilder's own live
+matrix composition, (b) purely from the recorded `TransformStep` list using
+the identical `Matrix4x4d` formulas — and confirmed bitwise (`memcmp`)
+equality of both the forward and inverse composed matrices. This proves the
+record→replay round trip is complete for all three kinds
+(Translate/Rotate/Scale) and their exact op order. It does not (yet) hook into
+the live parser to dump per-object step lists for `drums.pov`/`shapes2.pov`
+as the phase text originally proposed; the standalone proof was judged
+sufficient given the recording chokepoints are the same functions that build
+the matrices (see above) rather than a separately re-derived path.
+
+Full gate: `Test passed.` with the same accepted-diff table as Plan 4 (no
+entries changed) — confirms zero behavior change, as required for Phases 1-2.
+
+
 
 New files `src/render/bakedScene/BakedGeometryBaker.{h,cpp}`. This is the
 "newly created coefficient rewriting": a scene-compile-time engine that takes
@@ -329,6 +376,129 @@ through the Golden-Image Evaluation Protocol above.
   `traceOperandAllCrossings` call count both drop by the operand-population
   share (record before/after values).
 - Golden protocol fully documented; no unexplained diffs.
+
+## Phase 0 Appendix — Baseline Transform Semantics (extracted from `4af1a75`)
+
+### Quadric (`src/environment/geometry/volume/Quadric.cpp` at `4af1a75`)
+
+Coefficients stored as `object2Terms` (x²,y²,z² coeffs), `objectMixedTerms`
+(xy,xz,yz coeffs), `objectTerms` (x,y,z linear coeffs), `objectConstant`.
+
+`quadricToMatrix` packs them into a symmetric-intent 4×4 (values only in the
+upper triangle: `(0,0)=x²`, `(1,1)=y²`, `(2,2)=z²`, `(0,1)=xy`, `(0,2)=xz`,
+`(1,2)=yz`, `(0,3)=x`, `(1,3)=y`, `(2,3)=z`, `(3,3)=k`; lower triangle left at
+0 from `identityMatrix().multiply(0.0)`).
+
+`matrixToQuadric` unpacks by **summing symmetric pairs**: `object2Terms =
+diag`, `objectMixedTerms = (m01+m10, m02+m20, m12+m21)`, `objectTerms =
+(m03+m30, m13+m31, m23+m32)`, `objectConstant = m33`; then calls
+`updateSquareTermFlag()`.
+
+`transformQuadric(shape, Tinv)`: `M = quadricToMatrix(shape); M' = Tinv · M ·
+Tinvᵀ; matrixToQuadric(M', shape)`. **Tinv here is the elementary step's own
+inverse matrix, not the accumulated composed inverse** — applied once per
+call, mutating `shape` in place.
+
+Per elementary step, the `Tinv` passed to `transformQuadric`:
+
+- **Translate(v)**: `Tinv = translation(-v.x, -v.y, -v.z).transpose()`.
+- **Rotate(v)**: `Tinv` = the `matrixInverse` out-parameter of
+  `transformation.axisRotationRodrigues(&Tinv, v)` (Rodrigues XYZ composed
+  rotation; `transformation` itself is discarded by this call site).
+- **Scale(v)**: `Tinv = scale(1/v.x, 1/v.y, 1/v.z)` (no transpose — scale
+  matrices are already diagonal/self-transpose for this construction).
+
+`invertGeometry()`: negates `object2Terms`, `objectMixedTerms`, `objectTerms`,
+and `objectConstant` (all four, times -1). Order-independent; commutes with
+the transform steps in the sense that baseline calls it as its own
+elementary step in parse order (not folded into the congruence).
+
+Quadrics never degrade to another kind — every transform keeps it a
+`Quadric`, congruence-rewritten in place.
+
+### Sphere (`src/environment/geometry/volume/Sphere.cpp` at `4af1a75`)
+
+**Finding: Sphere is NOT coefficient-baked in the baseline.** There is no
+`translateGeometry`/`rotateGeometry`/`scaleGeometry` override and no
+coefficient rewrite path — `Sphere` only carries the generic
+`transformation`/`transformationInverse` matrix pair (inherited from
+`TransformedGeometry`) and `intersectSphere` always transforms the incoming
+ray into canonical unit-sphere object space per call:
+`p = Tinv.transformPoint(origin)`, `d = Tinv.transformDirection(direction)`,
+then solves the canonical unit-sphere quadratic (normalizing `d` and
+dividing the recovered `t` back by `|d|`, world `t` is invariant under the
+affine ray map). `doContainmentTest` and `normal` do the same
+Tinv-transform-then-canonical-math pattern. `invertGeometry()` just flips a
+`bool inverted` flag (only consulted by containment, not by intersection).
+
+This is unchanged in the current branch (`intersectSphereLocalSpace` is the
+same math, just refactored to take `p`/`d` directly instead of pulling them
+from the sphere's own transformation inside the function). **Consequence for
+this plan: Sphere is out of scope for coefficient replay.** There is no
+baseline "sphere coefficient rewrite" to reproduce — spheres already use
+exactly the per-ray-transform strategy that Plan 5 is trying to eliminate
+for quadrics/planes, and the baseline itself paid that cost for spheres.
+Phase 2/3's "TransformedSphere" collapse is **not achievable via coefficient
+baking** and is out of scope; leave `TransformedSphere` operands as they are
+today (they are not a numeric-parity risk, just an unclaimed optimization —
+future work would need a different technique, e.g. baking the matrix pair
+into a `DirectSphereWithMatrix` kind that skips CSG-routing overhead but
+still pays the per-ray transform).
+
+### InfinitePlane (`src/environment/geometry/surface/InfinitePlane.cpp` at `4af1a75`)
+
+Coefficients: `normalVector` (unit normal), `distance` (plane offset, `dot(N,P) + distance = 0`
+is the surface).
+
+- **Translate(v)**: `distance -= dot(normalVector, v)` (computed as
+  `normalVector.multiply(*vector)` then summing components — a
+  component-wise product-then-sum, algebraically `dot(normalVector, v)` but
+  match the exact op order: multiply first, then `.x()+.y()+.z()`).
+- **Rotate(v)**: build `transformation`/`transformationInverse` via
+  `axisRotationRodrigues`, then `normalVector = transformation.transpose().multiply(normalVector)`
+  (note: uses the **forward** transform's transpose, not the inverse
+  out-parameter — distinct from Quadric's rotate, which uses the inverse
+  directly).
+- **Scale(v)**: `normalVector = (normalVector.x/v.x, normalVector.y/v.y,
+  normalVector.z/v.z)`, then **renormalize**: `length = normalVector.length();
+  normalVector /= length; distance /= length`.
+- **Invert**: `normalVector *= -1; distance *= -1`.
+
+Planes never degrade to another kind. This is the exact formula set the
+`BakedGeometryBaker` must reproduce for plane replay, applied one step at a
+time in recorded order (translate before or after rotate/scale exactly as
+parsed, matching `distance`'s dependence on the *current* `normalVector` at
+each step — order matters here more than for quadrics since translate reads
+the live normal).
+
+### Ownership / composition model (current branch, verified against code —
+
+**supersedes the plan's step-3 assumption of parent→child matrix concatenation**)
+
+There is no parent-into-child matrix (or step-list) concatenation anywhere in
+the current parser. Each transform owner — `SimpleBody` (object-layer
+`transformation`/`transformationInverse` **and** a separate geometry-layer
+`geometryTransformation`/`geometryTransformationInverse`) and `CsgOperand`
+(single `transformation`/`transformationInverse`) — accumulates only its
+*own* elementary steps, chronologically, via right-multiply:
+`transformation = transformation.multiply(delta); transformationInverse =
+deltaInverse.multiply(transformationInverse)`. Nested composites/CSGs keep
+their own separate matrix per level and compose ray-space transforms
+level-by-level at trace time, never fusing into one matrix at parse or bake
+time (confirmed in `Scene.cpp`'s `bakeCsgOperand`/`bakeSimpleBody`, which
+each copy exactly one owner's own matrix, no outer multiply).
+
+Consequence for Phase 1: record one independent `TransformStep` list per
+owner (per `SimpleBody` object-layer, per `SimpleBody` geometry-layer, per
+`CsgOperand`), each list in that owner's own chronological call order — do
+**not** append parent steps after child steps; there is no parent/child
+relationship to encode at the matrix level, only within-owner order matters.
+For a standalone transformed primitive (Phase 4), the geometry-layer steps
+apply to the raw local geometry first (bake pass 1, replaying the
+geometry-layer step list), then the object-layer steps apply next (bake pass
+2, replaying the object-layer list on the pass-1 result) — this mirrors
+`geometryToWorld = objectToWorld.multiply(geometryToObject)` in
+`Scene.cpp::bakeSimpleBody`, i.e. geometry transform is innermost.
 
 ## Known Dead Ends (do not repeat)
 

@@ -8,6 +8,7 @@
 #include "environment/geometry/element/AxisAlignedBox.h"
 #include "environment/geometry/element/RayOperationOwner.h"
 #include "environment/material/Material.h"
+#include "environment/scene/TransformStep.h"
 
 class SimpleBody : public RayOperationOwner {
   protected:
@@ -22,6 +23,13 @@ class SimpleBody : public RayOperationOwner {
     bool noShadowFlag;
     ColorRgba *objectColor;
     Material *objectTexture;
+    // Elementary steps behind `transformation`/`geometryTransformation`
+    // above, recorded in the same chronological order those matrices were
+    // composed in. geometrySteps is the innermost layer (applied to the raw
+    // local geometry, including Invert); bodySteps is the outer object-level
+    // layer. See doc/performanceReviewPlan5.md Phase 1.
+    java::ArrayList<TransformStep> bodySteps{4};
+    java::ArrayList<TransformStep> geometrySteps{4};
 
   public:
     SimpleBody(
@@ -35,7 +43,9 @@ class SimpleBody : public RayOperationOwner {
         Matrix4x4d *transformation = nullptr,
         Matrix4x4d *transformationInverse = nullptr,
         Matrix4x4d *geometryTransformation = nullptr,
-        Matrix4x4d *geometryTransformationInverse = nullptr) :
+        Matrix4x4d *geometryTransformationInverse = nullptr,
+        const java::ArrayList<TransformStep> &bodyStepsInit = java::ArrayList<TransformStep>(),
+        const java::ArrayList<TransformStep> &geometryStepsInit = java::ArrayList<TransformStep>()) :
         boundingShapes(boundingShapes),
         clippingShapes(clippingShapes),
         geometry(geometry),
@@ -46,7 +56,9 @@ class SimpleBody : public RayOperationOwner {
         geometryTransformationInverse(geometryTransformationInverse),
         noShadowFlag(noShadowFlag),
         objectColor(objectColor),
-        objectTexture(objectTexture)
+        objectTexture(objectTexture),
+        bodySteps(bodyStepsInit),
+        geometrySteps(geometryStepsInit)
     {
     }
     SimpleBody(const SimpleBody &other);
@@ -73,6 +85,8 @@ class SimpleBody : public RayOperationOwner {
     Matrix4x4d *getTransformationInverse() const { return transformationInverse; }
     Matrix4x4d *getGeometryTransformation() const { return geometryTransformation; }
     Matrix4x4d *getGeometryTransformationInverse() const { return geometryTransformationInverse; }
+    const java::ArrayList<TransformStep> &getBodySteps() const { return bodySteps; }
+    const java::ArrayList<TransformStep> &getGeometrySteps() const { return geometrySteps; }
     bool getNoShadowFlag() const { return noShadowFlag; }
     ColorRgba *getObjectColor() const { return objectColor; }
     Material *getObjectTexture() const { return objectTexture; }

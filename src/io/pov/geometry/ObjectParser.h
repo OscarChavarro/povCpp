@@ -39,7 +39,9 @@ class ObjectParser {
         Matrix4x4d *transformation = nullptr,
         Matrix4x4d *transformationInverse = nullptr,
         Matrix4x4d *geometryTransformation = nullptr,
-        Matrix4x4d *geometryTransformationInverse = nullptr);
+        Matrix4x4d *geometryTransformationInverse = nullptr,
+        const java::ArrayList<TransformStep> &bodySteps = java::ArrayList<TransformStep>(),
+        const java::ArrayList<TransformStep> &geometrySteps = java::ArrayList<TransformStep>());
 
     static Composite *buildComposite(
         Geometry *geometry,
@@ -67,7 +69,9 @@ class ObjectParser {
         Matrix4x4d *&transformation,
         Matrix4x4d *&transformationInverse,
         Matrix4x4d *&geometryTransformation,
-        Matrix4x4d *&geometryTransformationInverse);
+        Matrix4x4d *&geometryTransformationInverse,
+        java::ArrayList<TransformStep> &bodySteps,
+        java::ArrayList<TransformStep> &geometrySteps);
 
     static void extractCompositeState(
         Composite *object,

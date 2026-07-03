@@ -24,6 +24,12 @@ class ConstructiveSolidGeometry : public Geometry {
         Material *material,
         Matrix4x4d *transformation,
         Matrix4x4d *transformationInverse);
+    void addShape(
+        Geometry *shape,
+        Material *material,
+        Matrix4x4d *transformation,
+        Matrix4x4d *transformationInverse,
+        const java::ArrayList<TransformStep> &steps);
     void addOperand(CsgOperand *operand);
     java::ArrayList<CsgOperand*> &getOperands();
     const java::ArrayList<CsgOperand*> &getOperands() const;
@@ -69,6 +75,17 @@ ConstructiveSolidGeometry::addShape(
     Matrix4x4d *transformationInverse)
 {
     operands.add(new CsgOperand(shape, material, transformation, transformationInverse));
+}
+
+inline void
+ConstructiveSolidGeometry::addShape(
+    Geometry *shape,
+    Material *material,
+    Matrix4x4d *transformation,
+    Matrix4x4d *transformationInverse,
+    const java::ArrayList<TransformStep> &steps)
+{
+    operands.add(new CsgOperand(shape, material, transformation, transformationInverse, steps));
 }
 
 inline void

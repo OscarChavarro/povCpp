@@ -61,6 +61,7 @@ add_executable(povray
     src/environment/light/PointLight.cpp
     src/environment/light/SpotLight.cpp
     src/environment/scene/SimpleBody.cpp
+    src/environment/scene/TransformStepArrayList.cpp
     src/environment/scene/Composite.cpp
     src/environment/scene/Scene.cpp
     src/io/pov/geometry/SimpleBodyBuilder.cpp

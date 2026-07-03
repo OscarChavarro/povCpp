@@ -63,7 +63,9 @@ releaseSimpleBody(
     Matrix4x4d *&transformation,
     Matrix4x4d *&transformationInverse,
     Matrix4x4d *&geometryTransformation,
-    Matrix4x4d *&geometryTransformationInverse)
+    Matrix4x4d *&geometryTransformationInverse,
+    java::ArrayList<TransformStep> &bodySteps,
+    java::ArrayList<TransformStep> &geometrySteps)
 {
     geometry = body->releaseGeometry();
     material = body->releaseMaterial();
@@ -74,9 +76,13 @@ releaseSimpleBody(
         transformationInverse = releasedTransformationInverse;
         geometryTransformation = nullptr;
         geometryTransformationInverse = nullptr;
+        bodySteps = body->getSteps();
+        geometrySteps = java::ArrayList<TransformStep>();
     } else {
         geometryTransformation = releasedTransformation;
         geometryTransformationInverse = releasedTransformationInverse;
+        bodySteps = java::ArrayList<TransformStep>();
+        geometrySteps = body->getSteps();
     }
     delete body->releaseShapeColor();
     delete body;
@@ -128,13 +134,16 @@ ObjectParser::buildObject(
     Matrix4x4d *transformation,
     Matrix4x4d *transformationInverse,
     Matrix4x4d *geometryTransformation,
-    Matrix4x4d *geometryTransformationInverse)
+    Matrix4x4d *geometryTransformationInverse,
+    const java::ArrayList<TransformStep> &bodySteps,
+    const java::ArrayList<TransformStep> &geometrySteps)
 {
     return new SimpleBody(
         geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
         boundingShapes, clippingShapes,
         transformation, transformationInverse,
-        geometryTransformation, geometryTransformationInverse);
+        geometryTransformation, geometryTransformationInverse,
+        bodySteps, geometrySteps);
 }
 
 Composite *
@@ -172,7 +181,9 @@ ObjectParser::extractObjectState(
     Matrix4x4d *&transformation,
     Matrix4x4d *&transformationInverse,
     Matrix4x4d *&geometryTransformation,
-    Matrix4x4d *&geometryTransformationInverse)
+    Matrix4x4d *&geometryTransformationInverse,
+    java::ArrayList<TransformStep> &bodySteps,
+    java::ArrayList<TransformStep> &geometrySteps)
 {
     geometry = object->getGeometry();
     geometryMaterial = object->getGeometryMaterial();
@@ -185,6 +196,8 @@ ObjectParser::extractObjectState(
     noShadowFlag = object->getNoShadowFlag();
     boundingShapes = object->getBoundingShapes();
     clippingShapes = object->getClippingShapes();
+    bodySteps = object->getBodySteps();
+    geometrySteps = object->getGeometrySteps();
 }
 
 void
@@ -203,11 +216,14 @@ ObjectParser::extractCompositeState(
     Matrix4x4d *&geometryTransformation,
     Matrix4x4d *&geometryTransformationInverse)
 {
+    java::ArrayList<TransformStep> discardedBodySteps;
+    java::ArrayList<TransformStep> discardedGeometrySteps;
     extractObjectState(
         object, geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
         boundingShapes, clippingShapes,
         transformation, transformationInverse,
-        geometryTransformation, geometryTransformationInverse);
+        geometryTransformation, geometryTransformationInverse,
+        discardedBodySteps, discardedGeometrySteps);
     simpleBodies = object->getSimpleBodies();
 }
 
@@ -338,6 +354,8 @@ ObjectParser::parseObject(ParserContext &ctx)
     Matrix4x4d *transformationInverse = nullptr;
     Matrix4x4d *geometryTransformation = nullptr;
     Matrix4x4d *geometryTransformationInverse = nullptr;
+    java::ArrayList<TransformStep> bodySteps;
+    java::ArrayList<TransformStep> geometrySteps;
     java::ArrayList<SimpleBody*> localBoundingShapes(4);
     java::ArrayList<SimpleBody*> localClippingShapes(4);
     Vector3Dd localVector;
@@ -369,7 +387,8 @@ ObjectParser::parseObject(ParserContext &ctx)
                             noShadowFlag, localBoundingShapes,
                             localClippingShapes,
                             transformation, transformationInverse,
-                            geometryTransformation, geometryTransformationInverse);
+                            geometryTransformation, geometryTransformationInverse,
+                            bodySteps, geometrySteps);
                         object->detachOwnership();
                         delete object;
                         object = nullptr;
@@ -405,7 +424,8 @@ ObjectParser::parseObject(ParserContext &ctx)
                     releaseSimpleBody(
                         localShape, geometry, geometryMaterial,
                         transformation, transformationInverse,
-                        geometryTransformation, geometryTransformationInverse);
+                        geometryTransformation, geometryTransformationInverse,
+                        bodySteps, geometrySteps);
                 } else {
                     delete localShape;
                 }
@@ -525,7 +545,8 @@ ObjectParser::parseObject(ParserContext &ctx)
                     geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes,
                     transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse);
+                    geometryTransformation, geometryTransformationInverse,
+                    bodySteps, geometrySteps);
                 PrimitiveParser::parseVector(&localVector, ctx);
                 if (dynamic_cast<ConstructiveSolidGeometry *>(geometry) != nullptr) {
                     object->translate(&localVector);
@@ -536,7 +557,8 @@ ObjectParser::parseObject(ParserContext &ctx)
                     object, geometry, geometryMaterial, objectTexture, objectColor,
                     noShadowFlag, localBoundingShapes, localClippingShapes,
                     transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse);
+                    geometryTransformation, geometryTransformationInverse,
+                    bodySteps, geometrySteps);
                 object->detachOwnership();
                 delete object;
                 object = nullptr;
@@ -551,7 +573,8 @@ ObjectParser::parseObject(ParserContext &ctx)
                     geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes,
                     transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse);
+                    geometryTransformation, geometryTransformationInverse,
+                    bodySteps, geometrySteps);
                 PrimitiveParser::parseVector(&localVector, ctx);
                 if (dynamic_cast<ConstructiveSolidGeometry *>(geometry) != nullptr) {
                     object->rotate(&localVector);
@@ -562,7 +585,8 @@ ObjectParser::parseObject(ParserContext &ctx)
                     object, geometry, geometryMaterial, objectTexture, objectColor,
                     noShadowFlag, localBoundingShapes, localClippingShapes,
                     transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse);
+                    geometryTransformation, geometryTransformationInverse,
+                    bodySteps, geometrySteps);
                 object->detachOwnership();
                 delete object;
                 object = nullptr;
@@ -577,7 +601,8 @@ ObjectParser::parseObject(ParserContext &ctx)
                     geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes,
                     transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse);
+                    geometryTransformation, geometryTransformationInverse,
+                    bodySteps, geometrySteps);
                 PrimitiveParser::parseVector(&localVector, ctx);
                 if (dynamic_cast<ConstructiveSolidGeometry *>(geometry) != nullptr) {
                     object->scale(&localVector);
@@ -588,7 +613,8 @@ ObjectParser::parseObject(ParserContext &ctx)
                     object, geometry, geometryMaterial, objectTexture, objectColor,
                     noShadowFlag, localBoundingShapes, localClippingShapes,
                     transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse);
+                    geometryTransformation, geometryTransformationInverse,
+                    bodySteps, geometrySteps);
                 object->detachOwnership();
                 delete object;
                 object = nullptr;
@@ -602,13 +628,15 @@ ObjectParser::parseObject(ParserContext &ctx)
                     geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes,
                     transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse);
+                    geometryTransformation, geometryTransformationInverse,
+                    bodySteps, geometrySteps);
                 object->invert();
                 extractObjectState(
                     object, geometry, geometryMaterial, objectTexture, objectColor,
                     noShadowFlag, localBoundingShapes, localClippingShapes,
                     transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse);
+                    geometryTransformation, geometryTransformationInverse,
+                    bodySteps, geometrySteps);
                 object->detachOwnership();
                 delete object;
                 object = nullptr;
@@ -630,7 +658,8 @@ ObjectParser::parseObject(ParserContext &ctx)
         geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
         localBoundingShapes, localClippingShapes,
         transformation, transformationInverse,
-        geometryTransformation, geometryTransformationInverse);
+        geometryTransformation, geometryTransformationInverse,
+        bodySteps, geometrySteps);
 }
 
 SimpleBody *

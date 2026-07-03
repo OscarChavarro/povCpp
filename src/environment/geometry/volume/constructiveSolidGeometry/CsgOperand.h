@@ -14,6 +14,7 @@
 #include "environment/geometry/volume/HeightField.h"
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/geometry/volume/Sphere.h"
+#include "environment/scene/TransformStep.h"
 
 class CsgOperand : public RayOperationOwner {
   private:
@@ -21,6 +22,9 @@ class CsgOperand : public RayOperationOwner {
     Material *material = nullptr;
     Matrix4x4d *transformation = nullptr;
     Matrix4x4d *transformationInverse = nullptr;
+    // Elementary steps behind `transformation` above, chronologically
+    // recorded (including Invert). See doc/performanceReviewPlan5.md Phase 1.
+    java::ArrayList<TransformStep> steps{4};
     mutable bool bakedBoundsValid = false;
     mutable AxisAlignedBox bakedBounds = AxisAlignedBox::unbounded();
     mutable bool bakedBoundsBounded = false;
@@ -126,6 +130,20 @@ class CsgOperand : public RayOperationOwner {
     {
     }
 
+    CsgOperand(
+        Geometry *geometry,
+        Material *material,
+        Matrix4x4d *transformation,
+        Matrix4x4d *transformationInverse,
+        const java::ArrayList<TransformStep> &steps) :
+        geometry(geometry),
+        material(material),
+        transformation(transformation),
+        transformationInverse(transformationInverse),
+        steps(steps)
+    {
+    }
+
     CsgOperand(const CsgOperand &other) :
         geometry(other.geometry != nullptr ?
             (Geometry *)other.geometry->copy() : nullptr),
@@ -133,7 +151,8 @@ class CsgOperand : public RayOperationOwner {
         transformation(other.transformation != nullptr ?
             new Matrix4x4d(*other.transformation) : nullptr),
         transformationInverse(other.transformationInverse != nullptr ?
-            new Matrix4x4d(*other.transformationInverse) : nullptr)
+            new Matrix4x4d(*other.transformationInverse) : nullptr),
+        steps(other.steps)
     {
     }
 
@@ -151,6 +170,7 @@ class CsgOperand : public RayOperationOwner {
     Material *getMaterial() const { return material; }
     Matrix4x4d *getTransformation() const { return transformation; }
     Matrix4x4d *getTransformationInverse() const { return transformationInverse; }
+    const java::ArrayList<TransformStep> &getSteps() const { return steps; }
     Material *getEffectiveMaterial(Material *materialOverride) const
     {
         return material != nullptr ? material : materialOverride;
@@ -286,6 +306,7 @@ class CsgOperand : public RayOperationOwner {
     {
         if (geometry != nullptr) {
             geometry->invertGeometry();
+            steps.add(TransformStep(TransformStep::Kind::Invert, Vector3Dd(0.0, 0.0, 0.0)));
         }
     }
 };

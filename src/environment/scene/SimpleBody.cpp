@@ -254,7 +254,9 @@ SimpleBody::SimpleBody(const SimpleBody &other) :
     objectColor(other.getObjectColor() != nullptr ?
         new ColorRgba(*other.getObjectColor()) : nullptr),
     objectTexture(other.getObjectTexture() != nullptr ?
-        other.getObjectTexture()->copy() : nullptr)
+        other.getObjectTexture()->copy() : nullptr),
+    bodySteps(other.getBodySteps()),
+    geometrySteps(other.getGeometrySteps())
 {
     for (long int i = other.getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShapes.add(
@@ -318,6 +320,7 @@ SimpleBody::applyTranslationToBodyTransform(Vector3Dd *vector)
         0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
     *transformation = transformation->multiply(delta);
     *transformationInverse = deltaInverse.multiply(*transformationInverse);
+    bodySteps.add(TransformStep(TransformStep::Kind::Translate, *vector));
 }
 
 void
@@ -331,6 +334,7 @@ SimpleBody::applyTranslationToGeometryTransform(Vector3Dd *vector)
     *geometryTransformation = geometryTransformation->multiply(delta);
     *geometryTransformationInverse =
         deltaInverse.multiply(*geometryTransformationInverse);
+    geometrySteps.add(TransformStep(TransformStep::Kind::Translate, *vector));
 }
 
 void
@@ -342,6 +346,7 @@ SimpleBody::applyRotationToBodyTransform(Vector3Dd *vector)
     delta.axisRotationRodrigues(&deltaInverse, vector);
     *transformation = transformation->multiply(delta);
     *transformationInverse = deltaInverse.multiply(*transformationInverse);
+    bodySteps.add(TransformStep(TransformStep::Kind::Rotate, *vector));
 }
 
 void
@@ -354,6 +359,7 @@ SimpleBody::applyRotationToGeometryTransform(Vector3Dd *vector)
     *geometryTransformation = geometryTransformation->multiply(delta);
     *geometryTransformationInverse =
         deltaInverse.multiply(*geometryTransformationInverse);
+    geometrySteps.add(TransformStep(TransformStep::Kind::Rotate, *vector));
 }
 
 void
@@ -366,6 +372,7 @@ SimpleBody::applyScaleToBodyTransform(Vector3Dd *vector)
         1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z()).transpose();
     *transformation = transformation->multiply(delta);
     *transformationInverse = deltaInverse.multiply(*transformationInverse);
+    bodySteps.add(TransformStep(TransformStep::Kind::Scale, *vector));
 }
 
 void
@@ -379,6 +386,7 @@ SimpleBody::applyScaleToGeometryTransform(Vector3Dd *vector)
     *geometryTransformation = geometryTransformation->multiply(delta);
     *geometryTransformationInverse =
         deltaInverse.multiply(*geometryTransformationInverse);
+    geometrySteps.add(TransformStep(TransformStep::Kind::Scale, *vector));
 }
 
 void
@@ -667,6 +675,7 @@ SimpleBody::invert()
     }
     if (this->getGeometry() != nullptr) {
         this->getGeometry()->invertGeometry();
+        geometrySteps.add(TransformStep(TransformStep::Kind::Invert, Vector3Dd(0.0, 0.0, 0.0)));
     }
 }
 
