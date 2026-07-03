@@ -41,6 +41,7 @@ class Scene {
     struct BakedSimpleBody {
         SimpleBody *object = nullptr;
         Geometry *geometry = nullptr;
+        Quadric *quadricGeometry = nullptr;
         Material *geometryMaterial = nullptr;
         Material *objectTexture = nullptr;
         ColorRgba *objectColor = nullptr;
@@ -94,6 +95,7 @@ class Scene {
         NestedCsg,
         TransformedNestedCsg,
         TransformedQuadric,
+        TransformedSphere,
         TransformedPrimitive,
         GenericFallback,
     };

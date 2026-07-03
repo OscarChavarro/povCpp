@@ -32,6 +32,14 @@ public:
         const Vector3Dd &point,
         double distanceTolerance);
 
+    static bool intersectBakedQuadric(
+        const Quadric &shape,
+        RayWithSegments *ray,
+        const Vector3Dd &origin,
+        const Vector3Dd &direction,
+        double *depth1,
+        double *depth2);
+
 private:
     static bool traceAllCrossingsWithScratch(
         const Scene::BakedConstructiveSolidGeometry &bakedCsg,
@@ -95,14 +103,6 @@ private:
         Vector3Dd &a,
         const Vector3Dd &b,
         const Vector3Dd &c);
-
-    static bool intersectBakedQuadric(
-        const Quadric &shape,
-        RayWithSegments *ray,
-        const Vector3Dd &origin,
-        const Vector3Dd &direction,
-        double *depth1,
-        double *depth2);
 
     static bool intersectBakedQuadricWithTrueMiss(
         const Quadric &shape,
@@ -257,7 +257,8 @@ private:
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride,
-        long int coreIndex);
+        long int coreIndex,
+        bool &coreTrueMiss);
 
     static void emitNestedCandidateToParentOperand(
         const Scene::BakedCsgOperand &parentOperand,
@@ -340,7 +341,8 @@ private:
         RayWithSegments *ray,
         Material *materialOverride,
         double &bestT,
-        IntersectionCandidate &out);
+        IntersectionCandidate &out,
+        bool &coreTrueMiss);
 
     static bool traceFirstHitCompiledSingleCorePlane(
         const Scene::BakedConstructiveSolidGeometry &bakedCsg,

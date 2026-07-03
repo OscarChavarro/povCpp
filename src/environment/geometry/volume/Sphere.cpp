@@ -22,17 +22,14 @@ Sphere::Sphere(const Sphere &other) :
 }
 
 bool
-Sphere::intersectSphere(
-    const RayWithSegments *ray, const Sphere *sphere,
-    double *depth1, double *depth2)
+Sphere::intersectSphereLocalSpace(
+    const Vector3Dd &p,
+    const Vector3Dd &d,
+    Statistics *stats,
+    double *depth1,
+    double *depth2)
 {
-    Statistics &stats = *ray->getStatistics();
-    stats.incrementRaySphereTests();
-
-    // The caller owns object placement and must transform the ray into object
-    // space before invoking this canonical unit sphere.
-    const Vector3Dd p = ray->getOrigin();
-    const Vector3Dd d = ray->getDirection();
+    stats->incrementRaySphereTests();
 
     // The object-space direction is NOT unit length: transformPoint/Direction by
     // the inverse of translate(center)*scale(r) leaves |d| = |worldDir| / r. The
@@ -73,8 +70,20 @@ Sphere::intersectSphere(
         *depth2 = *depth1;
     }
 
-    stats.incrementRaySphereTestsSucceeded();
+    stats->incrementRaySphereTestsSucceeded();
     return true;
+}
+
+bool
+Sphere::intersectSphere(
+    const RayWithSegments *ray, const Sphere *,
+    double *depth1, double *depth2)
+{
+    // The caller owns object placement and must transform the ray into object
+    // space before invoking this canonical unit sphere.
+    return intersectSphereLocalSpace(
+        ray->getOrigin(), ray->getDirection(),
+        ray->getStatistics(), depth1, depth2);
 }
 
 int

@@ -4,6 +4,8 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/Geometry.h"
 
+class Statistics;
+
 // Canonical unit sphere centered at the origin. Placement and scaling are
 // owned by the caller (SimpleBody/CsgOperand), which transforms the ray into
 // local space before invoking this geometry.
@@ -13,6 +15,14 @@ class Sphere : public Geometry {
 
     static bool intersectSphere(const RayWithSegments *ray, const Sphere *sphere,
         double *depth1, double *depth2);
+
+  public:
+    static bool intersectSphereLocalSpace(
+        const Vector3Dd &origin,
+        const Vector3Dd &direction,
+        Statistics *stats,
+        double *depth1,
+        double *depth2);
 
   public:
     Sphere();

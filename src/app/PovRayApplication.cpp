@@ -182,6 +182,10 @@ PovRayApplication::printStatistics(
                 operandTransformed++;
                 operandTransformedQuadric++;
                 break;
+            case Scene::BakedCsgOperandExecutionKind::TransformedSphere:
+                operandTransformed++;
+                operandTransformedPrimitive++;
+                break;
             case Scene::BakedCsgOperandExecutionKind::TransformedPrimitive:
                 operandTransformed++;
                 operandTransformedPrimitive++;
