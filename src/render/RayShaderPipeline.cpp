@@ -99,11 +99,8 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
             LocalSurfaceShader::shade(ray, tempTexture, rayIntersection,
                 &surfaceColor, &filterColor, color, traceService,
                 context.getScene().getLightSources(),
-                context.getScene().getCompiledBoundedShadowCastingTracingObjects(),
-                context.getScene().getCompiledUnboundedShadowCastingTracingObjects(),
-                context.getScene().getBakedComposites(),
-                context.getScene().getBakedCsgs(),
-                context.getScene().getBakedSimpleBodies(),
+                context.getScene().getBakedScene(),
+                context.getScene().getCompiledTracingSceneForBridge(),
                 traceLevel, textureUtils);
         }
 

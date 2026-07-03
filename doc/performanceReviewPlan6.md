@@ -313,6 +313,77 @@ a porting bug if it reappears).
 Gate: byte-identical to the Plan 5 reference state. This phase must be
 byte-exact because no numeric path changed.
 
+**Status: DONE.** `render/bakedScene/BakedTrace.{h,cpp}` implements the new
+entry points (`traceFirstHit`/`traceAllCrossings`/`containmentTest`),
+dispatching on `BakedScene::TraceableObject::kind`: `DirectPrimitive`/
+`BoundedGeneric`/`GenericFallback` route through the newly-ported simple-
+body logic (`traceSimpleBodyAllCrossings`/`traceSimpleBodyFirstHit`/
+`simpleBodyContainmentTest`/`finalizeSimpleBodyCandidate`/
+`passesBoundingShapes` - faithful ports of `BakedSimpleBodyTracing`,
+including its ultra-fast direct-quadric bypass), `Composite` routes through
+the newly-ported `traceComposite*` functions (faithful port of
+`BakedCompositeTracing`, including the transform-conditional AABB-culling
+gate and the `.length()` `t`-formula quirk flagged in Phase 0), and `Csg`
+bridges transparently to the old `BakedSimpleBodyTracing`/`BakedCsgTracing`
+via a `legacyScene` parameter (`Scene::getCompiledTracingSceneForBridge()`)
+- object indices are guaranteed to match 1:1 between the two models for
+simple-body-derived entries (see `BakedSceneBuilder`), so the bridge is a
+direct array lookup, no translation needed. `RenderEngine::trace` and
+`DirectLightShader::shade`'s shadow-ray path (`LocalSurfaceShader`→
+`DirectLightShader`, threaded through `RayShaderPipeline`) now call
+`BakedTrace` unconditionally for every top-level/shadow-casting object -
+simpler than the plan's literal phrasing ("switch RenderEngine... for
+those kinds only"), since the Csg bridge lives inside `BakedTrace` itself
+rather than as a caller-side branch. Note also that
+`canUseCsgFirstHitForShadow` (the shadow first-hit fast path gate in
+`DirectLightShader.cpp`) had to key off `csgProgramIndex >= 0` directly,
+not `kind == Csg` - the old gate applied to CSG-having bodies regardless of
+bounded/clipped status, which Plan 6's `BoundedGeneric` kind now also
+covers.
+
+**Bug found and fixed during this phase**: `BakedSceneBuilder`'s
+`translateOperand`/`translateSimpleBody` re-pointed a folded operand's
+`geometry`/`quadricGeometry` at its own (about-to-be-copied) local
+`bakedQuadricStorage`/`bakedPlaneStorage` - exactly the self-referential-
+pointer hazard Phase 0 flagged (item 1), except this time on the *new*
+model instead of the old one. The pointer went stale the moment the local
+`CsgOperandRecord`/`TraceableObject` was copied into its final
+`java::ArrayList` slot (copy-assignment, not move, per `ArrayList.txx`),
+causing segfaults (`cliptst2.pov` crashed inside
+`simpleBodyContainmentTest`) across ~29 scenes on the first `renderAll.sh`
+run. Fix: don't re-point at all - `out.geometry`/`quadricGeometry` were
+already being copied from `operand.geometry`/`quadricGeometry`, which for
+a folded operand already alias the OLD model's own `bakedQuadric`/
+`bakedPlane` (fixed up once by `Scene::buildCompiledTracingScene`, stable
+for the OLD model's lifetime - i.e. the whole `Scene`'s lifetime between
+rebuilds). Since `legacyScene` is kept alive alongside `bakedScene` for the
+Phase 2/3 bridge anyway, aliasing into it is safe and avoids the
+self-pointer problem entirely; the `*Storage` fields are kept for the
+`hasBakedQuadric`/`hasBakedPlane` statistics only, not as pointer targets.
+
+**Gate**: `./scripts/renderAll.sh` (134s) + `./scripts/testAgainstGoldenImages.sh`
+→ `Test passed.`, byte-identical. `./scripts/renderParallel.sh` (drums.pov +
+iortest.pov under `-parallel`) also byte-identical against golden -
+confirms the per-task scratch design (`CsgScratchContext`, `RayWithSegments`
+pools) still holds with the new dispatch layer added on top.
+`./scripts/benchmarkPanel.sh`: spline 0.186x, ntreal 0.519x, piece3 0.559x,
+iortest 0.651x, shapes2 0.393x of the (also-measured-in-this-session)
+baseline - no regressions.
+
+**Investigated and ruled out as a Phase 6 concern**: an initial drums.pov
+absolute-timing check showed ~130s, wildly worse than Plan 5's recorded
+~8.4s. Bisected by building and timing three points in a scratch worktree:
+Plan 6 Phase 1 (`a9a5751`), the exact Plan 5 end-state commit (`65115a5`,
+predates all Plan 6 work), and the current Phase 2 tree - all three take
+~118-130s for the identical drums.pov render (same ray count and
+intersection-test counts reported in the stats block across all three).
+This proves the absolute slowdown is an **environmental property of this
+session's machine** (CPU throttling/scheduling/noisy-neighbor - root cause
+not further investigated, out of scope for this plan), not something
+Phase 2 introduced. `benchmarkPanel.sh`'s baseline-vs-current ratios remain
+valid evidence of no regression because both sides of each ratio are
+measured in the same session under the same environmental conditions.
+
 ### Phase 3 — Port the CSG paths
 
 Re-implement the CSG traversal semantics over `BakedCsgProgram`: generic

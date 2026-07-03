@@ -6,6 +6,7 @@
 #include "environment/light/Light.h"
 #include "environment/material/povray/PovRayMaterial.h"
 #include "java/util/ArrayList.h"
+#include "render/bakedScene/BakedScene.h"
 #include "render/shaders/TraceService.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
@@ -16,11 +17,8 @@ public:
         const RayWithSegments *eye, const Vector3Dd *surfaceNormal,
         const ColorRgba *surfaceColor, ColorRgba *color, double attenuation,
         const TraceService *traceService, const java::ArrayList<Light*> &lightSources,
-        const java::ArrayList<Scene::CompiledTracingObject> &boundedTracingObjects,
-        const java::ArrayList<Scene::CompiledTracingObject> &unboundedTracingObjects,
-        const java::ArrayList<Scene::BakedComposite> &bakedComposites,
-        const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
-        const java::ArrayList<Scene::BakedSimpleBody> &bakedSimpleBodies);
+        const BakedScene &bakedScene,
+        const Scene::CompiledTracingScene &legacyScene);
 };
 
 #endif

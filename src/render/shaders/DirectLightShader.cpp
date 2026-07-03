@@ -15,9 +15,7 @@
 #include "render/shaders/PhongSpecularShader.h"
 #include "render/shaders/ShadowShader.h"
 #include "render/shaders/TraceService.h"
-#include "render/bakedScene/BakedCompositeTracing.h"
-#include "render/bakedScene/BakedSimpleBodyTracing.h"
-#include "render/bakedScene/BakedTracingCommon.h"
+#include "render/bakedScene/BakedTrace.h"
 
 static constexpr double SHADOW_TOLERANCE = 0.05;
 
@@ -57,21 +55,17 @@ rayIntersectsAabbBefore(
 }
 
 bool
-canUseCsgFirstHitForShadow(
-    const Scene::CompiledTracingObject &entry,
-    const java::ArrayList<Scene::BakedSimpleBody> &bakedSimpleBodies)
+canUseCsgFirstHitForShadow(const BakedScene &bakedScene, int objectIndex)
 {
-    return
-        entry.bakedSimpleBodyIndex >= 0 &&
-        bakedSimpleBodies[entry.bakedSimpleBodyIndex].bakedCsgIndex >= 0;
+    const BakedScene::TraceableObject &object = bakedScene.traceableObjects[objectIndex];
+    return object.kind != BakedScene::TraceKind::Composite && object.csgProgramIndex >= 0;
 }
 
 bool
 traceShadowObject(
-    const Scene::CompiledTracingObject &entry,
-    const java::ArrayList<Scene::BakedSimpleBody> &bakedSimpleBodies,
-    const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
-    const java::ArrayList<Scene::BakedComposite> &bakedComposites,
+    const BakedScene &bakedScene,
+    const Scene::CompiledTracingScene &legacyScene,
+    int objectIndex,
     RayWithSegments *lightSourceRay,
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue,
     double lightSourceDepth,
@@ -79,15 +73,10 @@ traceShadowObject(
     const TraceService *traceService)
 {
     if (!lightSourceRay->getConfig()->withFilteredShadows() &&
-        canUseCsgFirstHitForShadow(entry, bakedSimpleBodies)) {
+        canUseCsgFirstHitForShadow(bakedScene, objectIndex)) {
         IntersectionCandidate firstHit;
-        if (!BakedTracingCommon::traceObjectFirstHit(
-                entry,
-                bakedSimpleBodies,
-                bakedCsgs,
-                bakedComposites,
-                lightSourceRay,
-                firstHit)) {
+        if (!BakedTrace::traceFirstHit(
+                bakedScene, legacyScene, objectIndex, lightSourceRay, firstHit)) {
             return false;
         }
 
@@ -99,13 +88,8 @@ traceShadowObject(
         }
     }
 
-    BakedTracingCommon::traceObjectAllCrossings(
-        entry,
-        bakedSimpleBodies,
-        bakedCsgs,
-        bakedComposites,
-        lightSourceRay,
-        localDepthQueue);
+    BakedTrace::traceAllCrossings(
+        bakedScene, legacyScene, objectIndex, lightSourceRay, localDepthQueue);
 
     while (localDepthQueue->size() > 0) {
         IntersectionCandidate localIntersection = localDepthQueue->poll();
@@ -138,11 +122,8 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
     const RayWithSegments *eye, const Vector3Dd *surfaceNormal, const ColorRgba *surfaceColor,
     ColorRgba *color, double attenuation, const TraceService *traceService,
     const java::ArrayList<Light*> &lightSources,
-    const java::ArrayList<Scene::CompiledTracingObject> &boundedTracingObjects,
-    const java::ArrayList<Scene::CompiledTracingObject> &unboundedTracingObjects,
-    const java::ArrayList<Scene::BakedComposite> &bakedComposites,
-    const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
-    const java::ArrayList<Scene::BakedSimpleBody> &bakedSimpleBodies)
+    const BakedScene &bakedScene,
+    const Scene::CompiledTracingScene &legacyScene)
 {
     double lightSourceDepth;
     RayWithSegments lightSourceRay;
@@ -184,22 +165,26 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
         // What objects does this ray intersect?
         if (eye->getConfig()->withShadows()) {
             Statistics &stats = *eye->getStatistics();
-            for (long int i = boundedTracingObjects.size() - 1; i >= 0; i--) {
-                const Scene::CompiledTracingObject &entry = boundedTracingObjects[i];
+            const java::ArrayList<int> &boundedShadowObjects =
+                bakedScene.boundedShadowCastingObjectIndices;
+            const java::ArrayList<int> &unboundedShadowObjects =
+                bakedScene.unboundedShadowCastingObjectIndices;
+            for (long int i = boundedShadowObjects.size() - 1; i >= 0; i--) {
+                const int objectIndex = boundedShadowObjects[i];
+                const BakedScene::TraceableObject &entry = bakedScene.traceableObjects[objectIndex];
                 if (entry.bounded &&
                     !rayIntersectsAabbBefore(
                         lightSourceRay,
-                        entry.bounds,
+                        entry.worldBounds,
                         lightSourceDepth - Config::SMALL_TOLERANCE)) {
                     continue;
                 }
 
                 stats.incrementShadowRayTests();
                 if (traceShadowObject(
-                    entry,
-                    bakedSimpleBodies,
-                    bakedCsgs,
-                    bakedComposites,
+                    bakedScene,
+                    legacyScene,
+                    objectIndex,
                     &lightSourceRay,
                     localDepthQueue,
                     lightSourceDepth,
@@ -209,16 +194,15 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
                     break;
                 }
             }
-            for (long int i = unboundedTracingObjects.size() - 1;
+            for (long int i = unboundedShadowObjects.size() - 1;
                 !intersectionFound && i >= 0;
                 i--) {
-                const Scene::CompiledTracingObject &entry = unboundedTracingObjects[i];
+                const int objectIndex = unboundedShadowObjects[i];
                 stats.incrementShadowRayTests();
                 if (traceShadowObject(
-                    entry,
-                    bakedSimpleBodies,
-                    bakedCsgs,
-                    bakedComposites,
+                    bakedScene,
+                    legacyScene,
+                    objectIndex,
                     &lightSourceRay,
                     localDepthQueue,
                     lightSourceDepth,

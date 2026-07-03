@@ -16,8 +16,7 @@
 #include "environment/material/PovRayRendererConfiguration.h"
 #include "render/shaders/TraceService.h"
 #include "render/ColorOperations.h"
-#include "render/bakedScene/BakedCompositeTracing.h"
-#include "render/bakedScene/BakedSimpleBodyTracing.h"
+#include "render/bakedScene/BakedTrace.h"
 #include "render/bakedScene/BakedTracingCommon.h"
 #include "render/RayShaderPipeline.h"
 #include "render/RenderEngine.h"
@@ -438,31 +437,22 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
         *color = this->getScene().getFogColor();
     }
 
-    const java::ArrayList<Scene::CompiledTracingObject> &boundedObjects =
-        this->getScene().getCompiledBoundedTracingObjects();
-    const java::ArrayList<Scene::CompiledTracingObject> &unboundedObjects =
-        this->getScene().getCompiledUnboundedTracingObjects();
-    const java::ArrayList<Scene::BakedSimpleBody> &bakedSimpleBodies =
-        this->getScene().getBakedSimpleBodies();
-    const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs =
-        this->getScene().getBakedCsgs();
-    const java::ArrayList<Scene::BakedComposite> &bakedComposites =
-        this->getScene().getBakedComposites();
+    const BakedScene &bakedScene = this->getScene().getBakedScene();
+    const Scene::CompiledTracingScene &legacyScene =
+        this->getScene().getCompiledTracingSceneForBridge();
+    const java::ArrayList<int> &boundedObjects = bakedScene.boundedObjectIndices;
+    const java::ArrayList<int> &unboundedObjects = bakedScene.unboundedObjectIndices;
     for (long int i = boundedObjects.size() - 1; i >= 0; i--) {
-        const Scene::CompiledTracingObject &entry = boundedObjects[i];
+        const int objectIndex = boundedObjects[i];
         const double currentBestT =
             (intersectionFound && localIntersection.getIntersection().t > 0.0) ?
                 localIntersection.getIntersection().t : 1e30;
-        if (!rayIntersectsAabbBefore(*localRay, entry.bounds, currentBestT)) {
+        if (!rayIntersectsAabbBefore(
+                *localRay, bakedScene.traceableObjects[objectIndex].worldBounds, currentBestT)) {
             continue;
         }
-        const bool hit = BakedTracingCommon::traceObjectFirstHit(
-            entry,
-            bakedSimpleBodies,
-            bakedCsgs,
-            bakedComposites,
-            localRay,
-            newIntersection);
+        const bool hit = BakedTrace::traceFirstHit(
+            bakedScene, legacyScene, objectIndex, localRay, newIntersection);
         if (hit) {
             if (!intersectionFound ||
                 newIntersection.getIntersection().t <
@@ -473,14 +463,9 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
         }
     }
     for (long int i = unboundedObjects.size() - 1; i >= 0; i--) {
-        const Scene::CompiledTracingObject &entry = unboundedObjects[i];
-        const bool hit = BakedTracingCommon::traceObjectFirstHit(
-            entry,
-            bakedSimpleBodies,
-            bakedCsgs,
-            bakedComposites,
-            localRay,
-            newIntersection);
+        const int objectIndex = unboundedObjects[i];
+        const bool hit = BakedTrace::traceFirstHit(
+            bakedScene, legacyScene, objectIndex, localRay, newIntersection);
         if (hit) {
             if (!intersectionFound ||
                 newIntersection.getIntersection().t <
