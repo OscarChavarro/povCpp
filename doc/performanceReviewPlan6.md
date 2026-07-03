@@ -253,6 +253,54 @@ transform-class count) printed under the existing statistics facility.
 
 Gate: unchanged output (the new model is built but unused).
 
+**Status: DONE.** `render/bakedScene/BakedScene.h` (the new flat model:
+`TraceableObject`/`CsgProgram`/`CsgOperandRecord`/`CompositeRecord`, unified
+index space for simple bodies and composites so bounding/clipping/child
+references are plain `int` indices into one array instead of the old
+mutually-exclusive-pointer-pair) and `BakedSceneBuilder` (translates
+`Scene::CompiledTracingScene` - still the authoritative source at this
+phase - into it) are built. `Scene` owns a `BakedScene bakedScene` member,
+rebuilt every `buildCompiledTracingScene()` call (same point as the old
+model), exposed via `getBakedScene()`; nothing reads it yet. Builder
+statistics ("Plan 6 baked model...", "Plan 6 CSG programs...", "Plan 6
+residual (un-collapsed) operands...") print alongside the existing Plan
+1-5 statistics in `PovRayApplication::printStatistics`.
+
+Cross-checked against the old model's own statistics on `drums.pov`: old
+"direct 18 + transformed 1" simple bodies == new "direct 19" (Plan 6
+correctly collapses `DirectPrimitive`/`TransformedPrimitive` into one
+`TraceKind`, since Plan 5 already made that distinction numerically
+irrelevant for the hot path); csg 86 matches exactly both models; CSG
+program count 450 and the full plan-kind breakdown
+(generic-morgan/core-plane/etc.) match exactly; collapsed-quadric count 150
+matches; new "residual transformed operands: 244" matches the old
+"transformed-nested 244" (operands whose transform survives Plan 5's fold
+are exactly the `TransformedNestedCsg` ones, expected since Plan 5 only
+folds leaf quadric/plane operands, never nested-CSG operands).
+
+Full gate: `./scripts/renderAll.sh` (138s) +
+`./scripts/testAgainstGoldenImages.sh` → `Test passed.`, byte-identical
+across the whole suite (expected: the new model is built but has zero
+readers).
+
+Note for Phase 4: `BakedSceneBuilder::build` currently takes
+`Scene::CompiledTracingScene` as its only input (i.e. it derives the new
+model from the old one, not from the parsed `SimpleBody`/`CsgOperand`/
+`Composite` tree directly). This was a deliberate Phase-1 simplification to
+avoid re-deriving the classify/bake logic twice while both models still
+need to exist and agree. Phase 4 (moving the `Baked*` structs out of
+`Scene.h` for good) must change `BakedSceneBuilder` to consume the parsed
+tree directly instead, porting `bakeSimpleBody`/`bakeCsgOperand`/
+`bakeConstructiveSolidGeometry`/`bakeComposite`/`classifyBaked*`/
+`buildBakedCsgExecutionPlan` (currently in `Scene.cpp`) into
+`BakedSceneBuilder.cpp` verbatim - at that point the reserve-then-fixup
+pointer dance these functions do can also be dropped, since the new
+`BakedSceneBuilder` builds bottom-up into the new arrays' *final* value
+slots directly (each `java::ArrayList::add` still copies, but the
+self-pointers are only taken in a single, final pass after each array has
+stopped growing for good - same idea as today's fix-up pass, just against
+the new arrays instead of the old ones).
+
 ### Phase 2 — Port the non-CSG paths
 
 Implement `BakedTrace` for DirectPrimitive, Composite, bounded/clipped and

@@ -12,6 +12,7 @@
 #include "environment/light/Light.h"
 #include "environment/material/Material.h"
 #include "environment/scene/SimpleBody.h"
+#include "render/bakedScene/BakedScene.h"
 
 class Composite;
 class ConstructiveSolidGeometry;
@@ -282,6 +283,10 @@ class Scene {
     {
         return compiledTracingScene.unboundedShadowCastingObjects;
     }
+    // Plan 6 Phase 1: the rebuilt baked model, built alongside
+    // compiledTracingScene above (same rebuild points) but not yet consumed
+    // by any trace path - see doc/performanceReviewPlan6.md.
+    const BakedScene& getBakedScene() const { return bakedScene; }
     void rebuildTracingStructures();
     void buildTracingCache();
     void buildCompiledTracingScene();
@@ -314,6 +319,7 @@ class Scene {
     java::ArrayList<TracingObjectEntry> boundedTracingObjects;
     java::ArrayList<SimpleBody*> unboundedTracingObjects;
     CompiledTracingScene compiledTracingScene;
+    BakedScene bakedScene;
     bool compiledTracingSceneFinalized = false;
 };
 

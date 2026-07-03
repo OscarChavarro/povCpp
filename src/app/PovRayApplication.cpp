@@ -12,6 +12,7 @@
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/material/LoadedImageRegistry.h"
 #include "io/pov/scene/SceneParser.h"
+#include "render/bakedScene/BakedScene.h"
 #include "render/bakedScene/BakedTracingCommon.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
@@ -368,6 +369,38 @@ PovRayApplication::printStatistics(
         planPlaneRoles,
         planNestedRoles);
     printProgress(buffer);
+
+    {
+        const BakedScene::Statistics &bakedSceneStats = frame.getBakedScene().statistics;
+        snprintf(buffer, sizeof(buffer),
+            "  Plan 6 baked model (built, not yet consumed): empty %ld  direct %ld  csg %ld  "
+            "composite %ld  bounded/clipped %ld  generic-fallback %ld",
+            bakedSceneStats.countByKind[(int)BakedScene::TraceKind::Empty],
+            bakedSceneStats.countByKind[(int)BakedScene::TraceKind::DirectPrimitive],
+            bakedSceneStats.countByKind[(int)BakedScene::TraceKind::Csg],
+            bakedSceneStats.countByKind[(int)BakedScene::TraceKind::Composite],
+            bakedSceneStats.countByKind[(int)BakedScene::TraceKind::BoundedGeneric],
+            bakedSceneStats.countByKind[(int)BakedScene::TraceKind::GenericFallback]);
+        printProgress(buffer);
+        snprintf(buffer, sizeof(buffer),
+            "  Plan 6 CSG programs: %ld total - generic-morgan %ld  ray-segments %ld  "
+            "plane-union %ld  disjoint-union %ld  core-plane %ld  fallback %ld",
+            bakedSceneStats.csgProgramCount,
+            bakedSceneStats.csgPlanGenericMorgan,
+            bakedSceneStats.csgPlanGenericRaySegments,
+            bakedSceneStats.csgPlanTopLevelPlaneUnion,
+            bakedSceneStats.csgPlanDisjointBoundedUnion,
+            bakedSceneStats.csgPlanSingleCorePlaneIntersection,
+            bakedSceneStats.csgPlanFallback);
+        printProgress(buffer);
+        snprintf(buffer, sizeof(buffer),
+            "  Plan 6 residual (un-collapsed) operands: transformed %ld  "
+            "(collapsed: quadric %ld  plane %ld)",
+            bakedSceneStats.residualTransformedOperands,
+            bakedSceneStats.residualBakedQuadricOperands,
+            bakedSceneStats.residualBakedPlaneOperands);
+        printProgress(buffer);
+    }
 
     if (stats.getUsedTime() != 0.0) {
         const int hours = (int)stats.getUsedTime() / 3600;
