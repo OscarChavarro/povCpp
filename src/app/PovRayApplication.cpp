@@ -169,10 +169,18 @@ PovRayApplication::printStatistics(
     long transformedNestedCompiledContainmentRoles = 0;
     long transformedNestedOtherPlan = 0;
     long operandGeneric = 0;
+    long operandCollapsedQuadric = 0;
+    long operandCollapsedPlane = 0;
     for (long int i = 0; i < frame.getBakedCsgs().size(); i++) {
         const Scene::BakedConstructiveSolidGeometry &bakedCsg =
             frame.getBakedCsgs()[i];
         for (long int j = 0; j < bakedCsg.operands.size(); j++) {
+            if (bakedCsg.operands[j].hasBakedQuadric) {
+                operandCollapsedQuadric++;
+            }
+            if (bakedCsg.operands[j].hasBakedPlane) {
+                operandCollapsedPlane++;
+            }
             switch (bakedCsg.operands[j].executionKind) {
             case Scene::BakedCsgOperandExecutionKind::DirectAnnotatedPrimitive:
             case Scene::BakedCsgOperandExecutionKind::DirectPrimitive:
@@ -275,6 +283,12 @@ PovRayApplication::printStatistics(
         operandTransformedPlane,
         operandDirectNested,
         operandTransformedNested);
+    printProgress(buffer);
+    snprintf(buffer, sizeof(buffer),
+        "  Baked CSG coefficient collapse (Plan 5 Phase 3): quadric %ld  plane %ld  "
+        "(these count against direct/direct-plane above, not transformed-quadric/transformed-plane)",
+        operandCollapsedQuadric,
+        operandCollapsedPlane);
     printProgress(buffer);
     snprintf(buffer, sizeof(buffer),
         "  Baked transformed-nested refs: generic-morgan %ld  core-plane %ld  other %ld",
