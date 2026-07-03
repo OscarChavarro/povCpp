@@ -64,6 +64,14 @@ class Scene {
             BakedSimpleBodyExecutionKind::Empty;
         java::ArrayList<CompiledTracingObject> boundingObjects;
         java::ArrayList<CompiledTracingObject> clippingObjects;
+        // World-space coefficient-rewritten copies (Plan 5 Phase 4) - same
+        // by-value-not-self-pointer design and the same one-time fix-up-pass
+        // requirement as BakedCsgOperand::bakedQuadric/bakedPlane; see the
+        // comment there.
+        Quadric bakedQuadric;
+        bool hasBakedQuadric = false;
+        InfinitePlane bakedPlane;
+        bool hasBakedPlane = false;
     };
 
     enum class BakedCsgAlgorithm {
