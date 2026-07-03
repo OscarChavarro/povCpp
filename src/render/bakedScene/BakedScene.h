@@ -64,7 +64,7 @@ class BakedScene {
     // copy - carried over unchanged from Plan 5's BakedCsgOperand.
     struct CsgOperandRecord {
         CsgOperandKind kind = CsgOperandKind::Empty;
-        const Geometry *geometry = nullptr;
+        Geometry *geometry = nullptr;
         Quadric *quadricGeometry = nullptr;
         Material *material = nullptr;
         int nestedCsgProgramIndex = -1;
@@ -120,7 +120,7 @@ class BakedScene {
     struct TraceableObject {
         TraceKind kind = TraceKind::Empty;
         SimpleBody *object = nullptr;
-        const Geometry *geometry = nullptr;
+        Geometry *geometry = nullptr;
         Quadric *quadricGeometry = nullptr;
         Material *geometryMaterial = nullptr;
         Material *objectTexture = nullptr;

@@ -118,17 +118,18 @@ translateOperand(const Scene::BakedCsgOperand &operand)
     out.compiledNestedPlaneOperandIndices = operand.compiledNestedPlaneOperandIndices;
     out.compiledNestedContainmentOperandIndices = operand.compiledNestedContainmentOperandIndices;
 
-    // Re-point a folded operand's owned copy at itself: `operand.geometry`/
-    // `quadricGeometry` were already re-pointed at `operand.bakedQuadric`/
-    // `bakedPlane` by Scene::buildCompiledTracingScene's fix-up pass, but
-    // that address belongs to the OLD struct, which does not outlive this
-    // function. Re-derive it against our own by-value copy instead.
-    if (out.hasBakedQuadric) {
-        out.geometry = &out.bakedQuadricStorage;
-        out.quadricGeometry = &out.bakedQuadricStorage;
-    } else if (out.hasBakedPlane) {
-        out.geometry = &out.bakedPlaneStorage;
-    }
+    // `out.geometry`/`out.quadricGeometry` were copied above directly from
+    // `operand.geometry`/`operand.quadricGeometry`, which - for a folded
+    // operand - already point at `operand.bakedQuadric`/`bakedPlane` inside
+    // the OLD model (Scene::buildCompiledTracingScene's fix-up pass). That
+    // storage is owned by `legacyScene` (a Scene member, alive for the whole
+    // render, rebuilt in lockstep with this new model), so aliasing it here
+    // is safe and simpler than re-deriving a self-pointer against
+    // `out.bakedQuadricStorage`/`bakedPlaneStorage` - the latter would
+    // dangle the moment `out` is copied into its final array slot (the
+    // exact self-referential-pointer hazard flagged in Phase 0). Those two
+    // *Storage fields are kept only for the hasBakedQuadric/hasBakedPlane
+    // statistics; they are not the pointer target.
     return out;
 }
 
@@ -205,12 +206,11 @@ translateSimpleBody(
     out.hasBakedQuadric = body.hasBakedQuadric;
     out.bakedPlaneStorage = body.bakedPlane;
     out.hasBakedPlane = body.hasBakedPlane;
-    if (out.hasBakedQuadric) {
-        out.geometry = &out.bakedQuadricStorage;
-        out.quadricGeometry = &out.bakedQuadricStorage;
-    } else if (out.hasBakedPlane) {
-        out.geometry = &out.bakedPlaneStorage;
-    }
+    // See the identical comment in translateOperand(): out.geometry/
+    // quadricGeometry are copied above from body.geometry/quadricGeometry,
+    // which already alias the OLD model's stable-for-this-build-cycle
+    // bakedQuadric/bakedPlane storage - do not re-point at
+    // out.bakedQuadricStorage/bakedPlaneStorage here, it would dangle.
     out.kind = classifyTraceableObject(
         out.geometry != nullptr,
         out.hasBoundingShapes || out.hasClippingShapes,
