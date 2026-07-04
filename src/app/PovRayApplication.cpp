@@ -132,6 +132,14 @@ PovRayApplication::printStatistics(
             bakedSceneStats.residualBakedQuadricOperands,
             bakedSceneStats.residualBakedPlaneOperands);
         printProgress(buffer);
+        snprintf(buffer, sizeof(buffer),
+            "  Plan 8 R0 residual breakdown: cat1-nestedCsg %ld (pushdown-eligible %ld)  "
+            "cat2-emptySteps %ld  cat3-unbakeable %ld",
+            bakedSceneStats.residualCategory1NestedCsg,
+            bakedSceneStats.residualCategory1PushdownEligible,
+            bakedSceneStats.residualCategory2EmptySteps,
+            bakedSceneStats.residualCategory3Unbakeable);
+        printProgress(buffer);
     }
 
     if (stats.getUsedTime() != 0.0) {

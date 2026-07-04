@@ -303,6 +303,52 @@ drums (3 runs), panel, gprof, `-parallel` determinism. Then a written
 go/no-go for Plan 9 based on what the exit profile actually shows (see the
 re-scoped entry criterion in `doc/performanceReviewPlan9.md`).
 
+### Phase R0 — Result (2026-07-04, commit pending)
+
+Implemented as pure statistics: `BakedScene::Statistics` gained
+`residualCategory{1,2,3}*` fields, populated in `accumulateStatistics`
+(`BakedSceneBuilder.cpp`) using `classifyOperandKind`'s existing output plus
+a new `nestedProgramFullyBakeable` recursive check (is every operand of a
+`TransformedNestedCsg`'s nested program itself a bakeable kind — direct/
+transformed quadric or plane, or recursively an all-bakeable `NestedCsg`).
+Reported per-scene by `PovRayApplication::printStatistics`. Gate:
+byte-identical full suite, confirmed.
+
+| Scene | Residual total | Cat 1 (nested-CSG) | ...pushdown-eligible | Cat 2 (empty steps) | Cat 3 (unbakeable) |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| drums | 244 | 244 | 124 | 0 | 0 |
+| chess | 127 | 11 | 11 | 0 | 116 |
+| pacman | 7 | 0 | 0 | 0 | 7 |
+| takeoff | 4 | 1 | 0 | 0 | 3 |
+| desk | 9 | 0 | 0 | 0 | 9 |
+| iortest | 20 | 10 | 5 | 0 | 10 |
+
+Category 2 (empty step list) is empty on all six scenes — the parser gap
+hypothesized in the write-up does not exist on this tree; Phase R1 has
+nothing to do and is closed as **not needed**.
+
+drums is the decisive case: **100% of its residual population is category
+1**, and 124/244 (51%) are push-down eligible *today*, with only a
+one-level nested check — recursion wasn't even needed to clear half the
+population. This lines up exactly with the profile: the 23.5M calls/frame
+into `traceTransformedNestedSingleCorePlaneOperandAllCrossings` (Plan 8
+Phase 1 status table) are category-1 territory by construction, since that
+function only exists to serve `TransformedNestedCsg` operands.
+
+**Kill criterion: does not fire.** Category 1 is not merely "the
+call-weighted majority" of drums's residual population — it is all of it.
+chess and iortest also show category 1 as the (smaller-scene) hot
+candidate; pacman/takeoff/desk are dominated by category 3
+(sphere/box/primitive operands), which R2 cannot touch and which has no
+proposed remedy in this plan.
+
+**Decision: proceed to Phase R2, skip R1.** R1 is closed as not-needed (no
+category-2 population found). R2's push-down is the plan's only remaining
+lever, and drums is exactly the scene it was designed for — half its
+residual population converts to world-space quadrics on the first pass,
+directly displacing the current single largest named hot cluster in the
+whole Plan 5-8 sequence.
+
 ### Refocused acceptance criteria
 
 - Phase R0 table published for the six named scenes (hard requirement even

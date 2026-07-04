@@ -194,6 +194,20 @@ class BakedScene {
         // quadric/plane-bearing record assigned during build().
         long quadricViewpointSlotCount = 0;
         long planeViewpointSlotCount = 0;
+        // Plan 8 Phase R0: split residualTransformedOperands by the three
+        // root causes identified in doc/performanceReviewPlan8.md.
+        // Category 1: TransformedNestedCsg - never collapsible today.
+        long residualCategory1NestedCsg = 0;
+        // ...of which the nested program's operands are ALL themselves
+        // bakeable kinds (quadric/plane, recursively bakeable nested) -
+        // the Phase R2 push-down candidates.
+        long residualCategory1PushdownEligible = 0;
+        // Category 2: TransformedQuadric/TransformedPlane whose source
+        // CsgOperand has an empty step list (parser/instantiation gap).
+        long residualCategory2EmptySteps = 0;
+        // Category 3: TransformedSphere/TransformedPrimitive - no
+        // coefficient congruence exists for these kinds today.
+        long residualCategory3Unbakeable = 0;
     };
 
     java::ArrayList<TraceableObject> traceableObjects;
