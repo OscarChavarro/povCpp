@@ -109,6 +109,16 @@ class BakedScene {
         // would silently forget whatever an earlier, deeper push-down pass
         // already folded in. Empty until the first push-down collapse.
         java::ArrayList<TransformStep> pushdownAccumulatedSteps;
+        // Plan 8 Phase R2: true on a nested-CSG wrapper whose transform was
+        // pushed down into its program (kind demoted TransformedNestedCsg ->
+        // NestedCsg, matrices reset to identity). Lets buildCsgExecutionPlan
+        // keep compiling the single-core-plane fast path for it - without
+        // this the push-down silently trades the compiled kernel (trueMiss
+        // early-out, no clone, no scratch queue) for the generic nested
+        // recursion, which is what made the collapse performance-neutral.
+        // Deliberately NOT set on wrappers that were never transformed, so
+        // scenes push-down never touched keep their exact byte behavior.
+        bool pushdownFolded = false;
     };
 
     // One compiled CSG node: algorithm/specialization chosen once at build

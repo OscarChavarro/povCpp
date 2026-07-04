@@ -1524,13 +1524,16 @@ BakedCsgTrace::traceTransformedNestedSingleCorePlaneOperandAllCrossings(
         // it outputs polyA/polyB/polyC that are unused in this emitter, adding register
         // pressure on every call. intersectBakedQuadricWithTrueMiss provides only the
         // trueMiss flag without the unused output parameters.
+        // Plan 8 R2: a pushdown-folded wrapper has identity matrices, so
+        // coreRayOrigin/coreRayDirection above are bit-equal to the parent
+        // ray's own origin/direction - the ray's cached aggregates apply.
         bool trueMiss = false;
         const bool quadricHit = intersectBakedQuadricWithTrueMiss(
             *directCoreQuadric,
             parentRay,
             coreRayOrigin,
             coreRayDirection,
-            false,
+            parentOperand.pushdownFolded,
             cache,
             coreOperand.quadricViewpointSlot,
             &depth1,

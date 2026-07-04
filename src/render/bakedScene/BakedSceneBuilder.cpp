@@ -199,7 +199,14 @@ buildCsgExecutionPlan(BakedScene::CsgProgram &baked, const BakedScene &out)
         case BakedScene::CsgOperandKind::NestedCsg:
         case BakedScene::CsgOperandKind::TransformedNestedCsg:
             baked.nestedOperandIndices.add((int)i);
-            if (operand.kind == BakedScene::CsgOperandKind::TransformedNestedCsg &&
+            // Plan 8 R2: push-down demotes TransformedNestedCsg wrappers to
+            // NestedCsg; keep those on the compiled single-core-plane kernel
+            // (their record matrices are identity, so the kernel's transforms
+            // are bit-exact no-ops). Never-transformed NestedCsg wrappers
+            // stay off it to preserve their existing byte behavior.
+            if ((operand.kind == BakedScene::CsgOperandKind::TransformedNestedCsg ||
+                 (operand.kind == BakedScene::CsgOperandKind::NestedCsg &&
+                  operand.pushdownFolded)) &&
                 operand.nestedCsgProgramIndex >= 0 &&
                 operand.nestedCsgProgramIndex < out.csgPrograms.size()) {
                 const BakedScene::CsgProgram &nestedCsg =
@@ -455,6 +462,11 @@ pushDownStepsIntoProgram(
         if (operand.kind == BakedScene::CsgOperandKind::NestedCsg) {
             pushDownStepsIntoProgram(
                 out, operand.nestedCsgProgramIndex, parentSteps, parentForwardTransform);
+            // Whether this inner wrapper was itself folded earlier (matrices
+            // already identity) or was never transformed (identity by
+            // construction), its program is now world-space - mark it so
+            // buildCsgExecutionPlan keeps it on the compiled kernel.
+            operand.pushdownFolded = true;
             continue;
         }
         if (operand.quadricGeometry == nullptr && !operand.isInfinitePlane) {
@@ -494,6 +506,13 @@ pushDownStepsIntoProgram(
         }
         operand.kind = classifyOperandKind(operand);
     }
+    // Re-classify from scratch: classifyCsgProgramSpecialization only ever
+    // SETS specializationValid/planKind, it never clears them, so a
+    // specialization whose precondition no longer holds after the bounds
+    // moved into parent space (e.g. DisjointBoundedUnion boxes that now
+    // overlap after corner-transformation) would silently stay latched.
+    program.specializationValid = false;
+    program.specializationCoreOperandIndex = -1;
     classifyCsgProgramSpecialization(program);
     buildCsgExecutionPlan(program, out);
 }
@@ -530,6 +549,11 @@ bakeCsgOperand(CsgOperand *operand, BakedScene &out)
                 BakedGeometryBaker::bakeQuadric(*baked.quadricGeometry, operand->getSteps());
             baked.hasBakedQuadric = true;
             baked.hasTransform = false;
+            // Plan 8 R2: seed the accumulator with the steps just baked, so
+            // a later pushdown pass extends them instead of losing them
+            // (pushDownStepsIntoProgram reads pushdownAccumulatedSteps, not
+            // getSteps(), whenever hasBakedQuadric/hasBakedPlane is set).
+            baked.pushdownAccumulatedSteps = operand->getSteps();
             operand->setBakedTransformFolded(true);
         } else if (baked.isInfinitePlane) {
             InfinitePlane *plane = static_cast<InfinitePlane *>(baked.geometry);
@@ -538,6 +562,7 @@ bakeCsgOperand(CsgOperand *operand, BakedScene &out)
             baked.hasTransform = false;
             baked.planeNormal = baked.bakedPlaneStorage.getNormalVector();
             baked.planeDistance = baked.bakedPlaneStorage.getDistance();
+            baked.pushdownAccumulatedSteps = operand->getSteps();
             operand->setBakedTransformFolded(true);
         }
     }
@@ -561,7 +586,7 @@ bakeCsgOperand(CsgOperand *operand, BakedScene &out)
         // wrapper's transform down into them and drop it here - see
         // doc/performanceReviewPlan8.md Phase R0 for the collapse-rate
         // finding this responds to.
-        constexpr bool kEnableNestedTransformPushdown = false;
+        constexpr bool kEnableNestedTransformPushdown = true;
         constexpr int kPushdownDepthGuard = 16;
         if (kEnableNestedTransformPushdown &&
             baked.hasTransform && operand->getSteps().size() > 0 &&
@@ -569,6 +594,14 @@ bakeCsgOperand(CsgOperand *operand, BakedScene &out)
             pushDownStepsIntoProgram(
                 out, baked.nestedCsgProgramIndex, operand->getSteps(), baked.objectToLocal);
             baked.hasTransform = false;
+            // Reset the matrices too: with pushdownFolded the wrapper stays
+            // on the compiled single-core-plane kernel, which applies
+            // objectToLocal/localToObject unconditionally - identity there
+            // is a bit-exact no-op, a stale wrapper matrix is a double
+            // transform.
+            baked.objectToLocal = Matrix4x4d::identityMatrix();
+            baked.localToObject = Matrix4x4d::identityMatrix();
+            baked.pushdownFolded = true;
             operand->setBakedTransformFolded(true);
         }
     }

@@ -428,6 +428,79 @@ field operands specifically (the isolated tests here only covered
 pattern (three scenes getting *worse*) points at a population category
 none of this session's tests touched.
 
+### Phase R2 — FIXED and enabled (2026-07-04, later the same day)
+
+The "at least one more undiscovered defect" predicted above was found by
+reading, not by more test scenes, and it explains the *entire* post-Bug-1
+regression pattern:
+
+**Bug 3 (the real one): Plan-5-collapsed operands entered push-down with an
+empty step accumulator.** `bakeCsgOperand`'s own Plan 5 collapse sets
+`hasBakedQuadric`/`hasBakedPlane` but never seeded
+`pushdownAccumulatedSteps`; the Bug-1 fix reads the accumulator *whenever*
+`hasBaked*` is set, so any operand with its own recorded steps (e.g.
+X_Tube's inner cylinder `scale <0.97> inverse` — the drum shells) was
+re-baked with **only** the parent's steps, its own dropped entirely. That
+is why chess/snail/tomb got *worse* after the Bug-1 fix: before it, those
+operands still read their own steps. Fix: seed the accumulator at both
+Plan-5 collapse sites. **"Bug 2" (the seam) was this same bug** — with the
+seed in place the touching-instances test renders byte-identical (AE=0);
+the tie-breaking suspicion was wrong.
+
+Also fixed while verifying: (a) `classifyCsgProgramSpecialization` never
+*clears* a stale specialization, so push-down now resets
+`specializationValid`/`specializationCoreOperandIndex` before
+re-classifying a mutated program (a DisjointBoundedUnion whose corner-
+transformed boxes now overlap must not stay latched); (b) sharing was
+ruled out by reading the parser — every `#declare` use deep-copies the
+tree (`SimpleBodyBuilder`/`CsgOperand` copy ctors call `geometry->copy()`),
+so the per-instance `bakedTransformFolded` mutation is safe.
+
+**Correctness result (full gate):** 12 scenes differ from goldens, zero
+structurally: drums AE=113, chess 1, snail 3, fish13 8, texture3 1,
+iortest 17, pawns 122, monkey 145 (isolated edge-pixel rounding flips,
+the Plan 5 diff class); ionic5 AE=406877 / tomb AE=126406 are marble/
+granite/bumps procedural-noise amplification of ULP-level hit-point
+shifts — side-by-side and heat-map inspection shows identical geometry
+(RMSE 1.8% / 0.5%); pool AE=505807 / wg5 AE=350004 are the two known
+`rand()`-dither scenes (AE bit-stable across three different R2 builds —
+a deterministic dither reshuffle from changed intersection-test counts).
+`-parallel4` determinism: AE=0 (two runs), parallel==serial AE=0.
+**Re-baselining these 12 goldens requires user confirmation per the
+Plan 5 protocol — the gate stays red until that decision.**
+
+**Performance: first collapse alone was flat, and the reason was found and
+fixed.** With push-down active but wrappers demoted to plain `NestedCsg`,
+drums stayed at ~8.75 s and quadric tests *rose* 67.8M → 91.0M: the
+`buildCsgExecutionPlan` compiled single-core-plane block only fired for
+`TransformedNestedCsg`, so folded wrappers silently fell off the compiled
+kernel (trueMiss early-out that skips all plane work on ~89% of shadow
+rays, no ray clone, no scratch queue) onto the generic nested recursion.
+Fix: a `pushdownFolded` flag on the wrapper record (set only by push-down,
+never for never-transformed wrappers, so untouched scenes keep exact byte
+behavior), matrices reset to identity (bit-exact no-ops in the kernel),
+the compiled block extended to `NestedCsg && pushdownFolded`, and — the
+actual prize — `sharesRaySpace=true` for direct cores under folded
+wrappers, connecting the Plan 7 per-ray aggregate cache to the core-plane
+path for the first time.
+
+| Metric | Before R2 | R2 demoted | R2 + re-specialization |
+| --- | ---: | ---: | ---: |
+| drums 320×200 wall-clock | ~8.75 s | ~8.75 s | **~7.73 s (−12%)** |
+| drums quadric tests | 67.8M | 91.0M | **67.7M** |
+| drums residual transformed operands | 244 | 0 | 0 |
+| Panel factors vs baseline | 0.17-0.66× | — | 0.19-0.64× (no regression) |
+
+The re-specialization changed **zero bytes** vs the demoted build (all 12
+AE values identical before/after), confirming the identity-matrix and
+cached-aggregate equivalence reasoning at the bit level.
+
+This is the first measurable drums wall-clock improvement in the entire
+Plan 7-8 sequence (five prior gate-green attempts were flat), and it
+validates the refocus diagnosis: the win came from a population-level
+collapse plus keeping the collapsed population on the specialized kernel —
+not from dispatch fusion.
+
 ### Refocused acceptance criteria
 
 - Phase R0 table published for the six named scenes (hard requirement even
