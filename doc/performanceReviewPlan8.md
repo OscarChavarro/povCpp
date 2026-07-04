@@ -468,6 +468,8 @@ a deterministic dither reshuffle from changed intersection-test counts).
 `-parallel4` determinism: AE=0 (two runs), parallel==serial AE=0.
 **Re-baselining these 12 goldens requires user confirmation per the
 Plan 5 protocol — the gate stays red until that decision.**
+*(Resolved same day: user confirmed; the 12 goldens were re-baselined
+from the R2 output and the gate is green again.)*
 
 **Performance: first collapse alone was flat, and the reason was found and
 fixed.** With push-down active but wrappers demoted to plain `NestedCsg`,
