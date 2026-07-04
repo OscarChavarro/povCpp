@@ -83,58 +83,19 @@ Inside a fused kernel:
 can inline aggressively within the translation unit; keep each kernel in one
 `.cpp` to give the optimizer the whole loop.
 
-## Phases
+## Original Phases (1-6) — SUPERSEDED 2026-07-04
 
-Each phase fuses one plan kind, gates, and measures before the next starts.
-Order by measured heat (Plan 4 table):
-
-### Phase 1 — Union all-crossings kernel
-
-`traceGenericMorganUnion` (3.21%) + its share of `traceOperandAllCrossings`
-(7.42%) + `traceMorganCsg` routing (1.35%). Fuse the generic Morgan union
-into one loop. Scenes to watch beyond the gate: `drums`, `skyvase`
-(mirror-corner bypass must keep working), `chess` (nested case), `tomb`,
-`snack`.
-
-### Phase 2 — Intersection kernels
-
-`traceMorganIntersectionGeneric` (2.90%) and
-`kernelSingleCorePlaneAllCrossings` replacing the compiled core-plus-plane
-paths (`traceCompiledCoreOperandAllCrossings` 1.31%,
-`traceTransformedNestedSingleCorePlaneOperandAllCrossings` 1.83%,
-`tracePlaneOperandCandidate` 2.24%). Watch `iortest`, `wg5`, `desk`,
-`fishbowl`.
-
-### Phase 3 — First-hit and shadow kernels
-
-`traceFirstHit*` family and `traceShadowObject` path. The primary-ray gate
-(Path G) is a build-time plan property; first-hit kernels for non-primary
-rays must preserve the exact early-exit order (`trueMiss`,
-`traceFirstHitByIntersectionMembership`). Watch `takeoff` (historic
-byte-exactness canary for first-hit ordering), `pacman`.
-
-### Phase 4 — Remaining plan kinds + fallback audit
-
-`TopLevelPlaneUnion`, `DisjointBoundedUnion`, ray-segments. Then audit the
-builder statistics across all 108 scenes: every CSG object must map to a
-fused kernel or be explicitly counted as fallback with a scene list recorded
-here (target: fallback population ≈ 0 across the suite; document any
-irreducible stragglers).
-
-### Phase 5 — Simple-body and composite loop tightening
-
-Apply the same fusion discipline to the non-CSG hot traversals identified in
-Plan 4: `BakedSimpleBodyTracing::traceAllCrossings` (5.18%) / `traceFirstHit`
-(2.69%) successors and `BakedCompositeTracing::traceAllCrossingsInCompositeSpace`
-(2.31%) successor: inline `passesBoundingShapes` (2.35%) and
-`finalizeCandidate` (1.86%) where the compiler doesn't already, and confirm
-the Plan 6 rule that no lambda trampoline sits on the first-hit path.
-
-### Phase 6 — Closing measurement
-
-drums (3 runs), panel, gprof capture; record the new hot-function table and
-compare its concentration against both the Plan 4 table (93 functions) and
-the baseline (3 functions at 62%).
+The original phase list (union kernel → intersection kernels → first-hit/
+shadow kernels → remaining plan kinds → simple-body tightening → closing
+measurement) was ordered by the Plan 4 heat table, which predates Plans 5-7
+and proved stale on re-measurement. Phase 1 was executed (see Status below)
+and confirmed the diagnosis that retired the rest: dispatch-level fusion has
+no measurable headroom left on this tree. The compiler already inlines the
+union kernel; four consecutive gate-green fusion/caching changes (Plan 7
+Phases 2-4 plus Plan 8 Phase 1) each targeted profile-confirmed hot code and
+none moved drums. Phases 2-6 as originally written are retired — their text
+is in git history at commit f3ac202 and earlier. The refocused continuation
+below replaces them.
 
 ## Measurement Gate
 
@@ -237,6 +198,123 @@ or (b) accept the current ~1.7x-of-baseline drums figure as the practical
 floor of this architecture and close the Plan 5-10 sequence's performance
 chase, banking the real wins already delivered (correctness fixes, the
 -parallel race fix, zero regressions across 108 scenes throughout).
+
+## Refocused Continuation (2026-07-04): Collapse-Rate Expansion, Not Fusion
+
+### Why the refocus
+
+The evidence across Plans 5-8 converges on one diagnosis:
+
+- drums performs 67.8M quadric tests per 142K rays (~478 tests/ray);
+  50.1M of them go through `intersectBakedQuadricWithTrueMiss` at ~110+
+  FLOPs each because the operand is in a **private local space**
+  (`sharesRaySpace=false`), so neither the ray's aggregate cache nor the
+  viewpoint-constant cache (both delivered by Plan 7) can help.
+- The build statistics on drums read: **244 residual transformed operands
+  vs only 150 collapsed quadrics, 0 collapsed planes.** The majority of the
+  operand population never got the Plan 5 treatment.
+- Every attempt to cheapen the *dispatch around* those tests failed to
+  move wall-clock (4 documented attempts). The only change in the whole
+  Plan 5-8 sequence that altered per-test arithmetic — Plan 5's collapse —
+  is also the only mechanism with a proven per-test FLOP reduction
+  (~110 → ~25), and it currently reaches a minority of drums's operands.
+
+Conclusion: the remaining lever is **raising the collapse rate**, i.e.
+getting more operands into world/ray-shared space at build time, not
+rearranging the code that visits them. This is Plan 4 Conclusions §6.1
+("the only direction that attacks §1, §2, and §4 at once") applied to the
+population Plan 5 left behind.
+
+### Where the uncollapsed population comes from (code-verified 2026-07-04)
+
+`bakeCsgOperand` (BakedSceneBuilder.cpp) collapses an operand only when
+**all three** hold: `hasTransform`, `getSteps().size() > 0`, and the
+geometry is a `Quadric` or `InfinitePlane`. Therefore residual transformed
+operands are exactly:
+
+1. `TransformedNestedCsg` — a nested CSG under a parent-level transform.
+   **Never collapsible today by construction**, and the drums profile shows
+   this is where the heat is: 23.5M calls/frame into
+   `traceTransformedNestedSingleCorePlaneOperandAllCrossings`, which
+   re-transforms the ray into nested space and then (for transformed cores)
+   again into core space, per ray per visit.
+2. `TransformedQuadric` with an **empty step list** — the matrices were
+   composed by some path that skipped `steps.add()` (the copy constructor
+   preserves steps, and `CsgOperand::translate/rotate/scale` all record, so
+   any such population indicates a parser/instantiation path that sets
+   matrices directly; must be found by measurement, not assumed).
+3. `TransformedSphere` / `TransformedPrimitive` (Box, etc.) — no
+   coefficient congruence exists; only a different representation (e.g.
+   sphere center/radius transform for rigid transforms) could collapse
+   these.
+
+### Phase R0 — Categorize the residual population (measurement only)
+
+Extend `BakedScene::Statistics` and the end-of-build report to split
+`residualTransformedOperands` by the three categories above (and, for
+category 1, count how many of the *nested children* under each transformed
+parent are themselves bakeable quadric/plane kinds). Run on drums, chess,
+pacman, takeoff, desk, iortest and record the table here. Gate: byte-
+identical (statistics only).
+
+**Kill criterion (honest-abort rule):** if categories 1+2 together account
+for less than half of the residual population *weighted by the profile's
+call counts* on drums, this plan closes immediately with the residue
+documented — do not proceed to R1/R2 on hope; the four failed attempts
+above are the cautionary precedent.
+
+### Phase R1 — Close step-recording gaps (category 2, if it exists)
+
+For every `TransformedQuadric`/`TransformedPlane` operand whose step list
+is empty but whose transform exists: find the parser/instantiation path
+that composed matrices without recording steps and record them there.
+This re-uses `BakedGeometryBaker` unchanged. Gate: byte-exactness expected
+to *break* for affected scenes in the same way Plan 5's collapses did
+(baked-vs-per-ray rounding); apply the Plan 5 golden evaluation protocol
+(explicit before/after diffs, user confirmation for re-baselines) — never
+silent acceptance.
+
+### Phase R2 — Nested transform push-down (category 1)
+
+At build time, when a `TransformedNestedCsg` parent's step list is
+non-empty and **every** operand of the nested program is a bakeable kind
+(quadric/plane, or recursively an all-bakeable nested), rebuild the nested
+program's operands with `parentSteps + childSteps` concatenated (the same
+elementary-replay congruence Plan 5 validated) and reclassify the parent as
+plain `NestedCsg`. The nested program then evaluates in parent space with
+no per-ray parent transform, and its cores become world-space quadrics
+eligible for the ray-shared caches.
+
+Cautions recorded up front:
+- Material transforms: `CsgOperand::translate/rotate/scale` also transform
+  the material; push-down must reproduce exactly the material state the
+  per-ray path produces today, or texture-space regressions will appear
+  (cf. the wtorus layered-texture and §17 detail-owner history).
+- A nested program may be shared by several parents (`#declare` reuse);
+  push-down must clone the program per parent, not mutate the shared one.
+  Builder statistics must report the resulting program-count growth.
+- Candidate `t`/point computation changes coordinate space → byte-exactness
+  will break for affected scenes; Plan 5 golden protocol applies, with
+  drums/chess/skyvase/takeoff/pacman explicitly heat-mapped.
+
+### Phase R3 — Closing measurement and sequence decision
+
+drums (3 runs), panel, gprof, `-parallel` determinism. Then a written
+go/no-go for Plan 9 based on what the exit profile actually shows (see the
+re-scoped entry criterion in `doc/performanceReviewPlan9.md`).
+
+### Refocused acceptance criteria
+
+- Phase R0 table published for the six named scenes (hard requirement even
+  if the kill criterion fires — the categorization is this plan's minimum
+  deliverable).
+- If R1/R2 proceed: drums quadric-test count through
+  `sharesRaySpace=false` paths measurably reduced (gprof call counts), and
+  drums wall-clock reduced accordingly; a FLOP-side change of this size not
+  moving wall-clock would falsify the diagnosis and must be recorded as
+  such.
+- The original fusion criteria ("`traceOperandAllCrossings` deleted",
+  "≥50% self-time in ≤10 functions") are **retired**, not inherited.
 
 ## Risks and Dead-End Reminders
 

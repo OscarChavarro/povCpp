@@ -3,31 +3,49 @@
 ## Position in the Plan Sequence
 
 Fifth of six (Plans 5–10; sequence table in `doc/performanceReviewPlan5.md`).
-Requires Plan 8: the fused kernels are the only consumers of the staging
-machinery, so changing that machinery now touches a small, settled surface.
-This plan is Plan 4 §6.4 and Strategy Implication #3, plus the clone residue
-left after Plans 5–8.
 
-## Motivation (from Plan 4, Conclusions §4 and Diagnostic Observation 3)
+**Re-scoped 2026-07-04** after the Plan 7/8 findings: Plan 8's fusion
+phases were retired (four consecutive dispatch-level attempts produced no
+measurable drums win — see `doc/performanceReviewPlan8.md` Status), so the
+original premise "the fused kernels are the only consumers of the staging
+machinery" no longer holds. This plan now depends on Plan 8's *refocused*
+continuation (collapse-rate expansion, Phases R0-R3) and is **conditional**:
 
-Queue overhead was 11.7% of total suite time: `PriorityQueuePool::push`
-303.7 M / `pop` 295.3 M calls, `java::PriorityQueue::siftUp` 1.48%, plus
-container churn tied to ray clones — `java::ArrayList::init` 260.9 M and
-`ArrayList::ArrayList` 266.2 M calls track the clone count almost exactly
-(each `RayWithSegments` clone builds ~200 bytes including two ArrayList
-headers). Candidates were staged into scratch queues and re-offered into
-parent queues, doubling heap traffic per hit relative to the baseline's
-single-level Morgan local queue.
+### Entry criterion (added 2026-07-04 — check before starting any phase)
 
-Plans 5–8 removed most clone *sources* and dispatch layers; this plan
-attacks what staging remains:
+Run gprof on drums at the Plan 8-R exit commit. This plan proceeds only if
+clone construction + ArrayList init/ctor + PriorityQueue siftUp/add
+*combined* still hold ≥ 5% of drums self-time. On the 2026-07-04 profile
+(commit f3ac202) the combined figure is ≈ 8.5%:
+`RayWithSegments(LocalIntersectionClone,…)` 3.20% at 48.6M calls,
+`ArrayList<Material*>::init` 1.68% + ctor 0.84% (48.9M calls — still
+tracking clones ≈ 1:1), `siftUp` 1.18%, `PriorityQueue::add` 0.51%,
+`makeRay` 2.19% (31.6M calls, mostly re-derivation after clones invalidate
+the aggregate cache). If Plan 8-R2's push-down succeeds, most residual
+clones disappear with the transformed operands that cause them — re-measure
+first; if the figure drops below the threshold, mark this plan SKIPPED here
+with the closing profile attached, and move to Plan 10.
 
-1. heap insertion where order is not consumed incrementally,
-2. double staging (scratch → parent re-offer),
-3. the residual clones and their ArrayList construction cost.
+Expectation management: even if the entry criterion passes, ≈ 8.5% is the
+*ceiling* of what perfect execution of this plan could recover on drums —
+a realistic outcome is low-single-digit %. The Plan 5-10 sequence's
+remaining drums gap (~1.7×) cannot be closed from here; that burden sits on
+Plan 8-R, not this plan.
 
-All numbers above are pre-rebuild; **Phase 0 re-measures** and each phase
-target is restated against the fresh profile before work starts.
+## Motivation (Plan 4 §6.4 — original counts, now historical)
+
+Queue overhead was 11.7% of total suite time pre-rebuild:
+`PriorityQueuePool::push` 303.7 M / `pop` 295.3 M calls, `siftUp` 1.48%,
+plus container churn tied to ray clones — `ArrayList::init` 260.9 M calls
+tracking clones almost exactly (each `RayWithSegments` clone builds ~200
+bytes including two ArrayList headers). Plans 5–8 removed most clone
+sources; the 2026-07-04 numbers above are the current state. This plan
+attacks what remains:
+
+1. the residual clones and their ArrayList construction cost (now the
+   largest item — reordered to Phase 1 priority, see below),
+2. heap insertion where order is not consumed incrementally,
+3. double staging (scratch → parent re-offer).
 
 ## Architectural Constraints
 
@@ -58,15 +76,29 @@ target is restated against the fresh profile before work starts.
 
 ## Phases
 
+**Execution order re-scoped 2026-07-04:** run Phase 0, then Phase 3 (clone
+residue — now the largest measured item), then Phases 1-2 (heap/staging)
+only if Phase 0's classification still justifies them, then 4-5. The
+original order assumed queue traffic dominated; the current profile says
+clones do.
+
 ### Phase 0 — Fresh staging profile
 
-gprof on drums + `iortest` + `piece2` (Group B representative) at the Plan 8
-exit commit. Table: push/pop/siftUp/ArrayList counts and self-times, clone
-count, and — new — a temporary instrumentation counter distinguishing
-*ordered consumption* sites (pop consumed in `t` order incrementally) from
-*batch consumption* sites (all candidates drained, then processed). The
-counter classifies each kernel's staging use. Restate each later phase's
-target numbers here.
+gprof on drums + `iortest` + `piece2` (Group B representative) at the
+Plan 8-R exit commit (this doubles as the entry-criterion check above).
+Table: push/pop/siftUp/ArrayList counts and self-times, clone count, and —
+new — a temporary instrumentation counter distinguishing *ordered
+consumption* sites (pop consumed in `t` order incrementally) from *batch
+consumption* sites (all candidates drained, then processed). The counter
+classifies each kernel's staging use. Restate each later phase's target
+numbers here.
+
+Additionally record *where* the remaining clones come from (the 2026-07-04
+callers, for comparison: `traceOperandAllCrossings` 21.3M,
+`traceSimpleBodyAllCrossings` 13.0M, `traceCompositeAllCrossings` 12.5M) —
+if Plan 8-R2 removed the transformed-operand clones, the composite and
+simple-body clones become the whole story and Phase 3's option (b) below is
+the relevant one.
 
 ### Phase 1 — Sort-on-demand vectors at batch-consumption sites
 
@@ -136,6 +168,10 @@ Phases 1, 3, 5.
 
 ## Acceptance Criteria
 
+- **A recorded SKIPPED verdict via the entry criterion is a fully
+  acceptable outcome of this plan** — equal in standing to executing the
+  phases. What is not acceptable is starting Phase 1+ without the Phase 0
+  numbers justifying it.
 - push/pop volume on drums reduced by the batch-consumption share measured
   in Phase 0 (record actual %).
 - Clone count on drums at or near the irreducible residual-transformed
