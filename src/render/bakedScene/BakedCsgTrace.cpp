@@ -87,7 +87,7 @@
 
 
 bool
-BakedCsgTrace::pointInsideAabb(const Vector3Dd &point, const AxisAlignedBox &box, double tolerance)
+BakedCsgTrace::pointInsideAabb(const Vector3Dd &point, const AxisAlignedBoundingBox &box, double tolerance)
 {
     return
         point.x() >= box.min.x() - tolerance &&

@@ -1,23 +1,23 @@
-#ifndef __AXIS_ALIGNED_BOX__
-#define __AXIS_ALIGNED_BOX__
+#ifndef __AXIS_ALIGNED_BOUNDING_BOX__
+#define __AXIS_ALIGNED_BOUNDING_BOX__
 
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
-struct AxisAlignedBox {
+struct AxisAlignedBoundingBox {
     Vector3Dd min;
     Vector3Dd max;
 
-    static AxisAlignedBox unbounded() {
+    static AxisAlignedBoundingBox unbounded() {
         constexpr double INF = 1e30;
-        return AxisAlignedBox{
+        return AxisAlignedBoundingBox{
             Vector3Dd(-INF, -INF, -INF),
             Vector3Dd( INF,  INF,  INF)};
     }
 
-    static AxisAlignedBox empty() {
+    static AxisAlignedBoundingBox empty() {
         constexpr double INF = 1e30;
-        return AxisAlignedBox{
+        return AxisAlignedBoundingBox{
             Vector3Dd( INF,  INF,  INF),
             Vector3Dd(-INF, -INF, -INF)};
     }
@@ -29,8 +29,8 @@ struct AxisAlignedBox {
             || min.z() <= -THRESHOLD || max.z() >= THRESHOLD;
     }
 
-    AxisAlignedBox enclosing(const AxisAlignedBox &other) const {
-        return AxisAlignedBox{
+    AxisAlignedBoundingBox enclosing(const AxisAlignedBoundingBox &other) const {
+        return AxisAlignedBoundingBox{
             Vector3Dd(
                 min.x() < other.min.x() ? min.x() : other.min.x(),
                 min.y() < other.min.y() ? min.y() : other.min.y(),
@@ -41,8 +41,8 @@ struct AxisAlignedBox {
                 max.z() > other.max.z() ? max.z() : other.max.z())};
     }
 
-    AxisAlignedBox intersection(const AxisAlignedBox &other) const {
-        return AxisAlignedBox{
+    AxisAlignedBoundingBox intersection(const AxisAlignedBoundingBox &other) const {
+        return AxisAlignedBoundingBox{
             Vector3Dd(
                 min.x() > other.min.x() ? min.x() : other.min.x(),
                 min.y() > other.min.y() ? min.y() : other.min.y(),
@@ -53,8 +53,8 @@ struct AxisAlignedBox {
                 max.z() < other.max.z() ? max.z() : other.max.z())};
     }
 
-    AxisAlignedBox expandedBy(const Vector3Dd &point) const {
-        return AxisAlignedBox{
+    AxisAlignedBoundingBox expandedBy(const Vector3Dd &point) const {
+        return AxisAlignedBoundingBox{
             Vector3Dd(
                 min.x() < point.x() ? min.x() : point.x(),
                 min.y() < point.y() ? min.y() : point.y(),
@@ -80,10 +80,10 @@ struct AxisAlignedBox {
 
     // Build world-space AABB by transforming 8 corners through matrix.
     // If matrix is null, returns an AABB around [lo, hi] directly.
-    static AxisAlignedBox fromTransformedCorners(
+    static AxisAlignedBoundingBox fromTransformedCorners(
         const Vector3Dd &lo, const Vector3Dd &hi, const Matrix4x4d *matrix)
     {
-        AxisAlignedBox result = empty();
+        AxisAlignedBoundingBox result = empty();
         for (int ix = 0; ix < 2; ix++) {
             double x = (ix == 0) ? lo.x() : hi.x();
             for (int iy = 0; iy < 2; iy++) {

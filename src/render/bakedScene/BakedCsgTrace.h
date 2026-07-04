@@ -100,7 +100,7 @@ private:
     // whatever the LTO pass decides.
     static inline bool rayIntersectsAabbForward(
         const RayWithSegments &ray,
-        const AxisAlignedBox &box)
+        const AxisAlignedBoundingBox &box)
     {
         const Vector3Dd origin = ray.getOrigin();
         // Plan 12 Phase 3: the three reciprocals are cached on the ray
@@ -209,7 +209,7 @@ private:
 
     static bool pointInsideAabb(
         const Vector3Dd &point,
-        const AxisAlignedBox &box,
+        const AxisAlignedBoundingBox &box,
         double tolerance);
 
     static bool intersectBakedPlane(

@@ -212,8 +212,8 @@ Sphere::invertGeometry()
     inverted = !inverted;
 }
 
-AxisAlignedBox
+AxisAlignedBoundingBox
 Sphere::getMinMax() const
 {
-    return AxisAlignedBox{Vector3Dd(-1.0, -1.0, -1.0), Vector3Dd(1.0, 1.0, 1.0)};
+    return AxisAlignedBoundingBox{Vector3Dd(-1.0, -1.0, -1.0), Vector3Dd(1.0, 1.0, 1.0)};
 }

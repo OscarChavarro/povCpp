@@ -6,7 +6,7 @@
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "environment/geometry/element/AxisAlignedBox.h"
+#include "environment/geometry/element/AxisAlignedBoundingBox.h"
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
@@ -77,7 +77,7 @@ class BakedScene {
         Quadric *quadricGeometry = nullptr;
         Material *material = nullptr;
         int nestedCsgProgramIndex = -1;
-        AxisAlignedBox bakedBounds = AxisAlignedBox::unbounded();
+        AxisAlignedBoundingBox bakedBounds = AxisAlignedBoundingBox::unbounded();
         Matrix4x4d objectToLocal = Matrix4x4d::identityMatrix();
         Matrix4x4d localToObject = Matrix4x4d::identityMatrix();
         bool hasTransform = false;
@@ -137,7 +137,7 @@ class BakedScene {
     // trace time exactly as the un-indexed loop does today.
     struct OperandCullBins {
         bool built = false;
-        java::ArrayList<AxisAlignedBox> binBounds;
+        java::ArrayList<AxisAlignedBoundingBox> binBounds;
         java::ArrayList<int> binMemberStart;
         java::ArrayList<int> binMemberCount;
         java::ArrayList<int> binMembers;
@@ -191,7 +191,7 @@ class BakedScene {
         Material *geometryMaterial = nullptr;
         Material *objectTexture = nullptr;
         ColorRgba *objectColor = nullptr;
-        AxisAlignedBox worldBounds = AxisAlignedBox::unbounded();
+        AxisAlignedBoundingBox worldBounds = AxisAlignedBoundingBox::unbounded();
         bool bounded = false;
         bool castsShadow = true;
         bool noShadowFlag = false;
@@ -220,7 +220,7 @@ class BakedScene {
 
     struct CompositeRecord {
         Composite *object = nullptr;
-        AxisAlignedBox worldBounds = AxisAlignedBox::unbounded();
+        AxisAlignedBoundingBox worldBounds = AxisAlignedBoundingBox::unbounded();
         Matrix4x4d objectToWorld = Matrix4x4d::identityMatrix();
         Matrix4x4d worldToObject = Matrix4x4d::identityMatrix();
         bool bounded = false;
@@ -270,7 +270,7 @@ class BakedScene {
         // build threshold decision. Histogram buckets union-typed CsgProgram
         // operand counts (1-4, 5-16, 17-64, 65+); the finite/cull-safe count
         // is how many of those operands could feed a bake-time bounds
-        // structure at all (AxisAlignedBox::unbounded() operands can't).
+        // structure at all (AxisAlignedBoundingBox::unbounded() operands can't).
         long unionProgramOperandHistogram[4] = {0, 0, 0, 0};
         long unionProgramOperandCullSafeCount = 0;
         long unionProgramOperandTotalCount = 0;

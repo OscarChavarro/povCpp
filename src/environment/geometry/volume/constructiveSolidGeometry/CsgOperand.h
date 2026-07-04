@@ -32,7 +32,7 @@ class CsgOperand : public RayOperationOwner {
     // tells doExtraInformation() not to re-apply them.
     bool bakedTransformFolded = false;
     mutable bool bakedBoundsValid = false;
-    mutable AxisAlignedBox bakedBounds = AxisAlignedBox::unbounded();
+    mutable AxisAlignedBoundingBox bakedBounds = AxisAlignedBoundingBox::unbounded();
     mutable bool bakedBoundsBounded = false;
     mutable bool bakedBoundsCullSafe = false;
 
@@ -47,7 +47,7 @@ class CsgOperand : public RayOperationOwner {
     void invalidateBakedBounds()
     {
         bakedBoundsValid = false;
-        bakedBounds = AxisAlignedBox::unbounded();
+        bakedBounds = AxisAlignedBoundingBox::unbounded();
         bakedBoundsBounded = false;
         bakedBoundsCullSafe = false;
     }
@@ -58,7 +58,7 @@ class CsgOperand : public RayOperationOwner {
             return;
         }
         if (geometry == nullptr) {
-            bakedBounds = AxisAlignedBox::unbounded();
+            bakedBounds = AxisAlignedBoundingBox::unbounded();
             bakedBoundsBounded = false;
             bakedBoundsValid = true;
             return;
@@ -66,7 +66,7 @@ class CsgOperand : public RayOperationOwner {
 
         bakedBounds = geometry->getMinMax();
         if (transformation != nullptr && !bakedBounds.isUnbounded()) {
-            bakedBounds = AxisAlignedBox::fromTransformedCorners(
+            bakedBounds = AxisAlignedBoundingBox::fromTransformedCorners(
                 bakedBounds.min, bakedBounds.max, transformation);
         }
         if (!bakedBounds.isUnbounded()) {
@@ -89,7 +89,7 @@ class CsgOperand : public RayOperationOwner {
     // - see BakedCsgTrace::rayIntersectsAabbForward for the identical
     // pattern and rationale) instead of dividing on every call.
     static bool rayIntersectsAabbForward(
-        const RayWithSegments &ray, const AxisAlignedBox &box)
+        const RayWithSegments &ray, const AxisAlignedBoundingBox &box)
     {
         const Vector3Dd origin = ray.getOrigin();
         double invDirX, invDirY, invDirZ;
@@ -189,7 +189,7 @@ class CsgOperand : public RayOperationOwner {
     {
         return material != nullptr ? material : materialOverride;
     }
-    const AxisAlignedBox &getBakedBounds() const
+    const AxisAlignedBoundingBox &getBakedBounds() const
     {
         ensureBakedBounds();
         return bakedBounds;
@@ -271,7 +271,7 @@ class CsgOperand : public RayOperationOwner {
         return geometry->doContainmentTest(localPoint, distanceTolerance);
     }
 
-    AxisAlignedBox getMinMax() const
+    AxisAlignedBoundingBox getMinMax() const
     {
         return getBakedBounds();
     }

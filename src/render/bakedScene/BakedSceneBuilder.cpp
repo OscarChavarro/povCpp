@@ -94,7 +94,7 @@ hasFiniteInteriorBounds(const BakedScene::CsgOperandRecord &operand)
 }
 
 bool
-areSeparated(const AxisAlignedBox &left, const AxisAlignedBox &right)
+areSeparated(const AxisAlignedBoundingBox &left, const AxisAlignedBoundingBox &right)
 {
     return
         left.max.x() < right.min.x() || right.max.x() < left.min.x() ||
@@ -445,7 +445,7 @@ nestedProgramFullyBakeable(const BakedScene &scene, int programIndex, int depthG
 // `parentForwardTransform` is the wrapping operand's own `getTransformation()`
 // matrix (== the parent CsgOperandRecord's `objectToLocal`, despite the
 // confusing field name - CsgOperand::ensureBakedBounds() uses this same
-// matrix via AxisAlignedBox::fromTransformedCorners to place an operand's
+// matrix via AxisAlignedBoundingBox::fromTransformedCorners to place an operand's
 // own local bounds into its containing space). Every operand's bakedBounds
 // was computed relative to the nested program's own containing space, which
 // this push-down eliminates - the bounds must move into the parent's space
@@ -460,7 +460,7 @@ pushDownStepsIntoProgram(
     for (long int i = 0; i < program.operands.size(); i++) {
         BakedScene::CsgOperandRecord &operand = program.operands[i];
         if (!operand.bakedBounds.isUnbounded()) {
-            operand.bakedBounds = AxisAlignedBox::fromTransformedCorners(
+            operand.bakedBounds = AxisAlignedBoundingBox::fromTransformedCorners(
                 operand.bakedBounds.min, operand.bakedBounds.max, &parentForwardTransform);
             operand.bounded = !operand.bakedBounds.isUnbounded();
         }
@@ -701,7 +701,7 @@ buildOperandCullBinsForBucket(
     int cursor = 0;
     for (int b = 0; b < numBins; b++) {
         const int count = base + (b < remainder ? 1 : 0);
-        AxisAlignedBox aggregate = AxisAlignedBox::empty();
+        AxisAlignedBoundingBox aggregate = AxisAlignedBoundingBox::empty();
         const int start = (int)out.binMembers.size();
         for (int k = 0; k < count; k++) {
             const int pos = cullSafeByAxis[(size_t)cursor].second;

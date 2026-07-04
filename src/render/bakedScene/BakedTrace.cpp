@@ -12,7 +12,7 @@
 // BakedCsgTrace::rayIntersectsAabbForward for the identical pattern and
 // rationale) instead of dividing on every call.
 bool
-BakedTrace::rayIntersectsAabbForward(const RayWithSegments &ray, const AxisAlignedBox &box)
+BakedTrace::rayIntersectsAabbForward(const RayWithSegments &ray, const AxisAlignedBoundingBox &box)
 {
     const Vector3Dd origin = ray.getOrigin();
     double invDirX, invDirY, invDirZ;
@@ -48,7 +48,7 @@ BakedTrace::rayIntersectsAabbForward(const RayWithSegments &ray, const AxisAlign
 }
 
 bool
-BakedTrace::pointInsideAabb(const Vector3Dd &point, const AxisAlignedBox &box, double tolerance)
+BakedTrace::pointInsideAabb(const Vector3Dd &point, const AxisAlignedBoundingBox &box, double tolerance)
 {
     return
         point.x() >= box.min.x() - tolerance &&

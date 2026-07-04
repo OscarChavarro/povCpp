@@ -32,7 +32,7 @@ class Sphere : public Geometry {
     bool isInverted() const { return inverted; }
     void toggleInverted() { inverted ^= true; }
 
-    AxisAlignedBox getMinMax() const override;
+    AxisAlignedBoundingBox getMinMax() const override;
 
     int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,
