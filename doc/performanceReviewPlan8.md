@@ -129,7 +129,15 @@ not vanish into new helpers).
   statistics.
 - Fallback-kernel population across the suite documented (≈ 0).
 
-## Status: Phase 1 attempted, paused pending strategy decision
+## Status: CLOSED (2026-07-04) — R0-R3 complete, drums −12%, first real win of the Plan 5-8 sequence
+
+Fusion Phases 2-6 (the original title's premise) were retired after four
+consecutive gate-green-but-flat attempts; see "Refocused Phases R0-R3"
+below for the replacement scope and its result. Phase 1's original
+attempt and its re-profile are kept below as the historical record that
+motivated the refocus.
+
+### Phase 1 (historical) — attempted, superseded
 
 Before starting, re-profiled drums with gprof on the current (post-Plan-7)
 tree rather than trusting the Plan 4 heat table, which predates Plans 5-7
@@ -502,6 +510,69 @@ Plan 7-8 sequence (five prior gate-green attempts were flat), and it
 validates the refocus diagnosis: the win came from a population-level
 collapse plus keeping the collapsed population on the specialized kernel —
 not from dispatch fusion.
+
+### Phase R3 — Result (2026-07-04, same day, commit pending)
+
+Closing measurement at the R2-fixed commit (Release build, no source
+changes this phase — statistics only):
+
+- **drums, 3 runs, 320×200**: 7.73s / 7.68s / 7.72s. All three outputs
+  MD5-identical to each other and to the single-run number quoted in the
+  R2 result above — the −12% (8.75s → ~7.7s) is stable, not a one-off.
+- **`-parallel` determinism**: serial, `-parallel` run 1, and `-parallel`
+  run 2 on drums are all MD5-identical to the 3 serial runs above (one
+  hash across all 5 outputs). No new race introduced by R2's
+  identity-matrix/`pushdownFolded`/`sharesRaySpace` wiring.
+- **Panel** (`benchmarkPanel.sh`, unchanged scenes): 0.191–0.638×
+  vs the `4af1a75` baseline — in the same band as every prior phase in
+  this sequence, no regression.
+- **Full gate**: `testAgainstGoldenImages.sh` passes (green, post the
+  12-scene user-confirmed re-baseline recorded above).
+- **gprof** (fresh `-pg` build, drums 320×200, one run): total profiled
+  time 4.98s. Top self-time entries:
+  `traceTransformedNestedSingleCorePlaneOperandAllCrossings` 14.66%
+  (42.5M calls), `intersectBakedQuadricWithTrueMiss` 12.05% (50.3M
+  calls), `traceMorganIntersectionGeneric` 5.82%,
+  `traceCompositeAllCrossingsInCompositeSpace` 5.62%,
+  `traceOperandAllCrossings` 5.02%, `traceGenericMorganUnion` 4.22%,
+  `traceAllCrossings` 4.22%, `traceSimpleBodyAllCrossings` 4.02%,
+  `RayWithSegments::RayWithSegments(LocalIntersectionClone,...)` 3.61%
+  (27.3M calls, down from 48.6M pre-R2 — the residual-operand collapse
+  removed roughly 44% of clone triggers), `makeRay` 2.81%. The compiled
+  core-plane path (`traceTransformedNestedSingleCorePlaneOperandAllCrossings`
+  + `intersectBakedQuadricWithTrueMiss`) is drums's dominant cluster
+  exactly as Plan 7/Phase-1's re-profile predicted, and R2 kept it that
+  way rather than bypassing it — consistent with the `pushdownFolded`
+  re-specialization fix.
+
+**Plan 9 entry criterion re-check** (per
+`doc/performanceReviewPlan9.md`'s "clone construction + ArrayList
+init/ctor + PriorityQueue siftUp/add combined ≥ 5% of drums self-time"):
+clone ctor 3.61% + `ArrayList<Material*>::init` 0.60% + ctor 0.60% +
+`siftUp` 1.41% + `PriorityQueue::add` 0.20% = **6.42%**, down from the
+pre-R2 baseline's ≈7.4% (same functions, `f3ac202`) but still above the
+5% threshold. Absolute clone call count fell 44% (48.6M → 27.3M), but the
+combined figure's *share* of total time didn't fall as much, because R2
+also removed cost elsewhere (the transform recomputation the collapse was
+built to remove) — the denominator shrank alongside the numerator.
+
+**Decision: Plan 9's entry criterion still PASSES (6.42% ≥ 5%) — Plan 9
+is NOT skipped.** Proceed to Plan 9 (candidate staging: clone residue,
+heap traffic, container churn) as a separately-budgeted follow-on,
+scoped by its own Phase 0 consumption classification per its documented
+risk profile (highest historical failure density in the sequence).
+Expectation per Plan 9's own write-up stands: even a clean pass here is a
+low-single-digit-% ceiling on drums, not a fix for the remaining ~1.5×
+gap vs the historical baseline.
+
+**Plan 8 is closed as of this phase.** R0 (categorize, done) → R1 (closed
+not-needed, no category-2 population existed) → R2 (implemented, two
+correctness-bug rounds found and fixed, one real performance win shipped
+and gate-green) → R3 (this closing measurement) — all four phases have a
+recorded result. Plan 8's own numeric target (drums −12%, first real win
+of the Plan 5-8 sequence) was met; the residual ~1.5× gap is explicitly
+handed to Plan 9 (conditional, entry criterion passed) and Plan 10
+(structural-floor / two-endings framework), not reopened here.
 
 ### Refocused acceptance criteria
 
