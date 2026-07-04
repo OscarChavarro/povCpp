@@ -16,8 +16,8 @@
 #include "environment/material/PovRayRendererConfiguration.h"
 #include "render/shaders/TraceService.h"
 #include "render/ColorOperations.h"
+#include "render/bakedScene/BakedSceneBuilder.h"
 #include "render/bakedScene/BakedTrace.h"
-#include "render/bakedScene/BakedTracingCommon.h"
 #include "render/RayShaderPipeline.h"
 #include "render/RenderEngine.h"
 #include "render/RenderTask.h"
@@ -79,6 +79,13 @@ RenderEngine::RenderEngine()
 
 RenderEngine::~RenderEngine()
 {
+}
+
+void
+RenderEngine::buildBakedScene()
+{
+    BakedSceneBuilder::build(scene->getObjects(), bakedScene);
+    context->setBakedScene(bakedScene);
 }
 
 PovRayRendererConfiguration &
@@ -394,8 +401,6 @@ RenderEngine::checkStats(int y)
 void
 RenderEngine::initializeRenderer()
 {
-    BakedTracingCommon::resetFallbackCounters();
-
     const int w = this->getScene().getScreenWidth();
     const int h = this->getScene().getScreenHeight();
     destinationImage.allocate(w, h);
@@ -437,7 +442,7 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
         *color = this->getScene().getFogColor();
     }
 
-    const BakedScene &bakedScene = this->getScene().getBakedScene();
+    const BakedScene &bakedScene = this->bakedScene;
     const java::ArrayList<int> &boundedObjects = bakedScene.boundedObjectIndices;
     const java::ArrayList<int> &unboundedObjects = bakedScene.unboundedObjectIndices;
     for (long int i = boundedObjects.size() - 1; i >= 0; i--) {
