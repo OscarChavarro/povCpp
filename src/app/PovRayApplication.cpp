@@ -140,6 +140,18 @@ PovRayApplication::printStatistics(
             bakedSceneStats.residualCategory2EmptySteps,
             bakedSceneStats.residualCategory3Unbakeable);
         printProgress(buffer);
+        snprintf(buffer, sizeof(buffer),
+            "  Plan 13 census: union-op histogram 1-4:%ld 5-16:%ld 17-64:%ld 65+:%ld  "
+            "(cull-safe %ld/%ld)  top-level objects %ld (cull-safe %ld)",
+            bakedSceneStats.unionProgramOperandHistogram[0],
+            bakedSceneStats.unionProgramOperandHistogram[1],
+            bakedSceneStats.unionProgramOperandHistogram[2],
+            bakedSceneStats.unionProgramOperandHistogram[3],
+            bakedSceneStats.unionProgramOperandCullSafeCount,
+            bakedSceneStats.unionProgramOperandTotalCount,
+            bakedSceneStats.topLevelObjectCount,
+            bakedSceneStats.topLevelObjectCullSafeCount);
+        printProgress(buffer);
     }
 
     if (stats.getUsedTime() != 0.0) {

@@ -138,6 +138,75 @@ private:
             tMax >= 0.0;
     }
 
+    // Plan 13 Phase 1: fixed-capacity, allocation-free scratch for the
+    // per-ray survivor-position gather below. 4096 comfortably covers every
+    // measured bucket (spline 430, ntreal/piece3 well under that per single
+    // program - see doc/performanceReviewPlan13.md Phase 0 census); if a
+    // future scene ever exceeds it, gatherCullSurvivors signals overflow
+    // (-1) and the caller falls back to the untouched full linear scan, so
+    // there is no correctness cliff, only a missed optimization.
+    static constexpr int OPERAND_CULL_SCRATCH_CAPACITY = 4096;
+
+    // Traverses a bake-time OperandCullBins index, testing each surviving
+    // bin's aggregate box then each member's own bakedBounds (the aggregate
+    // box can pass while an individual member's tighter box does not), and
+    // appends the never-cull-safe positions untested exactly as the plain
+    // linear scan does today. Returns -1 on scratch overflow (caller must
+    // fall back), otherwise the number of positions written to outPositions
+    // (unsorted - caller must sort descending to match the plain scan's
+    // iteration order before dispatching).
+    static inline int gatherCullSurvivors(
+        const BakedScene::OperandCullBins &bins,
+        const java::ArrayList<int> &bucket,
+        const java::ArrayList<BakedScene::CsgOperandRecord> &operands,
+        RayWithSegments &ray,
+        int *outPositions,
+        int capacity)
+    {
+        int count = 0;
+        for (long int b = 0; b < bins.binBounds.size(); b++) {
+            if (!rayIntersectsAabbForward(ray, bins.binBounds[b])) {
+                continue;
+            }
+            const int start = bins.binMemberStart[b];
+            const int memberCount = bins.binMemberCount[b];
+            for (int m = start; m < start + memberCount; m++) {
+                const int pos = bins.binMembers[m];
+                if (!rayIntersectsAabbForward(ray, operands[bucket[pos]].bakedBounds)) {
+                    continue;
+                }
+                if (count >= capacity) {
+                    return -1;
+                }
+                outPositions[count++] = pos;
+            }
+        }
+        for (long int i = 0; i < bins.alwaysTestedPositions.size(); i++) {
+            if (count >= capacity) {
+                return -1;
+            }
+            outPositions[count++] = bins.alwaysTestedPositions[i];
+        }
+        return count;
+    }
+
+    // Small-array insertion sort, descending - matches the plain scan's
+    // `for (p = size-1; p >= 0; p--)` traversal order exactly. Survivor
+    // counts here are a handful to a few dozen even for wide unions, so
+    // O(k^2) is negligible and allocation-free.
+    static inline void sortPositionsDescending(int *positions, int count)
+    {
+        for (int i = 1; i < count; i++) {
+            const int key = positions[i];
+            int j = i - 1;
+            while (j >= 0 && positions[j] < key) {
+                positions[j + 1] = positions[j];
+                j--;
+            }
+            positions[j + 1] = key;
+        }
+    }
+
     static bool pointInsideAabb(
         const Vector3Dd &point,
         const AxisAlignedBox &box,
@@ -728,6 +797,103 @@ private:
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride);
 
+    // Plan 13 Phase 1: dispatch body factored out of
+    // traceGenericMorganUnion's direct-primitives bucket so the built/
+    // not-built loops below share one copy of it instead of two - an
+    // earlier version duplicated this body in both branches, which grew
+    // traceGenericMorganUnion (the hottest, most frequently called frame in
+    // the CSG trace - tens of millions of calls in drums/iortest) enough to
+    // regress those scenes ~6-10% purely from the larger static code size,
+    // even though neither scene ever takes the "built" branch at all (see
+    // doc/performanceReviewPlan13.md Phase 1).
+    static inline void dispatchDirectPrimitiveOperand(
+        const BakedScene::CsgOperandRecord &operand,
+        RayWithSegments *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        Material *materialOverride,
+        bool &anyFound)
+    {
+        if (operand.geometry == nullptr) {
+            return;
+        }
+        Material *effectiveMaterial =
+            operand.material != nullptr ? operand.material : materialOverride;
+        if (operand.kind == BakedScene::CsgOperandKind::DirectAnnotatedPrimitive) {
+            GeometryIntersectionEmissionContext context;
+            context.materialOverride = effectiveMaterial;
+            context.detailOwner = operand.operand;
+            context.materialUsesObjectLocalPoint = true;
+            if (operand.geometry->doIntersectionForAllRayCrossingsAnnotated(
+                    ray, depthQueue, context)) {
+                anyFound = true;
+            }
+        } else {
+            const int initialSize = depthQueue->size();
+            if (operand.geometry->doIntersectionForAllRayCrossings(
+                    ray, depthQueue, effectiveMaterial) &&
+                depthQueue->size() > initialSize) {
+                if (annotateDirectCandidates(depthQueue, operand)) {
+                    anyFound = true;
+                }
+            }
+        }
+    }
+
+    // Same rationale as dispatchDirectPrimitiveOperand above, for the
+    // transformed-primitives bucket's TransformedQuadric fast path +
+    // generic traceOperandAllCrossings fallback.
+    static inline void dispatchTransformedPrimitiveOperand(
+        const BakedScene::CsgOperandRecord &operand,
+        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        CsgScratchContext &scratch,
+        RayWithSegments *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        Material *materialOverride,
+        bool &anyFound)
+    {
+        if (operand.kind == BakedScene::CsgOperandKind::TransformedQuadric) {
+            if (operand.geometry == nullptr || operand.quadricGeometry == nullptr) {
+                return;
+            }
+            Material *effectiveMaterial =
+                operand.material != nullptr ? operand.material : materialOverride;
+            const Vector3Dd localOrigin =
+                operand.localToObject.transformPoint(ray->getOrigin());
+            const Vector3Dd localDirection =
+                operand.localToObject.transformDirection(ray->getDirection());
+            double depth1;
+            double depth2;
+            if (!intersectBakedQuadric(
+                    *operand.quadricGeometry, ray, localOrigin, localDirection,
+                    false, scratch.getCache(), operand.quadricViewpointSlot,
+                    &depth1, &depth2)) {
+                return;
+            }
+            offerTransformedPrimitiveCandidate(
+                operand, ray, effectiveMaterial,
+                localOrigin, localDirection, depth1, depthQueue);
+            anyFound = true;
+            if (depth2 != depth1) {
+                offerTransformedPrimitiveCandidate(
+                    operand, ray, effectiveMaterial,
+                    localOrigin, localDirection, depth2, depthQueue);
+            }
+            return;
+        }
+        if (traceOperandAllCrossings(
+                operand, bakedCsgs, scratch, ray, depthQueue, materialOverride)) {
+            anyFound = true;
+        }
+    }
+
+    // Plan 13 Phase 1: kept byte-for-byte identical to the pre-Plan-13 code
+    // (no cull-bins references at all). traceMorganCsg picks this one
+    // whenever neither operand bucket has a built cull index, so scenes
+    // like drums/iortest - whose union programs never reach the fan-out
+    // threshold (see doc/performanceReviewPlan13.md Phase 0 census) -
+    // execute the exact same instructions as before Plan 13, with zero risk
+    // of the struct-growth/code-size regression that motivated splitting
+    // this out (see traceGenericMorganUnionWithCullBins's comment).
     static bool traceGenericMorganUnion(
         const BakedScene::CsgProgram &bakedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
@@ -853,6 +1019,133 @@ private:
                     depthQueue,
                     materialOverride)) {
                 anyFound = true;
+            }
+        }
+
+        return anyFound;
+    }
+
+    // Plan 13 Phase 1: only called when at least one bucket has a built
+    // OperandCullBins (wide unions - spline/ntreal/piece3 class scenes;
+    // see doc/performanceReviewPlan13.md Phase 0 census). Uses the bins to
+    // skip most per-operand AABB tests instead of scanning every operand
+    // linearly; dispatch itself is unchanged (dispatchDirectPrimitiveOperand/
+    // dispatchTransformedPrimitiveOperand, shared with traceGenericMorganUnion's
+    // own fallback loops for the OTHER bucket, if only one of the two is built).
+    static bool traceGenericMorganUnionWithCullBins(
+        const BakedScene::CsgProgram &bakedCsg,
+        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        CsgScratchContext &scratch,
+        RayWithSegments *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        Material *materialOverride)
+    {
+        bool anyFound = false;
+
+        for (long int p = bakedCsg.planeOperandIndices.size() - 1;
+             p >= 0; p--) {
+            const BakedScene::CsgOperandRecord &operand =
+                bakedCsg.operands[bakedCsg.planeOperandIndices[p]];
+            IntersectionCandidate candidate;
+            if (tracePlaneOperandCandidate(
+                    operand, ray, scratch.getCache(), materialOverride, candidate)) {
+                depthQueue->offer(candidate);
+                anyFound = true;
+            }
+        }
+
+        // Plan 13 Phase 1: thread_local, not a CsgScratchContext member -
+        // CsgScratchContext is stack-constructed on every top-level
+        // traceAllCrossings/traceFirstHit call (up to ~1M times for drums),
+        // and giving it two 4096-int members measurably cost several
+        // percent even fully unused (likely cold-stack-page first-touch
+        // cost), on top of the even larger hit from declaring them as
+        // per-call locals inside this function directly (tried first, see
+        // doc/performanceReviewPlan13.md Phase 1). A thread_local pays for
+        // the storage exactly once per render worker thread. Reuse across
+        // nested-union recursion within one thread is safe for the same
+        // reason a CsgScratchContext-owned buffer would have been: each use
+        // is fully drained (gather -> sort -> dispatch) before any nested
+        // call that could re-enter and overwrite it runs.
+        thread_local int directPositionsStorage[OPERAND_CULL_SCRATCH_CAPACITY];
+        int *directPositions = directPositionsStorage;
+        int directCount = -1;
+        if (bakedCsg.directPrimitiveCullBins != nullptr) {
+            directCount = gatherCullSurvivors(
+                *bakedCsg.directPrimitiveCullBins,
+                bakedCsg.directPrimitiveOperandIndices,
+                bakedCsg.operands,
+                *ray, directPositions, OPERAND_CULL_SCRATCH_CAPACITY);
+            if (directCount >= 0) {
+                sortPositionsDescending(directPositions, directCount);
+            }
+        }
+        if (directCount >= 0) {
+            for (int idx = 0; idx < directCount; idx++) {
+                const long int d = directPositions[idx];
+                dispatchDirectPrimitiveOperand(
+                    bakedCsg.operands[bakedCsg.directPrimitiveOperandIndices[d]],
+                    ray, depthQueue, materialOverride, anyFound);
+            }
+        } else {
+            for (long int d = bakedCsg.directPrimitiveOperandIndices.size() - 1;
+                 d >= 0; d--) {
+                const BakedScene::CsgOperandRecord &operand =
+                    bakedCsg.operands[bakedCsg.directPrimitiveOperandIndices[d]];
+                if (operand.bounded && operand.cullSafe &&
+                    !rayIntersectsAabbForward(*ray, operand.bakedBounds)) {
+                    continue;
+                }
+                dispatchDirectPrimitiveOperand(
+                    operand, ray, depthQueue, materialOverride, anyFound);
+            }
+        }
+
+        for (long int n = bakedCsg.nestedOperandIndices.size() - 1;
+             n >= 0; n--) {
+            if (tracePlanOperandAllCrossings(
+                    bakedCsg.operands[bakedCsg.nestedOperandIndices[n]],
+                    bakedCsgs,
+                    scratch,
+                    ray,
+                    depthQueue,
+                    materialOverride)) {
+                anyFound = true;
+            }
+        }
+
+        thread_local int transformedPositionsStorage[OPERAND_CULL_SCRATCH_CAPACITY];
+        int *transformedPositions = transformedPositionsStorage;
+        int transformedCount = -1;
+        if (bakedCsg.transformedPrimitiveCullBins != nullptr) {
+            transformedCount = gatherCullSurvivors(
+                *bakedCsg.transformedPrimitiveCullBins,
+                bakedCsg.transformedPrimitiveOperandIndices,
+                bakedCsg.operands,
+                *ray, transformedPositions, OPERAND_CULL_SCRATCH_CAPACITY);
+            if (transformedCount >= 0) {
+                sortPositionsDescending(transformedPositions, transformedCount);
+            }
+        }
+        if (transformedCount >= 0) {
+            for (int idx = 0; idx < transformedCount; idx++) {
+                const long int t = transformedPositions[idx];
+                dispatchTransformedPrimitiveOperand(
+                    bakedCsg.operands[bakedCsg.transformedPrimitiveOperandIndices[t]],
+                    bakedCsgs, scratch, ray, depthQueue, materialOverride, anyFound);
+            }
+        } else {
+            for (long int t = bakedCsg.transformedPrimitiveOperandIndices.size() - 1;
+                 t >= 0; t--) {
+                const BakedScene::CsgOperandRecord &operand =
+                    bakedCsg.operands[bakedCsg.transformedPrimitiveOperandIndices[t]];
+                if (operand.kind == BakedScene::CsgOperandKind::TransformedQuadric &&
+                    operand.bounded && operand.cullSafe &&
+                    !rayIntersectsAabbForward(*ray, operand.bakedBounds)) {
+                    continue;
+                }
+                dispatchTransformedPrimitiveOperand(
+                    operand, bakedCsgs, scratch, ray, depthQueue, materialOverride, anyFound);
             }
         }
 

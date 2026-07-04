@@ -1,5 +1,10 @@
 #include "java/util/ArrayList.txx"
 
+#include <algorithm>
+#include <cmath>
+#include <utility>
+#include <vector>
+
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/geometry/volume/Box.h"
@@ -609,6 +614,108 @@ bakeCsgOperand(CsgOperand *operand, BakedScene &out)
     return baked;
 }
 
+// Plan 13 Phase 0 census: iortest's one wide-ish union program tops out at
+// 16 operands, piece3's 25 qualifying programs start at 17 (see
+// doc/performanceReviewPlan13.md Phase 0). 17 draws the line between them:
+// iortest's bucket never reaches it (falls back to the plain linear scan
+// unconditionally), piece3/ntreal's do.
+constexpr long int kOperandCullBinThreshold = 17;
+constexpr bool kEnableOperandCullBins = true;
+
+// Bake-time only (std::sort/std::vector are fine here - never on the
+// per-ray path). Stores bucket *positions* (see BakedScene::OperandCullBins),
+// never operand pointers or global indices, so nothing dangles across later
+// ArrayList relocations.
+void
+buildOperandCullBinsForBucket(
+    const java::ArrayList<int> &bucket,
+    const java::ArrayList<BakedScene::CsgOperandRecord> &operands,
+    BakedScene::OperandCullBins &out)
+{
+    out.built = false;
+    out.binBounds.clear();
+    out.binMemberStart.clear();
+    out.binMemberCount.clear();
+    out.binMembers.clear();
+    out.alwaysTestedPositions.clear();
+
+    const long int bucketSize = bucket.size();
+    if (!kEnableOperandCullBins || bucketSize < kOperandCullBinThreshold) {
+        return;
+    }
+
+    std::vector<std::pair<double, int>> cullSafeByAxis;
+    cullSafeByAxis.reserve((size_t)bucketSize);
+    Vector3Dd lo(1e30, 1e30, 1e30);
+    Vector3Dd hi(-1e30, -1e30, -1e30);
+    for (long int p = 0; p < bucketSize; p++) {
+        const BakedScene::CsgOperandRecord &operand = operands[bucket[p]];
+        if (operand.bounded && operand.cullSafe) {
+            const Vector3Dd c = operand.bakedBounds.centroid();
+            cullSafeByAxis.emplace_back(0.0, (int)p);
+            lo = Vector3Dd(
+                std::min(lo.x(), c.x()), std::min(lo.y(), c.y()), std::min(lo.z(), c.z()));
+            hi = Vector3Dd(
+                std::max(hi.x(), c.x()), std::max(hi.y(), c.y()), std::max(hi.z(), c.z()));
+        } else {
+            out.alwaysTestedPositions.add((int)p);
+        }
+    }
+
+    if ((long int)cullSafeByAxis.size() < kOperandCullBinThreshold) {
+        out.alwaysTestedPositions.clear();
+        return;
+    }
+
+    const double spreadX = hi.x() - lo.x();
+    const double spreadY = hi.y() - lo.y();
+    const double spreadZ = hi.z() - lo.z();
+    int axis = 0;
+    if (spreadY > spreadX && spreadY >= spreadZ) {
+        axis = 1;
+    } else if (spreadZ > spreadX && spreadZ > spreadY) {
+        axis = 2;
+    }
+
+    for (auto &entry : cullSafeByAxis) {
+        const Vector3Dd c = operands[bucket[entry.second]].bakedBounds.centroid();
+        entry.first = axis == 0 ? c.x() : (axis == 1 ? c.y() : c.z());
+    }
+    std::sort(cullSafeByAxis.begin(), cullSafeByAxis.end(),
+        [](const std::pair<double, int> &a, const std::pair<double, int> &b) {
+            return a.first < b.first;
+        });
+
+    const int total = (int)cullSafeByAxis.size();
+    int numBins = (int)std::sqrt((double)total);
+    if (numBins < 1) {
+        numBins = 1;
+    }
+    if (numBins > 64) {
+        numBins = 64;
+    }
+    const int base = total / numBins;
+    const int remainder = total % numBins;
+
+    out.binMembers.reserve(total);
+    int cursor = 0;
+    for (int b = 0; b < numBins; b++) {
+        const int count = base + (b < remainder ? 1 : 0);
+        AxisAlignedBox aggregate = AxisAlignedBox::empty();
+        const int start = (int)out.binMembers.size();
+        for (int k = 0; k < count; k++) {
+            const int pos = cullSafeByAxis[(size_t)cursor].second;
+            out.binMembers.add(pos);
+            aggregate = aggregate.enclosing(operands[bucket[pos]].bakedBounds);
+            cursor++;
+        }
+        out.binBounds.add(aggregate);
+        out.binMemberStart.add(start);
+        out.binMemberCount.add(count);
+    }
+    out.built = true;
+}
+
 BakedScene::CsgProgram
 bakeConstructiveSolidGeometry(ConstructiveSolidGeometry *geometry, BakedScene &out)
 {
@@ -633,6 +740,22 @@ bakeConstructiveSolidGeometry(ConstructiveSolidGeometry *geometry, BakedScene &o
     }
     classifyCsgProgramSpecialization(baked);
     buildCsgExecutionPlan(baked, out);
+    if (baked.geometryType == BooleanSetOperations::UNION) {
+        BakedScene::OperandCullBins directBins;
+        buildOperandCullBinsForBucket(
+            baked.directPrimitiveOperandIndices, baked.operands, directBins);
+        if (directBins.built) {
+            out.operandCullBinsStorage.push_back(directBins);
+            baked.directPrimitiveCullBins = &out.operandCullBinsStorage.back();
+        }
+        BakedScene::OperandCullBins transformedBins;
+        buildOperandCullBinsForBucket(
+            baked.transformedPrimitiveOperandIndices, baked.operands, transformedBins);
+        if (transformedBins.built) {
+            out.operandCullBinsStorage.push_back(transformedBins);
+            baked.transformedPrimitiveCullBins = &out.operandCullBinsStorage.back();
+        }
+    }
     return baked;
 }
 
@@ -737,6 +860,15 @@ accumulateStatistics(BakedScene &scene)
         }
     }
 
+    stats.topLevelObjectCount = scene.topLevelObjectIndices.size();
+    for (long int i = 0; i < scene.topLevelObjectIndices.size(); i++) {
+        const int objectIndex = scene.topLevelObjectIndices[i];
+        const BakedScene::TraceableObject &object = scene.traceableObjects[objectIndex];
+        if (object.bounded) {
+            stats.topLevelObjectCullSafeCount++;
+        }
+    }
+
     stats.csgProgramCount = scene.csgPrograms.size();
     for (long int i = 0; i < scene.csgPrograms.size(); i++) {
         const BakedScene::CsgProgram &program = scene.csgPrograms[i];
@@ -760,8 +892,28 @@ accumulateStatistics(BakedScene &scene)
             stats.csgPlanFallback++;
             break;
         }
+        if (program.geometryType == BooleanSetOperations::UNION) {
+            const long int operandCount = program.operands.size();
+            int bucket;
+            if (operandCount <= 4) {
+                bucket = 0;
+            } else if (operandCount <= 16) {
+                bucket = 1;
+            } else if (operandCount <= 64) {
+                bucket = 2;
+            } else {
+                bucket = 3;
+            }
+            stats.unionProgramOperandHistogram[bucket]++;
+        }
         for (long int j = 0; j < program.operands.size(); j++) {
             const BakedScene::CsgOperandRecord &operand = program.operands[j];
+            if (program.geometryType == BooleanSetOperations::UNION) {
+                stats.unionProgramOperandTotalCount++;
+                if (operand.bounded && operand.cullSafe) {
+                    stats.unionProgramOperandCullSafeCount++;
+                }
+            }
             if (operand.hasBakedQuadric) {
                 stats.residualBakedQuadricOperands++;
             }

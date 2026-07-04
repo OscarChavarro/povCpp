@@ -1,6 +1,8 @@
 #ifndef __BAKED_SCENE__
 #define __BAKED_SCENE__
 
+#include <deque>
+
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
@@ -121,6 +123,27 @@ class BakedScene {
         bool pushdownFolded = false;
     };
 
+    // Plan 13 Phase 1: a bake-time-only spatial index over one operand
+    // bucket's cull-safe (bounded && cullSafe) members, used to skip most
+    // per-ray AABB tests on wide unions (spline's 430-operand bucket,
+    // ntreal's 1744, piece3's 501) instead of testing every member
+    // linearly. Stores *bucket positions* (indices into the owning
+    // ArrayList<int> bucket, e.g. directPrimitiveOperandIndices), never
+    // operand pointers or global operand indices directly, so nothing here
+    // dangles across the ArrayList relocations described in
+    // csgoperand_clone_perf_fix/Plan 5 Phase 3. `alwaysTestedPositions`
+    // holds the bucket positions that are NOT cull-safe (unbounded, or
+    // bounded but not cullSafe) - these bypass the AABB test entirely at
+    // trace time exactly as the un-indexed loop does today.
+    struct OperandCullBins {
+        bool built = false;
+        java::ArrayList<AxisAlignedBox> binBounds;
+        java::ArrayList<int> binMemberStart;
+        java::ArrayList<int> binMemberCount;
+        java::ArrayList<int> binMembers;
+        java::ArrayList<int> alwaysTestedPositions;
+    };
+
     // One compiled CSG node: algorithm/specialization chosen once at build
     // time, plus the operand-kind bucket arrays the fused-plan kernels
     // iterate (planes, direct primitives, nested CSGs, transformed
@@ -137,6 +160,23 @@ class BakedScene {
         java::ArrayList<int> transformedPrimitiveOperandIndices;
         java::ArrayList<int> directPrimitiveOperandIndices;
         java::ArrayList<CsgOperandRecord> operands;
+        // Plan 13 Phase 1: non-owning pointers into BakedScene's
+        // operandCullBinsStorage (a std::deque, never invalidated by later
+        // push_back - unlike java::ArrayList/std::vector - so this is safe
+        // despite csgPrograms itself still being an ArrayList that can
+        // relocate). null unless the respective bucket had >=
+        // kOperandCullBinThreshold cull-safe members at bake time (see
+        // BakedSceneBuilder.cpp); null means trace time falls back to the
+        // original full linear scan. Deliberately NOT stored by value here:
+        // an earlier by-value version added ~320 bytes/program to every
+        // CsgProgram (5 ArrayLists x 2 buckets) even when unused, which
+        // measurably regressed drums/iortest (~7-10%, see
+        // doc/performanceReviewPlan13.md Phase 1) purely from cache pressure
+        // on the hot csgPrograms array - despite those two scenes never
+        // building a single cull-bin (their union operand counts never
+        // cross the threshold).
+        const OperandCullBins *directPrimitiveCullBins = nullptr;
+        const OperandCullBins *transformedPrimitiveCullBins = nullptr;
     };
 
     // One traceable object: a plain SimpleBody, a CSG-wrapping SimpleBody,
@@ -226,10 +266,24 @@ class BakedScene {
         // Category 3: TransformedSphere/TransformedPrimitive - no
         // coefficient congruence exists for these kinds today.
         long residualCategory3Unbakeable = 0;
+        // Plan 13 Phase 0: population census for the culling-structure
+        // build threshold decision. Histogram buckets union-typed CsgProgram
+        // operand counts (1-4, 5-16, 17-64, 65+); the finite/cull-safe count
+        // is how many of those operands could feed a bake-time bounds
+        // structure at all (AxisAlignedBox::unbounded() operands can't).
+        long unionProgramOperandHistogram[4] = {0, 0, 0, 0};
+        long unionProgramOperandCullSafeCount = 0;
+        long unionProgramOperandTotalCount = 0;
+        long topLevelObjectCount = 0;
+        long topLevelObjectCullSafeCount = 0;
     };
 
     java::ArrayList<TraceableObject> traceableObjects;
     java::ArrayList<CsgProgram> csgPrograms;
+    // Plan 13 Phase 1: backing storage for CsgProgram::*CullBins pointers -
+    // a std::deque so push_back never invalidates references to earlier
+    // elements (java::ArrayList/std::vector would).
+    std::deque<OperandCullBins> operandCullBinsStorage;
     java::ArrayList<CompositeRecord> composites;
     java::ArrayList<int> topLevelObjectIndices;
     java::ArrayList<int> boundedObjectIndices;
