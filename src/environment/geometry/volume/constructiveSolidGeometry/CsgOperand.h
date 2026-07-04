@@ -85,20 +85,26 @@ class CsgOperand : public RayOperationOwner {
         bakedBoundsValid = true;
     }
 
+    // Uses RayWithSegments's cached per-axis reciprocals (Plan 12 Phase 3
+    // - see BakedCsgTrace::rayIntersectsAabbForward for the identical
+    // pattern and rationale) instead of dividing on every call.
     static bool rayIntersectsAabbForward(
         const RayWithSegments &ray, const AxisAlignedBox &box)
     {
         const Vector3Dd origin = ray.getOrigin();
-        const Vector3Dd direction = ray.getDirection();
+        double invDirX, invDirY, invDirZ;
+        bool degenerateX, degenerateY, degenerateZ;
+        ray.getAabbSlabReciprocals(
+            &invDirX, &invDirY, &invDirZ,
+            &degenerateX, &degenerateY, &degenerateZ);
         double tMin = 0.0;
         double tMax = 1e30;
 
-        auto updateAxis = [&](double originCoord, double directionCoord,
+        auto updateAxis = [&](double originCoord, double invDir, bool degenerate,
                               double minCoord, double maxCoord) -> bool {
-            if (directionCoord > -1e-12 && directionCoord < 1e-12) {
+            if (degenerate) {
                 return originCoord >= minCoord && originCoord <= maxCoord;
             }
-            const double invDir = 1.0 / directionCoord;
             double nearT = (minCoord - originCoord) * invDir;
             double farT = (maxCoord - originCoord) * invDir;
             if (nearT > farT) {
@@ -112,9 +118,9 @@ class CsgOperand : public RayOperationOwner {
         };
 
         return
-            updateAxis(origin.x(), direction.x(), box.min.x(), box.max.x()) &&
-            updateAxis(origin.y(), direction.y(), box.min.y(), box.max.y()) &&
-            updateAxis(origin.z(), direction.z(), box.min.z(), box.max.z()) &&
+            updateAxis(origin.x(), invDirX, degenerateX, box.min.x(), box.max.x()) &&
+            updateAxis(origin.y(), invDirY, degenerateY, box.min.y(), box.max.y()) &&
+            updateAxis(origin.z(), invDirZ, degenerateZ, box.min.z(), box.max.z()) &&
             tMax >= 0.0;
     }
 

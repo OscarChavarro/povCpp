@@ -91,9 +91,52 @@ private:
         RaySharedCache &cache,
         Material *materialOverride);
 
-    static bool rayIntersectsAabbForward(
+    // Defined inline here (not in BakedCsgTrace.cpp): this is the single
+    // hottest leaf in the profile of AABB-culled scenes (Plan 11/12 gprof
+    // sweep — 33-48% of self-time in union-heavy scenes like spline/ntreal,
+    // called tens of millions of times per render) and LTO alone did not
+    // fold it into its many call sites (still a distinct symbol post-LTO).
+    // Header-inlining removes the out-of-line call itself, independent of
+    // whatever the LTO pass decides.
+    static inline bool rayIntersectsAabbForward(
         const RayWithSegments &ray,
-        const AxisAlignedBox &box);
+        const AxisAlignedBox &box)
+    {
+        const Vector3Dd origin = ray.getOrigin();
+        // Plan 12 Phase 3: the three reciprocals are cached on the ray
+        // (invariant for as long as its origin/direction don't change), so
+        // the slab test below no longer pays a division per axis per call.
+        double invDirX, invDirY, invDirZ;
+        bool degenerateX, degenerateY, degenerateZ;
+        ray.getAabbSlabReciprocals(
+            &invDirX, &invDirY, &invDirZ,
+            &degenerateX, &degenerateY, &degenerateZ);
+        double tMin = 0.0;
+        double tMax = 1e30;
+
+        auto updateAxis = [&](double originCoord, double invDir, bool degenerate,
+                              double minCoord, double maxCoord) -> bool {
+            if (degenerate) {
+                return originCoord >= minCoord && originCoord <= maxCoord;
+            }
+            double nearT = (minCoord - originCoord) * invDir;
+            double farT = (maxCoord - originCoord) * invDir;
+            if (nearT > farT) {
+                const double tmp = nearT;
+                nearT = farT;
+                farT = tmp;
+            }
+            tMin = nearT > tMin ? nearT : tMin;
+            tMax = farT < tMax ? farT : tMax;
+            return tMin <= tMax;
+        };
+
+        return
+            updateAxis(origin.x(), invDirX, degenerateX, box.min.x(), box.max.x()) &&
+            updateAxis(origin.y(), invDirY, degenerateY, box.min.y(), box.max.y()) &&
+            updateAxis(origin.z(), invDirZ, degenerateZ, box.min.z(), box.max.z()) &&
+            tMax >= 0.0;
+    }
 
     static bool pointInsideAabb(
         const Vector3Dd &point,

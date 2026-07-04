@@ -11,11 +11,39 @@ namespace java {
         long int maxSize;
         T *Data;
 
-        void init();
+        // Defined inline (not in ArrayList.txx) so every translation unit
+        // that includes this header sees the full body and can inline the
+        // capacity-0 no-allocation path at the call site, rather than
+        // requiring cross-TU LTO to fold an out-of-line call. This is the
+        // path RayWithSegments::RayWithSegments(LocalIntersectionClone, ...)
+        // takes tens of millions of times per render (Plan 12 Phase 2) - it
+        // was measured as the single hottest self-time leaf post-LTO because
+        // LTO's own inlining heuristics did not reach across every call
+        // site. The growth/copy paths (add/reserve/operator=/...) stay in
+        // ArrayList.txx: they are not on this hot path and keeping them
+        // out-of-line avoids code bloat from a heavier inline body.
+        void init()
+        {
+            if (maxSize > 0) {
+                Data = new T[maxSize];
+                if (!Data) {
+                    maxSize = 0;
+                }
+            } else {
+                Data = nullptr;
+            }
+            currentSize = 0;
+        }
 
     public:
         ArrayList();
-        explicit ArrayList(long i);
+        explicit ArrayList(long i)
+        {
+            currentSize = 0;
+            increaseChunk = i;
+            maxSize = increaseChunk;
+            init();
+        }
         ArrayList(const ArrayList& other);
         ArrayList& operator=(const ArrayList& other);
         // Plain pointer/field transfer, no allocation and no per-element

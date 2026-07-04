@@ -4,7 +4,14 @@ project(povray LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/build")
+# Deliberately no CMAKE_RUNTIME_OUTPUT_DIRECTORY override: forcing every
+# configuration to the fixed path "<repo>/build" made secondary build trees
+# (e.g. -B build-gprof, -B build-lto) silently overwrite the primary
+# build/povray binary (see doc/performanceReviewPlan11.md Trap 1 / Plan 12
+# Phase 0). Without the override, CMake's default puts each target's binary
+# under its own build tree's CMAKE_CURRENT_BINARY_DIR, so "cmake -S . -B
+# build" still produces build/povray (matching every script that hardcodes
+# that path) while any other -B tree keeps its binary to itself.
 
 add_subdirectory(base)
 
@@ -146,3 +153,17 @@ target_include_directories(povray PRIVATE
 target_compile_options(povray PRIVATE -O3 -Wall -pedantic)
 
 target_link_libraries(povray PRIVATE vitral_base m)
+
+# LTO measured at -2.6% (drums) / -3.5% (iortest) wall-clock, byte-identical
+# output, in doc/performanceReviewPlan11.md Section 3. Applied to both
+# targets so cross-TU calls between povray and vitral_base can also be
+# inlined/specialized. Falls back to a warning (not a hard error) if the
+# toolchain lacks IPO support, so the build still succeeds without it.
+include(CheckIPOSupported)
+check_ipo_supported(RESULT ipo_supported OUTPUT ipo_error LANGUAGES CXX)
+if(ipo_supported)
+    set_property(TARGET povray PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
+    set_property(TARGET vitral_base PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
+else()
+    message(WARNING "IPO/LTO not supported by this toolchain, building without it: ${ipo_error}")
+endif()

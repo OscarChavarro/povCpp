@@ -8,7 +8,14 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/build")
+# Deliberately no CMAKE_LIBRARY_OUTPUT_DIRECTORY override here, for the same
+# reason the top-level CMakeLists.txt no longer forces
+# CMAKE_RUNTIME_OUTPUT_DIRECTORY: a fixed "<repo>/base/build" path made every
+# secondary build tree (e.g. -B build-gprof) silently overwrite the primary
+# tree's libvitral_base.so out from under the running build/povray. Left to
+# CMake's default, the library lands under this subdirectory's own build
+# tree (<top-build-dir>/base/), so "cmake -S . -B build" still produces
+# build/base/libvitral_base.so and other -B trees stay isolated.
 
 set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/common/VSDK.cpp
