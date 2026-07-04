@@ -349,6 +349,85 @@ residual population converts to world-space quadrics on the first pass,
 directly displacing the current single largest named hot cluster in the
 whole Plan 5-8 sequence.
 
+### Phase R2 — Attempted, disabled pending further debugging (2026-07-04)
+
+Implemented in `BakedSceneBuilder.cpp`: `pushDownStepsIntoProgram` walks an
+already-baked nested `CsgProgram` and, for every operand that is a quadric,
+plane, or (recursively) an all-bakeable `NestedCsg`, re-bakes it from its
+*raw* geometry with `childSteps ++ parentSteps` (childSteps first — verified
+against the existing, working precedent in `bakeSimpleBody`'s
+geometry-steps-then-body-steps fold, and against `Matrix4x4d`'s row-vector/
+`v' = v*M` convention, which makes T_combined = T_child * T_parent, i.e.
+encounter order). AABB bounds are moved into the parent's space in the same
+pass via `AxisAlignedBox::fromTransformedCorners` on the parent's own
+`objectToLocal` matrix (this part had no bugs). Wired into `bakeCsgOperand`
+behind `kEnableNestedTransformPushdown`, gated on
+`nestedProgramFullyBakeable`.
+
+R0's own eligibility check had a bug, fixed before R2 landed: it accepted
+any `Direct*`-kind operand as bakeable, but `Direct*` also covers
+untransformed Sphere/Box/Blob (no coefficient congruence exists for those).
+Fixed to check `quadricGeometry != nullptr || isInfinitePlane` directly;
+drums's numbers were unaffected by the correction (all its Direct-kind
+nested children happen to be quadric/plane already).
+
+**Bug 1 (found, fixed): step accumulation across nesting levels.** drums.inc
+has real 3-level chains (`Tensioner` → `Tensioner1` → `Disk_X`, each level
+its own `TransformedNestedCsg`). Each level's push-down runs as a *separate*
+call, bottom-up. The first implementation re-derived `combinedSteps` from
+`operand.operand->getSteps()` (the leaf's own original, unchanging steps)
+every time, so a second (outer) push-down pass silently discarded whatever
+an earlier (inner) pass had already folded in — the leaf ended up baked
+with only the outermost layer's steps, missing every intermediate layer.
+Fixed by adding `CsgOperandRecord::pushdownAccumulatedSteps`, extended
+(never re-derived from scratch) on each subsequent pass. Verified via a
+hand-built 3-level test scene (`union{Tensioner1 rotate<> translate<>}`
+pattern): rendered standalone, this now matches the pre-push-down reference
+byte-for-byte (AE=0).
+
+**Bug 2 (found, not yet fixed): touching/overlapping instances of the same
+shared declared CSG.** The same 3-level test scene with *two* mirrored
+instances present together (`union{Tensioner1 translate<A>} union{Tensioner1
+rotate<> translate<B>}`, touching at a shared seam — exactly drums.inc's
+`Tensioner` pattern) shows a small but real defect: thin dark crack lines at
+the seam where the two instances meet, AE=524/120000 in the isolated test.
+Each instance compiles to its own independent baked copy (confirmed:
+`compileConstructiveSolidGeometry` never caches by geometry pointer, so
+there is no shared-state corruption between the two `Tensioner1` copies),
+so this isn't cross-contamination - it is the exact "candidate order/tie-
+breaking at coincident surfaces" risk the plan's own Risks section named in
+advance. Likely fixable but not attempted further this session.
+
+**Net result: still far from acceptable.** After fixing Bug 1, a full-suite
+run still shows large, structural (not cosmetic) damage - drums AE=680674/
+1024000 (66% of pixels), plus **new** large regressions on chess (AE=8447,
+up from 1), snail (AE=512532, up from 3), and tomb (AE=402581, up from
+126406) that were *smaller* before the Bug 1 fix. This is not the shrinking
+trend a converging fix should show; it means at least one more real,
+undiscovered defect exists beyond Bugs 1 and 2, most likely in a CSG
+population this session's hand-built test scenes didn't exercise (drums has
+`composite`-nested CSGs, `difference` operators, and `Blob`/`HeightField`
+operands that no isolated test above covered).
+
+**Decision: R2 disabled** (`kEnableNestedTransformPushdown = false`),
+verified gate green byte-identical to the Plan 8 Phase 1 exit state with it
+off. The code stays in the tree, dead behind the flag, so a future session
+does not have to re-derive the step-order proof, the AABB fix, or Bug 1's
+diagnosis - only Bug 2 and whatever produces the still-growing full-suite
+damage. This is exactly the kind of result Plan 9/10's "declare honestly,
+do not grind on sunk cost" framing was written for: two real, non-obvious
+bugs found and one fixed in a single session is a legitimate amount of
+progress, but shipping R2 live would be a correctness regression, not a
+performance win, and is refused on those grounds.
+
+**Recommendation:** treat R2 as a distinct future sub-task with its own
+budget, not a same-session continuation. Before resuming, add hand-built
+test coverage for `difference`, `composite`-embedded CSGs, and blob/height-
+field operands specifically (the isolated tests here only covered
+`union`/`intersection` of quadric/plane), since the post-Bug-1 regression
+pattern (three scenes getting *worse*) points at a population category
+none of this session's tests touched.
+
 ### Refocused acceptance criteria
 
 - Phase R0 table published for the six named scenes (hard requirement even
