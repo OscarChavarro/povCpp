@@ -17,8 +17,7 @@ public:
         const RayWithSegments *eye, const Vector3Dd *surfaceNormal,
         const ColorRgba *surfaceColor, ColorRgba *color, double attenuation,
         const TraceService *traceService, const java::ArrayList<Light*> &lightSources,
-        const BakedScene &bakedScene,
-        const Scene::CompiledTracingScene &legacyScene);
+        const BakedScene &bakedScene);
 };
 
 #endif

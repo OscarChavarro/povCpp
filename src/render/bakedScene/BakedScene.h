@@ -12,6 +12,7 @@
 
 class SimpleBody;
 class Composite;
+class CsgOperand;
 
 // Plan 6: the rebuilt baked-model layer. Unlike the Scene.h Baked* structs
 // it supersedes (Plan 6 Phase 4 deletes those), every field here is either
@@ -64,6 +65,11 @@ class BakedScene {
     // copy - carried over unchanged from Plan 5's BakedCsgOperand.
     struct CsgOperandRecord {
         CsgOperandKind kind = CsgOperandKind::Empty;
+        // Detail-owner pushed onto the shading stack for per-operand
+        // material/texture lookups (CsgOperand::doExtraInformation) - not a
+        // cold debug pointer, this is read on the hot path exactly like the
+        // old model's BakedCsgOperand::operand.
+        CsgOperand *operand = nullptr;
         Geometry *geometry = nullptr;
         Quadric *quadricGeometry = nullptr;
         Material *material = nullptr;

@@ -64,7 +64,6 @@ canUseCsgFirstHitForShadow(const BakedScene &bakedScene, int objectIndex)
 bool
 traceShadowObject(
     const BakedScene &bakedScene,
-    const Scene::CompiledTracingScene &legacyScene,
     int objectIndex,
     RayWithSegments *lightSourceRay,
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue,
@@ -76,7 +75,7 @@ traceShadowObject(
         canUseCsgFirstHitForShadow(bakedScene, objectIndex)) {
         IntersectionCandidate firstHit;
         if (!BakedTrace::traceFirstHit(
-                bakedScene, legacyScene, objectIndex, lightSourceRay, firstHit)) {
+                bakedScene, objectIndex, lightSourceRay, firstHit)) {
             return false;
         }
 
@@ -89,7 +88,7 @@ traceShadowObject(
     }
 
     BakedTrace::traceAllCrossings(
-        bakedScene, legacyScene, objectIndex, lightSourceRay, localDepthQueue);
+        bakedScene, objectIndex, lightSourceRay, localDepthQueue);
 
     while (localDepthQueue->size() > 0) {
         IntersectionCandidate localIntersection = localDepthQueue->poll();
@@ -122,8 +121,7 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
     const RayWithSegments *eye, const Vector3Dd *surfaceNormal, const ColorRgba *surfaceColor,
     ColorRgba *color, double attenuation, const TraceService *traceService,
     const java::ArrayList<Light*> &lightSources,
-    const BakedScene &bakedScene,
-    const Scene::CompiledTracingScene &legacyScene)
+    const BakedScene &bakedScene)
 {
     double lightSourceDepth;
     RayWithSegments lightSourceRay;
@@ -183,7 +181,6 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
                 stats.incrementShadowRayTests();
                 if (traceShadowObject(
                     bakedScene,
-                    legacyScene,
                     objectIndex,
                     &lightSourceRay,
                     localDepthQueue,
@@ -201,7 +198,6 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
                 stats.incrementShadowRayTests();
                 if (traceShadowObject(
                     bakedScene,
-                    legacyScene,
                     objectIndex,
                     &lightSourceRay,
                     localDepthQueue,
