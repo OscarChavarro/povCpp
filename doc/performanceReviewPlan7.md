@@ -218,6 +218,56 @@ riskier change than Phases 1-3 (new per-class keying, cache-invalidation
 subtleties flagged as the plan's own top risk), and is left for a follow-up
 decision rather than rushed.
 
+## Status update: Phase 4 attempted (scoped down), target not met on drums
+
+Implemented the safe, low-risk slice of Phase 4: `traceMorganIntersectionGeneric`
+(generic-Morgan `INTERSECTION` CSGs) ran its prescan and its main candidate
+loop as two independent passes over the same operands, each doing its own
+`localToObject` transform and quadric solve for every `TransformedQuadric`
+operand - a genuine, deterministic duplicate within one ray's evaluation of
+one CSG program. Fixed by caching the prescan's transformed origin/direction
+and depth1/depth2 in a **plain stack array scoped to that one function call**
+(indexed by loop position, capped at `MAX_CACHED_QUADRIC_OPERANDS = 64`,
+falling back to the original always-correct double-trace above the cap) and
+reusing it in the main loop instead of re-deriving it. This is deliberately
+*not* the general "group operands sharing a transform matrix" cache the plan
+sketches, and *not* a `RaySharedCache`-based cross-call cache: both of those
+need a generation stamp valid across separate `BakedTrace`/`BakedCsgTrace`
+entry calls, which is exactly the risk the plan itself calls out ("stale
+reads... silently wrong on exactly one scene"). A stack-local cache whose
+lifetime is provably bounded to the one call that fills it cannot go stale,
+so it was preferred even though it only pays off this one specific
+duplicate-compute pattern.
+
+Gate: byte-identical (full suite), `-parallel4` determinism re-checked on
+drums (AE=0).
+
+**drums timing: unchanged** (~8.7s, no measurable difference from the
+Phase 1-3 state). Re-profiled with gprof to find out why:
+`traceMorganIntersectionGeneric` is called only ~3.0M times in drums, while
+the dominant quadric-test volume (50.1M `intersectBakedQuadricWithTrueMiss`
+calls, ~25% of total runtime) flows through `traceSingleCorePlaneIntersection`
+/ `traceTransformedNestedSingleCorePlaneOperandAllCrossings` - the
+`SingleCorePlaneIntersection`/`core-plane` specialization (250 of drums's
+450 CSG programs), not the generic-Morgan-intersection path this pass
+targeted (only 200 of 450, and most of those are `UNION`, which uses
+`traceGenericMorganUnion` and never had the duplicate-compute pattern).
+Those hot functions call the intersection helpers *once* per operand per
+ray already (no analogous double-trace to eliminate); the only way to cut
+their cost further is a genuine cross-call, generation-stamped cache - the
+harder, riskier design the plan describes and this session deliberately did
+not attempt.
+
+**Conclusion for this plan**: Phases 1-4 are complete, correct, and
+gate-green, and Phase 1-3 fixed a real `-parallel` data race, but the
+plan's ≥10% drums wall-clock target is not met and is unlikely to be
+reachable without the generation-stamped cross-call cache design - a
+meaningfully riskier follow-on than anything implemented so far. Recommend
+treating Plan 7 as closed at this state (ship the correctness fix and the
+free wins) and revisiting the core-plane path's cost under Plan 8 (fused
+kernels), which restructures that exact code path anyway and may make a
+safe cache placement more obvious there.
+
 ## Risks and Dead-End Reminders
 
 - Do not put the cache in `environment/geometry` or on `RayWithSegments`

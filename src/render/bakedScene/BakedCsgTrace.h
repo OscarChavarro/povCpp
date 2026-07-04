@@ -561,6 +561,18 @@ private:
         double depth,
         IntersectionCandidate &candidate);
 
+    // Plan 7 Phase 4: prescan and main loop both need each TransformedQuadric
+    // operand's local-space intersection - without this cache the transform
+    // (2 matrix-vector ops) and the quadric solve (~40 FLOPs) ran twice per
+    // operand per ray. Cache scope is exactly this one function call (one CSG
+    // program, one ray): a plain stack array indexed by the loop index `i`,
+    // not the global RaySharedCache - no cross-call generation-stamp risk,
+    // since the array cannot outlive the call that filled it. Capped at
+    // MAX_CACHED_QUADRIC_OPERANDS; CSGs with more top-level operands than
+    // that just skip the optimization and re-trace as before (always
+    // correct, only forgoes the speedup).
+    static constexpr long int MAX_CACHED_QUADRIC_OPERANDS = 64;
+
     static int traceMorganIntersectionGeneric(
         const BakedScene::CsgProgram &bakedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
@@ -569,11 +581,25 @@ private:
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride)
     {
+        const long int operandCount = bakedCsg.operands.size();
+        const bool canCache = operandCount <= MAX_CACHED_QUADRIC_OPERANDS;
+        bool cachedValid[MAX_CACHED_QUADRIC_OPERANDS];
+        bool cachedHit[MAX_CACHED_QUADRIC_OPERANDS];
+        Vector3Dd cachedLocalOrigin[MAX_CACHED_QUADRIC_OPERANDS];
+        Vector3Dd cachedLocalDirection[MAX_CACHED_QUADRIC_OPERANDS];
+        double cachedDepth1[MAX_CACHED_QUADRIC_OPERANDS];
+        double cachedDepth2[MAX_CACHED_QUADRIC_OPERANDS];
+        if (canCache) {
+            for (long int i = 0; i < operandCount; i++) {
+                cachedValid[i] = false;
+            }
+        }
+
         // Pre-scan: if any positive-quadric (polyA>0) operand definitely misses the ray
         // (trueMiss), all points along the ray are outside that operand. No crossing from
         // any other operand can satisfy the containment check for it → the whole INTERSECTION
         // produces no valid candidates. Early exit saves 3 operand evals per X_Tube miss.
-        for (long int i = 0; i < (long int)bakedCsg.operands.size(); i++) {
+        for (long int i = 0; i < operandCount; i++) {
             const BakedScene::CsgOperandRecord &op = bakedCsg.operands[i];
             if (op.kind != BakedScene::CsgOperandKind::TransformedQuadric ||
                 op.quadricGeometry == nullptr) {
@@ -586,12 +612,20 @@ private:
             double polyA = 0, polyB = 0, polyC = 0;
             bool trueMiss = false;
             double d1, d2;
-            intersectBakedQuadricWithCoeffs(
+            const bool hit = intersectBakedQuadricWithCoeffs(
                 *op.quadricGeometry, ray, localOrigin, localDirection,
                 false, scratch.getCache(), op.quadricViewpointSlot,
                 &d1, &d2, polyA, polyB, polyC, trueMiss);
             if (trueMiss && polyA > 0.0) {
                 return false;
+            }
+            if (canCache) {
+                cachedValid[i] = true;
+                cachedHit[i] = hit;
+                cachedLocalOrigin[i] = localOrigin;
+                cachedLocalDirection[i] = localDirection;
+                cachedDepth1[i] = d1;
+                cachedDepth2[i] = d2;
             }
         }
 
@@ -601,8 +635,30 @@ private:
 
         for (long int i = bakedCsg.operands.size() - 1; i >= 0; i--) {
             const BakedScene::CsgOperandRecord &localShape = bakedCsg.operands[i];
-            tracePlanOperandAllCrossings(
-                localShape, bakedCsgs, scratch, ray, localDepthQueue, materialOverride);
+            if (canCache && cachedValid[i]) {
+                // Reuse the prescan's transform + quadric solve verbatim -
+                // this mirrors traceOperandAllCrossings's TransformedQuadric
+                // branch exactly (same effectiveMaterial rule, same
+                // offerTransformedPrimitiveCandidate calls), just fed from
+                // the cache instead of recomputing.
+                if (cachedHit[i]) {
+                    Material *effectiveMaterial =
+                        localShape.material != nullptr ? localShape.material : materialOverride;
+                    offerTransformedPrimitiveCandidate(
+                        localShape, ray, effectiveMaterial,
+                        cachedLocalOrigin[i], cachedLocalDirection[i],
+                        cachedDepth1[i], localDepthQueue);
+                    if (cachedDepth2[i] != cachedDepth1[i]) {
+                        offerTransformedPrimitiveCandidate(
+                            localShape, ray, effectiveMaterial,
+                            cachedLocalOrigin[i], cachedLocalDirection[i],
+                            cachedDepth2[i], localDepthQueue);
+                    }
+                }
+            } else {
+                tracePlanOperandAllCrossings(
+                    localShape, bakedCsgs, scratch, ray, localDepthQueue, materialOverride);
+            }
 
             for (IntersectionCandidate &candidate : *localDepthQueue) {
                 if (candidateInsideAllOtherOperands(
@@ -702,11 +758,52 @@ private:
             }
         }
 
-        // Transformed primitives and quadrics: generic path (needs local ray).
+        // Transformed primitives and quadrics: TransformedQuadric (the
+        // dominant residual-transformed kind) gets a direct fused branch
+        // instead of paying traceOperandAllCrossings's function-call
+        // boundary and generic kind dispatch (Plan 8 Phase 1); everything
+        // else keeps the generic path. Iteration order is unchanged (same
+        // array, same direction) so candidate/tie-break ordering across
+        // operand kinds is preserved exactly.
         for (long int t = bakedCsg.transformedPrimitiveOperandIndices.size() - 1;
              t >= 0; t--) {
+            const BakedScene::CsgOperandRecord &operand =
+                bakedCsg.operands[bakedCsg.transformedPrimitiveOperandIndices[t]];
+            if (operand.kind == BakedScene::CsgOperandKind::TransformedQuadric) {
+                if (operand.geometry == nullptr || operand.quadricGeometry == nullptr) {
+                    continue;
+                }
+                if (operand.bounded && operand.cullSafe &&
+                    !rayIntersectsAabbForward(*ray, operand.bakedBounds)) {
+                    continue;
+                }
+                Material *effectiveMaterial =
+                    operand.material != nullptr ? operand.material : materialOverride;
+                const Vector3Dd localOrigin =
+                    operand.localToObject.transformPoint(ray->getOrigin());
+                const Vector3Dd localDirection =
+                    operand.localToObject.transformDirection(ray->getDirection());
+                double depth1;
+                double depth2;
+                if (!intersectBakedQuadric(
+                        *operand.quadricGeometry, ray, localOrigin, localDirection,
+                        false, scratch.getCache(), operand.quadricViewpointSlot,
+                        &depth1, &depth2)) {
+                    continue;
+                }
+                offerTransformedPrimitiveCandidate(
+                    operand, ray, effectiveMaterial,
+                    localOrigin, localDirection, depth1, depthQueue);
+                anyFound = true;
+                if (depth2 != depth1) {
+                    offerTransformedPrimitiveCandidate(
+                        operand, ray, effectiveMaterial,
+                        localOrigin, localDirection, depth2, depthQueue);
+                }
+                continue;
+            }
             if (traceOperandAllCrossings(
-                    bakedCsg.operands[bakedCsg.transformedPrimitiveOperandIndices[t]],
+                    operand,
                     bakedCsgs,
                     scratch,
                     ray,
