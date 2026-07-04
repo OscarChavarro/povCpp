@@ -100,7 +100,6 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
                 &surfaceColor, &filterColor, color, traceService,
                 context.getScene().getLightSources(),
                 context.getScene().getBakedScene(),
-                context.getScene().getCompiledTracingSceneForBridge(),
                 traceLevel, textureUtils);
         }
 

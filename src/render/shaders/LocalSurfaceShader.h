@@ -19,7 +19,6 @@ public:
         const ColorRgba *filterColor, ColorRgba *color,
         const TraceService *traceService, const java::ArrayList<Light*> &lightSources,
         const BakedScene &bakedScene,
-        const Scene::CompiledTracingScene &legacyScene,
         int &traceLevel, TextureUtils *textureUtils);
 };
 

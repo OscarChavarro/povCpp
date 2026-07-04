@@ -94,6 +94,7 @@ translateOperand(const Scene::BakedCsgOperand &operand)
 {
     BakedScene::CsgOperandRecord out;
     out.kind = translateOperandKind(operand.executionKind);
+    out.operand = operand.operand;
     out.geometry = operand.geometry;
     out.quadricGeometry = operand.quadricGeometry;
     out.material = operand.material;

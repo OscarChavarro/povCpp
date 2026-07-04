@@ -283,18 +283,11 @@ class Scene {
     {
         return compiledTracingScene.unboundedShadowCastingObjects;
     }
-    // Plan 6 Phase 1: the rebuilt baked model, built alongside
-    // compiledTracingScene above (same rebuild points) but not yet consumed
-    // by any trace path - see doc/performanceReviewPlan6.md.
+    // Plan 6: the rebuilt baked model. As of Phase 3 this is the sole model
+    // every trace path (BakedTrace/BakedCsgTrace) reads from -
+    // compiledTracingScene below is retained only as BakedSceneBuilder's
+    // input (Phase 4 removes that dependency and this struct entirely).
     const BakedScene& getBakedScene() const { return bakedScene; }
-    // Plan 6 Phase 2/3 bridge only: BakedTrace still routes Csg-kind objects
-    // to the old BakedSimpleBodyTracing/BakedCsgTracing layer, which needs
-    // the old model's arrays. Removed once Phase 3 ports the CSG algorithms
-    // and Phase 4 deletes compiledTracingScene entirely.
-    const CompiledTracingScene& getCompiledTracingSceneForBridge() const
-    {
-        return compiledTracingScene;
-    }
     void rebuildTracingStructures();
     void buildTracingCache();
     void buildCompiledTracingScene();

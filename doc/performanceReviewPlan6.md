@@ -398,6 +398,61 @@ bypass) are ported as build-time plan choices, not per-ray branches.
 
 Gate: byte-identical to the Plan 5 reference state.
 
+**Status: DONE.** `render/bakedScene/BakedCsgTrace.{h,cpp}` is a mechanical,
+verified-line-by-line port of the old `BakedCsgTracing` onto the new
+`BakedScene::CsgProgram`/`CsgOperandRecord` types: every function name,
+candidate order, and scratch-queue discipline carried over unchanged - only
+type names and a handful of renamed fields changed
+(`Scene::BakedConstructiveSolidGeometry`→`BakedScene::CsgProgram`,
+`Scene::BakedCsgOperand`→`BakedScene::CsgOperandRecord`,
+`.bakedCsgIndex`→`.nestedCsgProgramIndex`, `.executionKind`→`.kind`,
+`.executionPlanKind`→`.planKind`, the four `executionPlan*OperandIndices`
+arrays shortened to match, and `.specialization ==
+Scene::BakedCsgSpecialization::X` → `.planKind == BakedScene::CsgPlanKind::X`
+- verified equivalent because `specializationValid` is only ever true
+together with `specialization` set to a matching non-`None` value, which
+`buildBakedCsgExecutionPlan`/its Phase-1 translation always mirrors into
+`planKind`). Added one field Phase 1 had missed:
+`CsgOperandRecord::operand` (`CsgOperand*`, the detail-owner pushed for
+per-operand material/texture lookups) - not a cold debug pointer, a hot-path
+field the port needed the moment it touched `pushDetailOwner(operand.operand)`.
+
+`BakedTrace`'s three entry points no longer special-case `Csg` at all: since
+`traceSimpleBodyAllCrossings`/`traceSimpleBodyFirstHit`/
+`simpleBodyContainmentTest` already branch on `csgProgramIndex >= 0`
+internally (now calling `BakedCsgTrace` against `scene.csgPrograms` instead
+of bridging to the old layer via `legacyScene.bakedCsgs`), `Csg` merges into
+the same switch arm as `DirectPrimitive`/`BoundedGeneric`/`GenericFallback`.
+The `legacyScene`/`Scene::CompiledTracingScene` parameter is now gone
+entirely from `BakedTrace`, `BakedCsgTrace`, `RenderEngine::trace`,
+`DirectLightShader`/`LocalSurfaceShader`/`RayShaderPipeline`'s shadow-ray
+chain, and `Scene::getCompiledTracingSceneForBridge()` was deleted from
+`Scene.h` - every trace path now reads `BakedScene` exclusively.
+`canUseCsgFirstHitForShadow` (the shadow first-hit fast-path gate) keeps
+its Phase 2 form, keying off `csgProgramIndex >= 0` directly rather than
+`kind == Csg`, since it must also cover `BoundedGeneric` bodies that wrap a
+CSG.
+
+As a direct consequence, the entire old layer (`BakedCsgTracing`,
+`BakedSimpleBodyTracing`, `BakedCompositeTracing`, `BakedTracingCommon`,
+`CsgScratchContext`) is now dead code with zero external callers (verified
+by grep) except `BakedTracingCommon::resetFallbackCounters`/
+`getFallbackCounters`, which still run but can only ever report zero from
+here on - left in place per the plan ("old five files are deleted at
+cutover (Phase 5), not incrementally patched"), not deleted this phase.
+
+**Gate**: `renderAll` (138s) + `testAgainstGoldenImages` → `Test passed.`,
+byte-identical suite-wide; `renderParallel` also byte-identical;
+`benchmarkPanel` shows no regressions (0.196x/0.526x/0.520x/0.649x/0.393x
+of baseline, consistent with Phase 2's numbers). Additionally spot-checked
+the `-csgRoth` (`RaySegments` algorithm / `ConstructiveSolidGeometryByRaySegment`)
+path via `scripts/gateCsgScene.sh` on `level2/skyvase` (the mirror-corner
+`TopLevelPlaneUnion` bypass scene) and `level3/chess` (nested nested-nested
+nested-CSG nested case) - both pass at their pre-existing RMSE tolerance
+(0.0059 and 0.0057 respectively, threshold 0.02; this tolerance predates
+Plan 6 and reflects Roth's boolean ray-segment classification, not
+anything this port changed).
+
 ### Phase 4 — Move the structs out of `Scene.h`
 
 Delete `CompiledTracingScene` and all `Baked*` structs from

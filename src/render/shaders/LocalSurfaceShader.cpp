@@ -17,7 +17,6 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
     const ColorRgba *filterColor, ColorRgba *color,
     const TraceService *traceService, const java::ArrayList<Light*> &lightSources,
     const BakedScene &bakedScene,
-    const Scene::CompiledTracingScene &legacyScene,
     int &traceLevel, TextureUtils *textureUtils)
 {
     PovRayHit hit = PovRayHit::fromCandidate(*rayIntersection);
@@ -81,8 +80,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
     DirectLightShader::shade(texture, &hit.p, ray, &surfaceNormal,
         surfaceColor, &emittedColor, attenuation, traceService,
         lightSources,
-        bakedScene,
-        legacyScene);
+        bakedScene);
     color->setR(color->getR() + emittedColor.getR());
     color->setG(color->getG() + emittedColor.getG());
     color->setB(color->getB() + emittedColor.getB());
