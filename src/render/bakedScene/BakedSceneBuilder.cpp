@@ -677,5 +677,32 @@ BakedSceneBuilder::build(const java::ArrayList<SimpleBody*> &objects, BakedScene
         }
     }
 
+    // Plan 7: assign RaySharedCache slot indices, one per quadric/plane
+    // record that BakedCsgTrace's viewpoint-constant helpers will query.
+    // Must run after the fixup loops above so quadricGeometry is final.
+    int nextQuadricSlot = 0;
+    int nextPlaneSlot = 0;
+    for (long int i = 0; i < out.csgPrograms.size(); i++) {
+        BakedScene::CsgProgram &program = out.csgPrograms[i];
+        for (long int j = 0; j < program.operands.size(); j++) {
+            BakedScene::CsgOperandRecord &operand = program.operands[j];
+            if (operand.quadricGeometry != nullptr) {
+                operand.quadricViewpointSlot = nextQuadricSlot++;
+            }
+            if (operand.kind == BakedScene::CsgOperandKind::DirectPlane ||
+                operand.kind == BakedScene::CsgOperandKind::TransformedPlane) {
+                operand.planeViewpointSlot = nextPlaneSlot++;
+            }
+        }
+    }
+    for (long int i = 0; i < out.traceableObjects.size(); i++) {
+        BakedScene::TraceableObject &obj = out.traceableObjects[i];
+        if (obj.quadricGeometry != nullptr) {
+            obj.quadricViewpointSlot = nextQuadricSlot++;
+        }
+    }
+    out.statistics.quadricViewpointSlotCount = nextQuadricSlot;
+    out.statistics.planeViewpointSlotCount = nextPlaneSlot;
+
     accumulateStatistics(out);
 }

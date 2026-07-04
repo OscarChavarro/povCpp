@@ -98,13 +98,14 @@ bool
 BakedTrace::passesBoundingShapes(
     const BakedScene &scene,
     const BakedScene::TraceableObject &baked,
-    RayWithSegments *objectRayPtr)
+    RayWithSegments *objectRayPtr,
+    RaySharedCache &cache)
 {
     for (long int i = baked.boundingObjectIndices.size() - 1; i >= 0; i--) {
         IntersectionCandidate boundingHit;
         const Vector3Dd objectRayOrigin = objectRayPtr->getOrigin();
         const int boundingIndex = baked.boundingObjectIndices[i];
-        if (!BakedTrace::traceFirstHit(scene, boundingIndex, objectRayPtr, boundingHit) &&
+        if (!BakedTrace::traceFirstHit(scene, boundingIndex, objectRayPtr, boundingHit, cache) &&
             BakedTrace::containmentTest(
                 scene,
                 boundingIndex,
@@ -121,7 +122,8 @@ BakedTrace::traceSimpleBodyAllCrossings(
     const BakedScene &scene,
     const BakedScene::TraceableObject &baked,
     RayWithSegments *ray,
-    java::PriorityQueue<IntersectionCandidate> *depthQueue)
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    RaySharedCache &cache)
 {
     if (baked.geometry == nullptr) {
         return false;
@@ -141,11 +143,15 @@ BakedTrace::traceSimpleBodyAllCrossings(
             baked.objectToGeometry.transformPoint(localOrigin) : localOrigin;
         const Vector3Dd geomDir = baked.hasGeometryTransform ?
             baked.objectToGeometry.transformDirection(localDir) : localDir;
+        const bool sharesRaySpace =
+            !baked.hasObjectTransform && !baked.hasGeometryTransform;
 
         double depth1;
         double depth2;
         if (!BakedCsgTrace::intersectBakedQuadric(
-                *baked.quadricGeometry, ray, geomOrigin, geomDir, &depth1, &depth2)) {
+                *baked.quadricGeometry, ray, geomOrigin, geomDir,
+                sharesRaySpace, cache, baked.quadricViewpointSlot,
+                &depth1, &depth2)) {
             return false;
         }
 
@@ -182,7 +188,7 @@ BakedTrace::traceSimpleBodyAllCrossings(
 
     auto traceInObjectSpace = [&](RayWithSegments *objectRayPtr) -> bool {
 
-    if (!passesBoundingShapes(scene, baked, objectRayPtr)) {
+    if (!passesBoundingShapes(scene, baked, objectRayPtr, cache)) {
         return false;
     }
 
@@ -195,6 +201,7 @@ BakedTrace::traceSimpleBodyAllCrossings(
                  scene.csgPrograms,
                  geometryRayPtr,
                  localDepthQueue,
+                 cache,
                  baked.geometryMaterial) &&
              localDepthQueue->size() > 0) :
             (baked.geometry->doIntersectionForAllRayCrossings(
@@ -247,7 +254,8 @@ BakedTrace::traceSimpleBodyFirstHit(
     const BakedScene &scene,
     const BakedScene::TraceableObject &baked,
     RayWithSegments *ray,
-    IntersectionCandidate &out)
+    IntersectionCandidate &out,
+    RaySharedCache &cache)
 {
     if (baked.geometry == nullptr) {
         return false;
@@ -258,7 +266,7 @@ BakedTrace::traceSimpleBodyFirstHit(
 
     auto traceInObjectSpace = [&](RayWithSegments *objectRayPtr) -> bool {
 
-    if (!passesBoundingShapes(scene, baked, objectRayPtr)) {
+    if (!passesBoundingShapes(scene, baked, objectRayPtr, cache)) {
         return false;
     }
 
@@ -282,6 +290,7 @@ BakedTrace::traceSimpleBodyFirstHit(
                 scene.csgPrograms,
                 geometryRayPtr,
                 candidate,
+                cache,
                 baked.geometryMaterial)) {
             return false;
         }
@@ -403,13 +412,14 @@ BakedTrace::traceCompositeAllCrossingsInCompositeSpace(
     const BakedScene::CompositeRecord &composite,
     RayWithSegments *ray,
     RayWithSegments *compositeRayPtr,
-    java::PriorityQueue<IntersectionCandidate> *depthQueue)
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    RaySharedCache &cache)
 {
     for (long int i = composite.boundingObjectIndices.size() - 1; i >= 0; i--) {
         IntersectionCandidate boundingHit;
         const Vector3Dd compositeRayOrigin = compositeRayPtr->getOrigin();
         const int boundingIndex = composite.boundingObjectIndices[i];
-        if (!BakedTrace::traceFirstHit(scene, boundingIndex, compositeRayPtr, boundingHit) &&
+        if (!BakedTrace::traceFirstHit(scene, boundingIndex, compositeRayPtr, boundingHit, cache) &&
             BakedTrace::containmentTest(
                 scene,
                 boundingIndex,
@@ -433,7 +443,7 @@ BakedTrace::traceCompositeAllCrossingsInCompositeSpace(
             !rayIntersectsAabbForward(*compositeRayPtr, child.worldBounds)) {
             continue;
         }
-        BakedTrace::traceAllCrossings(scene, childIndex, compositeRayPtr, localDepthQueue);
+        BakedTrace::traceAllCrossings(scene, childIndex, compositeRayPtr, localDepthQueue, cache);
     }
 
     for (IntersectionCandidate &candidate : *localDepthQueue) {
@@ -477,7 +487,8 @@ BakedTrace::traceCompositeAllCrossings(
     const BakedScene &scene,
     const BakedScene::CompositeRecord &composite,
     RayWithSegments *ray,
-    java::PriorityQueue<IntersectionCandidate> *depthQueue)
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    RaySharedCache &cache)
 {
     if (composite.object == nullptr) {
         return false;
@@ -493,11 +504,11 @@ BakedTrace::traceCompositeAllCrossings(
         compositeRayPtr = &compositeRay;
 
         return traceCompositeAllCrossingsInCompositeSpace(
-            scene, composite, ray, compositeRayPtr, depthQueue);
+            scene, composite, ray, compositeRayPtr, depthQueue, cache);
     }
 
     return traceCompositeAllCrossingsInCompositeSpace(
-        scene, composite, ray, compositeRayPtr, depthQueue);
+        scene, composite, ray, compositeRayPtr, depthQueue, cache);
 }
 
 bool
@@ -505,12 +516,13 @@ BakedTrace::traceCompositeFirstHit(
     const BakedScene &scene,
     const BakedScene::CompositeRecord &composite,
     RayWithSegments *ray,
-    IntersectionCandidate &out)
+    IntersectionCandidate &out,
+    RaySharedCache &cache)
 {
     java::PriorityQueue<IntersectionCandidate> * const depthQueue =
         ray->getIntersectionQueuePool()->pop(128);
     bool hit = false;
-    if (traceCompositeAllCrossings(scene, composite, ray, depthQueue) &&
+    if (traceCompositeAllCrossings(scene, composite, ray, depthQueue, cache) &&
         depthQueue->size() > 0) {
         out = depthQueue->peek();
         hit = true;
@@ -571,19 +583,21 @@ BakedTrace::traceFirstHit(
     const BakedScene &scene,
     int objectIndex,
     RayWithSegments *ray,
-    IntersectionCandidate &out)
+    IntersectionCandidate &out,
+    RaySharedCache &cache)
 {
     const BakedScene::TraceableObject &baked = scene.traceableObjects[objectIndex];
     switch (baked.kind) {
     case BakedScene::TraceKind::Empty:
         return false;
     case BakedScene::TraceKind::Composite:
-        return traceCompositeFirstHit(scene, scene.composites[baked.compositeIndex], ray, out);
+        return traceCompositeFirstHit(
+            scene, scene.composites[baked.compositeIndex], ray, out, cache);
     case BakedScene::TraceKind::Csg:
     case BakedScene::TraceKind::DirectPrimitive:
     case BakedScene::TraceKind::BoundedGeneric:
     case BakedScene::TraceKind::GenericFallback:
-        return traceSimpleBodyFirstHit(scene, baked, ray, out);
+        return traceSimpleBodyFirstHit(scene, baked, ray, out, cache);
     }
     return false;
 }
@@ -593,7 +607,8 @@ BakedTrace::traceAllCrossings(
     const BakedScene &scene,
     int objectIndex,
     RayWithSegments *ray,
-    java::PriorityQueue<IntersectionCandidate> *depthQueue)
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    RaySharedCache &cache)
 {
     const BakedScene::TraceableObject &baked = scene.traceableObjects[objectIndex];
     switch (baked.kind) {
@@ -601,12 +616,12 @@ BakedTrace::traceAllCrossings(
         return false;
     case BakedScene::TraceKind::Composite:
         return traceCompositeAllCrossings(
-            scene, scene.composites[baked.compositeIndex], ray, depthQueue);
+            scene, scene.composites[baked.compositeIndex], ray, depthQueue, cache);
     case BakedScene::TraceKind::Csg:
     case BakedScene::TraceKind::DirectPrimitive:
     case BakedScene::TraceKind::BoundedGeneric:
     case BakedScene::TraceKind::GenericFallback:
-        return traceSimpleBodyAllCrossings(scene, baked, ray, depthQueue);
+        return traceSimpleBodyAllCrossings(scene, baked, ray, depthQueue, cache);
     }
     return false;
 }

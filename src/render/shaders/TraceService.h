@@ -4,6 +4,7 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/RayWithSegments.h"
+#include "render/raySharedCache/RaySharedCache.h"
 
 class TraceService {
   private:
@@ -13,17 +14,24 @@ class TraceService {
     TraceFn traceFn;
     ShadowShadeFn shadowShadeFn;
     void *context;
+    // Plan 7: the owning RenderWorker's per-task cache, handed to shaders
+    // (DirectLightShader's shadow-ray path) that call BakedTrace directly
+    // rather than through RenderEngine::trace.
+    RaySharedCache *raySharedCache;
 
   public:
-    TraceService(TraceFn traceFn, ShadowShadeFn shadowShadeFn, void *context);
+    TraceService(TraceFn traceFn, ShadowShadeFn shadowShadeFn, void *context,
+        RaySharedCache *raySharedCache);
     inline void trace(const RayWithSegments *ray, ColorRgba *color) const;
     inline void shadeShadow(IntersectionCandidate *intersection, ColorRgba *color) const;
+    RaySharedCache &getRaySharedCache() const { return *raySharedCache; }
 };
 
 inline
 TraceService::TraceService(TraceFn traceFn, ShadowShadeFn shadowShadeFn,
-    void *context)
-    : traceFn(traceFn), shadowShadeFn(shadowShadeFn), context(context)
+    void *context, RaySharedCache *raySharedCache)
+    : traceFn(traceFn), shadowShadeFn(shadowShadeFn), context(context),
+      raySharedCache(raySharedCache)
 {
 }
 

@@ -71,11 +71,12 @@ traceShadowObject(
     ColorRgba *lightColor,
     const TraceService *traceService)
 {
+    RaySharedCache &cache = traceService->getRaySharedCache();
     if (!lightSourceRay->getConfig()->withFilteredShadows() &&
         canUseCsgFirstHitForShadow(bakedScene, objectIndex)) {
         IntersectionCandidate firstHit;
         if (!BakedTrace::traceFirstHit(
-                bakedScene, objectIndex, lightSourceRay, firstHit)) {
+                bakedScene, objectIndex, lightSourceRay, firstHit, cache)) {
             return false;
         }
 
@@ -88,7 +89,7 @@ traceShadowObject(
     }
 
     BakedTrace::traceAllCrossings(
-        bakedScene, objectIndex, lightSourceRay, localDepthQueue);
+        bakedScene, objectIndex, lightSourceRay, localDepthQueue, cache);
 
     while (localDepthQueue->size() > 0) {
         IntersectionCandidate localIntersection = localDepthQueue->poll();
@@ -141,6 +142,10 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
         rEye = Vector3Dd(
             -eye->getDirection().x(), -eye->getDirection().y(), -eye->getDirection().z());
     }
+
+    traceService->getRaySharedCache().ensureCapacity(
+        (int)bakedScene.statistics.quadricViewpointSlotCount,
+        (int)bakedScene.statistics.planeViewpointSlotCount);
 
     localDepthQueue = eye->getIntersectionQueuePool()->pop(128);
     lightSourceRay.setShadowRay(true);

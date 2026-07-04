@@ -151,6 +151,73 @@ Plus drums timing at every consumer phase; panel + gprof at Phases 2 and 5.
 - No `mutable` caching fields remain on shared baked records (code review).
 - `-parallel` determinism check passes.
 
+## Status (Phases 1-3 complete, Phase 4 deferred pending decision)
+
+Implemented `src/render/raySharedCache/RaySharedCache.h` and threaded it
+through `BakedTrace`/`BakedCsgTrace` (public entry points plus every internal
+function that reaches `intersectBakedQuadric*`/`intersectBakedPlane`), through
+`RenderWorker` (one instance per render task, matching the `-parallel` tile
+model) and through `TraceService` so `DirectLightShader`'s shadow-ray path
+(which calls `BakedTrace` directly, not through `RenderEngine::trace`) can
+reach the owning worker's cache too.
+
+Investigation before implementing changed the design from what the plan
+above describes:
+
+- **Layer 1 (world-space aggregate reuse) needed no new storage.**
+  `RayWithSegments` already caches its own six aggregate vectors
+  (`position2`/`direction2`/.../`quadricConstantsCached`, reset by
+  `setQuadricConstantsCached(false)` at every ray-generation call site: new
+  primary/reflected/transmitted/shadow rays, and every local-space clone).
+  `intersectBakedQuadric`/`WithTrueMiss`/`WithCoeffs` now take a
+  `sharesRaySpace` bool (true when the caller's `origin`/`direction` are
+  `ray->getOrigin()`/`getDirection()` verbatim, i.e. no per-operand
+  transform) and read `ray->makeRay()`'s cached vectors in that case instead
+  of recomputing them - no generation counter needed since the ray's own
+  flag already is one.
+- **Layer 2 (viewpoint constants) is frame-lifetime, not ray-lifetime.**
+  `RaySharedCache` holds flat `quadricViewpointSlot`/`planeViewpointSlot`
+  arrays (slot indices assigned once in `BakedSceneBuilder::build`, one per
+  quadric/plane-bearing `CsgOperandRecord`/`TraceableObject`), replacing
+  `Quadric::objectVpConstant`/`constantCached` and
+  `CsgOperandRecord::planeVpNormDotOrigin`/`planeVpCached`. Those old fields
+  were `mutable` state on baked records shared by every render-task thread
+  under `-parallel` - a real, previously-unflagged data race (same class as
+  the B6 noise-stats race), not merely a style problem. They are gone from
+  `BakedScene.h` entirely.
+- Layer 3 (transform-class local-ray cache) was **not implemented**: see
+  below.
+
+**Gate: green.** Full `renderAll.sh` + `testAgainstGoldenImages.sh` pass
+byte-identical. `-parallel4` determinism re-checked directly on drums (two
+runs, `compare -metric AE` = 0).
+
+**Timing: no measurable win on drums** (3-run average ~8.2s before this
+change, ~8.6s after - within run-to-run noise but not the hoped-for
+improvement, and if anything slightly worse). gprof on drums shows why:
+67.8M quadric tests, but the overwhelming majority go through
+`intersectBakedQuadricWithTrueMiss`/`intersectBakedQuadric` with
+`sharesRaySpace=false` (CSG operands transformed into local space - drums
+reports 244 residual transformed operands vs only 150 collapsed/direct at
+build time), so Layer 1's win does not reach most of drums's quadric tests.
+Layer 2's array-indexed lookup (`RaySharedCache::getQuadricViewpointConstant`)
+is a small constant-factor *regression* versus the raw mutable-field read it
+replaced, on the (minority) calls where it does apply - a fair trade for
+removing a real thread-safety bug, but not a speed win by itself. This
+reproduces the drums characterization from Plans 5-6: the scene's cost is
+structural (dominated by transformed CSG operands), not per-ray recompute of
+already-shared state.
+
+**Phase 4 decision:** the plan's own gate ("only if Plan 6 builder statistics
+show a scene population where it matters") is satisfied for drums (244
+transformed vs 150 direct), and Phase 4 (per ray×transform-class cached
+local ray, avoiding the transform re-derivation for the 244 residual
+operands) is the more plausible place left in this plan to move drums's
+number. It was not attempted in this pass: it is a materially larger and
+riskier change than Phases 1-3 (new per-class keying, cache-invalidation
+subtleties flagged as the plan's own top risk), and is left for a follow-up
+decision rather than rushed.
+
 ## Risks and Dead-End Reminders
 
 - Do not put the cache in `environment/geometry` or on `RayWithSegments`

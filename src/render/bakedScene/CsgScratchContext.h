@@ -4,18 +4,21 @@
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "java/util/PriorityQueue.h"
+#include "render/raySharedCache/RaySharedCache.h"
 
 class CsgScratchContext {
 public:
     static constexpr int MAX_SCRATCH_QUEUES = 8;
 
-    explicit CsgScratchContext(RayWithSegments *ownerRayArg)
-        : used(0), ownerRay(ownerRayArg)
+    CsgScratchContext(RayWithSegments *ownerRayArg, RaySharedCache *cacheArg)
+        : used(0), ownerRay(ownerRayArg), cache(cacheArg)
     {
         for (int i = 0; i < MAX_SCRATCH_QUEUES; i++) {
             queues[i] = nullptr;
         }
     }
+
+    RaySharedCache &getCache() { return *cache; }
 
     java::PriorityQueue<IntersectionCandidate> *borrowQueue()
     {
@@ -53,6 +56,7 @@ private:
     java::PriorityQueue<IntersectionCandidate> *queues[MAX_SCRATCH_QUEUES];
     int used;
     RayWithSegments *ownerRay;
+    RaySharedCache *cache;
 };
 
 #endif

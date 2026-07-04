@@ -11,7 +11,7 @@ RenderWorker::RenderWorker(RenderEngine *owner)
       previousLineAntiAliasedFlags(nullptr),
       currentLineAntiAliasedFlags(nullptr),
       traceService(RenderWorker::traceServiceTrace,
-          RenderWorker::traceServiceShadeShadow, this),
+          RenderWorker::traceServiceShadeShadow, this, &raySharedCache),
       textureUtils(nullptr)
 {
 }
