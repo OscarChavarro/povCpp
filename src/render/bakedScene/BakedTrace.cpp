@@ -5,11 +5,14 @@
 #include "environment/geometry/element/PriorityQueuePool.txx"
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/scene/Composite.h"
-#include "render/bakedScene/BakedCsgTrace.h"
+#include "render/bakedScene/BakedQuadricIntersector.h"
 #include "render/bakedScene/BakedTrace.h"
+#include "render/bakedScene/CsgContainmentTest.h"
+#include "render/bakedScene/CsgFirstHitTrace.h"
+#include "render/bakedScene/CsgOperandTrace.h"
 
 // Uses RayWithSegments's cached per-axis reciprocals (Plan 12 Phase 3 - see
-// BakedCsgTrace::rayIntersectsAabbForward for the identical pattern and
+// AabbCullingSupport::rayIntersectsAabbForward for the identical pattern and
 // rationale) instead of dividing on every call.
 bool
 BakedTrace::rayIntersectsAabbForward(const RayWithSegments &ray, const AxisAlignedBoundingBox &box)
@@ -154,7 +157,7 @@ BakedTrace::traceSimpleBodyAllCrossings(
 
         double depth1;
         double depth2;
-        if (!BakedCsgTrace::intersectBakedQuadric(
+        if (!BakedQuadricIntersector::intersectBakedQuadric(
                 *baked.quadricGeometry, ray, geomOrigin, geomDir,
                 sharesRaySpace, cache, baked.quadricViewpointSlot,
                 &depth1, &depth2)) {
@@ -202,7 +205,7 @@ BakedTrace::traceSimpleBodyAllCrossings(
         java::PriorityQueue<IntersectionCandidate> * const localDepthQueue =
             ray->getIntersectionQueuePool()->pop(128);
         const bool foundAny = baked.csgProgramIndex >= 0 ?
-            (BakedCsgTrace::traceAllCrossings(
+            (CsgOperandTrace::traceAllCrossings(
                  scene.csgPrograms[baked.csgProgramIndex],
                  scene.csgPrograms,
                  geometryRayPtr,
@@ -291,7 +294,7 @@ BakedTrace::traceSimpleBodyFirstHit(
 
     if (baked.csgProgramIndex >= 0) {
         IntersectionCandidate candidate;
-        if (!BakedCsgTrace::traceFirstHit(
+        if (!CsgFirstHitTrace::traceFirstHit(
                 scene.csgPrograms[baked.csgProgramIndex],
                 scene.csgPrograms,
                 geometryRayPtr,
@@ -400,7 +403,7 @@ BakedTrace::simpleBodyContainmentTest(
         geometryPoint = baked.objectToGeometry.transformPoint(localPoint);
     }
     const int containment = baked.csgProgramIndex >= 0 ?
-        BakedCsgTrace::containmentTest(
+        CsgContainmentTest::containmentTest(
             scene.csgPrograms[baked.csgProgramIndex],
             scene.csgPrograms,
             geometryPoint,

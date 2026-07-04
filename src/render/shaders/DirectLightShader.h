@@ -18,6 +18,19 @@ public:
         const ColorRgba *surfaceColor, ColorRgba *color, double attenuation,
         const TraceService *traceService, const java::ArrayList<Light*> &lightSources,
         const BakedScene &bakedScene);
+
+private:
+    static bool rayIntersectsAabbBefore(
+        const RayWithSegments &ray, const AxisAlignedBoundingBox &box, double maxT);
+    static bool canUseCsgFirstHitForShadow(const BakedScene &bakedScene, int objectIndex);
+    static bool traceShadowObject(
+        const BakedScene &bakedScene,
+        int objectIndex,
+        RayWithSegments *lightSourceRay,
+        java::PriorityQueue<IntersectionCandidate> *localDepthQueue,
+        double lightSourceDepth,
+        ColorRgba *lightColor,
+        const TraceService *traceService);
 };
 
 #endif

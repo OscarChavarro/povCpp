@@ -86,7 +86,7 @@ class CsgOperand : public RayOperationOwner {
     }
 
     // Uses RayWithSegments's cached per-axis reciprocals (Plan 12 Phase 3
-    // - see BakedCsgTrace::rayIntersectsAabbForward for the identical
+    // - see AabbCullingSupport::rayIntersectsAabbForward for the identical
     // pattern and rationale) instead of dividing on every call.
     static bool rayIntersectsAabbForward(
         const RayWithSegments &ray, const AxisAlignedBoundingBox &box)

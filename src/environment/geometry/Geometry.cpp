@@ -5,16 +5,14 @@
 #include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/Geometry.h"
 
-namespace {
 void
-applyAnnotatedEmissionContext(
+Geometry::applyAnnotatedEmissionContext(
     IntersectionCandidate &candidate,
     const GeometryIntersectionEmissionContext &context)
 {
     IntersectionAttributes &attributes = candidate.getAttributes();
     attributes.pushDetailOwner(context.detailOwner);
     attributes.setMaterialUsesObjectLocalPoint(context.materialUsesObjectLocalPoint);
-}
 }
 
 bool
