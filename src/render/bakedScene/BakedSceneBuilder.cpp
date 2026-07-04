@@ -367,6 +367,137 @@ bakeSimpleBody(SimpleBody *object, BakedScene &out)
     return baked;
 }
 
+// Plan 8 Phase R0/R2: an operand is a push-down candidate if its underlying
+// geometry is a Quadric or InfinitePlane (transformed or not - the Plan 5
+// congruence bakes either), or it is itself an untransformed nested CSG
+// whose own operands are all (recursively) push-down candidates.
+// Deliberately checked by geometry type, not by CsgOperandKind: the
+// "Direct*" kinds also cover untransformed Sphere/Box/Blob operands, which
+// have no coefficient congruence and must NOT be treated as bakeable here.
+bool
+isPushdownCandidateOperand(const BakedScene::CsgOperandRecord &operand)
+{
+    return operand.quadricGeometry != nullptr || operand.isInfinitePlane;
+}
+
+bool
+nestedProgramFullyBakeable(const BakedScene &scene, int programIndex, int depthGuard)
+{
+    if (programIndex < 0 || programIndex >= scene.csgPrograms.size() || depthGuard <= 0) {
+        return false;
+    }
+    const BakedScene::CsgProgram &program = scene.csgPrograms[programIndex];
+    for (long int i = 0; i < program.operands.size(); i++) {
+        const BakedScene::CsgOperandRecord &operand = program.operands[i];
+        if (isPushdownCandidateOperand(operand)) {
+            continue;
+        }
+        if (operand.kind == BakedScene::CsgOperandKind::NestedCsg &&
+            nestedProgramFullyBakeable(scene, operand.nestedCsgProgramIndex, depthGuard - 1)) {
+            continue;
+        }
+        return false;
+    }
+    return true;
+}
+
+// Plan 8 Phase R2: push a TransformedNestedCsg parent's own steps down into
+// every operand of its (already-baked) nested program, then reclassify the
+// program so the parent's per-ray transform disappears entirely. Only
+// called when nestedProgramFullyBakeable() has verified every operand is a
+// quadric/plane (or a recursively all-bakeable NestedCsg) - GenericFallback,
+// TransformedSphere/TransformedPrimitive etc. never reach this function.
+//
+// Step order mirrors bakeSimpleBody's existing geometry-steps-then-body-steps
+// combine (same file, above): the operand's own steps are the innermost
+// transform (applied first, to the canonical geometry), the parent's steps
+// are the outermost (applied last, wrapping the already-transformed result)
+// - so combinedSteps = childSteps ++ parentSteps.
+//
+// Three or more nesting levels (e.g. drums.inc's Tensioner -> Tensioner1 ->
+// Disk_X) reach a given leaf through TWO OR MORE SEPARATE calls to this
+// function, one per wrapper resolved bottom-up. A leaf already collapsed by
+// an earlier (deeper) call must extend `pushdownAccumulatedSteps`, not
+// re-derive `combinedSteps` from `operand.operand->getSteps()` alone - that
+// would silently drop every step folded in by the earlier call, since
+// `quadricGeometry`/`geometry` always still point at the untouched raw
+// original (the fixup that repoints them to bakedQuadricStorage only runs
+// once, at the very end of BakedSceneBuilder::build()).
+//
+// Each occurrence of a shared (#declare-reused) nested CSG gets its own
+// freshly-baked BakedScene::CsgProgram already (compileConstructiveSolidGeometry
+// never caches by geometry pointer - see bakeCsgOperand below), so mutating
+// `out.csgPrograms[programIndex]` in place here never touches another
+// parent's copy.
+//
+// `parentForwardTransform` is the wrapping operand's own `getTransformation()`
+// matrix (== the parent CsgOperandRecord's `objectToLocal`, despite the
+// confusing field name - CsgOperand::ensureBakedBounds() uses this same
+// matrix via AxisAlignedBox::fromTransformedCorners to place an operand's
+// own local bounds into its containing space). Every operand's bakedBounds
+// was computed relative to the nested program's own containing space, which
+// this push-down eliminates - the bounds must move into the parent's space
+// right along with the coefficients, or AABB culling reads a stale box in
+// the wrong space and silently drops or admits candidates.
+void
+pushDownStepsIntoProgram(
+    BakedScene &out, int programIndex, const java::ArrayList<TransformStep> &parentSteps,
+    const Matrix4x4d &parentForwardTransform)
+{
+    BakedScene::CsgProgram &program = out.csgPrograms[programIndex];
+    for (long int i = 0; i < program.operands.size(); i++) {
+        BakedScene::CsgOperandRecord &operand = program.operands[i];
+        if (!operand.bakedBounds.isUnbounded()) {
+            operand.bakedBounds = AxisAlignedBox::fromTransformedCorners(
+                operand.bakedBounds.min, operand.bakedBounds.max, &parentForwardTransform);
+            operand.bounded = !operand.bakedBounds.isUnbounded();
+        }
+        if (operand.kind == BakedScene::CsgOperandKind::NestedCsg) {
+            pushDownStepsIntoProgram(
+                out, operand.nestedCsgProgramIndex, parentSteps, parentForwardTransform);
+            continue;
+        }
+        if (operand.quadricGeometry == nullptr && !operand.isInfinitePlane) {
+            // nestedProgramFullyBakeable should have ruled this out already;
+            // leave untouched rather than mis-collapse an unbakeable kind.
+            continue;
+        }
+
+        const java::ArrayList<TransformStep> &baseSteps =
+            (operand.hasBakedQuadric || operand.hasBakedPlane) ?
+                operand.pushdownAccumulatedSteps :
+                (operand.operand != nullptr ?
+                    operand.operand->getSteps() : operand.pushdownAccumulatedSteps);
+        java::ArrayList<TransformStep> combinedSteps(baseSteps.size() + parentSteps.size());
+        for (long int s = 0; s < baseSteps.size(); s++) {
+            combinedSteps.add(baseSteps[s]);
+        }
+        for (long int s = 0; s < parentSteps.size(); s++) {
+            combinedSteps.add(parentSteps[s]);
+        }
+
+        if (operand.quadricGeometry != nullptr) {
+            operand.bakedQuadricStorage =
+                BakedGeometryBaker::bakeQuadric(*operand.quadricGeometry, combinedSteps);
+            operand.hasBakedQuadric = true;
+        } else {
+            InfinitePlane *plane = static_cast<InfinitePlane *>(operand.geometry);
+            operand.bakedPlaneStorage = BakedGeometryBaker::bakePlane(*plane, combinedSteps);
+            operand.hasBakedPlane = true;
+            operand.planeNormal = operand.bakedPlaneStorage.getNormalVector();
+            operand.planeDistance = operand.bakedPlaneStorage.getDistance();
+        }
+        operand.pushdownAccumulatedSteps = combinedSteps;
+        operand.hasTransform = false;
+        if (operand.operand != nullptr) {
+            operand.operand->setBakedTransformFolded(true);
+        }
+        operand.kind = classifyOperandKind(operand);
+    }
+    classifyCsgProgramSpecialization(program);
+    buildCsgExecutionPlan(program, out);
+}
+
 // Ported from Scene.cpp's bakeCsgOperand (pre-Phase-4); see bakeSimpleBody's
 // comment above re: not re-pointing geometry/quadricGeometry here.
 BakedScene::CsgOperandRecord
@@ -424,6 +555,22 @@ bakeCsgOperand(CsgOperand *operand, BakedScene &out)
         baked.nestedCsgProgramIndex = compileConstructiveSolidGeometry(nestedCsg, out);
         baked.cullSafe = false;
         baked.isInfinitePlane = false;
+
+        // Plan 8 Phase R2: if this wrapper carries its own steps and the
+        // nested program is entirely quadric/plane operands, push the
+        // wrapper's transform down into them and drop it here - see
+        // doc/performanceReviewPlan8.md Phase R0 for the collapse-rate
+        // finding this responds to.
+        constexpr bool kEnableNestedTransformPushdown = false;
+        constexpr int kPushdownDepthGuard = 16;
+        if (kEnableNestedTransformPushdown &&
+            baked.hasTransform && operand->getSteps().size() > 0 &&
+            nestedProgramFullyBakeable(out, baked.nestedCsgProgramIndex, kPushdownDepthGuard)) {
+            pushDownStepsIntoProgram(
+                out, baked.nestedCsgProgramIndex, operand->getSteps(), baked.objectToLocal);
+            baked.hasTransform = false;
+            operand->setBakedTransformFolded(true);
+        }
     }
     baked.kind = classifyOperandKind(baked);
     return baked;
@@ -544,47 +691,6 @@ compileTracingObject(SimpleBody *object, BakedScene &out)
     }
 
     return index;
-}
-
-// Plan 8 Phase R0: an operand is a push-down candidate if its geometry is
-// a kind the Plan 5 collapse can bake (quadric/plane, transformed or not),
-// or it is itself an untransformed nested CSG whose own operands are all
-// (recursively) push-down candidates. TransformedNestedCsg, TransformedSphere/
-// TransformedPrimitive, and GenericFallback/Empty are never candidates.
-bool
-isBakedOrBakeableOperandKind(BakedScene::CsgOperandKind kind)
-{
-    switch (kind) {
-    case BakedScene::CsgOperandKind::DirectPlane:
-    case BakedScene::CsgOperandKind::DirectPrimitive:
-    case BakedScene::CsgOperandKind::DirectAnnotatedPrimitive:
-    case BakedScene::CsgOperandKind::TransformedQuadric:
-    case BakedScene::CsgOperandKind::TransformedPlane:
-        return true;
-    default:
-        return false;
-    }
-}
-
-bool
-nestedProgramFullyBakeable(const BakedScene &scene, int programIndex, int depthGuard)
-{
-    if (programIndex < 0 || programIndex >= scene.csgPrograms.size() || depthGuard <= 0) {
-        return false;
-    }
-    const BakedScene::CsgProgram &program = scene.csgPrograms[programIndex];
-    for (long int i = 0; i < program.operands.size(); i++) {
-        const BakedScene::CsgOperandRecord &operand = program.operands[i];
-        if (isBakedOrBakeableOperandKind(operand.kind)) {
-            continue;
-        }
-        if (operand.kind == BakedScene::CsgOperandKind::NestedCsg &&
-            nestedProgramFullyBakeable(scene, operand.nestedCsgProgramIndex, depthGuard - 1)) {
-            continue;
-        }
-        return false;
-    }
-    return true;
 }
 
 void

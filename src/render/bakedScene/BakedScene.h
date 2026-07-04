@@ -9,6 +9,7 @@
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
 #include "environment/material/Material.h"
+#include "environment/scene/TransformStep.h"
 
 class SimpleBody;
 class Composite;
@@ -101,6 +102,13 @@ class BakedScene {
         bool compiledNestedCoreTransformedQuadric = false;
         java::ArrayList<int> compiledNestedPlaneOperandIndices;
         java::ArrayList<int> compiledNestedContainmentOperandIndices;
+        // Plan 8 Phase R2: the full elementary-step list already baked into
+        // bakedQuadricStorage/bakedPlaneStorage so far, kept so a SECOND
+        // (outer-level) push-down pass reached through recursion can extend
+        // it instead of re-deriving from `operand->getSteps()` alone - which
+        // would silently forget whatever an earlier, deeper push-down pass
+        // already folded in. Empty until the first push-down collapse.
+        java::ArrayList<TransformStep> pushdownAccumulatedSteps;
     };
 
     // One compiled CSG node: algorithm/specialization chosen once at build
