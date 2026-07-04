@@ -12,6 +12,11 @@
 #include "render/bakedScene/BakedCsgTrace.h"
 #include "render/bakedScene/CsgScratchContext.h"
 
+#ifdef PLAN17_PHASE1_ASSERT_MODE
+#include <cassert>
+#include <cstring>
+#endif
+
 
 
 
@@ -1466,10 +1471,37 @@ BakedCsgTrace::traceTransformedNestedSingleCorePlaneOperandAllCrossings(
         return false;
     }
 
-    const Vector3Dd nestedRayOrigin =
-        parentOperand.localToObject.transformPoint(parentRay->getOrigin());
-    const Vector3Dd nestedRayDirection =
-        parentOperand.localToObject.transformDirection(parentRay->getDirection());
+    // Plan 17 Phase 1: when pushdownFolded, parentOperand.localToObject is
+    // identity (Plan 8 R2) - alias the parent ray's own origin/direction
+    // instead of paying the no-op transform. PLAN17_PHASE1_ASSERT_MODE
+    // verifies the bit-equality assumption exhaustively via memcmp before
+    // shipping without it; do not "fix" a mismatch with tolerance, close
+    // the phase instead (doc/performanceReviewPlan17.md Phase 1).
+    const Vector3Dd *nestedRayOriginPtr;
+    const Vector3Dd *nestedRayDirectionPtr;
+    Vector3Dd nestedRayOriginStorage;
+    Vector3Dd nestedRayDirectionStorage;
+    if (parentOperand.pushdownFolded) {
+        nestedRayOriginPtr = &parentRay->getOrigin();
+        nestedRayDirectionPtr = &parentRay->getDirection();
+#ifdef PLAN17_PHASE1_ASSERT_MODE
+        const Vector3Dd checkOrigin =
+            parentOperand.localToObject.transformPoint(parentRay->getOrigin());
+        const Vector3Dd checkDirection =
+            parentOperand.localToObject.transformDirection(parentRay->getDirection());
+        assert(std::memcmp(&checkOrigin, nestedRayOriginPtr, sizeof(Vector3Dd)) == 0);
+        assert(std::memcmp(&checkDirection, nestedRayDirectionPtr, sizeof(Vector3Dd)) == 0);
+#endif
+    } else {
+        nestedRayOriginStorage =
+            parentOperand.localToObject.transformPoint(parentRay->getOrigin());
+        nestedRayDirectionStorage =
+            parentOperand.localToObject.transformDirection(parentRay->getDirection());
+        nestedRayOriginPtr = &nestedRayOriginStorage;
+        nestedRayDirectionPtr = &nestedRayDirectionStorage;
+    }
+    const Vector3Dd &nestedRayOrigin = *nestedRayOriginPtr;
+    const Vector3Dd &nestedRayDirection = *nestedRayDirectionPtr;
 
     Material *effectiveCoreMaterial =
         coreOperand.material != nullptr ? coreOperand.material : materialOverride;
