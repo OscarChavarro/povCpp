@@ -546,6 +546,47 @@ compileTracingObject(SimpleBody *object, BakedScene &out)
     return index;
 }
 
+// Plan 8 Phase R0: an operand is a push-down candidate if its geometry is
+// a kind the Plan 5 collapse can bake (quadric/plane, transformed or not),
+// or it is itself an untransformed nested CSG whose own operands are all
+// (recursively) push-down candidates. TransformedNestedCsg, TransformedSphere/
+// TransformedPrimitive, and GenericFallback/Empty are never candidates.
+bool
+isBakedOrBakeableOperandKind(BakedScene::CsgOperandKind kind)
+{
+    switch (kind) {
+    case BakedScene::CsgOperandKind::DirectPlane:
+    case BakedScene::CsgOperandKind::DirectPrimitive:
+    case BakedScene::CsgOperandKind::DirectAnnotatedPrimitive:
+    case BakedScene::CsgOperandKind::TransformedQuadric:
+    case BakedScene::CsgOperandKind::TransformedPlane:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool
+nestedProgramFullyBakeable(const BakedScene &scene, int programIndex, int depthGuard)
+{
+    if (programIndex < 0 || programIndex >= scene.csgPrograms.size() || depthGuard <= 0) {
+        return false;
+    }
+    const BakedScene::CsgProgram &program = scene.csgPrograms[programIndex];
+    for (long int i = 0; i < program.operands.size(); i++) {
+        const BakedScene::CsgOperandRecord &operand = program.operands[i];
+        if (isBakedOrBakeableOperandKind(operand.kind)) {
+            continue;
+        }
+        if (operand.kind == BakedScene::CsgOperandKind::NestedCsg &&
+            nestedProgramFullyBakeable(scene, operand.nestedCsgProgramIndex, depthGuard - 1)) {
+            continue;
+        }
+        return false;
+    }
+    return true;
+}
+
 void
 accumulateStatistics(BakedScene &scene)
 {
@@ -590,6 +631,27 @@ accumulateStatistics(BakedScene &scene)
             }
             if (operand.hasTransform) {
                 stats.residualTransformedOperands++;
+
+                switch (operand.kind) {
+                case BakedScene::CsgOperandKind::TransformedNestedCsg:
+                    stats.residualCategory1NestedCsg++;
+                    if (nestedProgramFullyBakeable(scene, operand.nestedCsgProgramIndex, 16)) {
+                        stats.residualCategory1PushdownEligible++;
+                    }
+                    break;
+                case BakedScene::CsgOperandKind::TransformedQuadric:
+                case BakedScene::CsgOperandKind::TransformedPlane:
+                    if (operand.operand != nullptr && operand.operand->getSteps().size() == 0) {
+                        stats.residualCategory2EmptySteps++;
+                    }
+                    break;
+                case BakedScene::CsgOperandKind::TransformedSphere:
+                case BakedScene::CsgOperandKind::TransformedPrimitive:
+                    stats.residualCategory3Unbakeable++;
+                    break;
+                default:
+                    break;
+                }
             }
         }
     }
