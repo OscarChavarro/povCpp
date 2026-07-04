@@ -7,6 +7,13 @@ The focus is the required alignment surface between both codebases: rays,
 intersection results, traversal primitives, transforms, scene bodies, detail
 selection, renderer configuration, bounding information and camera snapshots.
 
+Sections 1–14 were re-verified against both trees on 2026-07-05. Sections
+15–17 are historical investigation records from the decoupling work and are
+kept as written; class names appearing there (notably `TransformedGeometry`,
+since deleted) describe the tree as it was at that time. The povCpp-side
+rename/extraction sequence derived from this analysis lives in
+`doc/alignmentPlan.md`.
+
 ---
 
 ## 1. Shared primitives already in use
@@ -29,6 +36,8 @@ builders (`withOrigin`, `withDirection`, `withT`) plus setters.
 - Quadric cached terms: `position2`, `direction2`, `positionDirection`,
   `mixedPositionPosition`, `mixedDirectionDirection`,
   `mixedPositionDirection`, guarded by `quadricConstantsCached`.
+- Per-ray AABB slab-test reciprocals (`invDirectionX/Y/Z` plus degenerate-axis
+  flags), cached lazily and invalidated together with the quadric cache.
 - Nested medium state: `containingTextures`, `containingIORs`,
   `containingIndex`.
 - Ray classification: `isShadowRay`, `isPrimaryRay`.
@@ -71,11 +80,14 @@ IntersectionCandidate = Intersection + IntersectionAttributes
 
 `IntersectionAttributes` stores POV attribution:
 
-- `hitGeometry`
+- `hitGeometry` and `hitBody` (the owning `RayOperationOwner`)
+- the detail-owner chain (up to `MAX_DETAIL_OWNERS = 8` `RayOperationOwner*`
+  entries, pushed innermost-first by nested CSG/composite wrappers; see §17)
 - `material`
 - `objectTexture`
 - `objectColor`
 - `noShadowFlag`
+- `materialUsesObjectLocalPoint`
 
 `PovRayHit::fromCandidate()` projects that split storage onto VITRAL-shaped
 names (`p`, `n`, `t`, `u`, `v`, `hitDistance`) at the shading boundary.
@@ -108,12 +120,27 @@ computed only when requested.
 `povCpp` `Geometry` declares:
 
 ```cpp
+struct GeometryIntersectionEmissionContext {
+    Material *materialOverride = nullptr;
+    RayOperationOwner *detailOwner = nullptr;
+    bool materialUsesObjectLocalPoint = false;
+};
+
 virtual int doIntersectionForAllRayCrossings(
     RayWithSegments *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride = nullptr);
-
+virtual int doIntersectionForAllRayCrossingsAnnotated(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    const GeometryIntersectionEmissionContext &context);
+virtual bool hasNativeAnnotatedCrossings() const;
+virtual Geometry *getWrappedGeometry() const;
 bool doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &out);
+virtual bool doIntersectionFirstHitNoQueue(
+    RayWithSegments *ray,
+    IntersectionCandidate &out,
+    Material *materialOverride = nullptr);
 virtual int doContainmentTest(const Vector3Dd &point, double distanceTolerance);
 virtual void normal(Vector3Dd *result, Vector3Dd *intersectionPoint);
 virtual void normal(
@@ -121,6 +148,7 @@ virtual void normal(
     Vector3Dd *intersectionPoint,
     const PovRayRendererConfiguration *config);
 virtual void doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *hit);
+virtual AxisAlignedBoundingBox getMinMax() const;
 virtual void *copy() = 0;
 virtual void invertGeometry();
 ```
@@ -128,7 +156,21 @@ virtual void invertGeometry();
 `doIntersectionForAllRayCrossings` is the primary povCpp operation. Shapes push
 every ray crossing into a priority queue ordered by `Intersection::t`.
 
-`Geometry::doIntersectionFirstHit` is a non-virtual adapter:
+The `...Annotated` variant lets a wrapper (CSG operand, composite) stamp an
+emission context — detail owner and object-local-point flag — onto every
+candidate a child emits, without re-sorting the queue. Shapes that can stamp
+while emitting return `true` from `hasNativeAnnotatedCrossings()`; for the
+rest the base class stamps in a post-pass (via a fresh pooled queue when the
+target queue is not empty).
+
+`doIntersectionFirstHitNoQueue` is a virtual *direct* nearest-hit primitive —
+no queue involved — implemented by shapes with a cheap closed-form first hit
+(e.g. `Sphere`). It is the true counterpart of VITRAL's
+`doIntersectionFirstHit`; `doc/alignmentPlan.md` step 4 renames it
+accordingly.
+
+`Geometry::doIntersectionFirstHit` is a non-virtual adapter deriving
+nearest-hit from all-crossings:
 
 ```cpp
 bool Geometry::doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &out)
@@ -146,8 +188,11 @@ bool Geometry::doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidat
 ```
 
 Alignment status: both projects expose the `doIntersectionFirstHit` name, but
-the required primitive is different. VITRAL implements nearest-hit directly;
-povCpp derives nearest-hit from all-crossings.
+they mean different things by it. VITRAL implements nearest-hit directly under
+that name; povCpp's method of that name is the queue-deriving adapter, while
+its direct nearest-hit lives under `doIntersectionFirstHitNoQueue`. The
+concepts now exist on both sides; only the names collide (resolved by
+`doc/alignmentPlan.md` step 4).
 
 ### 2.3. Required all-crossings alignment
 
@@ -180,7 +225,7 @@ nearest-hit if it is to host POV-compatible CSG and nested media traversal.
 | `normalMap` | part of povCpp material/normal pipeline | not a hit attribute |
 | `requiredDetailMask` | `RayWithSegments::requiredDetailMask` | constants aligned; owner differs |
 | consumed `Ray` | `RayWithSegments` plus `Intersection::t` | no stored consumed-ray object in candidate |
-| no VITRAL field | `hitGeometry`, `objectColor`, `noShadowFlag` | POV-specific |
+| no VITRAL field | `hitGeometry`, `hitBody`, detail-owner chain, `objectColor`, `noShadowFlag`, `materialUsesObjectLocalPoint` | POV-specific |
 
 Required alignment item: keep `Intersection` as the geometric core and keep
 POV attribution separate unless VITRAL gains an all-crossings record that can
@@ -216,46 +261,47 @@ scene-level bodies as transform owners.
 
 ### 4.2. povCpp transform ownership
 
-`povCpp` `Geometry` is transform-free. Placement lives in
-`TransformedGeometry`, inherited by concrete renderable shapes:
+`povCpp` `Geometry` is transform-free, and — since the deletion of the former
+`TransformedGeometry` intermediate class — so is every concrete shape
+(`Sphere`, `Box`, `Quadric`, `Triangle`, `InfinitePlane`, `Blob`,
+`HeightField`, `ParametricBiCubicPatch`, `PolynomialShape`,
+`ConstructiveSolidGeometry`). Placement is owned by the two wrapper types
+that also own detail production (`RayOperationOwner` implementors):
 
-```cpp
-class TransformedGeometry : public Geometry {
-  protected:
-    Matrix4x4d *transformation = nullptr;
-    Matrix4x4d *transformationInverse = nullptr;
+- `SimpleBody` holds **two** lazily-allocated matrix layers: an object-level
+  pair (`transformation`/`transformationInverse`) and an inner geometry-level
+  pair (`geometryTransformation`/`geometryTransformationInverse`), plus the
+  chronological `TransformStep` lists (`bodySteps`, `geometrySteps`) those
+  matrices were composed from, and a `bakedTransformFolded` flag set when the
+  baked-scene build collapsed the transforms into world-space coefficients.
+- `CsgOperand` holds one `transformation`/`transformationInverse` pair per
+  CSG operand, its own `TransformStep` list, the same `bakedTransformFolded`
+  flag, and a cached transformed AABB used for union-operand culling.
 
-  public:
-    virtual AxisAlignedBox getMinMax() const;
-    virtual void translateGeometry(Vector3Dd *vector);
-    virtual void rotateGeometry(Vector3Dd *vector);
-    virtual void scaleGeometry(Vector3Dd *vector);
-};
-```
+`nullptr` matrices mean identity. Matrices are allocated lazily and
+accumulated at parse time; rays are transformed inward and hit details
+outward at trace time, exactly VITRAL's scheme.
 
-Concrete examples include `Sphere`, `Box`, `Quadric`, `Triangle`,
-`InfinitePlane`, `Blob`, `HeightField`, `ParametricBiCubicPatch`,
-`PolynomialShape`, `ConstructiveSolidGeometry` and `LightGeometryAdapter`.
-
-`transformation == nullptr` means identity. Transform matrices are allocated
-lazily and accumulated at parse time.
-
-Alignment status: both `Geometry` bases are transform-free; transform ownership
-is divergent. VITRAL owns transforms in `SimpleBody`; povCpp owns transforms in
-`TransformedGeometry`.
+Alignment status: transform ownership is now **conceptually aligned** — both
+codebases keep `Geometry` transform-free and own placement at the scene-body/
+operand level. What still differs is the representation: VITRAL `SimpleBody`
+stores a decomposed `position`/`scale`/`rotation` (+quaternion) with
+fast-path identity flags, while povCpp stores composed matrix pairs plus the
+`TransformStep` replay log, in two layers, with the bake-folded flag.
 
 ### 4.3. Canonical shapes
 
-`povCpp` `Sphere` is a canonical unit sphere centered at the origin. Radius and
-placement are carried by `TransformedGeometry::transformation`.
+`povCpp` `Sphere` is a canonical unit sphere centered at the origin. Radius
+and placement are carried by the owning `SimpleBody`/`CsgOperand` transform,
+which maps the ray into the sphere's local space before intersecting.
 
 VITRAL `Sphere` carries `radius_`/`radiusSquared_` in the geometry and relies on
 `SimpleBody` for body placement.
 
 Required alignment item: if geometry classes are to converge, the codebases
 need one agreed ownership model for intrinsic dimensions versus scene
-placement. Current povCpp puts sphere radius in the transform; current VITRAL
-keeps radius in the shape.
+placement. Current povCpp puts sphere radius in the owner's transform; current
+VITRAL keeps radius in the shape.
 
 ---
 
@@ -273,19 +319,27 @@ VITRAL `SimpleBody` is the render-time scene object:
 
 ### 5.2. povCpp `SimpleBody`
 
-`povCpp` `SimpleBody` is also a `Geometry` subclass and is the scene object
-stored in `Scene::Objects`:
+`povCpp` `SimpleBody` is **not** a `Geometry` subclass: it implements
+`RayOperationOwner` (the povCpp-only interface whose single contract is
+`doExtraInformation`) and is the scene object stored in `Scene::Objects`:
 
 ```cpp
-class SimpleBody : public Geometry {
-  private:
-    java::ArrayList<TransformedGeometry*> boundingShapes;
-    java::ArrayList<TransformedGeometry*> clippingShapes;
-    TransformedGeometry *geometry;
+class SimpleBody : public RayOperationOwner {
+  protected:
+    java::ArrayList<SimpleBody*> boundingShapes;
+    java::ArrayList<SimpleBody*> clippingShapes;
+    Geometry *geometry;
     Material *geometryMaterial;
+    Matrix4x4d *transformation = nullptr;          // object layer
+    Matrix4x4d *transformationInverse = nullptr;
+    Matrix4x4d *geometryTransformation = nullptr;  // inner geometry layer
+    Matrix4x4d *geometryTransformationInverse = nullptr;
     bool noShadowFlag;
     ColorRgba *objectColor;
     Material *objectTexture;
+    java::ArrayList<TransformStep> bodySteps;
+    java::ArrayList<TransformStep> geometrySteps;
+    bool bakedTransformFolded = false;
 };
 ```
 
@@ -294,29 +348,40 @@ It handles:
 - Bounding region tests before object intersection.
 - Clipping region filtering after object crossings are gathered.
 - Object-level material, texture, quick color and no-shadow attribution.
-- `translate`, `rotate`, `scale` propagation into geometry, bounding shapes,
-  clipping shapes, material and object texture.
-- `invert` propagation into geometry and region shapes.
-- `getAABB()` from bounding regions or wrapped geometry.
+- Transform ownership (§4.2): world→local ray mapping on the way in,
+  point/normal mapping on the way out, in `doExtraInformation`.
+- `translate`/`rotate`/`scale`/`invert` accumulation into its matrix layers
+  and propagation into bounding shapes, clipping shapes, material and object
+  texture (virtual, so nested `Composite` children receive outer transforms).
+- `getAABB()` from bounding regions or the wrapped geometry's `getMinMax()`.
+- `doIntersectionFirstHit` (virtual here, unlike the `Geometry` adapter) and
+  `doIntersectionForAllRayCrossings` traversal entry points.
 
 `Composite` extends `SimpleBody` and contains nested `SimpleBody*` children.
 Its transforms propagate into children and region shapes.
 
-Alignment status: the `SimpleBody` name is shared and both are scene-object
-level concepts. Responsibilities differ: VITRAL owns placement in `SimpleBody`;
-povCpp stores placement in wrapped `TransformedGeometry` and uses `SimpleBody`
-for POV object attribution, bounding/clipping and composite traversal.
+Alignment status: the `SimpleBody` name is shared, both are scene-object-level
+concepts, and — since the decoupling — both own placement at this level, so
+the §5 picture is now close. Residual differences: povCpp's `SimpleBody` also
+carries POV attribution (quick color, no-shadow), bounding/clipping regions
+and the two-layer matrix scheme; VITRAL's carries render-time material/
+texture/normal-map pointers and a modification-version check.
 
-Required alignment item: preserve the shared scene-body concept, but decide
-whether transform ownership should remain divergent or move to one common layer.
+Required alignment item: preserve the shared scene-body concept; converge the
+transform representation (decomposed-with-flags vs matrix-pairs-with-step-log)
+when geometry migration starts.
 
 ---
 
 ## 6. CSG and all-crossings in povCpp
 
-`ConstructiveSolidGeometry` is a `TransformedGeometry` with child
-`TransformedGeometry*` shapes, child material overrides and a geometry type:
-`UNION`, `INTERSECTION`, `DIFFERENCE`.
+`ConstructiveSolidGeometry` is an abstract `Geometry` holding a
+`BooleanSetOperations` type (`UNION`, `INTERSECTION`, `DIFFERENCE`) and an
+`ArrayList<CsgOperand*>`. Each `CsgOperand` (a `RayOperationOwner`, like
+`SimpleBody`) owns one child `Geometry*`, an optional per-operand material
+override, its own `transformation`/`transformationInverse` pair with
+`TransformStep` log (§4.2), and a cached transformed AABB used to cull union
+operands.
 
 Two strategies implement the same interface.
 
@@ -460,27 +525,31 @@ VITRAL requires every `Geometry` to implement:
 virtual double* getMinMax() = 0;
 ```
 
-povCpp `Geometry` does not expose a bounding-box method. Bounds live one level
-down on `TransformedGeometry`:
+povCpp `Geometry` now exposes the same-named method directly on the base, as
+a non-pure virtual with an unbounded default:
 
 ```cpp
-virtual AxisAlignedBox getMinMax() const { return AxisAlignedBox::unbounded(); }
+virtual AxisAlignedBoundingBox getMinMax() const
+{ return AxisAlignedBoundingBox::unbounded(); }
 ```
 
-Several concrete povCpp geometries override it: `Sphere`, `Box`, `Blob`,
+Concrete povCpp geometries overriding it: `Sphere`, `Box`, `Blob`, `Quadric`,
 `HeightField`, `Triangle`, `ParametricBiCubicPatch` and
-`ConstructiveSolidGeometry`.
+`ConstructiveSolidGeometry` (which unions its operands' transformed bounds).
+`CsgOperand` caches the child's bounds transformed by its operand matrix for
+union culling; `SimpleBody::getAABB()` returns the intersection of
+bounding-shape AABBs when bounding regions exist, otherwise the wrapped
+geometry AABB.
 
-`SimpleBody::getAABB()` returns the intersection of bounding-shape AABBs when
-bounding regions exist; otherwise it returns the wrapped geometry AABB.
+Alignment status: the **owner is now aligned** — both codebases put
+`getMinMax()` on `Geometry`. Only the return type diverges: VITRAL returns a
+raw `double*`, povCpp a value-type `AxisAlignedBoundingBox` with an explicit
+unbounded state.
 
-Alignment status: both codebases have bounding concepts, but the API shape is
-not aligned. VITRAL uses `double*` at `Geometry`; povCpp uses `AxisAlignedBox`
-at `TransformedGeometry`/`SimpleBody`.
-
-Required alignment item: a shared bounding API needs an agreed return type and
-an agreed owner (`Geometry`, `TransformedGeometry`, `SimpleBody`, or a shared
-body abstraction).
+Required alignment item: agree the return type. povCpp's
+`AxisAlignedBoundingBox` is the stronger API (no raw pointer, explicit
+unbounded semantics) and is the proposed winner — see `doc/alignmentPlan.md`,
+upstream item 1.
 
 ---
 
@@ -566,7 +635,11 @@ Alignment status: both avoid avoidable hot-path allocation, but statistics
 ownership and granularity are different.
 
 Required alignment item: no direct 1:1 statistics mapping exists. Any shared
-statistics layer would need a common event taxonomy first.
+statistics layer would need a common event taxonomy first. The first povCpp
+step toward it — extracting the ray↔geometry counters into a
+`GeometryStatistics` sub-object mirroring the already-shared
+`SolidTextureStatistics` pattern — is specified as step 1 of
+`doc/alignmentPlan.md`.
 
 ---
 
@@ -578,14 +651,14 @@ statistics layer would need a common event taxonomy first.
 | Geometric hit core | VITRAL `Intersection` | `Intersection` | shared class |
 | Full hit record | `IntersectionCandidate` + `PovRayHit` projection | `RayHit` | conceptually mapped, storage differs |
 | Primary intersection primitive | all crossings | nearest hit | divergent, all-crossings required for POV |
-| Nearest-hit name | adapter over all crossings | pure virtual geometry primitive | name aligned, role differs |
+| Nearest-hit name | `doIntersectionFirstHit` = queue adapter; direct virtual is `doIntersectionFirstHitNoQueue` | `doIntersectionFirstHit` = pure virtual direct primitive | concepts on both sides; names collide (alignmentPlan step 4) |
 | Containment | `int`, same constants | `int`, enum-backed constants | signature/value aligned |
-| Geometry transform | none on `Geometry`; matrix on `TransformedGeometry` | none on `Geometry`; transform on `SimpleBody` | base aligned, owner divergent |
-| Scene body | `SimpleBody : Geometry`, wraps transformed geometry and regions | `SimpleBody`, wraps geometry and transform | name/concept aligned, responsibilities differ |
+| Geometry transform | none on `Geometry`; matrix layers on `SimpleBody`/`CsgOperand` | none on `Geometry`; transform on `SimpleBody` | owner aligned (scene level); representation differs |
+| Scene body | `SimpleBody : RayOperationOwner`, owns geometry + transforms + regions | `SimpleBody`, wraps geometry and transform | concept and transform ownership aligned; attribution differs |
 | CSG | supported through all crossings | no all-crossings CSG path | divergent |
 | Detail mask | `RayWithSegments::DETAIL_*`, normal gate in render engine | `RayHit::DETAIL_*`, per-detail lazy fill | constants aligned, granularity differs |
 | Renderer config | derives from VITRAL base plus POV flags | base display/render vocabulary | partially aligned |
-| Bounding API | `AxisAlignedBox` on `TransformedGeometry`/`SimpleBody` | `double* getMinMax()` on `Geometry` | concept present, API divergent |
+| Bounding API | `AxisAlignedBoundingBox getMinMax()` on `Geometry` | `double* getMinMax()` on `Geometry` | owner aligned; return type divergent |
 | Camera storage | VITRAL `CameraSnapshot` | `CameraSnapshot` | shared storage, generator semantics differ |
 | Statistics | per-instance/per-task POV counters | static raytrace recorders | divergent |
 
@@ -595,19 +668,32 @@ statistics layer would need a common event taxonomy first.
 
 1. Add or design an all-crossings primitive for VITRAL that can represent
    ordered ray/solid crossings and carry enough attribution for CSG, shadows
-   and nested refraction.
-2. Decide the transform ownership model for shared geometry: VITRAL
-   `SimpleBody`, povCpp `TransformedGeometry`, or a common abstraction.
+   and nested refraction. (povCpp-side contract frozen in
+   `doc/alignmentPlan.md` step 6.)
+2. ~~Decide the transform ownership model for shared geometry.~~ **Resolved**:
+   povCpp deleted `TransformedGeometry` and moved placement to
+   `SimpleBody`/`CsgOperand`, matching VITRAL's scene-level ownership (§4.2).
+   The narrower remaining question is the transform *representation*:
+   decomposed position/scale/rotation with fast-path flags (VITRAL) vs
+   composed matrix pairs with a `TransformStep` replay log in two layers
+   (povCpp).
 3. Decide whether intrinsic dimensions such as sphere radius belong to geometry
    or to placement transforms.
 4. Unify or bridge hit-detail masks so point, normal, UV and tangent laziness
-   have the same owner and semantics.
-5. Define a shared bounding API with a stable return type.
+   have the same owner and semantics. (povCpp side: `doc/alignmentPlan.md`
+   step 3.)
+5. Define a shared bounding API. The owner is already aligned (`getMinMax()`
+   on `Geometry` in both trees, §10); what remains is adopting one return
+   type — povCpp's `AxisAlignedBoundingBox` is the proposed winner
+   (`doc/alignmentPlan.md`, upstream item 1).
 6. Keep `CameraSnapshot` as the shared render-time camera record and treat ray
    generation differences as intentional unless a visual-parity task requires
    alignment.
 7. Keep POV quality flags in `PovRayRendererConfiguration` unless VITRAL adds
    equivalent feature-level rendering switches.
+
+The povCpp-side execution sequence for these items (renames, extractions and
+their ordering) is maintained in `doc/alignmentPlan.md`.
 
 ---
 
