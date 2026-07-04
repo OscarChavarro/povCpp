@@ -82,39 +82,6 @@
 
 
 bool
-BakedCsgTrace::rayIntersectsAabbForward(const RayWithSegments &ray, const AxisAlignedBox &box)
-{
-    const Vector3Dd origin = ray.getOrigin();
-    const Vector3Dd direction = ray.getDirection();
-    double tMin = 0.0;
-    double tMax = 1e30;
-
-    auto updateAxis = [&](double originCoord, double directionCoord,
-                          double minCoord, double maxCoord) -> bool {
-        if (directionCoord > -1e-12 && directionCoord < 1e-12) {
-            return originCoord >= minCoord && originCoord <= maxCoord;
-        }
-        const double invDir = 1.0 / directionCoord;
-        double nearT = (minCoord - originCoord) * invDir;
-        double farT = (maxCoord - originCoord) * invDir;
-        if (nearT > farT) {
-            const double tmp = nearT;
-            nearT = farT;
-            farT = tmp;
-        }
-        tMin = nearT > tMin ? nearT : tMin;
-        tMax = farT < tMax ? farT : tMax;
-        return tMin <= tMax;
-    };
-
-    return
-        updateAxis(origin.x(), direction.x(), box.min.x(), box.max.x()) &&
-        updateAxis(origin.y(), direction.y(), box.min.y(), box.max.y()) &&
-        updateAxis(origin.z(), direction.z(), box.min.z(), box.max.z()) &&
-        tMax >= 0.0;
-}
-
-bool
 BakedCsgTrace::pointInsideAabb(const Vector3Dd &point, const AxisAlignedBox &box, double tolerance)
 {
     return

@@ -13,14 +13,6 @@ ArrayList<T>::ArrayList() {
 };
 
 template <class T>
-ArrayList<T>::ArrayList(long i) {
-    currentSize = 0;
-    increaseChunk = i;
-    maxSize = increaseChunk;
-    init();
-}
-
-template <class T>
 ArrayList<T>::~ArrayList() {
     dispose();
 }
@@ -94,19 +86,6 @@ ArrayList<T>::operator=(ArrayList<T>&& other) noexcept
     other.currentSize = 0;
     other.maxSize = 0;
     return *this;
-}
-
-template <class T> void
-ArrayList<T>::init() {
-    if ( maxSize > 0 ) {
-        Data = new T[maxSize];
-        if ( !Data ) {
-            maxSize = 0;
-        }
-    } else {
-        Data = nullptr;
-    }
-    currentSize = 0;
 }
 
 template <class T> bool

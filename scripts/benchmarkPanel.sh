@@ -3,6 +3,10 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 bin="${repo_root}/build/povray"
+# NOTE: this directory is scanned recursively by
+# scripts/testAgainstGoldenImages.sh (which walks all of output/), but has no
+# referenceTestImages/panel counterpart. Run `rm -rf output/panel` before the
+# golden gate, or it reports spurious "Missing reference image" failures.
 output_root="${repo_root}/output/panel"
 reference_root="${repo_root}/../referenceTestImages"
 width="${POV_PANEL_WIDTH:-320}"
