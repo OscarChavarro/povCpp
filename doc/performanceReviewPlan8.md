@@ -168,6 +168,76 @@ not vanish into new helpers).
   statistics.
 - Fallback-kernel population across the suite documented (≈ 0).
 
+## Status: Phase 1 attempted, paused pending strategy decision
+
+Before starting, re-profiled drums with gprof on the current (post-Plan-7)
+tree rather than trusting the Plan 4 heat table, which predates Plans 5-7
+and no longer reflects reality. Current top drums self-time (320x200,
+non-parallel):
+
+| self% | calls | function |
+| ---: | ---: | --- |
+| 12.46% | 50.1M | `intersectBakedQuadricWithTrueMiss` |
+| 9.76% | 53.4M | `traceOperandAllCrossings` |
+| 8.59% | 56.8M | `traceMorganCsg` |
+| 6.06% | 25.9M | `traceSimpleBodyAllCrossings` lambda |
+| 6.06% | 23.5M | `traceTransformedNestedSingleCorePlaneOperandAllCrossings` |
+| 5.56% | 3.0M | `traceMorganIntersectionGeneric` |
+| 5.22% | 28.6M | `traceCompiledCoreOperandAllCrossings` |
+
+Two findings changed the plan's Phase 1 target:
+1. `traceGenericMorganUnion` does not appear in the profile at all - the
+   compiler already fully inlines it into `traceMorganCsg` (both are
+   `inline` header functions), so "fuse the union kernel" in the literal
+   sense the plan describes is already done by the optimizer. There was no
+   separate union-dispatch cost left to remove.
+2. The `SingleCorePlaneIntersection`/core-plane family
+   (`traceCompiledCoreOperandAllCrossings` +
+   `traceTransformedNestedSingleCorePlaneOperandAllCrossings` + their
+   first-hit counterparts) is now the dominant cluster in drums (250 of 450
+   CSG programs use this specialization vs. 200 generic-Morgan), matching
+   what Plan 7 already found. This is Phase 2's target, not Phase 1's.
+
+Implemented anyway, scoped to what Phase 1 could still plausibly reach:
+in `traceGenericMorganUnion`'s transformed-operand loop,
+`TransformedQuadric` operands (the dominant residual-transformed kind) now
+get a direct inlined fast path instead of calling
+`traceOperandAllCrossings`'s generic kind-switch dispatch. Iteration order
+was kept identical (same array, same direction) specifically to avoid
+disturbing equal-depth candidate tie-breaking across operand kinds - a
+historically real regression class in this codebase.
+
+Gate: byte-identical (full suite), `-parallel4` determinism re-checked on
+drums (AE=0), panel scenes unaffected.
+
+**drums timing: no measurable change** (~8.7s before -> ~8.9s after,
+noise-level). This is the **fourth consecutive fusion/caching attempt**
+(Plan 7 Phases 2-4, and now this one) that is individually correct,
+gate-green, and reasoned from a real profile finding, yet produces no
+measurable drums improvement. The consistent pattern across all four
+points to the same conclusion each time re-confirmed: drums's cost is
+concentrated in `intersectBakedQuadricWithTrueMiss`'s raw arithmetic
+(12-13% self-time, ~40 FLOPs x 50-68M calls) and in the sheer call volume
+through the core-plane specialization, neither of which a dispatch-level
+fusion touches - fusion removes call/switch overhead *around* the math, and
+that overhead is evidently not where drums's remaining ~1.7x-vs-baseline
+gap lives.
+
+**Recommendation given to the user**: pause Plan 8's remaining phases
+(2-6) rather than continue speculatively. Phase 2 (the core-plane kernel,
+the plan's own next-highest-heat target and the one most likely by current
+profile data to matter) is the reasonable next attempt *if* the user wants
+to keep pushing on drums specifically, but the last four attempts targeting
+correctly-identified hot functions all failed to move the number, so there
+is no strong basis for confidence it will differ. The two directions with
+actual remaining leverage per Plan 4's own Conclusions are (a) revisit
+scene-owned coefficient baking with baseline-identical operation order
+(Plan 4 Conclusions #1 / Plan 5's original, only partially realized idea)
+or (b) accept the current ~1.7x-of-baseline drums figure as the practical
+floor of this architecture and close the Plan 5-10 sequence's performance
+chase, banking the real wins already delivered (correctness fixes, the
+-parallel race fix, zero regressions across 108 scenes throughout).
+
 ## Risks and Dead-End Reminders
 
 - **Byte-exactness under reordering.** The recorded dead ends are explicit:
