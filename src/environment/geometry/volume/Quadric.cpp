@@ -300,7 +300,7 @@ Quadric::copy()
     return new Quadric(*this);
 }
 
-AxisAlignedBox
+AxisAlignedBoundingBox
 Quadric::getMinMax() const
 {
     const double a11 = object2Terms.x();
@@ -317,7 +317,7 @@ Quadric::getMinMax() const
         a12 * (a12 * a33 - a23 * a13) +
         a13 * (a12 * a23 - a22 * a13);
     if (minor1 <= 1e-12 || minor2 <= 1e-12 || det <= 1e-12) {
-        return AxisAlignedBox::unbounded();
+        return AxisAlignedBoundingBox::unbounded();
     }
 
     const double invDet = 1.0 / det;
@@ -340,14 +340,14 @@ Quadric::getMinMax() const
     const double radiusSquared = center.dotProduct(aCenter) - objectConstant;
     if (radiusSquared <= 1e-12 ||
         inv11 <= 0.0 || inv22 <= 0.0 || inv33 <= 0.0) {
-        return AxisAlignedBox::unbounded();
+        return AxisAlignedBoundingBox::unbounded();
     }
 
     const Vector3Dd extent(
         java::Math::sqrt(radiusSquared * inv11),
         java::Math::sqrt(radiusSquared * inv22),
         java::Math::sqrt(radiusSquared * inv33));
-    return AxisAlignedBox{
+    return AxisAlignedBoundingBox{
         center.subtract(extent),
         center.add(extent)};
 }

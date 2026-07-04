@@ -382,10 +382,10 @@ Triangle::invertGeometry()
     this->inverted ^= true;
 }
 
-AxisAlignedBox
+AxisAlignedBoundingBox
 Triangle::getMinMax() const
 {
-    return AxisAlignedBox::empty()
+    return AxisAlignedBoundingBox::empty()
         .expandedBy(p1)
         .expandedBy(p2)
         .expandedBy(p3);

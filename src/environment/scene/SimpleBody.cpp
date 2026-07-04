@@ -688,7 +688,7 @@ SimpleBody::invert()
     }
 }
 
-AxisAlignedBox
+AxisAlignedBoundingBox
 SimpleBody::getAABB() const
 {
     // Bounding shapes live in this body's object-local space, exactly like the
@@ -696,27 +696,27 @@ SimpleBody::getAABB() const
     // Their combined box therefore still needs this body's own transform to be
     // mapped into world space before top-level culling can consume it.
     if (boundingShapes.size() > 0) {
-        AxisAlignedBox result = AxisAlignedBox::unbounded();
+        AxisAlignedBoundingBox result = AxisAlignedBoundingBox::unbounded();
         for (long int i = 0; i < boundingShapes.size(); i++) {
             result = result.intersection(boundingShapes[i]->getAABB());
         }
         if (transformation != nullptr && !result.isUnbounded()) {
-            return AxisAlignedBox::fromTransformedCorners(
+            return AxisAlignedBoundingBox::fromTransformedCorners(
                 result.min, result.max, transformation);
         }
         return result;
     }
     if (geometry != nullptr) {
-        AxisAlignedBox box = geometry->getMinMax();
+        AxisAlignedBoundingBox box = geometry->getMinMax();
         if (geometryTransformation != nullptr && !box.isUnbounded()) {
-            box = AxisAlignedBox::fromTransformedCorners(
+            box = AxisAlignedBoundingBox::fromTransformedCorners(
                 box.min, box.max, geometryTransformation);
         }
         if (transformation != nullptr && !box.isUnbounded()) {
-            return AxisAlignedBox::fromTransformedCorners(
+            return AxisAlignedBoundingBox::fromTransformedCorners(
                 box.min, box.max, transformation);
         }
         return box;
     }
-    return AxisAlignedBox::unbounded();
+    return AxisAlignedBoundingBox::unbounded();
 }

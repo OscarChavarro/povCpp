@@ -20,14 +20,14 @@ each step.
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/HeightField.h"
 
-AxisAlignedBox
+AxisAlignedBoundingBox
 HeightField::getMinMax() const
 {
     if (boundingBox == nullptr) {
-        return AxisAlignedBox::unbounded();
+        return AxisAlignedBoundingBox::unbounded();
     }
     const Vector3Dd *bb = boundingBox->getBounds();
-    return AxisAlignedBox::fromTransformedCorners(bb[0], bb[1], transformation);
+    return AxisAlignedBoundingBox::fromTransformedCorners(bb[0], bb[1], transformation);
 }
 
 HeightField::HeightField() :

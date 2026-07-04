@@ -32,7 +32,7 @@ class HeightField : public Geometry {
     static inline double minValue(double x, double y);
     static inline double maxValue(double x, double y);
 
-    AxisAlignedBox getMinMax() const override;
+    AxisAlignedBoundingBox getMinMax() const override;
 
     int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,

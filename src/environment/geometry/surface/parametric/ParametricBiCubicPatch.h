@@ -49,7 +49,7 @@ class ParametricBiCubicPatch : public Geometry {
         ParametricBiCubicPatch *shape, ParametricPatchNode *node, int depth,
         int *depthCount, double *depths);
 
-    AxisAlignedBox getMinMax() const override;
+    AxisAlignedBoundingBox getMinMax() const override;
 
     int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,

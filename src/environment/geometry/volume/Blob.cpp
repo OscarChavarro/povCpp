@@ -608,19 +608,19 @@ Blob::invertGeometry()
     this->inverted = !this->inverted;
 }
 
-AxisAlignedBox
+AxisAlignedBoundingBox
 Blob::getMinMax() const
 {
     if (count == 0 || list == nullptr) {
-        return AxisAlignedBox::unbounded();
+        return AxisAlignedBoundingBox::unbounded();
     }
     // Build local-space AABB from all element centers +/- radius
-    AxisAlignedBox local = AxisAlignedBox::empty();
+    AxisAlignedBoundingBox local = AxisAlignedBoundingBox::empty();
     for (int i = 0; i < count; i++) {
         double r = java::Math::sqrt(list[i].getRadius2());
         const Vector3Dd &c = list[i].getPos();
         local = local.expandedBy(Vector3Dd(c.x() - r, c.y() - r, c.z() - r));
         local = local.expandedBy(Vector3Dd(c.x() + r, c.y() + r, c.z() + r));
     }
-    return AxisAlignedBox::fromTransformedCorners(local.min, local.max, transformation);
+    return AxisAlignedBoundingBox::fromTransformedCorners(local.min, local.max, transformation);
 }

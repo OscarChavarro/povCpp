@@ -40,7 +40,7 @@ class Triangle : public Geometry {
 
     static int computeTriangle(Triangle *triangle);
 
-    AxisAlignedBox getMinMax() const override;
+    AxisAlignedBoundingBox getMinMax() const override;
 
     int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,

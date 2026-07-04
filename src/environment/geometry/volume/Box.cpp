@@ -330,8 +330,8 @@ Box::invertGeometry()
     this->inverted = !this->inverted;
 }
 
-AxisAlignedBox
+AxisAlignedBoundingBox
 Box::getMinMax() const
 {
-    return AxisAlignedBox{bounds[0], bounds[1]};
+    return AxisAlignedBoundingBox{bounds[0], bounds[1]};
 }

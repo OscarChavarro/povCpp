@@ -43,10 +43,10 @@ ConstructiveSolidGeometry::invert()
     invertGeometry();
 }
 
-AxisAlignedBox
+AxisAlignedBoundingBox
 ConstructiveSolidGeometry::getMinMax() const
 {
-    AxisAlignedBox result = AxisAlignedBox::empty();
+    AxisAlignedBoundingBox result = AxisAlignedBoundingBox::empty();
     for (long int i = 0; i < operands.size(); i++) {
         result = result.enclosing(operands[i]->getMinMax());
     }

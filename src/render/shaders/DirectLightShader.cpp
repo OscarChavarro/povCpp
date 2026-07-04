@@ -22,7 +22,7 @@ static constexpr double SHADOW_TOLERANCE = 0.05;
 namespace {
 bool
 rayIntersectsAabbBefore(
-    const RayWithSegments &ray, const AxisAlignedBox &box, double maxT)
+    const RayWithSegments &ray, const AxisAlignedBoundingBox &box, double maxT)
 {
     const Vector3Dd origin = ray.getOrigin();
     const Vector3Dd direction = ray.getDirection();

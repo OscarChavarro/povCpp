@@ -5,7 +5,7 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "environment/geometry/Geometry.h"
-#include "environment/geometry/element/AxisAlignedBox.h"
+#include "environment/geometry/element/AxisAlignedBoundingBox.h"
 #include "environment/geometry/element/RayOperationOwner.h"
 #include "environment/material/Material.h"
 #include "environment/scene/TransformStep.h"
@@ -100,7 +100,7 @@ class SimpleBody : public RayOperationOwner {
     Material *getObjectTexture() const { return objectTexture; }
     Vector3Dd worldPointToLocal(const Vector3Dd &point) const;
 
-    AxisAlignedBox getAABB() const;
+    AxisAlignedBoundingBox getAABB() const;
 
     virtual bool doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &out);
     virtual int doIntersectionForAllRayCrossings(

@@ -20,7 +20,7 @@ class Box : public Geometry {
     static int intersectBoxx(const RayWithSegments *ray, const Box *box,
         double *depth1, double *depth2);
 
-    AxisAlignedBox getMinMax() const override;
+    AxisAlignedBoundingBox getMinMax() const override;
 
     int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,

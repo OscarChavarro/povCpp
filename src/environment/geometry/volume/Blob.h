@@ -51,7 +51,7 @@ class Blob : public Geometry {
     int getSturmFlag() const { return sturmFlag; }
     Blob *copyWithSturmFlag(int flag) const;
 
-    AxisAlignedBox getMinMax() const override;
+    AxisAlignedBoundingBox getMinMax() const override;
 
     int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,
