@@ -21,30 +21,8 @@ static constexpr double EPSILON_PARAMETRIC_PATCH = 1.0e-10;
 
 int ParametricBiCubicPatch::maxDepthReached = 0;
 
-namespace {
-
-// Per-ray scratch a patch needs between doIntersectionForAllRayCrossings() (which fills it
-// in) and the later normal() call for the winning hit (which reads it back
-// by matching the intersection point - see ParametricBiCubicPatch::normal's
-// doc comment). Used to live as plain instance fields on the shared,
-// scene-wide ParametricBiCubicPatch object; under `-parallel`, two threads
-// hitting the same patch concurrently tore each other's writes (the
-// speckled/missing-pixel corruption on bezier.pov/teapot.pov - see
-// doc/CSGPerformance.md's sibling investigation for the analogous Blob bug).
-// Keyed by patch identity *and* scoped thread-local: within one thread, the
-// existing "store now, look up later by point" design is still exactly
-// correct (a single thread only works on one ray, hence one patch's hits,
-// at a time), so this only needs to stop *different threads* from sharing
-// the same backing storage - it does not change the single-threaded
-// behaviour at all.
-struct PatchScratch {
-    int intersectionCount = 0;
-    Vector3Dd intersectionPoint[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
-    Vector3Dd normalVector[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
-};
-
-PatchScratch &
-patchScratchFor(const ParametricBiCubicPatch *patch)
+ParametricBiCubicPatch::PatchScratch &
+ParametricBiCubicPatch::patchScratchFor(const ParametricBiCubicPatch *patch)
 {
     thread_local java::HashMap<const ParametricBiCubicPatch *, PatchScratch> scratchByPatch;
     PatchScratch *scratch = scratchByPatch.get(patch);
@@ -56,7 +34,7 @@ patchScratchFor(const ParametricBiCubicPatch *patch)
 }
 
 void
-applyPatchAttributes(
+ParametricBiCubicPatch::applyPatchAttributes(
     ParametricBiCubicPatch *patch,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     int newCount,
@@ -85,8 +63,6 @@ applyPatchAttributes(
         }
     }
 }
-
-} // namespace
 
 int
 ParametricBiCubicPatch::getIntersectionCount() const

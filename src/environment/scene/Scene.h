@@ -58,6 +58,7 @@ class Scene {
 
   private:
     static ColorRgba blackFogColor();
+    static CameraSnapshot defaultViewPoint();
 
     CameraSnapshot viewPoint;
     int screenHeight;

@@ -23,9 +23,8 @@
 #include "render/RenderTask.h"
 #include "render/RenderTileCallable.h"
 
-namespace {
 bool
-rayIntersectsAabbBefore(
+RenderEngine::rayIntersectsAabbBefore(
     const RayWithSegments &ray, const AxisAlignedBoundingBox &box, double maxT)
 {
     const Vector3Dd origin = ray.getOrigin();
@@ -56,8 +55,6 @@ rayIntersectsAabbBefore(
         updateAxis(origin.y(), direction.y(), box.min.y(), box.max.y()) &&
         updateAxis(origin.z(), direction.z(), box.min.z(), box.max.z()) &&
         tMax >= 0.0;
-}
-
 }
 
 java::Void

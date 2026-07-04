@@ -4,7 +4,7 @@
 // Plan 7: per-render-task cache for ray-shared quadric/plane viewpoint
 // constants that used to live as mutable fields on shared baked records
 // (Quadric::objectVpConstant/constantCached read/written from
-// BakedCsgTrace's copies, CsgOperandRecord::planeVp*). Those mutable fields
+// the CSG trace classes' copies, CsgOperandRecord::planeVp*). Those mutable fields
 // were safe only because the old render loop was single-threaded per scene;
 // under -parallel, multiple tile threads intersecting the same shared
 // BakedScene concurrently would race on them (same class of bug as the B6
@@ -20,8 +20,9 @@
 // Per-ray aggregate reuse (position2/direction2/... for world-space
 // operands) does not need any storage here: RayWithSegments already caches
 // those itself (quadricConstantsCached, reset on every new ray generation
-// by every ray-construction call site) - BakedCsgTrace's intersectBaked*
-// helpers now read that existing cache instead of duplicating it.
+// by every ray-construction call site) - BakedQuadricIntersector's and
+// BakedPlaneIntersector's intersectBaked* helpers now read that existing
+// cache instead of duplicating it.
 class RaySharedCache {
   public:
     RaySharedCache() :

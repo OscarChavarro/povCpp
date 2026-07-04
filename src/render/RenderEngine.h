@@ -37,6 +37,8 @@ class RenderEngine {
     void copyLineToImage(
         const ColorRgba *line, int row, const RasterTileArea &area);
     void persistDestinationImage();
+    static bool rayIntersectsAabbBefore(
+        const RayWithSegments &ray, const AxisAlignedBoundingBox &box, double maxT);
 
   public:
     RenderEngine();

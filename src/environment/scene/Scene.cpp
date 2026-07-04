@@ -4,9 +4,14 @@
 
 #include "environment/scene/Scene.h"
 
-namespace {
+ColorRgba
+Scene::blackFogColor()
+{
+    return ColorRgba(0.0, 0.0, 0.0, 0.0);
+}
+
 CameraSnapshot
-defaultViewPoint()
+Scene::defaultViewPoint()
 {
     const Vector3Dd location(0.0, 0.0, 0.0);
     const Vector3Dd direction(0.0, 0.0, 1.0);
@@ -28,13 +33,6 @@ defaultViewPoint()
         direction,
         up,
         right);
-}
-}
-
-ColorRgba
-Scene::blackFogColor()
-{
-    return ColorRgba(0.0, 0.0, 0.0, 0.0);
 }
 
 Scene::Scene() :

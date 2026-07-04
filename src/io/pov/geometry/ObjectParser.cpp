@@ -41,20 +41,6 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
-namespace {
-enum ParsedTransformKind {
-    PARSED_TRANSLATE,
-    PARSED_ROTATE,
-    PARSED_SCALE
-};
-
-struct ParsedTransformOp {
-    ParsedTransformKind kind;
-    Vector3Dd vector;
-};
-
-}
-
 static void
 releaseSimpleBody(
     SimpleBodyBuilder *body,

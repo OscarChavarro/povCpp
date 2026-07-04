@@ -61,6 +61,11 @@ class Geometry {
     virtual ~Geometry() {}
 
     virtual void invertGeometry() {}
+
+  private:
+    static void applyAnnotatedEmissionContext(
+        IntersectionCandidate &candidate,
+        const GeometryIntersectionEmissionContext &context);
 };
 
 #endif

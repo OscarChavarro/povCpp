@@ -90,7 +90,15 @@ add_executable(povray
     src/render/bakedScene/BakedGeometryBaker.cpp
     src/render/bakedScene/BakedSceneBuilder.cpp
     src/render/bakedScene/BakedTrace.cpp
-    src/render/bakedScene/BakedCsgTrace.cpp
+    src/render/bakedScene/AabbCullingSupport.cpp
+    src/render/bakedScene/BakedQuadricIntersector.cpp
+    src/render/bakedScene/BakedPlaneIntersector.cpp
+    src/render/bakedScene/CsgContainmentTest.cpp
+    src/render/bakedScene/CsgOperandTrace.cpp
+    src/render/bakedScene/SingleCorePlaneCsgTrace.cpp
+    src/render/bakedScene/CsgMorganUnionTrace.cpp
+    src/render/bakedScene/RaySegmentCsgCombiner.cpp
+    src/render/bakedScene/CsgFirstHitTrace.cpp
     src/render/RenderWorker.cpp
     src/render/RenderTargetImage.cpp
     src/render/RayShaderPipeline.cpp

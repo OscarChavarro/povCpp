@@ -1,8 +1,6 @@
 #ifndef __BAKED_SCENE__
 #define __BAKED_SCENE__
 
-#include <deque>
-
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
@@ -161,10 +159,12 @@ class BakedScene {
         java::ArrayList<int> directPrimitiveOperandIndices;
         java::ArrayList<CsgOperandRecord> operands;
         // Plan 13 Phase 1: non-owning pointers into BakedScene's
-        // operandCullBinsStorage (a std::deque, never invalidated by later
-        // push_back - unlike java::ArrayList/std::vector - so this is safe
-        // despite csgPrograms itself still being an ArrayList that can
-        // relocate). null unless the respective bucket had >=
+        // operandCullBinsStorage - each OperandCullBins is individually
+        // heap-allocated there and never moved or copied after construction,
+        // so these pointers stay valid even though operandCullBinsStorage
+        // itself (an ArrayList<OperandCullBins*>) can relocate its array of
+        // pointers on growth: only the pointers move, never the pointees.
+        // null unless the respective bucket had >=
         // kOperandCullBinThreshold cull-safe members at bake time (see
         // BakedSceneBuilder.cpp); null means trace time falls back to the
         // original full linear scan. Deliberately NOT stored by value here:
@@ -278,12 +278,25 @@ class BakedScene {
         long topLevelObjectCullSafeCount = 0;
     };
 
+    BakedScene() = default;
+    BakedScene(const BakedScene &) = delete;
+    BakedScene &operator=(const BakedScene &) = delete;
+    ~BakedScene()
+    {
+        for (long int i = 0; i < operandCullBinsStorage.size(); i++) {
+            delete operandCullBinsStorage[i];
+        }
+    }
+
     java::ArrayList<TraceableObject> traceableObjects;
     java::ArrayList<CsgProgram> csgPrograms;
     // Plan 13 Phase 1: backing storage for CsgProgram::*CullBins pointers -
-    // a std::deque so push_back never invalidates references to earlier
-    // elements (java::ArrayList/std::vector would).
-    std::deque<OperandCullBins> operandCullBinsStorage;
+    // each element is individually heap-allocated (see
+    // BakedSceneBuilder.cpp) and owned here; growing this ArrayList only
+    // relocates the array of pointers, never the pointees, so pointers
+    // handed out to CsgProgram stay valid for BakedScene's lifetime. Freed
+    // in the destructor above.
+    java::ArrayList<OperandCullBins *> operandCullBinsStorage;
     java::ArrayList<CompositeRecord> composites;
     java::ArrayList<int> topLevelObjectIndices;
     java::ArrayList<int> boundedObjectIndices;

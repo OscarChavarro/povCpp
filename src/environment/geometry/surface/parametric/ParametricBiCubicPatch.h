@@ -73,6 +73,34 @@ class ParametricBiCubicPatch : public Geometry {
   private:
     static int maxDepthReached;
 
+    // Per-ray scratch a patch needs between doIntersectionForAllRayCrossings()
+    // (which fills it in) and the later normal() call for the winning hit
+    // (which reads it back by matching the intersection point - see
+    // ParametricBiCubicPatch::normal's doc comment). Used to live as plain
+    // instance fields on the shared, scene-wide ParametricBiCubicPatch
+    // object; under `-parallel`, two threads hitting the same patch
+    // concurrently tore each other's writes (the speckled/missing-pixel
+    // corruption on bezier.pov/teapot.pov - see doc/CSGPerformance.md's
+    // sibling investigation for the analogous Blob bug). Keyed by patch
+    // identity *and* scoped thread-local: within one thread, the existing
+    // "store now, look up later by point" design is still exactly correct
+    // (a single thread only works on one ray, hence one patch's hits, at a
+    // time), so this only needs to stop *different threads* from sharing
+    // the same backing storage - it does not change the single-threaded
+    // behaviour at all.
+    struct PatchScratch {
+        int intersectionCount = 0;
+        Vector3Dd intersectionPoint[MAX_BICUBIC_INTERSECTIONS];
+        Vector3Dd normalVector[MAX_BICUBIC_INTERSECTIONS];
+    };
+    static PatchScratch &patchScratchFor(const ParametricBiCubicPatch *patch);
+    static void applyPatchAttributes(
+        ParametricBiCubicPatch *patch,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        int newCount,
+        Material *materialOverride,
+        const GeometryIntersectionEmissionContext *context);
+
     const int patchType;
     const int uSteps;
     const int vSteps;

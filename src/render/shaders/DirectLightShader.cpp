@@ -19,9 +19,8 @@
 
 static constexpr double SHADOW_TOLERANCE = 0.05;
 
-namespace {
 bool
-rayIntersectsAabbBefore(
+DirectLightShader::rayIntersectsAabbBefore(
     const RayWithSegments &ray, const AxisAlignedBoundingBox &box, double maxT)
 {
     const Vector3Dd origin = ray.getOrigin();
@@ -55,14 +54,14 @@ rayIntersectsAabbBefore(
 }
 
 bool
-canUseCsgFirstHitForShadow(const BakedScene &bakedScene, int objectIndex)
+DirectLightShader::canUseCsgFirstHitForShadow(const BakedScene &bakedScene, int objectIndex)
 {
     const BakedScene::TraceableObject &object = bakedScene.traceableObjects[objectIndex];
     return object.kind != BakedScene::TraceKind::Composite && object.csgProgramIndex >= 0;
 }
 
 bool
-traceShadowObject(
+DirectLightShader::traceShadowObject(
     const BakedScene &bakedScene,
     int objectIndex,
     RayWithSegments *lightSourceRay,
@@ -114,7 +113,6 @@ traceShadowObject(
         }
     }
     return false;
-}
 }
 
 void

@@ -1,9 +1,6 @@
 #include "java/util/ArrayList.txx"
 
-#include <algorithm>
 #include <cmath>
-#include <utility>
-#include <vector>
 
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/geometry/volume/Blob.h"
@@ -17,10 +14,8 @@
 #include "render/bakedScene/BakedGeometryBaker.h"
 #include "render/bakedScene/BakedSceneBuilder.h"
 
-namespace {
-
 bool
-isBakeableSimpleBody(SimpleBody *object)
+BakedSceneBuilder::isBakeableSimpleBody(SimpleBody *object)
 {
     if (object == nullptr) {
         return false;
@@ -29,13 +24,13 @@ isBakeableSimpleBody(SimpleBody *object)
 }
 
 Matrix4x4d
-copyOrIdentity(const Matrix4x4d *matrix)
+BakedSceneBuilder::copyOrIdentity(const Matrix4x4d *matrix)
 {
     return matrix != nullptr ? Matrix4x4d(*matrix) : Matrix4x4d::identityMatrix();
 }
 
 BakedScene::TraceKind
-classifyTraceableObject(bool hasGeometry, bool boundedOrClipped, bool hasCsg)
+BakedSceneBuilder::classifyTraceableObject(bool hasGeometry, bool boundedOrClipped, bool hasCsg)
 {
     if (!hasGeometry) {
         return BakedScene::TraceKind::Empty;
@@ -47,7 +42,7 @@ classifyTraceableObject(bool hasGeometry, bool boundedOrClipped, bool hasCsg)
 }
 
 BakedScene::CsgOperandKind
-classifyOperandKind(const BakedScene::CsgOperandRecord &baked)
+BakedSceneBuilder::classifyOperandKind(const BakedScene::CsgOperandRecord &baked)
 {
     if (baked.geometry == nullptr) {
         return BakedScene::CsgOperandKind::Empty;
@@ -77,7 +72,7 @@ classifyOperandKind(const BakedScene::CsgOperandRecord &baked)
 }
 
 bool
-hasFiniteInteriorBounds(const BakedScene::CsgOperandRecord &operand)
+BakedSceneBuilder::hasFiniteInteriorBounds(const BakedScene::CsgOperandRecord &operand)
 {
     if (!operand.bounded || !operand.cullSafe || operand.nestedCsgProgramIndex >= 0) {
         return false;
@@ -94,7 +89,7 @@ hasFiniteInteriorBounds(const BakedScene::CsgOperandRecord &operand)
 }
 
 bool
-areSeparated(const AxisAlignedBoundingBox &left, const AxisAlignedBoundingBox &right)
+BakedSceneBuilder::areSeparated(const AxisAlignedBoundingBox &left, const AxisAlignedBoundingBox &right)
 {
     return
         left.max.x() < right.min.x() || right.max.x() < left.min.x() ||
@@ -103,7 +98,7 @@ areSeparated(const AxisAlignedBoundingBox &left, const AxisAlignedBoundingBox &r
 }
 
 bool
-hasPairwiseDisjointFiniteOperands(
+BakedSceneBuilder::hasPairwiseDisjointFiniteOperands(
     const java::ArrayList<BakedScene::CsgOperandRecord> &operands)
 {
     if (operands.size() == 0) {
@@ -131,7 +126,7 @@ hasPairwiseDisjointFiniteOperands(
 // specializationValid is only ever true together with one of these three
 // specific values (see doc/performanceReviewPlan6.md Phase 3 status).
 void
-classifyCsgProgramSpecialization(BakedScene::CsgProgram &baked)
+BakedSceneBuilder::classifyCsgProgramSpecialization(BakedScene::CsgProgram &baked)
 {
     if (baked.geometryType != BooleanSetOperations::DIFFERENCE &&
         baked.geometryType != BooleanSetOperations::INTERSECTION) {
@@ -181,7 +176,7 @@ classifyCsgProgramSpecialization(BakedScene::CsgProgram &baked)
 // runs for the outer CSG, see bakeCsgOperand/bakeConstructiveSolidGeometry
 // below), never written except through `baked` itself.
 void
-buildCsgExecutionPlan(BakedScene::CsgProgram &baked, const BakedScene &out)
+BakedSceneBuilder::buildCsgExecutionPlan(BakedScene::CsgProgram &baked, const BakedScene &out)
 {
     baked.planeOperandIndices.clear();
     baked.nestedOperandIndices.clear();
@@ -281,11 +276,8 @@ buildCsgExecutionPlan(BakedScene::CsgProgram &baked, const BakedScene &out)
     }
 }
 
-int compileTracingObject(SimpleBody *object, BakedScene &out);
-int compileConstructiveSolidGeometry(ConstructiveSolidGeometry *geometry, BakedScene &out);
-
 void
-compileTracingObjects(
+BakedSceneBuilder::compileTracingObjects(
     const java::ArrayList<SimpleBody*> &objects,
     BakedScene &out,
     java::ArrayList<int> &result)
@@ -309,7 +301,7 @@ compileTracingObjects(
 // bug). The one-time fix-up runs in BakedSceneBuilder::build, once
 // `out.traceableObjects` has stopped growing for good.
 BakedScene::TraceableObject
-bakeSimpleBody(SimpleBody *object, BakedScene &out)
+BakedSceneBuilder::bakeSimpleBody(SimpleBody *object, BakedScene &out)
 {
     BakedScene::TraceableObject baked;
     baked.object = object;
@@ -387,13 +379,13 @@ bakeSimpleBody(SimpleBody *object, BakedScene &out)
 // "Direct*" kinds also cover untransformed Sphere/Box/Blob operands, which
 // have no coefficient congruence and must NOT be treated as bakeable here.
 bool
-isPushdownCandidateOperand(const BakedScene::CsgOperandRecord &operand)
+BakedSceneBuilder::isPushdownCandidateOperand(const BakedScene::CsgOperandRecord &operand)
 {
     return operand.quadricGeometry != nullptr || operand.isInfinitePlane;
 }
 
 bool
-nestedProgramFullyBakeable(const BakedScene &scene, int programIndex, int depthGuard)
+BakedSceneBuilder::nestedProgramFullyBakeable(const BakedScene &scene, int programIndex, int depthGuard)
 {
     if (programIndex < 0 || programIndex >= scene.csgPrograms.size() || depthGuard <= 0) {
         return false;
@@ -452,7 +444,7 @@ nestedProgramFullyBakeable(const BakedScene &scene, int programIndex, int depthG
 // right along with the coefficients, or AABB culling reads a stale box in
 // the wrong space and silently drops or admits candidates.
 void
-pushDownStepsIntoProgram(
+BakedSceneBuilder::pushDownStepsIntoProgram(
     BakedScene &out, int programIndex, const java::ArrayList<TransformStep> &parentSteps,
     const Matrix4x4d &parentForwardTransform)
 {
@@ -525,7 +517,7 @@ pushDownStepsIntoProgram(
 // Ported from Scene.cpp's bakeCsgOperand (pre-Phase-4); see bakeSimpleBody's
 // comment above re: not re-pointing geometry/quadricGeometry here.
 BakedScene::CsgOperandRecord
-bakeCsgOperand(CsgOperand *operand, BakedScene &out)
+BakedSceneBuilder::bakeCsgOperand(CsgOperand *operand, BakedScene &out)
 {
     BakedScene::CsgOperandRecord baked;
     baked.operand = operand;
@@ -614,20 +606,25 @@ bakeCsgOperand(CsgOperand *operand, BakedScene &out)
     return baked;
 }
 
-// Plan 13 Phase 0 census: iortest's one wide-ish union program tops out at
-// 16 operands, piece3's 25 qualifying programs start at 17 (see
-// doc/performanceReviewPlan13.md Phase 0). 17 draws the line between them:
-// iortest's bucket never reaches it (falls back to the plain linear scan
-// unconditionally), piece3/ntreal's do.
-constexpr long int kOperandCullBinThreshold = 17;
-constexpr bool kEnableOperandCullBins = true;
+void
+BakedSceneBuilder::sortCullSafeEntriesByKey(java::ArrayList<CullSafeEntry> &entries)
+{
+    for (long int i = 1; i < entries.size(); i++) {
+        const CullSafeEntry pivot = entries[i];
+        long int j = i - 1;
+        while (j >= 0 && entries[j].key > pivot.key) {
+            entries[j + 1] = entries[j];
+            j--;
+        }
+        entries[j + 1] = pivot;
+    }
+}
 
-// Bake-time only (std::sort/std::vector are fine here - never on the
-// per-ray path). Stores bucket *positions* (see BakedScene::OperandCullBins),
+// Bake-time only. Stores bucket *positions* (see BakedScene::OperandCullBins),
 // never operand pointers or global indices, so nothing dangles across later
 // ArrayList relocations.
 void
-buildOperandCullBinsForBucket(
+BakedSceneBuilder::buildOperandCullBinsForBucket(
     const java::ArrayList<int> &bucket,
     const java::ArrayList<BakedScene::CsgOperandRecord> &operands,
     BakedScene::OperandCullBins &out)
@@ -644,25 +641,24 @@ buildOperandCullBinsForBucket(
         return;
     }
 
-    std::vector<std::pair<double, int>> cullSafeByAxis;
-    cullSafeByAxis.reserve((size_t)bucketSize);
+    java::ArrayList<CullSafeEntry> cullSafeByAxis{bucketSize};
     Vector3Dd lo(1e30, 1e30, 1e30);
     Vector3Dd hi(-1e30, -1e30, -1e30);
     for (long int p = 0; p < bucketSize; p++) {
         const BakedScene::CsgOperandRecord &operand = operands[bucket[p]];
         if (operand.bounded && operand.cullSafe) {
             const Vector3Dd c = operand.bakedBounds.centroid();
-            cullSafeByAxis.emplace_back(0.0, (int)p);
+            cullSafeByAxis.add(CullSafeEntry{0.0, (int)p});
             lo = Vector3Dd(
-                std::min(lo.x(), c.x()), std::min(lo.y(), c.y()), std::min(lo.z(), c.z()));
+                std::fmin(lo.x(), c.x()), std::fmin(lo.y(), c.y()), std::fmin(lo.z(), c.z()));
             hi = Vector3Dd(
-                std::max(hi.x(), c.x()), std::max(hi.y(), c.y()), std::max(hi.z(), c.z()));
+                std::fmax(hi.x(), c.x()), std::fmax(hi.y(), c.y()), std::fmax(hi.z(), c.z()));
         } else {
             out.alwaysTestedPositions.add((int)p);
         }
     }
 
-    if ((long int)cullSafeByAxis.size() < kOperandCullBinThreshold) {
+    if (cullSafeByAxis.size() < kOperandCullBinThreshold) {
         out.alwaysTestedPositions.clear();
         return;
     }
@@ -677,14 +673,12 @@ buildOperandCullBinsForBucket(
         axis = 2;
     }
 
-    for (auto &entry : cullSafeByAxis) {
-        const Vector3Dd c = operands[bucket[entry.second]].bakedBounds.centroid();
-        entry.first = axis == 0 ? c.x() : (axis == 1 ? c.y() : c.z());
+    for (long int i = 0; i < cullSafeByAxis.size(); i++) {
+        CullSafeEntry &entry = cullSafeByAxis[i];
+        const Vector3Dd c = operands[bucket[entry.position]].bakedBounds.centroid();
+        entry.key = axis == 0 ? c.x() : (axis == 1 ? c.y() : c.z());
     }
-    std::sort(cullSafeByAxis.begin(), cullSafeByAxis.end(),
-        [](const std::pair<double, int> &a, const std::pair<double, int> &b) {
-            return a.first < b.first;
-        });
+    sortCullSafeEntriesByKey(cullSafeByAxis);
 
     const int total = (int)cullSafeByAxis.size();
     int numBins = (int)std::sqrt((double)total);
@@ -704,7 +698,7 @@ buildOperandCullBinsForBucket(
         AxisAlignedBoundingBox aggregate = AxisAlignedBoundingBox::empty();
         const int start = (int)out.binMembers.size();
         for (int k = 0; k < count; k++) {
-            const int pos = cullSafeByAxis[(size_t)cursor].second;
+            const int pos = cullSafeByAxis[cursor].position;
             out.binMembers.add(pos);
             aggregate = aggregate.enclosing(operands[bucket[pos]].bakedBounds);
             cursor++;
@@ -717,7 +711,7 @@ buildOperandCullBinsForBucket(
 }
 
 BakedScene::CsgProgram
-bakeConstructiveSolidGeometry(ConstructiveSolidGeometry *geometry, BakedScene &out)
+BakedSceneBuilder::bakeConstructiveSolidGeometry(ConstructiveSolidGeometry *geometry, BakedScene &out)
 {
     BakedScene::CsgProgram baked;
     baked.geometryType = geometry->getGeometryType();
@@ -745,22 +739,26 @@ bakeConstructiveSolidGeometry(ConstructiveSolidGeometry *geometry, BakedScene &o
         buildOperandCullBinsForBucket(
             baked.directPrimitiveOperandIndices, baked.operands, directBins);
         if (directBins.built) {
-            out.operandCullBinsStorage.push_back(directBins);
-            baked.directPrimitiveCullBins = &out.operandCullBinsStorage.back();
+            BakedScene::OperandCullBins *directBinsStorage =
+                new BakedScene::OperandCullBins(directBins);
+            out.operandCullBinsStorage.add(directBinsStorage);
+            baked.directPrimitiveCullBins = directBinsStorage;
         }
         BakedScene::OperandCullBins transformedBins;
         buildOperandCullBinsForBucket(
             baked.transformedPrimitiveOperandIndices, baked.operands, transformedBins);
         if (transformedBins.built) {
-            out.operandCullBinsStorage.push_back(transformedBins);
-            baked.transformedPrimitiveCullBins = &out.operandCullBinsStorage.back();
+            BakedScene::OperandCullBins *transformedBinsStorage =
+                new BakedScene::OperandCullBins(transformedBins);
+            out.operandCullBinsStorage.add(transformedBinsStorage);
+            baked.transformedPrimitiveCullBins = transformedBinsStorage;
         }
     }
     return baked;
 }
 
 int
-compileConstructiveSolidGeometry(ConstructiveSolidGeometry *geometry, BakedScene &out)
+BakedSceneBuilder::compileConstructiveSolidGeometry(ConstructiveSolidGeometry *geometry, BakedScene &out)
 {
     const int index = out.csgPrograms.size();
     out.csgPrograms.add(BakedScene::CsgProgram());
@@ -769,7 +767,7 @@ compileConstructiveSolidGeometry(ConstructiveSolidGeometry *geometry, BakedScene
 }
 
 BakedScene::CompositeRecord
-bakeComposite(Composite *object, BakedScene &out)
+BakedSceneBuilder::bakeComposite(Composite *object, BakedScene &out)
 {
     BakedScene::CompositeRecord baked;
     baked.object = object;
@@ -800,7 +798,7 @@ bakeComposite(Composite *object, BakedScene &out)
 // fields, which is safe: array growth reallocates the underlying storage,
 // never the logical index).
 int
-compileTracingObject(SimpleBody *object, BakedScene &out)
+BakedSceneBuilder::compileTracingObject(SimpleBody *object, BakedScene &out)
 {
     const int index = out.traceableObjects.size();
     out.traceableObjects.add(BakedScene::TraceableObject());
@@ -850,7 +848,7 @@ compileTracingObject(SimpleBody *object, BakedScene &out)
 }
 
 void
-accumulateStatistics(BakedScene &scene)
+BakedSceneBuilder::accumulateStatistics(BakedScene &scene)
 {
     BakedScene::Statistics &stats = scene.statistics;
     for (long int i = 0; i < scene.traceableObjects.size(); i++) {
@@ -948,13 +946,21 @@ accumulateStatistics(BakedScene &scene)
     }
 }
 
-}
-
 void
 BakedSceneBuilder::build(const java::ArrayList<SimpleBody*> &objects, BakedScene &out)
 {
     out.traceableObjects.clear();
     out.csgPrograms.clear();
+    // Rebuilding reassigns every CsgProgram::*CullBins pointer from scratch,
+    // so any previously heap-allocated OperandCullBins from an earlier
+    // build() on this same BakedScene must be freed here before the owning
+    // list itself is cleared - otherwise this leaks on rebuild (see
+    // BakedScene::~BakedScene, which only runs once at BakedScene's own
+    // end of life).
+    for (long int i = 0; i < out.operandCullBinsStorage.size(); i++) {
+        delete out.operandCullBinsStorage[i];
+    }
+    out.operandCullBinsStorage.clear();
     out.composites.clear();
     out.topLevelObjectIndices.clear();
     out.boundedObjectIndices.clear();
@@ -1031,7 +1037,8 @@ BakedSceneBuilder::build(const java::ArrayList<SimpleBody*> &objects, BakedScene
     }
 
     // Plan 7: assign RaySharedCache slot indices, one per quadric/plane
-    // record that BakedCsgTrace's viewpoint-constant helpers will query.
+    // record that BakedQuadricIntersector's/BakedPlaneIntersector's
+    // viewpoint-constant helpers will query.
     // Must run after the fixup loops above so quadricGeometry is final.
     int nextQuadricSlot = 0;
     int nextPlaneSlot = 0;
