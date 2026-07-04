@@ -3,10 +3,35 @@
 ## Position in the Plan Sequence
 
 Last of six (Plans 5–10; sequence table in `doc/performanceReviewPlan5.md`).
-Requires Plans 5–9 closed (each with its own accepted gate state). This plan
-adds no optimizations: it measures, verifies the structural claims made
-across the sequence, closes remaining bookkeeping, and defines what, if
-anything, justifies a further cycle.
+Requires Plans 5–9 closed (each with its own accepted gate state — for
+Plans 8 and 9, "closed" includes the re-scoped outcomes: Plan 8's retired
+fusion phases with the refocused R-phases resolved either way, and Plan 9's
+possible SKIPPED verdict). This plan adds no optimizations: it measures,
+verifies the structural claims made across the sequence, closes remaining
+bookkeeping, and defines what, if anything, justifies a further cycle.
+
+## Reframing (2026-07-04, after the Plan 7/8 findings)
+
+The sequence's accumulated evidence changed what this plan should verify.
+Plans 5-8 delivered the structural goals (decoupling, rebuilt baked model,
+per-ray invariants) and real correctness wins (two Plan 5 numeric bugs, the
+Plan 7 `-parallel` viewpoint-cache data race), but four consecutive
+dispatch-level optimizations produced no measurable drums improvement, and
+drums sits at ~1.7× the (unrevalidated) baseline figure. Plan 10 therefore
+has two explicitly legitimate endings, decided by evidence, not preference:
+
+- **Ending A — gap closed or explained-and-actionable:** Plan 8-R's
+  collapse-rate expansion moved drums materially; the residue has named,
+  actionable causes seeding a next cycle.
+- **Ending B — structural floor declared:** the profile shows the remaining
+  gap is arithmetic volume inherent to evaluating this scene population
+  under the decoupled architecture (the specialization the baseline used is
+  *illegal* under the ownership rules this project chose deliberately —
+  Plan 4 Conclusions §6 said exactly this). The cycle closes with the floor
+  documented and the correctness/architecture wins as the deliverable.
+  **Declaring Ending B honestly is success, not failure**; what is
+  prohibited is declaring it without the Phase 2/3 measurements or using it
+  to skip them.
 
 ## Objectives Being Verified (mapping back to the cycle's high-level goals)
 
@@ -14,8 +39,11 @@ anything, justifies a further cycle.
 2. **`render/bakedScene` fully rebuilt** and owning a truly baked model
    (math baked, not routing metadata; nothing constant-across-rays
    re-executed per ray).
-3. **Performance as close as possible to — or better than — the baseline
-   `4af1a75` (~5.10 s on drums 320×200).**
+3. **Performance accounted for against the baseline `4af1a75`** — either
+   recovered (Ending A) or attributed to named structural causes with
+   profile evidence (Ending B). The original phrasing "as close as possible
+   to the baseline" stands, with the Plan 7/8 record defining what
+   "possible" has turned out to mean.
 
 ## Phase 1 — Structural Verification
 
@@ -55,14 +83,18 @@ Reproduce the Plan 4 sweep exactly so the tables are comparable:
 
 Comparisons to publish side by side:
 
-| Metric | Baseline `4af1a75` | Plan 4 state `0d2a21c` | Plan 9 exit |
-| --- | --- | --- | --- |
-| Functions to reach 98% self-time | 3 hold 62% | 93 | *(measure)* |
-| CSG-D + scaffolding share | ~13% | 47.2% | *(measure; target ≤ 20%)* |
-| Prim math share | ~40% | 18.5% | *(measure; should rise toward 40%)* |
-| Queue share | ~8% | 11.7% | *(measure)* |
-| `traceOperandAllCrossings` calls | n/a | 244.5 M | 0 (function deleted) |
-| `LocalIntersectionClone` calls | 0 | 260.9 M | *(residual only)* |
+| Metric | Baseline `4af1a75` | Plan 4 state `0d2a21c` | 2026-07-04 (`f3ac202`, drums) | Plan 9 exit |
+| --- | --- | --- | --- | --- |
+| Functions to reach 98% self-time | 3 hold 62% | 93 | ~40 (top 7 hold ~54%) | *(measure)* |
+| CSG-D + scaffolding share | ~13% | 47.2% | ~45% | *(measure)* |
+| Prim math share | ~40% | 18.5% | ~16% (12.5% in one baked-quadric helper) | *(measure)* |
+| Queue share | ~8% | 11.7% | ~2% (siftUp+add) | *(measure)* |
+| `traceOperandAllCrossings` calls | n/a | 244.5 M (suite) | 53.4 M (drums alone) | *(reduced via Plan 8-R; the original "0 — function deleted" criterion is retired with the fusion phases)* |
+| `LocalIntersectionClone` calls | 0 | 260.9 M (suite) | 48.6 M (drums alone) | *(residual only)* |
+
+(The 2026-07-04 column is drums-only, not suite-wide — comparable in shape,
+not in absolute counts, to the two suite columns; the Phase 2 sweep
+produces the properly comparable suite table.)
 
 ## Phase 3 — Wall-Clock Panel
 
@@ -72,12 +104,18 @@ Comparisons to publish side by side:
 - `./scripts/benchmarkPanel.sh` (5-scene panel) at both commits.
 - Full `./scripts/renderAll.sh` wall time (1280×800) at both commits, plus
   the `-parallel` variant at the current commit.
-- Publish the ratio table. Cycle target: drums ratio ≤ 1.1×, panel scenes
-  each ≤ 1.15×, with "≤ 1.0× (better than baseline)" the stretch outcome —
-  plausible because the current branch also carries wins the baseline lacks
-  (tile parallelism aside, e.g. plan specializations the baseline never had).
-  If a target is missed, Phase 5 decides whether the residue is structural
-  (documented, cycle closes) or actionable (next cycle's plan 11 seed).
+- Publish the ratio table. **Both baselines must be freshly measured in the
+  same session** — the Plan 6 cycle recorded an absolute-timing scare that
+  turned out to be environmental, so no historical absolute number (5.10 s
+  included) may be quoted without re-measurement on the current machine.
+- Targets, revised 2026-07-04: drums ratio ≤ 1.2× remains the Ending-A
+  threshold (the original ≤ 1.1× predates the Plan 7/8 findings; current
+  standing is ~1.7× against the *unrevalidated* baseline figure). Panel
+  scenes each ≤ 1.15× (currently all at 0.17-0.66× — the panel already
+  beats baseline; the gap is drums-shaped, not general). If drums misses
+  the threshold after Plan 8-R, Phase 5 applies the Ending-B framework
+  from the Reframing section: attribute the residue with profile evidence
+  and close, or name the concrete next-cycle seed.
 
 ## Phase 4 — Correctness Closure
 
@@ -96,9 +134,14 @@ Comparisons to publish side by side:
 ## Phase 5 — Residual Analysis and Cycle Closure
 
 - Attribute any remaining gap over baseline to named causes with profile
-  evidence (candidate suspects if the targets are missed: icache from kernel
-  multiplicity, residual transformed operands, side-car model cache
-  footprint, shading-layer differences).
+  evidence. The suspect list, updated by the Plan 7/8 record: (a) residual
+  transformed/nested operand population that Plan 8-R could not collapse
+  (measure via the Phase R0 categorization), (b) per-test arithmetic volume
+  in the baked-quadric helpers reached with `sharesRaySpace=false`, (c)
+  clone/container residue if Plan 9 was skipped or partial. Retired
+  suspects (measured, not guilty on this tree): dispatch/routing depth,
+  union-kernel dispatch, viewpoint-constant recomputation — four gate-green
+  changes across Plans 7-8 targeted these and none moved drums.
 - Explicitly list what was *not* attempted and why (e.g., candidate-order
   changes rejected for byte-exactness; polynomial solver work out of scope
   per Plan 4 Observation 5 — Group C scenes are genuine solver work,
@@ -129,7 +172,8 @@ with byte-identical output — no functional changes belong in Plan 10.
 
 - All Phase 1 structural checks pass with evidence recorded.
 - Sweep, panel, and correctness tables published in this document.
-- drums ≤ 1.1× revalidated baseline (target) with the miss/residual analysis
-  rule of Phase 3 applied honestly if not met.
+- drums ≤ 1.2× revalidated baseline (Ending A), **or** the Ending-B verdict
+  written with the Phase 5 attribution table — either closes the cycle;
+  an unmeasured or unattributed miss does not.
 - Final reference state (goldens + accepted diffs + performance numbers)
   recorded as the baseline for all future performance work.
