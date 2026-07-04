@@ -33,12 +33,20 @@ fi
 
 mkdir -p "${output_root}"
 
+# Baseline column corrected 2026-07-04 (Plan 10 Phase 3): the original
+# values here (1.989/1.292/4.112/5.316/0.382) were roughly 2x too slow -
+# traced to a stale -pg (gprof) instrumentation flag baked into a baseline
+# worktree's cmake cache at the time those numbers were first measured.
+# A clean rebuild of 4af1a75 (no -pg) on the same machine gives the figures
+# below; see doc/performanceReviewPlan10.md Phase 3 for the full comparison
+# and the corrected panel verdict (4 of 5 scenes are actually SLOWER than
+# baseline, not faster - only spline beats it).
 scenes=(
-    "level2|spline.pov|../include|1.989"
-    "level3/ntreal|ntreal.pov|../../include|1.292"
-    "level3/piece3|piece3.pov|../../include|4.112"
-    "level2|iortest.pov|../include|5.316"
-    "level1|shapes2.pov|../include|0.382"
+    "level2|spline.pov|../include|1.045"
+    "level3/ntreal|ntreal.pov|../../include|0.64"
+    "level3/piece3|piece3.pov|../../include|2.015"
+    "level2|iortest.pov|../include|2.115"
+    "level1|shapes2.pov|../include|0.145"
 )
 
 golden_scenes=(
