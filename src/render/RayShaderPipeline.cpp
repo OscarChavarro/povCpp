@@ -99,7 +99,7 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
             LocalSurfaceShader::shade(ray, tempTexture, rayIntersection,
                 &surfaceColor, &filterColor, color, traceService,
                 context.getScene().getLightSources(),
-                context.getScene().getBakedScene(),
+                context.getBakedScene(),
                 traceLevel, textureUtils);
         }
 

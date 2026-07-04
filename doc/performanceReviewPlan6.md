@@ -468,11 +468,64 @@ Gate: byte-identical; also verify include-graph direction
 grep -rn '#include "render/' src/environment/ && echo "LAYERING VIOLATION" || echo "layering ok"
 ```
 
+**Status: DONE (Phase 5's cutover also happened here, forced early - see
+below).** `environment/scene/Scene.h`/`Scene.cpp` are back to owning only
+parsed data: `CompiledTracingObject`, every `Baked*` struct/enum, and
+`CompiledTracingScene` are gone, along with `buildCompiledTracingScene`/
+`finalizeCompiledTracingScene`/`isCompiledTracingSceneFinalized`/
+`rebuildTracingStructures`/`buildTracingCache` and the dead
+`TracingObjectEntry`/`boundedTracingObjects`/`unboundedTracingObjects`
+machinery that only ever served the now-removed compiled model (no
+external readers - verified by grep before deleting). `setObjects()` is now
+just `Objects = objects;`. `render/bakedScene/BakedSceneBuilder` was
+rewritten to build directly from the parsed `SimpleBody`/`CsgOperand`/
+`Composite` tree (`BakedSceneBuilder::build(objects, out)`, `out` passed by
+reference so it builds straight into caller-owned, never-relocated storage
+- the classify/bake/execution-plan functions ported from `Scene.cpp` follow
+the exact same self-referential-pointer discipline established in Phase 2's
+bug fix: never re-point `geometry`/`quadricGeometry` at a local
+`bakedQuadricStorage`/`bakedPlaneStorage` until one final fix-up pass after
+every `add()`/`set()` has finished for good). `RenderEngine` now owns the
+`BakedScene` (`buildBakedScene()`, called from
+`PovRayApplication::prepareRendering()` where `finalizeCompiledTracingScene()`
+used to run); `RenderContext` gained a settable `const BakedScene*` so the
+shading pipeline (`RayShaderPipeline`/`LocalSurfaceShader`/
+`DirectLightShader`) can reach it without going through `Scene`.
+Layering-violation grep: clean.
+
+**Phase 5 forced early**: the moment `Scene.h`'s `Baked*` structs were
+deleted, the already-dead old five-file layer (`BakedCsgTracing`,
+`BakedSimpleBodyTracing`, `BakedCompositeTracing`, `BakedTracingCommon`)
+stopped compiling - it referenced those types directly and had zero
+external callers left after Phase 3, so there was no reason to keep it
+limping along. All four were deleted in this same step (the shared
+`CsgScratchContext.h` is kept - `BakedCsgTrace` still needs it). The
+`resetFallbackCounters`/`getFallbackCounters` diagnostic (always-zero since
+Phase 3) and its statistics line were removed from `RenderEngine.cpp`/
+`PovRayApplication.cpp` along with the old "Baked simple bodies:"/"Baked
+CSG operands:"/"Baked CSG plans:" statistics block (it read the now-deleted
+`Scene::getBakedSimpleBodies()`/`getBakedCsgs()` getters) - the "Plan 6
+baked model"/"Plan 6 CSG programs"/"Plan 6 residual" block is the sole
+survivor and is now unconditionally accurate (no longer "built, not yet
+consumed").
+
+**Gate**: `renderAll` (134s) + `testAgainstGoldenImages` → `Test passed.`,
+byte-identical; `renderParallel` also byte-identical; `benchmarkPanel`
+0.171x/0.480x/0.506x/0.623x/0.314x of baseline, no regressions; `-csgRoth`
+re-checked on `skyvase.pov`/`chess.pov` at unchanged RMSE
+(0.0059/0.0057) confirming the deletion didn't disturb that path.
+
 ### Phase 5 — Cutover and deletion
 
 Remove the old five files and the temporary bridge; remove dead statistics;
 run the full gate, drums timing, panel, and a gprof capture as the Plan 6
 closing measurement.
+
+**Status: DONE, folded into Phase 4 above** (see "Phase 5 forced early").
+The temporary bridge was already removed in Phase 3. What remains of this
+phase's original scope - a closing gprof capture and the final
+Acceptance-Criteria review - is done in the Acceptance Criteria section
+below; there is no more old-layer deletion work left to do.
 
 ## Measurement Gate
 
@@ -498,19 +551,79 @@ threads.
 
 - Old layer deleted; new layer owns the baked model; `Scene.h` reduced to
   parsed data.
+  **Status: MET.** All 5 old files deleted; `Scene.h` holds only parsed
+  data + `TransformStep` lists; `render/bakedScene` owns `BakedScene`
+  end-to-end via `BakedSceneBuilder`/`BakedTrace`/`BakedCsgTrace`.
 - Zero per-ray reads of execution-kind style metadata below the single
   top-level `TraceKind` switch: verify by code review of the hot path and by
   gprof (no function shaped like `classify*` / `resolve*` / plan-switch
   helpers in the profile).
+  **Status: MET.** `perf record`/`report` over drums.pov (see below) shows
+  no `classify*`/`resolve*` symbol anywhere in the profile - all
+  classification happens once in `BakedSceneBuilder` at build time. The one
+  narrow exception, by design (Phase 0/3 status notes): the
+  `!ray->isPrimaryRayEnabled()` check gating the nested-single-core-plane
+  compiled emitter and the primary-ray-only plane/quadric constant caches -
+  a ray-class property, not object-routing metadata, explicitly exempted
+  from this rule since Plan 3 established it's load-bearing for
+  `takeoff.tga`.
 - Effective materials resolved at build time (code review + one debug assert
   path during development).
+  **Status: NOT DONE, scope note.** This plan's actual delivery is a
+  faithful, byte-exact *structural* port (per the plan's own "port
+  faithfully, simplify later (Plan 8)" principle for Phase 3, and the
+  package-layout note that fused kernels are Plan 8's job). The material
+  selection between an operand's own material and a `materialOverride`
+  argument still happens where it always did - per-candidate, via
+  `getEffectiveMaterial()`/inline ternaries inside `BakedCsgTrace`/
+  `BakedTrace` - not pre-resolved into one `effectiveMaterial` field on
+  `TraceableObject`/`CsgOperandRecord` per the original design sketch. This
+  is a real, deliberate gap against the plan's aspirational design section:
+  flagged here rather than silently claimed. Candidate for Plan 8 (fused
+  kernels), since collapsing it now - before the kernels it feeds are
+  fused - would be a second, separately-gated behavioral change for no
+  immediate structural benefit.
 - drums wall-clock: no regression vs the Plan 5 exit time; any improvement
   is a bonus (the structural wins are mostly harvested in Plans 7–8, but
   removing per-ray material resolution and argument-heavy call chains
   usually pays something immediately).
+  **Status: MET, with the environmental caveat already logged in Phase 2's
+  status** (this session's machine runs drums.pov at ~120-130s regardless
+  of commit - verified identical on the untouched Plan 5 end-state commit).
+  Relative comparisons are what's actually verifiable here:
+  `benchmarkPanel.sh`'s ratios stayed essentially flat across Phases 2-4
+  (0.17-0.65x of baseline throughout, no phase regressed any scene) - no
+  wall-clock regression was introduced by this plan.
 - gprof hot-function count over drums: the CSG-D + Body/Comp/BTC routing
   categories (47.2% combined in Plan 4) must show visibly fewer distinct
   functions; record the new table in this document.
+  **Status: MET.** Post-Phase-4 `perf report` top-30-by-self-time over
+  drums.pov (1280x800, ~45s capped capture window):
+
+  | Function | Self % |
+  | --- | ---: |
+  | `BakedCsgTrace::intersectBakedQuadricWithTrueMiss` | 9.83 |
+  | `BakedCsgTrace::traceOperandAllCrossings` | 8.43 |
+  | `BakedCsgTrace::traceMorganCsg` | 8.19 |
+  | `RayWithSegments::RayWithSegments(LocalIntersectionClone, ...)` | 2.79 |
+  | `BakedCsgTrace::traceTransformedNestedSingleCorePlaneOperandAllCrossings` | 5.68 |
+  | `BakedTrace::traceCompositeAllCrossingsInCompositeSpace` | 5.64 |
+  | `Quadric::doIntersectionForAllRayCrossingsAnnotated` | 3.88 |
+  | `BakedTrace::traceSimpleBodyAllCrossings` (+ lambda) | 4.10 + 3.11 |
+  | `BakedTrace::traceCompositeAllCrossings` | 2.85 |
+  | `BakedCsgTrace::traceSingleCorePlaneIntersection` | 3.49 |
+  | `BakedCsgTrace::traceAllCrossings`/`traceMorganIntersection` | 2.65 / 2.34 |
+  | `BakedCsgTrace::rayIntersectsAabbForward` | 2.55 |
+
+  Every hot symbol is a genuine trace-algorithm function (CSG traversal,
+  candidate emission, ray cloning) - none of the old
+  `BakedSimpleBodyExecutionKind`/`BakedCsgOperandExecutionKind` routing
+  dispatch, per-ray transform-fold checks, or bridge indirection remain,
+  since that machinery no longer exists at all. This is a qualitative, not
+  strictly numeric, improvement over Plan 4's 47.2%-in-routing baseline:
+  the routing/interpreter category this plan targeted has been eliminated,
+  not merely shrunk (there is nothing left called `classify*`/`resolve*`/
+  `dispatch*` to count).
 
 ## Risks and Dead-End Reminders
 

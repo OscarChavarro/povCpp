@@ -10,6 +10,7 @@
 #include "render/RenderImageWriter.h"
 #include "render/RenderTargetImage.h"
 #include "render/RenderWorker.h"
+#include "render/bakedScene/BakedScene.h"
 #include "vsdk/toolkit/render/raytracing/RasterTileArea.h"
 
 class IntersectionCandidate;
@@ -27,6 +28,11 @@ class RenderEngine {
     RenderTargetImage destinationImage;
     RasterTileArea renderArea;
     std::atomic<bool> fatalErrorFound;
+    // Plan 6 Phase 4: RenderEngine owns the baked model - environment/scene
+    // only owns parsed data now. Built once, after parsing finishes (see
+    // buildBakedScene()), read-only for the rest of the render (including
+    // every -parallel worker, via RenderContext::getBakedScene()).
+    BakedScene bakedScene;
 
     void copyLineToImage(
         const ColorRgba *line, int row, const RasterTileArea &area);
@@ -46,6 +52,8 @@ class RenderEngine {
     PriorityQueuePool<IntersectionCandidate> &getIntersectionQueuePool();
     void setScene(Scene *s);
     Scene &getScene();
+    void buildBakedScene();
+    const BakedScene &getBakedScene() const { return bakedScene; }
     double &getMaxTraceLevel();
     bool &getStopFlag();
     void readRenderedPart(void);

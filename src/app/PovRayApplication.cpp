@@ -13,7 +13,6 @@
 #include "io/pov/material/LoadedImageRegistry.h"
 #include "io/pov/scene/SceneParser.h"
 #include "render/bakedScene/BakedScene.h"
-#include "render/bakedScene/BakedTracingCommon.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
 void
@@ -26,6 +25,7 @@ void
 PovRayApplication::printStatistics(
     const Statistics &stats,
     const Scene &frame,
+    const BakedScene &bakedScene,
     const PovRayRendererConfiguration &inputConfiguration)
 {
     char buffer[1024];
@@ -102,276 +102,8 @@ PovRayApplication::printStatistics(
         printProgress(buffer);
     }
 
-    const BakedTracingCommon::FallbackCounters fallbackCounters =
-        BakedTracingCommon::getFallbackCounters();
-    snprintf(buffer, sizeof(buffer),
-        "  Baked fallbacks: first-hit %ld  all-crossings %ld  containment %ld",
-        fallbackCounters.firstHitObjectFallbacks,
-        fallbackCounters.allCrossingsObjectFallbacks,
-        fallbackCounters.containmentObjectFallbacks);
-    printProgress(buffer);
-
-    long simpleDirect = 0;
-    long simpleTransformed = 0;
-    long simpleBoundedOrClipped = 0;
-    long simpleCsg = 0;
-    long simpleGeneric = 0;
-    for (long int i = 0; i < frame.getBakedSimpleBodies().size(); i++) {
-        switch (frame.getBakedSimpleBodies()[i].executionKind) {
-        case Scene::BakedSimpleBodyExecutionKind::DirectPrimitive:
-            simpleDirect++;
-            break;
-        case Scene::BakedSimpleBodyExecutionKind::TransformedPrimitive:
-            simpleTransformed++;
-            break;
-        case Scene::BakedSimpleBodyExecutionKind::BoundedOrClippedPrimitive:
-        case Scene::BakedSimpleBodyExecutionKind::BoundedOrClippedCsg:
-            simpleBoundedOrClipped++;
-            break;
-        case Scene::BakedSimpleBodyExecutionKind::DirectCsg:
-        case Scene::BakedSimpleBodyExecutionKind::TransformedCsg:
-            simpleCsg++;
-            break;
-        case Scene::BakedSimpleBodyExecutionKind::GenericFallback:
-        case Scene::BakedSimpleBodyExecutionKind::Empty:
-            simpleGeneric++;
-            break;
-        }
-    }
-    snprintf(buffer, sizeof(buffer),
-        "  Baked simple bodies: direct %ld  transformed %ld  bounded/clipped %ld  csg %ld  generic %ld",
-        simpleDirect,
-        simpleTransformed,
-        simpleBoundedOrClipped,
-        simpleCsg,
-        simpleGeneric);
-    printProgress(buffer);
-
-    long operandDirect = 0;
-    long operandTransformed = 0;
-    long operandTransformedQuadric = 0;
-    long operandTransformedPrimitive = 0;
-    long operandPlane = 0;
-    long operandDirectPlane = 0;
-    long operandTransformedPlane = 0;
-    long operandNested = 0;
-    long operandDirectNested = 0;
-    long operandTransformedNested = 0;
-    long transformedNestedGenericMorgan = 0;
-    long transformedNestedSingleCorePlane = 0;
-    long transformedNestedCoreDirectAnnotated = 0;
-    long transformedNestedCoreDirectPrimitive = 0;
-    long transformedNestedCoreTransformedQuadric = 0;
-    long transformedNestedCoreOther = 0;
-    long transformedNestedCompiledCorePlane = 0;
-    long transformedNestedCompiledDirectQuadric = 0;
-    long transformedNestedCompiledTransformedQuadric = 0;
-    long transformedNestedCompiledPlaneRoles = 0;
-    long transformedNestedCompiledContainmentRoles = 0;
-    long transformedNestedOtherPlan = 0;
-    long operandGeneric = 0;
-    long operandCollapsedQuadric = 0;
-    long operandCollapsedPlane = 0;
-    for (long int i = 0; i < frame.getBakedCsgs().size(); i++) {
-        const Scene::BakedConstructiveSolidGeometry &bakedCsg =
-            frame.getBakedCsgs()[i];
-        for (long int j = 0; j < bakedCsg.operands.size(); j++) {
-            if (bakedCsg.operands[j].hasBakedQuadric) {
-                operandCollapsedQuadric++;
-            }
-            if (bakedCsg.operands[j].hasBakedPlane) {
-                operandCollapsedPlane++;
-            }
-            switch (bakedCsg.operands[j].executionKind) {
-            case Scene::BakedCsgOperandExecutionKind::DirectAnnotatedPrimitive:
-            case Scene::BakedCsgOperandExecutionKind::DirectPrimitive:
-                operandDirect++;
-                break;
-            case Scene::BakedCsgOperandExecutionKind::TransformedQuadric:
-                operandTransformed++;
-                operandTransformedQuadric++;
-                break;
-            case Scene::BakedCsgOperandExecutionKind::TransformedSphere:
-                operandTransformed++;
-                operandTransformedPrimitive++;
-                break;
-            case Scene::BakedCsgOperandExecutionKind::TransformedPrimitive:
-                operandTransformed++;
-                operandTransformedPrimitive++;
-                break;
-            case Scene::BakedCsgOperandExecutionKind::DirectPlane:
-                operandPlane++;
-                operandDirectPlane++;
-                break;
-            case Scene::BakedCsgOperandExecutionKind::TransformedPlane:
-                operandPlane++;
-                operandTransformedPlane++;
-                break;
-            case Scene::BakedCsgOperandExecutionKind::NestedCsg:
-                operandNested++;
-                operandDirectNested++;
-                break;
-            case Scene::BakedCsgOperandExecutionKind::TransformedNestedCsg:
-                operandNested++;
-                operandTransformedNested++;
-                if (bakedCsg.operands[j].compiledTransformedNestedCorePlane) {
-                    transformedNestedCompiledCorePlane++;
-                    transformedNestedCompiledPlaneRoles +=
-                        bakedCsg.operands[j].compiledNestedPlaneOperandIndices.size();
-                    transformedNestedCompiledContainmentRoles +=
-                        bakedCsg.operands[j].
-                            compiledNestedContainmentOperandIndices.size();
-                    if (bakedCsg.operands[j].compiledNestedCoreDirectQuadric) {
-                        transformedNestedCompiledDirectQuadric++;
-                    }
-                    if (bakedCsg.operands[j].compiledNestedCoreTransformedQuadric) {
-                        transformedNestedCompiledTransformedQuadric++;
-                    }
-                }
-                if (bakedCsg.operands[j].bakedCsgIndex >= 0 &&
-                    bakedCsg.operands[j].bakedCsgIndex < frame.getBakedCsgs().size()) {
-                    const Scene::BakedConstructiveSolidGeometry &nestedCsg =
-                        frame.getBakedCsgs()[bakedCsg.operands[j].bakedCsgIndex];
-                    if (nestedCsg.executionPlanKind ==
-                        Scene::BakedCsgExecutionPlanKind::GenericMorgan) {
-                        transformedNestedGenericMorgan++;
-                    } else if (nestedCsg.executionPlanKind ==
-                        Scene::BakedCsgExecutionPlanKind::SingleCorePlaneIntersection) {
-                        transformedNestedSingleCorePlane++;
-                        const long int coreIndex =
-                            nestedCsg.specializationCoreOperandIndex;
-                        if (coreIndex >= 0 && coreIndex < nestedCsg.operands.size()) {
-                            switch (nestedCsg.operands[coreIndex].executionKind) {
-                            case Scene::BakedCsgOperandExecutionKind::DirectAnnotatedPrimitive:
-                                transformedNestedCoreDirectAnnotated++;
-                                break;
-                            case Scene::BakedCsgOperandExecutionKind::DirectPrimitive:
-                                transformedNestedCoreDirectPrimitive++;
-                                break;
-                            case Scene::BakedCsgOperandExecutionKind::TransformedQuadric:
-                                transformedNestedCoreTransformedQuadric++;
-                                break;
-                            default:
-                                transformedNestedCoreOther++;
-                                break;
-                            }
-                        }
-                    } else {
-                        transformedNestedOtherPlan++;
-                    }
-                }
-                break;
-            case Scene::BakedCsgOperandExecutionKind::GenericFallback:
-            case Scene::BakedCsgOperandExecutionKind::Empty:
-                operandGeneric++;
-                break;
-            }
-        }
-    }
-    snprintf(buffer, sizeof(buffer),
-        "  Baked CSG operands: direct %ld  transformed %ld  plane %ld  nested %ld  generic %ld",
-        operandDirect,
-        operandTransformed,
-        operandPlane,
-        operandNested,
-        operandGeneric);
-    printProgress(buffer);
-    snprintf(buffer, sizeof(buffer),
-        "  Baked CSG operand detail: transformed-quadric %ld  transformed-primitive %ld  direct-plane %ld  transformed-plane %ld  direct-nested %ld  transformed-nested %ld",
-        operandTransformedQuadric,
-        operandTransformedPrimitive,
-        operandDirectPlane,
-        operandTransformedPlane,
-        operandDirectNested,
-        operandTransformedNested);
-    printProgress(buffer);
-    snprintf(buffer, sizeof(buffer),
-        "  Baked CSG coefficient collapse (Plan 5 Phase 3): quadric %ld  plane %ld  "
-        "(these count against direct/direct-plane above, not transformed-quadric/transformed-plane)",
-        operandCollapsedQuadric,
-        operandCollapsedPlane);
-    printProgress(buffer);
-    snprintf(buffer, sizeof(buffer),
-        "  Baked transformed-nested refs: generic-morgan %ld  core-plane %ld  other %ld",
-        transformedNestedGenericMorgan,
-        transformedNestedSingleCorePlane,
-        transformedNestedOtherPlan);
-    printProgress(buffer);
-    snprintf(buffer, sizeof(buffer),
-        "  Baked transformed-nested core-plane cores: direct-annotated %ld  direct %ld  transformed-quadric %ld  other %ld",
-        transformedNestedCoreDirectAnnotated,
-        transformedNestedCoreDirectPrimitive,
-        transformedNestedCoreTransformedQuadric,
-        transformedNestedCoreOther);
-    printProgress(buffer);
-    snprintf(buffer, sizeof(buffer),
-        "  Baked transformed-nested compiled descriptors: core-plane %ld  direct-quadric %ld  transformed-quadric %ld  plane-roles %ld  containment-roles %ld",
-        transformedNestedCompiledCorePlane,
-        transformedNestedCompiledDirectQuadric,
-        transformedNestedCompiledTransformedQuadric,
-        transformedNestedCompiledPlaneRoles,
-        transformedNestedCompiledContainmentRoles);
-    printProgress(buffer);
-
-    long planGenericMorgan = 0;
-    long planGenericRaySegments = 0;
-    long planTopLevelPlaneUnion = 0;
-    long planDisjointBoundedUnion = 0;
-    long planSingleCorePlaneIntersection = 0;
-    long planFallback = 0;
-    long planPlaneRoles = 0;
-    long planNestedRoles = 0;
-    long planTransformedPrimitiveRoles = 0;
-    long planDirectPrimitiveRoles = 0;
-    for (long int i = 0; i < frame.getBakedCsgs().size(); i++) {
-        const Scene::BakedConstructiveSolidGeometry &bakedCsg =
-            frame.getBakedCsgs()[i];
-        switch (bakedCsg.executionPlanKind) {
-        case Scene::BakedCsgExecutionPlanKind::GenericMorgan:
-            planGenericMorgan++;
-            break;
-        case Scene::BakedCsgExecutionPlanKind::GenericRaySegments:
-            planGenericRaySegments++;
-            break;
-        case Scene::BakedCsgExecutionPlanKind::TopLevelPlaneUnion:
-            planTopLevelPlaneUnion++;
-            break;
-        case Scene::BakedCsgExecutionPlanKind::DisjointBoundedUnion:
-            planDisjointBoundedUnion++;
-            break;
-        case Scene::BakedCsgExecutionPlanKind::SingleCorePlaneIntersection:
-            planSingleCorePlaneIntersection++;
-            break;
-        case Scene::BakedCsgExecutionPlanKind::Fallback:
-            planFallback++;
-            break;
-        }
-        planPlaneRoles += bakedCsg.executionPlanPlaneOperandIndices.size();
-        planNestedRoles += bakedCsg.executionPlanNestedOperandIndices.size();
-        planTransformedPrimitiveRoles +=
-            bakedCsg.executionPlanTransformedPrimitiveOperandIndices.size();
-        planDirectPrimitiveRoles +=
-            bakedCsg.executionPlanDirectPrimitiveOperandIndices.size();
-    }
-    snprintf(buffer, sizeof(buffer),
-        "  Baked CSG plans: generic-morgan %ld  ray-segments %ld  plane-union %ld  disjoint-union %ld  core-plane %ld  fallback %ld",
-        planGenericMorgan,
-        planGenericRaySegments,
-        planTopLevelPlaneUnion,
-        planDisjointBoundedUnion,
-        planSingleCorePlaneIntersection,
-        planFallback);
-    printProgress(buffer);
-    snprintf(buffer, sizeof(buffer),
-        "  Baked CSG plan roles: direct %ld  transformed %ld  plane %ld  nested %ld",
-        planDirectPrimitiveRoles,
-        planTransformedPrimitiveRoles,
-        planPlaneRoles,
-        planNestedRoles);
-    printProgress(buffer);
-
     {
-        const BakedScene::Statistics &bakedSceneStats = frame.getBakedScene().statistics;
+        const BakedScene::Statistics &bakedSceneStats = bakedScene.statistics;
         snprintf(buffer, sizeof(buffer),
             "  Plan 6 baked model (built, not yet consumed): empty %ld  direct %ld  csg %ld  "
             "composite %ld  bounded/clipped %ld  generic-fallback %ld",
@@ -519,7 +251,7 @@ PovRayApplication::prepareRendering()
         printProgress("Displaying...\n");
     }
 
-    engine.getScene().finalizeCompiledTracingScene();
+    engine.buildBakedScene();
 
     if (configuration.hasOptionFlags(PovRayRendererConfiguration::DISK_WRITE)) {
         if (configuration.hasOptionFlags(PovRayRendererConfiguration::CONTINUE_TRACE)) {
@@ -594,7 +326,7 @@ void
 PovRayApplication::finalizeRun()
 {
     closeAll();
-    printStatistics(statistics, engine.getScene(), configuration);
+    printStatistics(statistics, engine.getScene(), engine.getBakedScene(), configuration);
 
     // image_map/bump_map/material_map images are intentionally shared (not
     // cloned) by every PovRayMaterial generation/clone that references them

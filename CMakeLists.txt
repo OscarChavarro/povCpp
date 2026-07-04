@@ -80,10 +80,6 @@ add_executable(povray
     src/render/shaders/LocalSurfaceShader.cpp
     src/render/AdaptiveAntiAliasing.cpp
     src/render/ColorOperations.cpp
-    src/render/bakedScene/BakedCsgTracing.cpp
-    src/render/bakedScene/BakedCompositeTracing.cpp
-    src/render/bakedScene/BakedSimpleBodyTracing.cpp
-    src/render/bakedScene/BakedTracingCommon.cpp
     src/render/bakedScene/BakedGeometryBaker.cpp
     src/render/bakedScene/BakedSceneBuilder.cpp
     src/render/bakedScene/BakedTrace.cpp
