@@ -443,6 +443,10 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
     }
 
     const BakedScene &bakedScene = this->bakedScene;
+    RaySharedCache &raySharedCache = localWorker.getRaySharedCache();
+    raySharedCache.ensureCapacity(
+        (int)bakedScene.statistics.quadricViewpointSlotCount,
+        (int)bakedScene.statistics.planeViewpointSlotCount);
     const java::ArrayList<int> &boundedObjects = bakedScene.boundedObjectIndices;
     const java::ArrayList<int> &unboundedObjects = bakedScene.unboundedObjectIndices;
     for (long int i = boundedObjects.size() - 1; i >= 0; i--) {
@@ -454,7 +458,8 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
                 *localRay, bakedScene.traceableObjects[objectIndex].worldBounds, currentBestT)) {
             continue;
         }
-        const bool hit = BakedTrace::traceFirstHit(bakedScene, objectIndex, localRay, newIntersection);
+        const bool hit = BakedTrace::traceFirstHit(
+            bakedScene, objectIndex, localRay, newIntersection, raySharedCache);
         if (hit) {
             if (!intersectionFound ||
                 newIntersection.getIntersection().t <
@@ -466,7 +471,8 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
     }
     for (long int i = unboundedObjects.size() - 1; i >= 0; i--) {
         const int objectIndex = unboundedObjects[i];
-        const bool hit = BakedTrace::traceFirstHit(bakedScene, objectIndex, localRay, newIntersection);
+        const bool hit = BakedTrace::traceFirstHit(
+            bakedScene, objectIndex, localRay, newIntersection, raySharedCache);
         if (hit) {
             if (!intersectionFound ||
                 newIntersection.getIntersection().t <

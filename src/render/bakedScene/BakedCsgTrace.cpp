@@ -132,6 +132,7 @@ BakedCsgTrace::intersectBakedPlane(
     RayWithSegments *ray,
     const Vector3Dd &origin,
     const Vector3Dd &direction,
+    RaySharedCache &cache,
     double *depth)
 {
     Statistics &stats = *ray->getStatistics();
@@ -139,14 +140,12 @@ BakedCsgTrace::intersectBakedPlane(
 
     double normalDotOrigin;
     if (ray->isPrimaryRayEnabled()) {
-        if (!operand.planeVpCached) {
-            operand.planeVpNormDotOrigin =
-                operand.planeNormal.dotProduct(origin);
-            operand.planeVpNormDotOrigin += operand.planeDistance;
-            operand.planeVpNormDotOrigin *= -1.0;
-            operand.planeVpCached = true;
+        if (!cache.getPlaneViewpointConstant(operand.planeViewpointSlot, normalDotOrigin)) {
+            normalDotOrigin = operand.planeNormal.dotProduct(origin);
+            normalDotOrigin += operand.planeDistance;
+            normalDotOrigin *= -1.0;
+            cache.setPlaneViewpointConstant(operand.planeViewpointSlot, normalDotOrigin);
         }
-        normalDotOrigin = operand.planeVpNormDotOrigin;
     } else {
         normalDotOrigin = operand.planeNormal.dotProduct(origin);
         normalDotOrigin += operand.planeDistance;
@@ -192,24 +191,46 @@ BakedCsgTrace::intersectBakedQuadric(
     RayWithSegments *ray,
     const Vector3Dd &origin,
     const Vector3Dd &direction,
+    bool sharesRaySpace,
+    RaySharedCache &cache,
+    int viewpointSlot,
     double *depth1,
     double *depth2)
 {
     Statistics &stats = *ray->getStatistics();
     stats.incrementRayQuadricTests();
 
-    const Vector3Dd position2 = origin.multiply(origin);
-    const Vector3Dd direction2 = direction.multiply(direction);
-    const Vector3Dd positionDirection = origin.multiply(direction);
+    Vector3Dd position2;
+    Vector3Dd direction2;
+    Vector3Dd positionDirection;
     Vector3Dd mixedPositionPosition;
     Vector3Dd mixedDirectionDirection;
     Vector3Dd mixedPositionDirection;
-    Vector3Dd tempMixed;
-    mixVectorTerms(mixedPositionPosition, origin, origin);
-    mixVectorTerms(mixedDirectionDirection, direction, direction);
-    mixVectorTerms(tempMixed, origin, direction);
-    mixVectorTerms(mixedPositionDirection, direction, origin);
-    mixedPositionDirection = mixedPositionDirection.add(tempMixed);
+    if (sharesRaySpace) {
+        // origin/direction are ray->getOrigin()/getDirection() verbatim (no
+        // per-operand transform): reuse the ray's own aggregate cache
+        // (RayWithSegments::makeRay, reset on every new ray generation)
+        // instead of recomputing the same six vectors per operand.
+        if (!ray->areQuadricConstantsCached()) {
+            ray->makeRay();
+        }
+        position2 = ray->getPosition2();
+        direction2 = ray->getDirection2();
+        positionDirection = ray->getPositionDirection();
+        mixedPositionPosition = ray->getMixedPositionPosition();
+        mixedDirectionDirection = ray->getMixedDirectionDirection();
+        mixedPositionDirection = ray->getMixedPositionDirection();
+    } else {
+        position2 = origin.multiply(origin);
+        direction2 = direction.multiply(direction);
+        positionDirection = origin.multiply(direction);
+        Vector3Dd tempMixed;
+        mixVectorTerms(mixedPositionPosition, origin, origin);
+        mixVectorTerms(mixedDirectionDirection, direction, direction);
+        mixVectorTerms(tempMixed, origin, direction);
+        mixVectorTerms(mixedPositionDirection, direction, origin);
+        mixedPositionDirection = mixedPositionDirection.add(tempMixed);
+    }
 
     double squareTerm;
     if (shape.hasNonZeroSquareTerm()) {
@@ -226,14 +247,11 @@ BakedCsgTrace::intersectBakedQuadric(
 
     double constantTermWithoutMixed;
     if (ray->isPrimaryRayEnabled()) {
-        if (!shape.isConstantCached()) {
+        if (!cache.getQuadricViewpointConstant(viewpointSlot, constantTermWithoutMixed)) {
             constantTermWithoutMixed = shape.getObject2Terms().dotProduct(position2);
             constantTermWithoutMixed += shape.getObjectTerms().dotProduct(origin);
             constantTermWithoutMixed += shape.getObjectConstant();
-            shape.setObjectVpConstant(constantTermWithoutMixed);
-            shape.setConstantCached(true);
-        } else {
-            constantTermWithoutMixed = shape.getObjectVpConstant();
+            cache.setQuadricViewpointConstant(viewpointSlot, constantTermWithoutMixed);
         }
     } else {
         constantTermWithoutMixed = shape.getObject2Terms().dotProduct(position2);
@@ -290,6 +308,9 @@ BakedCsgTrace::intersectBakedQuadricWithTrueMiss(
     RayWithSegments *ray,
     const Vector3Dd &origin,
     const Vector3Dd &direction,
+    bool sharesRaySpace,
+    RaySharedCache &cache,
+    int viewpointSlot,
     double *depth1,
     double *depth2,
     bool &trueMiss)
@@ -297,18 +318,33 @@ BakedCsgTrace::intersectBakedQuadricWithTrueMiss(
     Statistics &stats = *ray->getStatistics();
     stats.incrementRayQuadricTests();
 
-    const Vector3Dd position2 = origin.multiply(origin);
-    const Vector3Dd direction2 = direction.multiply(direction);
-    const Vector3Dd positionDirection = origin.multiply(direction);
+    Vector3Dd position2;
+    Vector3Dd direction2;
+    Vector3Dd positionDirection;
     Vector3Dd mixedPositionPosition;
     Vector3Dd mixedDirectionDirection;
     Vector3Dd mixedPositionDirection;
-    Vector3Dd tempMixed;
-    mixVectorTerms(mixedPositionPosition, origin, origin);
-    mixVectorTerms(mixedDirectionDirection, direction, direction);
-    mixVectorTerms(tempMixed, origin, direction);
-    mixVectorTerms(mixedPositionDirection, direction, origin);
-    mixedPositionDirection = mixedPositionDirection.add(tempMixed);
+    if (sharesRaySpace) {
+        if (!ray->areQuadricConstantsCached()) {
+            ray->makeRay();
+        }
+        position2 = ray->getPosition2();
+        direction2 = ray->getDirection2();
+        positionDirection = ray->getPositionDirection();
+        mixedPositionPosition = ray->getMixedPositionPosition();
+        mixedDirectionDirection = ray->getMixedDirectionDirection();
+        mixedPositionDirection = ray->getMixedPositionDirection();
+    } else {
+        position2 = origin.multiply(origin);
+        direction2 = direction.multiply(direction);
+        positionDirection = origin.multiply(direction);
+        Vector3Dd tempMixed;
+        mixVectorTerms(mixedPositionPosition, origin, origin);
+        mixVectorTerms(mixedDirectionDirection, direction, direction);
+        mixVectorTerms(tempMixed, origin, direction);
+        mixVectorTerms(mixedPositionDirection, direction, origin);
+        mixedPositionDirection = mixedPositionDirection.add(tempMixed);
+    }
 
     trueMiss = false;
 
@@ -327,14 +363,11 @@ BakedCsgTrace::intersectBakedQuadricWithTrueMiss(
 
     double constantTermWithoutMixed;
     if (ray->isPrimaryRayEnabled()) {
-        if (!shape.isConstantCached()) {
+        if (!cache.getQuadricViewpointConstant(viewpointSlot, constantTermWithoutMixed)) {
             constantTermWithoutMixed = shape.getObject2Terms().dotProduct(position2);
             constantTermWithoutMixed += shape.getObjectTerms().dotProduct(origin);
             constantTermWithoutMixed += shape.getObjectConstant();
-            shape.setObjectVpConstant(constantTermWithoutMixed);
-            shape.setConstantCached(true);
-        } else {
-            constantTermWithoutMixed = shape.getObjectVpConstant();
+            cache.setQuadricViewpointConstant(viewpointSlot, constantTermWithoutMixed);
         }
     } else {
         constantTermWithoutMixed = shape.getObject2Terms().dotProduct(position2);
@@ -386,6 +419,9 @@ BakedCsgTrace::intersectBakedQuadricWithCoeffs(
     RayWithSegments *ray,
     const Vector3Dd &origin,
     const Vector3Dd &direction,
+    bool sharesRaySpace,
+    RaySharedCache &cache,
+    int viewpointSlot,
     double *depth1,
     double *depth2,
     double &polyA,
@@ -396,18 +432,33 @@ BakedCsgTrace::intersectBakedQuadricWithCoeffs(
     Statistics &stats = *ray->getStatistics();
     stats.incrementRayQuadricTests();
 
-    const Vector3Dd position2 = origin.multiply(origin);
-    const Vector3Dd direction2 = direction.multiply(direction);
-    const Vector3Dd positionDirection = origin.multiply(direction);
+    Vector3Dd position2;
+    Vector3Dd direction2;
+    Vector3Dd positionDirection;
     Vector3Dd mixedPositionPosition;
     Vector3Dd mixedDirectionDirection;
     Vector3Dd mixedPositionDirection;
-    Vector3Dd tempMixed;
-    mixVectorTerms(mixedPositionPosition, origin, origin);
-    mixVectorTerms(mixedDirectionDirection, direction, direction);
-    mixVectorTerms(tempMixed, origin, direction);
-    mixVectorTerms(mixedPositionDirection, direction, origin);
-    mixedPositionDirection = mixedPositionDirection.add(tempMixed);
+    if (sharesRaySpace) {
+        if (!ray->areQuadricConstantsCached()) {
+            ray->makeRay();
+        }
+        position2 = ray->getPosition2();
+        direction2 = ray->getDirection2();
+        positionDirection = ray->getPositionDirection();
+        mixedPositionPosition = ray->getMixedPositionPosition();
+        mixedDirectionDirection = ray->getMixedDirectionDirection();
+        mixedPositionDirection = ray->getMixedPositionDirection();
+    } else {
+        position2 = origin.multiply(origin);
+        direction2 = direction.multiply(direction);
+        positionDirection = origin.multiply(direction);
+        Vector3Dd tempMixed;
+        mixVectorTerms(mixedPositionPosition, origin, origin);
+        mixVectorTerms(mixedDirectionDirection, direction, direction);
+        mixVectorTerms(tempMixed, origin, direction);
+        mixVectorTerms(mixedPositionDirection, direction, origin);
+        mixedPositionDirection = mixedPositionDirection.add(tempMixed);
+    }
 
     trueMiss = false;
 
@@ -425,14 +476,11 @@ BakedCsgTrace::intersectBakedQuadricWithCoeffs(
 
     double polyCWithoutMixed;
     if (ray->isPrimaryRayEnabled()) {
-        if (!shape.isConstantCached()) {
+        if (!cache.getQuadricViewpointConstant(viewpointSlot, polyCWithoutMixed)) {
             polyCWithoutMixed = shape.getObject2Terms().dotProduct(position2);
             polyCWithoutMixed += shape.getObjectTerms().dotProduct(origin);
             polyCWithoutMixed += shape.getObjectConstant();
-            shape.setObjectVpConstant(polyCWithoutMixed);
-            shape.setConstantCached(true);
-        } else {
-            polyCWithoutMixed = shape.getObjectVpConstant();
+            cache.setQuadricViewpointConstant(viewpointSlot, polyCWithoutMixed);
         }
     } else {
         polyCWithoutMixed = shape.getObject2Terms().dotProduct(position2);
@@ -606,6 +654,7 @@ BakedCsgTrace::tracePlanOperandAllCrossings(
             bakedCsgs,
             ray,
             depthQueue,
+            scratch.getCache(),
             effectiveMaterial);
     }
 
@@ -962,6 +1011,7 @@ bool
 BakedCsgTrace::tracePlaneOperandCandidate(
     const BakedScene::CsgOperandRecord &operand,
     RayWithSegments *ray,
+    RaySharedCache &cache,
     Material *materialOverride,
     IntersectionCandidate &candidate)
 {
@@ -984,6 +1034,7 @@ BakedCsgTrace::tracePlaneOperandCandidate(
                 ray,
                 localOrigin,
                 localDirection,
+                cache,
                 &depth) ||
             depth <= Config::SMALL_TOLERANCE) {
             return false;
@@ -1013,6 +1064,7 @@ BakedCsgTrace::tracePlaneOperandCandidate(
             ray,
             ray->getOrigin(),
             ray->getDirection(),
+            cache,
             &depth) ||
         depth <= Config::SMALL_TOLERANCE) {
         return false;
@@ -1035,6 +1087,7 @@ BakedCsgTrace::tracePlaneOperandCandidateInRaySpace(
     RayWithSegments *statsRay,
     const Vector3Dd &rayOrigin,
     const Vector3Dd &rayDirection,
+    RaySharedCache &cache,
     Material *materialOverride,
     IntersectionCandidate &candidate)
 {
@@ -1058,6 +1111,7 @@ BakedCsgTrace::tracePlaneOperandCandidateInRaySpace(
             statsRay,
             localOrigin,
             localDirection,
+            cache,
             &depth) ||
         depth <= Config::SMALL_TOLERANCE) {
         return false;
@@ -1139,6 +1193,9 @@ BakedCsgTrace::traceCompiledCoreOperandAllCrossings(
                 ray,
                 localOrigin,
                 localDirection,
+                false,
+                scratch.getCache(),
+                operand.quadricViewpointSlot,
                 &depth1,
                 &depth2)) {
             return false;
@@ -1267,6 +1324,7 @@ BakedCsgTrace::traceTransformedQuadricCorePlaneIntersection(
     const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
     RayWithSegments *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    RaySharedCache &cache,
     Material *materialOverride,
     long int coreIndex,
     bool &coreTrueMiss)
@@ -1302,6 +1360,9 @@ BakedCsgTrace::traceTransformedQuadricCorePlaneIntersection(
             ray,
             localOrigin,
             localDirection,
+            false,
+            cache,
+            coreOperand.quadricViewpointSlot,
             &depth1,
             &depth2,
             coreTrueMiss)) {
@@ -1418,6 +1479,7 @@ BakedCsgTrace::traceTransformedNestedSingleCorePlaneOperandAllCrossings(
     const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
     RayWithSegments *parentRay,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    RaySharedCache &cache,
     Material *materialOverride)
 {
     const long int coreIndex = parentOperand.compiledNestedCoreOperandIndex;
@@ -1468,6 +1530,9 @@ BakedCsgTrace::traceTransformedNestedSingleCorePlaneOperandAllCrossings(
             parentRay,
             coreRayOrigin,
             coreRayDirection,
+            false,
+            cache,
+            coreOperand.quadricViewpointSlot,
             &depth1,
             &depth2,
             trueMiss);
@@ -1516,7 +1581,7 @@ BakedCsgTrace::traceTransformedNestedSingleCorePlaneOperandAllCrossings(
             if (tracePlaneOperandCandidateInRaySpace(
                     operand, parentRay,
                     nestedRayOrigin, nestedRayDirection,
-                    materialOverride, candidate) &&
+                    cache, materialOverride, candidate) &&
                 candidateInsideDirectDescriptorOperands(
                     parentOperand, nestedCsg,
                     candidate.getIntersection().point,
@@ -1534,6 +1599,9 @@ BakedCsgTrace::traceTransformedNestedSingleCorePlaneOperandAllCrossings(
                 parentRay,
                 coreRayOrigin,
                 coreRayDirection,
+                false,
+                cache,
+                coreOperand.quadricViewpointSlot,
                 &depth1,
                 &depth2)) {
             IntersectionCandidate candidate;
@@ -1573,7 +1641,7 @@ BakedCsgTrace::traceTransformedNestedSingleCorePlaneOperandAllCrossings(
             if (tracePlaneOperandCandidateInRaySpace(
                     operand, parentRay,
                     nestedRayOrigin, nestedRayDirection,
-                    materialOverride, candidate) &&
+                    cache, materialOverride, candidate) &&
                 candidateInsideCompiledNestedContainmentSequence(
                     parentOperand, nestedCsg, bakedCsgs,
                     candidate.getIntersection().point, operandIndex)) {
@@ -1615,6 +1683,7 @@ BakedCsgTrace::traceSingleCorePlaneIntersection(
                     bakedCsgs,
                     ray,
                     depthQueue,
+                    scratch.getCache(),
                     materialOverride,
                     coreIndex,
                     coreTrueMiss);
@@ -1645,6 +1714,7 @@ BakedCsgTrace::traceSingleCorePlaneIntersection(
                 intersectBakedQuadricWithTrueMiss(
                     *coreOperand.quadricGeometry, ray,
                     ray->getOrigin(), ray->getDirection(),
+                    true, scratch.getCache(), coreOperand.quadricViewpointSlot,
                     &d1, &d2, coreTrueMiss);
             }
             scratch.returnQueue(localDepthQueue);
@@ -1659,6 +1729,7 @@ BakedCsgTrace::traceSingleCorePlaneIntersection(
                 if (tracePlaneOperandCandidate(
                         operand,
                         ray,
+                        scratch.getCache(),
                         materialOverride,
                         candidate) &&
                     candidateInsideCompiledSingleCorePlaneOperands(
@@ -1713,6 +1784,7 @@ BakedCsgTrace::traceSingleCorePlaneIntersection(
             if (tracePlaneOperandCandidate(
                     operand,
                     ray,
+                    scratch.getCache(),
                     materialOverride,
                     candidate) &&
                 candidateInsideOperandsCoreFirst(
@@ -1930,6 +2002,9 @@ BakedCsgTrace::traceCompiledCoreFirstHitCandidates(
                 ray,
                 localOrigin,
                 localDirection,
+                false,
+                scratch.getCache(),
+                coreOperand.quadricViewpointSlot,
                 &depth1,
                 &depth2,
                 coreTrueMiss)) {
@@ -2006,6 +2081,7 @@ BakedCsgTrace::traceCompiledCoreFirstHitCandidates(
         intersectBakedQuadricWithTrueMiss(
             *coreOperand.quadricGeometry, ray,
             ray->getOrigin(), ray->getDirection(),
+            true, scratch.getCache(), coreOperand.quadricViewpointSlot,
             &d1, &d2, coreTrueMiss);
     }
     scratch.returnQueue(localDepthQueue);
@@ -2047,6 +2123,7 @@ BakedCsgTrace::traceFirstHitCompiledSingleCorePlane(
             if (tracePlaneOperandCandidate(
                     operand,
                     ray,
+                    scratch.getCache(),
                     materialOverride,
                     candidate) &&
                 offerCompiledSingleCorePlaneFirstHitCandidate(
@@ -2164,9 +2241,10 @@ BakedCsgTrace::traceAllCrossings(
     const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
     RayWithSegments *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    RaySharedCache &cache,
     Material *materialOverride)
 {
-    CsgScratchContext scratch(ray);
+    CsgScratchContext scratch(ray, &cache);
     const bool found = traceAllCrossingsWithScratch(
         bakedCsg,
         bakedCsgs,
@@ -2184,9 +2262,10 @@ BakedCsgTrace::traceFirstHit(
     const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
     RayWithSegments *ray,
     IntersectionCandidate &out,
+    RaySharedCache &cache,
     Material *materialOverride)
 {
-    CsgScratchContext scratch(ray);
+    CsgScratchContext scratch(ray, &cache);
     const bool found = traceFirstHitWithScratch(
         bakedCsg,
         bakedCsgs,

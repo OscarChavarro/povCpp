@@ -24,6 +24,7 @@ public:
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        RaySharedCache &cache,
         Material *materialOverride = nullptr);
 
     static bool traceFirstHit(
@@ -31,6 +32,7 @@ public:
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         RayWithSegments *ray,
         IntersectionCandidate &out,
+        RaySharedCache &cache,
         Material *materialOverride = nullptr);
 
     static int containmentTest(
@@ -44,6 +46,9 @@ public:
         RayWithSegments *ray,
         const Vector3Dd &origin,
         const Vector3Dd &direction,
+        bool sharesRaySpace,
+        RaySharedCache &cache,
+        int viewpointSlot,
         double *depth1,
         double *depth2);
 
@@ -83,6 +88,7 @@ private:
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         RayWithSegments *parentRay,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        RaySharedCache &cache,
         Material *materialOverride);
 
     static bool rayIntersectsAabbForward(
@@ -99,6 +105,7 @@ private:
         RayWithSegments *ray,
         const Vector3Dd &origin,
         const Vector3Dd &direction,
+        RaySharedCache &cache,
         double *depth);
 
     static int planeContainmentTest(
@@ -116,6 +123,9 @@ private:
         RayWithSegments *ray,
         const Vector3Dd &origin,
         const Vector3Dd &direction,
+        bool sharesRaySpace,
+        RaySharedCache &cache,
+        int viewpointSlot,
         double *depth1,
         double *depth2,
         bool &trueMiss);
@@ -125,6 +135,9 @@ private:
         RayWithSegments *ray,
         const Vector3Dd &origin,
         const Vector3Dd &direction,
+        bool sharesRaySpace,
+        RaySharedCache &cache,
+        int viewpointSlot,
         double *depth1,
         double *depth2,
         double &polyA,
@@ -212,6 +225,7 @@ private:
                         ray,
                         localOrigin,
                         localDirection,
+                        scratch.getCache(),
                         &depth) ||
                     depth <= Config::SMALL_TOLERANCE) {
                     return false;
@@ -253,6 +267,9 @@ private:
                         ray,
                         localOrigin,
                         localDirection,
+                        false,
+                        scratch.getCache(),
+                        operand.quadricViewpointSlot,
                         &depth1,
                         &depth2)) {
                     return false;
@@ -354,6 +371,7 @@ private:
                     ray,
                     ray->getOrigin(),
                     ray->getDirection(),
+                    scratch.getCache(),
                     &depth) ||
                 depth <= Config::SMALL_TOLERANCE) {
                 return false;
@@ -476,6 +494,7 @@ private:
     static bool tracePlaneOperandCandidate(
         const BakedScene::CsgOperandRecord &operand,
         RayWithSegments *ray,
+        RaySharedCache &cache,
         Material *materialOverride,
         IntersectionCandidate &candidate);
 
@@ -484,6 +503,7 @@ private:
         RayWithSegments *statsRay,
         const Vector3Dd &rayOrigin,
         const Vector3Dd &rayDirection,
+        RaySharedCache &cache,
         Material *materialOverride,
         IntersectionCandidate &candidate);
 
@@ -512,6 +532,7 @@ private:
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        RaySharedCache &cache,
         Material *materialOverride,
         long int coreIndex,
         bool &coreTrueMiss);
@@ -567,6 +588,7 @@ private:
             double d1, d2;
             intersectBakedQuadricWithCoeffs(
                 *op.quadricGeometry, ray, localOrigin, localDirection,
+                false, scratch.getCache(), op.quadricViewpointSlot,
                 &d1, &d2, polyA, polyB, polyC, trueMiss);
             if (trueMiss && polyA > 0.0) {
                 return false;
@@ -623,7 +645,8 @@ private:
             const BakedScene::CsgOperandRecord &operand =
                 bakedCsg.operands[bakedCsg.planeOperandIndices[p]];
             IntersectionCandidate candidate;
-            if (tracePlaneOperandCandidate(operand, ray, materialOverride, candidate)) {
+            if (tracePlaneOperandCandidate(
+                    operand, ray, scratch.getCache(), materialOverride, candidate)) {
                 depthQueue->offer(candidate);
                 anyFound = true;
             }

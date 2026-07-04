@@ -83,12 +83,14 @@ class BakedScene {
         bool isInfinitePlane = false;
         Vector3Dd planeNormal = Vector3Dd(0.0, 1.0, 0.0);
         double planeDistance = 0.0;
-        // Primary-ray-only caches, lazily filled at trace time - see
-        // doc/performanceReviewPlan6.md Phase 0 item 7(d). Left as shared
-        // mutable state (same as the layer this replaces) rather than
-        // moved to per-task scratch; revisit under Plan 7.
-        mutable double planeVpNormDotOrigin = 0.0;
-        mutable bool planeVpCached = false;
+        // Plan 7: slot indices into the task-owned RaySharedCache, assigned
+        // once at build time by BakedSceneBuilder - replaces the mutable
+        // planeVp*/Quadric::objectVpConstant per-record caches (shared
+        // mutable state that raced under -parallel) with a flat array
+        // indexed per render task. -1 when the operand kind does not need a
+        // viewpoint constant.
+        int quadricViewpointSlot = -1;
+        int planeViewpointSlot = -1;
         Quadric bakedQuadricStorage;
         bool hasBakedQuadric = false;
         InfinitePlane bakedPlaneStorage;
@@ -153,6 +155,9 @@ class BakedScene {
         bool hasBakedQuadric = false;
         InfinitePlane bakedPlaneStorage;
         bool hasBakedPlane = false;
+        // Plan 7: slot index into the task-owned RaySharedCache for the
+        // direct-quadric fast path in BakedTrace::traceSimpleBodyAllCrossings.
+        int quadricViewpointSlot = -1;
     };
 
     struct CompositeRecord {
@@ -185,6 +190,10 @@ class BakedScene {
         long residualBakedQuadricOperands = 0;
         long residualBakedPlaneOperands = 0;
         long residualTransformedOperands = 0;
+        // Plan 7: sizes for RaySharedCache::ensureCapacity - one slot per
+        // quadric/plane-bearing record assigned during build().
+        long quadricViewpointSlotCount = 0;
+        long planeViewpointSlotCount = 0;
     };
 
     java::ArrayList<TraceableObject> traceableObjects;
