@@ -4,7 +4,7 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/element/RayOperationOwner.h"
-#include "environment/material/Material.h"
+#include "vsdk/toolkit/environment/material/Material.h"
 #include "environment/scene/TransformStep.h"
 
 class SimpleBody : public RayOperationOwner {

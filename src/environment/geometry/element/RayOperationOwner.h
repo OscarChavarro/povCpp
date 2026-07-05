@@ -1,8 +1,9 @@
 #ifndef __RAY_OPERATION_OWNER__
 #define __RAY_OPERATION_OWNER__
 
+#include "environment/geometry/element/RayWithTracingState.h"
+
 class PovRayHit;
-class RayWithTracingState;
 
 class RayOperationOwner {
   public:

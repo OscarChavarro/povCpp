@@ -2,8 +2,7 @@
 #define __BAKED_SCENE_BUILDER__
 
 #include "render/bakedScene/BakedScene.h"
-
-class ConstructiveSolidGeometry;
+#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 
 class BakedSceneBuilder {
   public:

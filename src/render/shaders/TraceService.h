@@ -3,8 +3,7 @@
 
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "render/raySharedCache/RaySharedCache.h"
-
-class PovRayRenderStatistics;
+#include "render/shaders/PovRayRenderStatistics.h"
 
 // Carries the calling task's own full PovRayRenderStatistics (see RenderEngine::renderTile),
 // separately from RayWithTracingState (which only carries GeometryStatistics).

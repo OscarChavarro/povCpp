@@ -2,7 +2,7 @@
 #define __POV_RAY_MATERIAL__
 
 #include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
-#include "environment/material/Material.h"
+#include "vsdk/toolkit/environment/material/Material.h"
 #include "environment/material/normal/SolidTextureNormal.h"
 #include "environment/material/pigment/ICheckerTextureSlot.h"
 #include "environment/material/pigment/SolidTexturePigment.h"

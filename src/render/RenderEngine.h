@@ -8,8 +8,7 @@
 #include "render/RenderImageWriter.h"
 #include "render/RenderOutput.h"
 #include "render/RenderTargetImage.h"
-
-class IntersectionCandidate;
+#include "environment/geometry/element/IntersectionCandidate.h"
 
 class RenderEngine {
   private:

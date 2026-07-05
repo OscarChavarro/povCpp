@@ -2,8 +2,7 @@
 #define __SPHERE__
 
 #include "environment/geometry/Geometry.h"
-
-class GeometryStatistics;
+#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 
 // Sphere centered at the origin in its own local space, with an intrinsic
 // radius (default 1.0). Rotation/translation/skew on top of that are still

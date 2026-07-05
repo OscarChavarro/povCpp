@@ -1,8 +1,7 @@
 #ifndef __RENDER_TASK__
 #define __RENDER_TASK__
 
-
-class IntersectionCandidate;
+#include "environment/geometry/element/IntersectionCandidate.h"
 
 class RenderTask {
   public:
