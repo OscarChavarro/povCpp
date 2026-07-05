@@ -12,7 +12,7 @@
 #include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/element/PriorityQueuePool.txx"
 #include "environment/material/povray/PovRayMaterial.h"
-#include "environment/material/PovRayRendererConfiguration.h"
+#include "render/PovRayRendererConfiguration.h"
 #include "render/shaders/TraceService.h"
 #include "render/ColorOperations.h"
 #include "render/bakedScene/BakedSceneBuilder.h"
@@ -501,7 +501,8 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithTracingState *localRay, Co
         // true when withSurfaceLighting() already is, so a single flag check
         // here is exactly the per-ray "needs normal" decision.
         localRay->setRequiredDetailMask(
-            localRay->getConfig()->withSurfaceLighting()
+            static_cast<const PovRayRendererConfiguration *>(
+                localRay->getConfig())->withSurfaceLighting()
                 ? RayWithTracingState::DETAIL_ALL
                 : RayWithTracingState::DETAIL_NONE);
 

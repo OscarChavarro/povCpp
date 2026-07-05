@@ -1,5 +1,5 @@
 #include "java/util/PriorityQueue.txx"
-#include "environment/material/PovRayRendererConfiguration.h"
+#include "render/PovRayRendererConfiguration.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/element/RayWithTracingState.h"
@@ -46,7 +46,7 @@ LocalSurfaceShader::shade(const RayWithTracingState *ray, PovRayMaterial *textur
         texture = static_cast<PovRayMaterial *>(hit.objectTexture);
     }
 
-    if (!ray->getConfig()->withSurfaceLighting()) {
+    if (!static_cast<const PovRayRendererConfiguration *>(ray->getConfig())->withSurfaceLighting()) {
         surfaceColor->setA(0.0);
         color->setR(color->getR() + surfaceColor->getR() * filterColor->getA());
         color->setG(color->getG() + surfaceColor->getG() * filterColor->getA());
@@ -62,7 +62,7 @@ LocalSurfaceShader::shade(const RayWithTracingState *ray, PovRayMaterial *textur
         texturePoint = static_cast<SimpleBody *>(hit.hitBody)->worldPointToLocal(hit.p);
     }
 
-    if (ray->getConfig()->withBumpMapping()) {
+    if (static_cast<const PovRayRendererConfiguration *>(ray->getConfig())->withBumpMapping()) {
         BumpNormalShader::shade(
             &surfaceNormal, texture, &texturePoint, &surfaceNormal,
             textureUtils);
@@ -84,7 +84,7 @@ LocalSurfaceShader::shade(const RayWithTracingState *ray, PovRayMaterial *textur
     color->setR(color->getR() + emittedColor.getR());
     color->setG(color->getG() + emittedColor.getG());
     color->setB(color->getB() + emittedColor.getB());
-    if (ray->getConfig()->withReflection()) {
+    if (static_cast<const PovRayRendererConfiguration *>(ray->getConfig())->withReflection()) {
         MirrorReflectionShader::shade(
             texture, &hit.p, ray, &surfaceNormal, color,
             traceService, traceLevel);

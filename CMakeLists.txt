@@ -44,7 +44,7 @@ add_executable(povray
     src/environment/material/pigment/SolidTexturePigment.cpp
     src/environment/material/pigment/SpottedPigment.cpp
     src/environment/material/pigment/WoodPigment.cpp
-    src/environment/material/PovRayRendererConfiguration.cpp
+    src/render/PovRayRendererConfiguration.cpp
     src/io/pov/material/DefaultTextureAliasTracker.cpp
     src/environment/geometry/element/RayWithTracingState.cpp
     src/environment/geometry/surface/parametric/ParametricPatch.cpp

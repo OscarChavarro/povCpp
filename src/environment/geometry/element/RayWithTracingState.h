@@ -5,8 +5,8 @@
 #include "environment/geometry/element/DetailMask.h"
 #include "environment/geometry/element/PriorityQueuePool.h"
 #include "environment/material/Material.h"
-#include "environment/material/PovRayRendererConfiguration.h"
 #include "java/util/ArrayList.h"
+#include "vsdk/toolkit/environment/material/RendererConfiguration.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 
 class IntersectionCandidate;
@@ -31,7 +31,7 @@ class RayWithTracingState : public Ray {
     bool isPrimaryRay;
     int requiredDetailMask;
     GeometryStatistics *statistics;
-    const PovRayRendererConfiguration *config;
+    const RendererConfiguration *config;
     PriorityQueuePool<IntersectionCandidate> *intersectionQueuePool;
 
     RayWithTracingState(
@@ -40,7 +40,7 @@ class RayWithTracingState : public Ray {
         bool isPrimaryRay,
         int requiredDetailMask,
         GeometryStatistics *statistics,
-        const PovRayRendererConfiguration *config,
+        const RendererConfiguration *config,
         PriorityQueuePool<IntersectionCandidate> *intersectionQueuePool);
 
   public:
@@ -91,8 +91,8 @@ class RayWithTracingState : public Ray {
     double getContainingIORAt(int index) const;
     GeometryStatistics *getGeometryStatistics() const;
     void setGeometryStatistics(GeometryStatistics *stats);
-    const PovRayRendererConfiguration *getConfig() const;
-    void setConfig(const PovRayRendererConfiguration *cfg);
+    const RendererConfiguration *getConfig() const;
+    void setConfig(const RendererConfiguration *cfg);
     PriorityQueuePool<IntersectionCandidate> *getIntersectionQueuePool() const;
     void setIntersectionQueuePool(PriorityQueuePool<IntersectionCandidate> *pool);
     void makeRay();
@@ -110,7 +110,7 @@ RayWithTracingState::RayWithTracingState(
     bool isPrimaryRay,
     int requiredDetailMask,
     GeometryStatistics *statistics,
-    const PovRayRendererConfiguration *config,
+    const RendererConfiguration *config,
     PriorityQueuePool<IntersectionCandidate> *intersectionQueuePool) :
     Ray(baseRay),
     containingIndex(-1),
@@ -340,14 +340,14 @@ RayWithTracingState::setGeometryStatistics(GeometryStatistics *stats)
     statistics = stats;
 }
 
-inline const PovRayRendererConfiguration *
+inline const RendererConfiguration *
 RayWithTracingState::getConfig() const
 {
     return config;
 }
 
 inline void
-RayWithTracingState::setConfig(const PovRayRendererConfiguration *cfg)
+RayWithTracingState::setConfig(const RendererConfiguration *cfg)
 {
     config = cfg;
 }

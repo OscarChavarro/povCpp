@@ -2,7 +2,7 @@
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageTexture.h"
 #include "vsdk/toolkit/media/solidTexture/procedural/ColorTextureFixture.h"
 #include "environment/geometry/element/GeometryConfig.h"
-#include "environment/material/PovRayRendererConfiguration.h"
+#include "render/PovRayRendererConfiguration.h"
 #include "environment/material/pigment/SolidTexturePigment.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"

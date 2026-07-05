@@ -6,7 +6,7 @@
 
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/geometry/element/GeometryConfig.h"
-#include "environment/material/PovRayRendererConfiguration.h"
+#include "render/PovRayRendererConfiguration.h"
 #include "environment/material/normal/MaterialConfig.h"
 #include "environment/scene/Scene.h"
 #include "vsdk/toolkit/io/FileLocator.h"

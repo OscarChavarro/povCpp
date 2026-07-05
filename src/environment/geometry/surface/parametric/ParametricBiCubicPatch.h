@@ -70,7 +70,7 @@ class ParametricBiCubicPatch : public Geometry {
     void computeSurfaceNormal(
         Vector3Dd *result,
         Vector3Dd *localIntersectionPoint,
-        const PovRayRendererConfiguration *config) override;
+        const RendererConfiguration *config) override;
 
   private:
     static int maxDepthReached;
