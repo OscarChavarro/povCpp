@@ -232,8 +232,7 @@ BakedTrace::traceSimpleBodyAllCrossings(
     };
 
     if (baked.hasGeometryTransform) {
-        RayWithTracingState geometryRay(
-            RayWithTracingState::LocalIntersectionClone{}, *objectRayPtr);
+        RayWithTracingState geometryRay = RayWithTracingState::localIntersectionClone(*objectRayPtr);
         geometryRay.setOrigin(
             baked.objectToGeometry.transformPoint(objectRayPtr->getOrigin()));
         geometryRay.setDirection(
@@ -245,8 +244,7 @@ BakedTrace::traceSimpleBodyAllCrossings(
     };
 
     if (baked.hasObjectTransform) {
-        RayWithTracingState objectRay(
-            RayWithTracingState::LocalIntersectionClone{}, *ray);
+        RayWithTracingState objectRay = RayWithTracingState::localIntersectionClone(*ray);
         objectRay.setOrigin(baked.worldToObject.transformPoint(ray->getOrigin()));
         objectRay.setDirection(baked.worldToObject.transformDirection(ray->getDirection()));
         objectRay.setQuadricConstantsCached(false);
@@ -340,8 +338,7 @@ BakedTrace::traceSimpleBodyFirstHit(
     };
 
     if (baked.hasGeometryTransform) {
-        RayWithTracingState geometryRay(
-            RayWithTracingState::LocalIntersectionClone{}, *objectRayPtr);
+        RayWithTracingState geometryRay = RayWithTracingState::localIntersectionClone(*objectRayPtr);
         geometryRay.setOrigin(
             baked.objectToGeometry.transformPoint(objectRayPtr->getOrigin()));
         geometryRay.setDirection(
@@ -353,8 +350,7 @@ BakedTrace::traceSimpleBodyFirstHit(
     };
 
     if (baked.hasObjectTransform) {
-        RayWithTracingState objectRay(
-            RayWithTracingState::LocalIntersectionClone{}, *ray);
+        RayWithTracingState objectRay = RayWithTracingState::localIntersectionClone(*ray);
         objectRay.setOrigin(baked.worldToObject.transformPoint(ray->getOrigin()));
         objectRay.setDirection(baked.worldToObject.transformDirection(ray->getDirection()));
         objectRay.setQuadricConstantsCached(false);
@@ -502,8 +498,7 @@ BakedTrace::traceCompositeAllCrossings(
 
     RayWithTracingState *compositeRayPtr = ray;
     if (composite.hasObjectTransform) {
-        RayWithTracingState compositeRay(
-            RayWithTracingState::LocalIntersectionClone{}, *ray);
+        RayWithTracingState compositeRay = RayWithTracingState::localIntersectionClone(*ray);
         compositeRay.setOrigin(composite.worldToObject.transformPoint(ray->getOrigin()));
         compositeRay.setDirection(composite.worldToObject.transformDirection(ray->getDirection()));
         compositeRay.setQuadricConstantsCached(false);

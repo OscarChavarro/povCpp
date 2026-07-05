@@ -15,20 +15,6 @@ Geometry::applyAnnotatedEmissionContext(
     attributes.setMaterialUsesObjectLocalPoint(context.materialUsesObjectLocalPoint);
 }
 
-bool
-Geometry::doIntersectionFirstHitViaCrossings(RayWithTracingState *ray, IntersectionCandidate &out)
-{
-    java::PriorityQueue<IntersectionCandidate> * const depthQueue =
-        ray->getIntersectionQueuePool()->pop(128);
-    bool hit = false;
-    if (doIntersectionForAllRayCrossings(ray, depthQueue) && depthQueue->size() > 0) {
-        out = depthQueue->peek();
-        hit = true;
-    }
-    ray->getIntersectionQueuePool()->push(depthQueue);
-    return hit;
-}
-
 int
 Geometry::doIntersectionForAllRayCrossingsAnnotated(
     RayWithTracingState *ray,

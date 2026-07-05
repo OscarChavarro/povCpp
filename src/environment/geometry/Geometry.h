@@ -34,8 +34,6 @@ class Geometry {
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         const GeometryIntersectionEmissionContext &context);
     virtual bool hasNativeAnnotatedCrossings() const { return false; }
-    virtual Geometry *getWrappedGeometry() const { return nullptr; }
-    bool doIntersectionFirstHitViaCrossings(RayWithTracingState *ray, IntersectionCandidate &out);
     virtual bool doIntersectionFirstHit(
         RayWithTracingState *ray,
         IntersectionCandidate &out,

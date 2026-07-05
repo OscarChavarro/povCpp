@@ -261,7 +261,7 @@ public:
                 return true;
             }
 
-            RayWithTracingState localRay(RayWithTracingState::LocalIntersectionClone{}, *ray);
+            RayWithTracingState localRay = RayWithTracingState::localIntersectionClone(*ray);
             localRay.setOrigin(operand.localToObject.transformPoint(ray->getOrigin()));
             localRay.setDirection(operand.localToObject.transformDirection(ray->getDirection()));
             localRay.setQuadricConstantsCached(false);
