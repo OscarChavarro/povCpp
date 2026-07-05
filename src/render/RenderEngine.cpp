@@ -499,6 +499,7 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
 
         if (localRay->needsNormal()) {
             PovRayHit winningHit;
+            winningHit.requiredDetailMask = localRay->getRequiredDetailMask();
             winningHit.p = localIntersection.getIntersection().point;
             winningHit.n = localIntersection.getIntersection().normal;
             RayOperationOwner *hitBody = localIntersection.getAttributes().getHitBody();
