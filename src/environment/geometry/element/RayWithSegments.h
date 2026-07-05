@@ -2,6 +2,7 @@
 #define __RAY_WITH_SEGMENTS__
 
 #include "common/statistics/Statistics.h"
+#include "environment/geometry/element/DetailMask.h"
 #include "environment/geometry/element/PriorityQueuePool.h"
 #include "environment/material/Material.h"
 #include "environment/material/PovRayRendererConfiguration.h"
@@ -12,18 +13,19 @@ class IntersectionCandidate;
 
 class RayWithSegments : public Ray {
   public:
-    // Mirrors VITRAL's RayHit::DETAIL_* mask (doc/vitralNormalizationAnalysis.md
-    // §7.2): which surface details the eventual hit actually needs, decided
-    // per ray before tracing so doExtraInformation() can skip work the
-    // shading path will never read. Lives on the ray (not the hit, unlike
-    // VITRAL) because in povCpp the decision is made before the hit exists -
-    // RenderEngine::trace must know whether to call doExtraInformation at all.
-    static constexpr int DETAIL_NONE = 0;
-    static constexpr int DETAIL_POINT = 1 << 0;
-    static constexpr int DETAIL_NORMAL = 1 << 1;
-    static constexpr int DETAIL_UV = 1 << 2;
-    static constexpr int DETAIL_TANGENT = 1 << 3;
-    static constexpr int DETAIL_ALL = DETAIL_POINT | DETAIL_NORMAL | DETAIL_UV | DETAIL_TANGENT;
+    // Same bit values as PovRayHit::DETAIL_* (see DetailMask.h): which
+    // surface details the eventual hit actually needs, decided per ray
+    // before tracing so doExtraInformation() can skip work the shading path
+    // will never read. Lives on the ray (not the hit, unlike VITRAL) because
+    // in povCpp the decision is made before the hit exists - RenderEngine::
+    // trace must know whether to call doExtraInformation at all; the hit is
+    // still the mask's authority once it exists (see PovRayHit).
+    static constexpr int DETAIL_NONE = DetailMask::NONE;
+    static constexpr int DETAIL_POINT = DetailMask::POINT;
+    static constexpr int DETAIL_NORMAL = DetailMask::NORMAL;
+    static constexpr int DETAIL_UV = DetailMask::UV;
+    static constexpr int DETAIL_TANGENT = DetailMask::TANGENT;
+    static constexpr int DETAIL_ALL = DetailMask::ALL;
 
   private:
     static constexpr int MAX_CONTAINING_OBJECTS = 10;

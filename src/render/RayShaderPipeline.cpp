@@ -20,7 +20,8 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
     const TraceService *traceService, TextureUtils *textureUtils,
     const RenderContext &context, int &traceLevel)
 {
-    PovRayHit hit = PovRayHit::fromCandidate(*rayIntersection);
+    PovRayHit hit = PovRayHit::fromCandidate(
+        *rayIntersection, ray != nullptr ? ray->getRequiredDetailMask() : PovRayHit::DETAIL_ALL);
     ColorRgba surfaceColor(0.0, 0.0, 0.0, 0.0);
     ColorRgba refractedColor(0.0, 0.0, 0.0, 0.0);
     ColorRgba filterColor(0.0, 0.0, 0.0, 0.0);

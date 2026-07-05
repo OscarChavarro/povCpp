@@ -65,5 +65,7 @@ void
 Geometry::doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *hit)
 {
     (void)t;
-    normal(&hit->n, &hit->p, ray.getConfig());
+    if (hit->needsNormal()) {
+        normal(&hit->n, &hit->p, ray.getConfig());
+    }
 }

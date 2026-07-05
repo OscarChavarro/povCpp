@@ -19,7 +19,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
     const BakedScene &bakedScene,
     int &traceLevel, TextureUtils *textureUtils)
 {
-    PovRayHit hit = PovRayHit::fromCandidate(*rayIntersection);
+    PovRayHit hit = PovRayHit::fromCandidate(*rayIntersection, ray->getRequiredDetailMask());
     Vector3Dd surfaceNormal;
     Vector3Dd texturePoint;
     double normalDirection;

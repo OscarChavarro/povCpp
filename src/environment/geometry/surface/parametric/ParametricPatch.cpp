@@ -1071,6 +1071,9 @@ ParametricBiCubicPatch::doExtraInformation(
     const RayWithSegments &ray, double t, PovRayHit *hit)
 {
     (void)t;
+    if (!hit->needsNormal()) {
+        return;
+    }
     if (hit->n.length() > Config::PARAMETRIC_CURVE_EPSILON) {
         hit->n = hit->n.normalizedFast();
         return;
