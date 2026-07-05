@@ -22,14 +22,7 @@ class CsgOperand : public RayOperationOwner {
     Material *material = nullptr;
     Matrix4x4d *transformation = nullptr;
     Matrix4x4d *transformationInverse = nullptr;
-    // Elementary steps behind `transformation` above, chronologically
-    // recorded (including Invert). See doc/performanceReviewPlan5.md Phase 1.
     java::ArrayList<TransformStep> steps{4};
-    // Set once at bake time (Scene.cpp::bakeCsgOperand, Plan 5 Phase 3) when
-    // this operand's geometry was collapsed into a world-space baked copy
-    // whose coefficients already fold in `transformation`. Non-destructive:
-    // doesn't touch the transform matrices or geometry themselves, just
-    // tells doExtraInformation() not to re-apply them.
     bool bakedTransformFolded = false;
     mutable bool bakedBoundsValid = false;
     mutable AxisAlignedBoundingBox bakedBounds = AxisAlignedBoundingBox::unbounded();
@@ -85,9 +78,6 @@ class CsgOperand : public RayOperationOwner {
         bakedBoundsValid = true;
     }
 
-    // Uses RayWithSegments's cached per-axis reciprocals (Plan 12 Phase 3
-    // - see AabbCullingSupport::rayIntersectsAabbForward for the identical
-    // pattern and rationale) instead of dividing on every call.
     static bool rayIntersectsAabbForward(
         const RayWithSegments &ray, const AxisAlignedBoundingBox &box)
     {
@@ -290,13 +280,6 @@ class CsgOperand : public RayOperationOwner {
         // before the inner ones. Only the innermost owner (no further owner
         // left) evaluates its own primitive geometry's normal; each level then
         // re-applies its inverse to the normal while unwinding.
-        //
-        // Plan 5 Phase 3: when bakedTransformFolded is set (this operand was
-        // collapsed to a world-space baked copy at bake time), this
-        // operand's own transform is already folded into that copy's
-        // coefficients and must not be re-applied here; hit->hitGeometry
-        // (set to the baked copy's address at intersection time) is queried
-        // directly instead of the live, still-local-space `geometry`.
         RayWithSegments localRay(RayWithSegments::LocalIntersectionClone{}, ray);
         const Vector3Dd parentPoint = hit->p;
         if (transformationInverse != nullptr && !bakedTransformFolded) {

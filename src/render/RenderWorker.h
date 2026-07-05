@@ -21,10 +21,6 @@ class RenderWorker {
     char *currentLineAntiAliasedFlags;
     TraceService traceService;
     TextureUtils *textureUtils;
-    // Plan 7: this task's RaySharedCache - see RaySharedCache.h. Sized
-    // lazily (ensureCapacity is a no-op after the first call) from
-    // RenderEngine::trace/DirectLightShader's shadow path, both of which
-    // already have the BakedScene in scope.
     RaySharedCache raySharedCache;
 
     static ColorRgba *allocateColorBuffer(int count);

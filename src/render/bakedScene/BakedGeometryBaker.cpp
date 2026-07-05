@@ -1,14 +1,5 @@
 #include "render/bakedScene/BakedGeometryBaker.h"
 
-// Every formula below is transcribed verbatim from the baseline commit
-// 4af1a75 (Quadric::transformQuadric/quadricToMatrix/matrixToQuadric/
-// translateGeometry/rotateGeometry/scaleGeometry/invertGeometry and
-// InfinitePlane::translateGeometry/rotateGeometry/scaleGeometry/
-// invertGeometry) - see doc/performanceReviewPlan5.md Phase 0 appendix.
-// Replaying elementary steps one at a time (rather than composing one
-// Matrix4x4d and applying a single congruence) is required: the composed-
-// matrix variant is a recorded dead end that breaks byte-exact rendering.
-
 void
 BakedGeometryBaker::quadricToMatrix(const Quadric &quadric, Matrix4x4d *matrix)
 {
@@ -87,15 +78,6 @@ BakedGeometryBaker::bakeQuadric(
             break;
         }
         case TransformStep::Kind::Invert:
-            // Unlike Translate/Rotate/Scale (deferred into a matrix,
-            // leaving the parsed Geometry's own coefficients untouched
-            // until this replay), `inverse` is applied destructively to
-            // the Geometry's coefficients immediately at parse time
-            // (SimpleBodyBuilder::invert()/CsgOperand::invert() both call
-            // geometry->invertGeometry() directly - see the Phase 0
-            // appendix). `original` here already reflects it, so replaying
-            // it again would invert twice (a no-op on the sign, silently
-            // discarding the actual invert). Skip it.
             break;
         }
     }
@@ -138,15 +120,6 @@ BakedGeometryBaker::bakePlane(
             break;
         }
         case TransformStep::Kind::Invert:
-            // Unlike Translate/Rotate/Scale (deferred into a matrix,
-            // leaving the parsed Geometry's own coefficients untouched
-            // until this replay), `inverse` is applied destructively to
-            // the Geometry's coefficients immediately at parse time
-            // (SimpleBodyBuilder::invert()/CsgOperand::invert() both call
-            // geometry->invertGeometry() directly - see the Phase 0
-            // appendix). `original` here already reflects it, so replaying
-            // it again would invert twice (a no-op on the sign, silently
-            // discarding the actual invert). Skip it.
             break;
         }
     }

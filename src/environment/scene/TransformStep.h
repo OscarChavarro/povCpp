@@ -3,10 +3,6 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
-// Passive record of one elementary translate/rotate/scale/invert keyword as
-// encountered at parse time, in the exact order the .pov file applies them.
-// This is parsed-scene data (what the file said), not render policy or
-// geometry math - see doc/performanceReviewPlan5.md Phase 1.
 struct TransformStep {
     enum class Kind { Translate, Rotate, Scale, Invert };
 

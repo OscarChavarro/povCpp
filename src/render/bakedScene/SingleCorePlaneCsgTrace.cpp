@@ -480,12 +480,6 @@ SingleCorePlaneCsgTrace::traceTransformedNestedSingleCorePlaneOperandAllCrossing
         return false;
     }
 
-    // Plan 17 Phase 1: when pushdownFolded, parentOperand.localToObject is
-    // identity (Plan 8 R2) - alias the parent ray's own origin/direction
-    // instead of paying the no-op transform. PLAN17_PHASE1_ASSERT_MODE
-    // verifies the bit-equality assumption exhaustively via memcmp before
-    // shipping without it; do not "fix" a mismatch with tolerance, close
-    // the phase instead (doc/performanceReviewPlan17.md Phase 1).
     const Vector3Dd *nestedRayOriginPtr;
     const Vector3Dd *nestedRayDirectionPtr;
     Vector3Dd nestedRayOriginStorage;
@@ -526,15 +520,6 @@ SingleCorePlaneCsgTrace::traceTransformedNestedSingleCorePlaneOperandAllCrossing
     double depth2;
 
     if (directCoreQuadric != nullptr) {
-        // Direct-quadric path: use intersectBakedQuadricWithTrueMiss to detect ray misses
-        // early and skip plane candidate checks (~89% of calls for drum shadow rays miss
-        // the cylinder). intersectBakedQuadricWithCoeffs is intentionally NOT used here:
-        // it outputs polyA/polyB/polyC that are unused in this emitter, adding register
-        // pressure on every call. intersectBakedQuadricWithTrueMiss provides only the
-        // trueMiss flag without the unused output parameters.
-        // Plan 8 R2: a pushdown-folded wrapper has identity matrices, so
-        // coreRayOrigin/coreRayDirection above are bit-equal to the parent
-        // ray's own origin/direction - the ray's cached aggregates apply.
         bool trueMiss = false;
         const bool quadricHit = BakedQuadricIntersector::intersectBakedQuadricWithTrueMiss(
             *directCoreQuadric,

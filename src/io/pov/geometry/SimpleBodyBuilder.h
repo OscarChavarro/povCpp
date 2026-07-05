@@ -16,8 +16,6 @@ class SimpleBodyBuilder {
     ColorRgba *shapeColor = nullptr;
     Matrix4x4d *transformation = nullptr;
     Matrix4x4d *transformationInverse = nullptr;
-    // Elementary steps behind `transformation` above, chronologically
-    // recorded. See doc/performanceReviewPlan5.md Phase 1.
     java::ArrayList<TransformStep> steps{4};
 
     void ensureMatrices();

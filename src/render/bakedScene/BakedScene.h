@@ -15,13 +15,6 @@ class SimpleBody;
 class Composite;
 class CsgOperand;
 
-// Plan 6: the rebuilt baked-model layer. Unlike the Scene.h Baked* structs
-// it supersedes (Plan 6 Phase 4 deletes those), every field here is either
-// resolved once at build time or is a cold debug pointer back to the parsed
-// model - nothing on this struct is meant to be re-classified per ray.
-// Phase 1 only builds this model (BakedSceneBuilder) alongside the old one;
-// no trace code reads it yet. Phases 2-3 wire `render/bakedScene`'s trace
-// entry points to read from here instead of Scene::CompiledTracingScene.
 class BakedScene {
   public:
     enum class TraceKind {
@@ -61,15 +54,8 @@ class BakedScene {
         GenericFallback,
     };
 
-    // One CSG operand, world/parent-space transform pair plus (if the
-    // operand was foldable) an owned world-space coefficient-rewritten
-    // copy - carried over unchanged from Plan 5's BakedCsgOperand.
     struct CsgOperandRecord {
         CsgOperandKind kind = CsgOperandKind::Empty;
-        // Detail-owner pushed onto the shading stack for per-operand
-        // material/texture lookups (CsgOperand::doExtraInformation) - not a
-        // cold debug pointer, this is read on the hot path exactly like the
-        // old model's BakedCsgOperand::operand.
         CsgOperand *operand = nullptr;
         Geometry *geometry = nullptr;
         Quadric *quadricGeometry = nullptr;
@@ -84,12 +70,6 @@ class BakedScene {
         bool isInfinitePlane = false;
         Vector3Dd planeNormal = Vector3Dd(0.0, 1.0, 0.0);
         double planeDistance = 0.0;
-        // Plan 7: slot indices into the task-owned RaySharedCache, assigned
-        // once at build time by BakedSceneBuilder - replaces the mutable
-        // planeVp*/Quadric::objectVpConstant per-record caches (shared
-        // mutable state that raced under -parallel) with a flat array
-        // indexed per render task. -1 when the operand kind does not need a
-        // viewpoint constant.
         int quadricViewpointSlot = -1;
         int planeViewpointSlot = -1;
         Quadric bakedQuadricStorage;
@@ -102,37 +82,10 @@ class BakedScene {
         bool compiledNestedCoreTransformedQuadric = false;
         java::ArrayList<int> compiledNestedPlaneOperandIndices;
         java::ArrayList<int> compiledNestedContainmentOperandIndices;
-        // Plan 8 Phase R2: the full elementary-step list already baked into
-        // bakedQuadricStorage/bakedPlaneStorage so far, kept so a SECOND
-        // (outer-level) push-down pass reached through recursion can extend
-        // it instead of re-deriving from `operand->getSteps()` alone - which
-        // would silently forget whatever an earlier, deeper push-down pass
-        // already folded in. Empty until the first push-down collapse.
         java::ArrayList<TransformStep> pushdownAccumulatedSteps;
-        // Plan 8 Phase R2: true on a nested-CSG wrapper whose transform was
-        // pushed down into its program (kind demoted TransformedNestedCsg ->
-        // NestedCsg, matrices reset to identity). Lets buildCsgExecutionPlan
-        // keep compiling the single-core-plane fast path for it - without
-        // this the push-down silently trades the compiled kernel (trueMiss
-        // early-out, no clone, no scratch queue) for the generic nested
-        // recursion, which is what made the collapse performance-neutral.
-        // Deliberately NOT set on wrappers that were never transformed, so
-        // scenes push-down never touched keep their exact byte behavior.
         bool pushdownFolded = false;
     };
 
-    // Plan 13 Phase 1: a bake-time-only spatial index over one operand
-    // bucket's cull-safe (bounded && cullSafe) members, used to skip most
-    // per-ray AABB tests on wide unions (spline's 430-operand bucket,
-    // ntreal's 1744, piece3's 501) instead of testing every member
-    // linearly. Stores *bucket positions* (indices into the owning
-    // ArrayList<int> bucket, e.g. directPrimitiveOperandIndices), never
-    // operand pointers or global operand indices directly, so nothing here
-    // dangles across the ArrayList relocations described in
-    // csgoperand_clone_perf_fix/Plan 5 Phase 3. `alwaysTestedPositions`
-    // holds the bucket positions that are NOT cull-safe (unbounded, or
-    // bounded but not cullSafe) - these bypass the AABB test entirely at
-    // trace time exactly as the un-indexed loop does today.
     struct OperandCullBins {
         bool built = false;
         java::ArrayList<AxisAlignedBoundingBox> binBounds;
@@ -158,23 +111,6 @@ class BakedScene {
         java::ArrayList<int> transformedPrimitiveOperandIndices;
         java::ArrayList<int> directPrimitiveOperandIndices;
         java::ArrayList<CsgOperandRecord> operands;
-        // Plan 13 Phase 1: non-owning pointers into BakedScene's
-        // operandCullBinsStorage - each OperandCullBins is individually
-        // heap-allocated there and never moved or copied after construction,
-        // so these pointers stay valid even though operandCullBinsStorage
-        // itself (an ArrayList<OperandCullBins*>) can relocate its array of
-        // pointers on growth: only the pointers move, never the pointees.
-        // null unless the respective bucket had >=
-        // kOperandCullBinThreshold cull-safe members at bake time (see
-        // BakedSceneBuilder.cpp); null means trace time falls back to the
-        // original full linear scan. Deliberately NOT stored by value here:
-        // an earlier by-value version added ~320 bytes/program to every
-        // CsgProgram (5 ArrayLists x 2 buckets) even when unused, which
-        // measurably regressed drums/iortest (~7-10%, see
-        // doc/performanceReviewPlan13.md Phase 1) purely from cache pressure
-        // on the hot csgPrograms array - despite those two scenes never
-        // building a single cull-bin (their union operand counts never
-        // cross the threshold).
         const OperandCullBins *directPrimitiveCullBins = nullptr;
         const OperandCullBins *transformedPrimitiveCullBins = nullptr;
     };
@@ -213,8 +149,6 @@ class BakedScene {
         bool hasBakedQuadric = false;
         InfinitePlane bakedPlaneStorage;
         bool hasBakedPlane = false;
-        // Plan 7: slot index into the task-owned RaySharedCache for the
-        // direct-quadric fast path in BakedTrace::traceSimpleBodyAllCrossings.
         int quadricViewpointSlot = -1;
     };
 
@@ -230,9 +164,6 @@ class BakedScene {
         bool hasClippingShapes = false;
         java::ArrayList<int> boundingObjectIndices;
         java::ArrayList<int> clippingObjectIndices;
-        // Traversal order preserved verbatim from the parsed Composite's
-        // simple-body list - see doc/performanceReviewPlan6.md Phase 0
-        // item 4 (equal-depth ordering is load-bearing for some scenes).
         java::ArrayList<int> childObjectIndices;
     };
 
@@ -248,12 +179,8 @@ class BakedScene {
         long residualBakedQuadricOperands = 0;
         long residualBakedPlaneOperands = 0;
         long residualTransformedOperands = 0;
-        // Plan 7: sizes for RaySharedCache::ensureCapacity - one slot per
-        // quadric/plane-bearing record assigned during build().
         long quadricViewpointSlotCount = 0;
         long planeViewpointSlotCount = 0;
-        // Plan 8 Phase R0: split residualTransformedOperands by the three
-        // root causes identified in doc/performanceReviewPlan8.md.
         // Category 1: TransformedNestedCsg - never collapsible today.
         long residualCategory1NestedCsg = 0;
         // ...of which the nested program's operands are ALL themselves
@@ -266,11 +193,6 @@ class BakedScene {
         // Category 3: TransformedSphere/TransformedPrimitive - no
         // coefficient congruence exists for these kinds today.
         long residualCategory3Unbakeable = 0;
-        // Plan 13 Phase 0: population census for the culling-structure
-        // build threshold decision. Histogram buckets union-typed CsgProgram
-        // operand counts (1-4, 5-16, 17-64, 65+); the finite/cull-safe count
-        // is how many of those operands could feed a bake-time bounds
-        // structure at all (AxisAlignedBoundingBox::unbounded() operands can't).
         long unionProgramOperandHistogram[4] = {0, 0, 0, 0};
         long unionProgramOperandCullSafeCount = 0;
         long unionProgramOperandTotalCount = 0;
@@ -290,12 +212,6 @@ class BakedScene {
 
     java::ArrayList<TraceableObject> traceableObjects;
     java::ArrayList<CsgProgram> csgPrograms;
-    // Plan 13 Phase 1: backing storage for CsgProgram::*CullBins pointers -
-    // each element is individually heap-allocated (see
-    // BakedSceneBuilder.cpp) and owned here; growing this ArrayList only
-    // relocates the array of pointers, never the pointees, so pointers
-    // handed out to CsgProgram stay valid for BakedScene's lifetime. Freed
-    // in the destructor above.
     java::ArrayList<OperandCullBins *> operandCullBinsStorage;
     java::ArrayList<CompositeRecord> composites;
     java::ArrayList<int> topLevelObjectIndices;

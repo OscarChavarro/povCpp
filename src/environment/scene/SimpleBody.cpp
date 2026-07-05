@@ -187,14 +187,6 @@ void
 SimpleBody::doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *hit)
 {
     Geometry *detailGeometry = hit->hitGeometry != nullptr ? hit->hitGeometry : geometry;
-    // Plan 5 Phase 4: a collapsed (baked) leaf's intersection was found
-    // directly against a world-space coefficient-rewritten copy, already
-    // folding in this body's own transform. `bakedTransformFolded` is an
-    // explicit flag set once at bake time (Scene.cpp::bakeSimpleBody) on
-    // this same live SimpleBody - deliberately NOT inferred from
-    // `hit->hitGeometry != geometry`, which also differs for unrelated
-    // reasons (bounded/clipped shapes, parametric/polynomial dispatch, ...)
-    // and produced widespread false positives when tried.
     const bool bakedLeaf = bakedTransformFolded;
     // Consume the detail-owner chain outermost-first (popDetailOwnerBack): the
     // owners were pushed innermost-first while collecting the hit, so for a

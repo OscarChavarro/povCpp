@@ -28,10 +28,6 @@ class RenderEngine {
     RenderTargetImage destinationImage;
     RasterTileArea renderArea;
     std::atomic<bool> fatalErrorFound;
-    // Plan 6 Phase 4: RenderEngine owns the baked model - environment/scene
-    // only owns parsed data now. Built once, after parsing finishes (see
-    // buildBakedScene()), read-only for the rest of the render (including
-    // every -parallel worker, via RenderContext::getBakedScene()).
     BakedScene bakedScene;
 
     void copyLineToImage(

@@ -14,9 +14,6 @@ class TraceService {
     TraceFn traceFn;
     ShadowShadeFn shadowShadeFn;
     void *context;
-    // Plan 7: the owning RenderWorker's per-task cache, handed to shaders
-    // (DirectLightShader's shadow-ray path) that call BakedTrace directly
-    // rather than through RenderEngine::trace.
     RaySharedCache *raySharedCache;
 
   public:

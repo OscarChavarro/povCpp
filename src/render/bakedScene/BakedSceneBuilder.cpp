@@ -119,12 +119,6 @@ BakedSceneBuilder::hasPairwiseDisjointFiniteOperands(
     return true;
 }
 
-// Classifies the CSG specialization and, when one applies, writes the
-// matching BakedScene::CsgPlanKind directly (buildCsgExecutionPlan below
-// only fills in the non-specialized planKind values) - this folds what used
-// to be a separate BakedCsgSpecialization enum into planKind itself, since
-// specializationValid is only ever true together with one of these three
-// specific values (see doc/performanceReviewPlan6.md Phase 3 status).
 void
 BakedSceneBuilder::classifyCsgProgramSpecialization(BakedScene::CsgProgram &baked)
 {
@@ -199,11 +193,6 @@ BakedSceneBuilder::buildCsgExecutionPlan(BakedScene::CsgProgram &baked, const Ba
         case BakedScene::CsgOperandKind::NestedCsg:
         case BakedScene::CsgOperandKind::TransformedNestedCsg:
             baked.nestedOperandIndices.add((int)i);
-            // Plan 8 R2: push-down demotes TransformedNestedCsg wrappers to
-            // NestedCsg; keep those on the compiled single-core-plane kernel
-            // (their record matrices are identity, so the kernel's transforms
-            // are bit-exact no-ops). Never-transformed NestedCsg wrappers
-            // stay off it to preserve their existing byte behavior.
             if ((operand.kind == BakedScene::CsgOperandKind::TransformedNestedCsg ||
                  (operand.kind == BakedScene::CsgOperandKind::NestedCsg &&
                   operand.pushdownFolded)) &&
@@ -292,14 +281,6 @@ BakedSceneBuilder::compileTracingObjects(
     }
 }
 
-// Ported from Scene.cpp's bakeSimpleBody (pre-Phase-4). Deliberately does
-// NOT re-point `geometry`/`quadricGeometry` at `bakedQuadricStorage`/
-// `bakedPlaneStorage` when a fold succeeds - both are local-to-this-call
-// storage about to be copied into `out.traceableObjects` via add()/set(),
-// so any self-pointer set here would dangle the moment that copy happens
-// (see doc/performanceReviewPlan6.md Phase 2's self-referential-pointer
-// bug). The one-time fix-up runs in BakedSceneBuilder::build, once
-// `out.traceableObjects` has stopped growing for good.
 BakedScene::TraceableObject
 BakedSceneBuilder::bakeSimpleBody(SimpleBody *object, BakedScene &out)
 {
@@ -328,11 +309,6 @@ BakedSceneBuilder::bakeSimpleBody(SimpleBody *object, BakedScene &out)
     baked.geometryToWorld = baked.objectToWorld.multiply(baked.geometryToObject);
     baked.worldToGeometry = baked.objectToGeometry.multiply(baked.worldToObject);
 
-    // Plan 5 Phase 4 fold (unchanged from the pre-Phase-4 Scene.cpp version):
-    // gated on no bounding/clipping shapes, since those are tested against
-    // the object-space ray/point keyed off hasObjectTransform/
-    // hasGeometryTransform - clearing them would feed those tests a
-    // world-space ray/point against object-local bounding geometry.
     if (!baked.hasBoundingShapes && !baked.hasClippingShapes &&
         (baked.hasObjectTransform || baked.hasGeometryTransform)) {
         java::ArrayList<TransformStep> combinedSteps(
@@ -371,13 +347,6 @@ BakedSceneBuilder::bakeSimpleBody(SimpleBody *object, BakedScene &out)
     return baked;
 }
 
-// Plan 8 Phase R0/R2: an operand is a push-down candidate if its underlying
-// geometry is a Quadric or InfinitePlane (transformed or not - the Plan 5
-// congruence bakes either), or it is itself an untransformed nested CSG
-// whose own operands are all (recursively) push-down candidates.
-// Deliberately checked by geometry type, not by CsgOperandKind: the
-// "Direct*" kinds also cover untransformed Sphere/Box/Blob operands, which
-// have no coefficient congruence and must NOT be treated as bakeable here.
 bool
 BakedSceneBuilder::isPushdownCandidateOperand(const BakedScene::CsgOperandRecord &operand)
 {
@@ -405,44 +374,6 @@ BakedSceneBuilder::nestedProgramFullyBakeable(const BakedScene &scene, int progr
     return true;
 }
 
-// Plan 8 Phase R2: push a TransformedNestedCsg parent's own steps down into
-// every operand of its (already-baked) nested program, then reclassify the
-// program so the parent's per-ray transform disappears entirely. Only
-// called when nestedProgramFullyBakeable() has verified every operand is a
-// quadric/plane (or a recursively all-bakeable NestedCsg) - GenericFallback,
-// TransformedSphere/TransformedPrimitive etc. never reach this function.
-//
-// Step order mirrors bakeSimpleBody's existing geometry-steps-then-body-steps
-// combine (same file, above): the operand's own steps are the innermost
-// transform (applied first, to the canonical geometry), the parent's steps
-// are the outermost (applied last, wrapping the already-transformed result)
-// - so combinedSteps = childSteps ++ parentSteps.
-//
-// Three or more nesting levels (e.g. drums.inc's Tensioner -> Tensioner1 ->
-// Disk_X) reach a given leaf through TWO OR MORE SEPARATE calls to this
-// function, one per wrapper resolved bottom-up. A leaf already collapsed by
-// an earlier (deeper) call must extend `pushdownAccumulatedSteps`, not
-// re-derive `combinedSteps` from `operand.operand->getSteps()` alone - that
-// would silently drop every step folded in by the earlier call, since
-// `quadricGeometry`/`geometry` always still point at the untouched raw
-// original (the fixup that repoints them to bakedQuadricStorage only runs
-// once, at the very end of BakedSceneBuilder::build()).
-//
-// Each occurrence of a shared (#declare-reused) nested CSG gets its own
-// freshly-baked BakedScene::CsgProgram already (compileConstructiveSolidGeometry
-// never caches by geometry pointer - see bakeCsgOperand below), so mutating
-// `out.csgPrograms[programIndex]` in place here never touches another
-// parent's copy.
-//
-// `parentForwardTransform` is the wrapping operand's own `getTransformation()`
-// matrix (== the parent CsgOperandRecord's `objectToLocal`, despite the
-// confusing field name - CsgOperand::ensureBakedBounds() uses this same
-// matrix via AxisAlignedBoundingBox::fromTransformedCorners to place an operand's
-// own local bounds into its containing space). Every operand's bakedBounds
-// was computed relative to the nested program's own containing space, which
-// this push-down eliminates - the bounds must move into the parent's space
-// right along with the coefficients, or AABB culling reads a stale box in
-// the wrong space and silently drops or admits candidates.
 void
 BakedSceneBuilder::pushDownStepsIntoProgram(
     BakedScene &out, int programIndex, const java::ArrayList<TransformStep> &parentSteps,
@@ -514,8 +445,6 @@ BakedSceneBuilder::pushDownStepsIntoProgram(
     buildCsgExecutionPlan(program, out);
 }
 
-// Ported from Scene.cpp's bakeCsgOperand (pre-Phase-4); see bakeSimpleBody's
-// comment above re: not re-pointing geometry/quadricGeometry here.
 BakedScene::CsgOperandRecord
 BakedSceneBuilder::bakeCsgOperand(CsgOperand *operand, BakedScene &out)
 {
@@ -535,9 +464,6 @@ BakedSceneBuilder::bakeCsgOperand(CsgOperand *operand, BakedScene &out)
         baked.planeDistance = plane->getDistance();
     }
 
-    // Plan 5 Phase 3 collapse (unchanged) - see doc/performanceReviewPlan5.md
-    // for the elementary-step congruence rationale and the double-invert bug
-    // this gate's history is tied to.
     constexpr bool kEnableCoefficientCollapse = true;
     if (kEnableCoefficientCollapse &&
         baked.hasTransform && operand->getSteps().size() > 0) {
@@ -546,10 +472,6 @@ BakedSceneBuilder::bakeCsgOperand(CsgOperand *operand, BakedScene &out)
                 BakedGeometryBaker::bakeQuadric(*baked.quadricGeometry, operand->getSteps());
             baked.hasBakedQuadric = true;
             baked.hasTransform = false;
-            // Plan 8 R2: seed the accumulator with the steps just baked, so
-            // a later pushdown pass extends them instead of losing them
-            // (pushDownStepsIntoProgram reads pushdownAccumulatedSteps, not
-            // getSteps(), whenever hasBakedQuadric/hasBakedPlane is set).
             baked.pushdownAccumulatedSteps = operand->getSteps();
             operand->setBakedTransformFolded(true);
         } else if (baked.isInfinitePlane) {
@@ -578,11 +500,6 @@ BakedSceneBuilder::bakeCsgOperand(CsgOperand *operand, BakedScene &out)
         baked.cullSafe = false;
         baked.isInfinitePlane = false;
 
-        // Plan 8 Phase R2: if this wrapper carries its own steps and the
-        // nested program is entirely quadric/plane operands, push the
-        // wrapper's transform down into them and drop it here - see
-        // doc/performanceReviewPlan8.md Phase R0 for the collapse-rate
-        // finding this responds to.
         constexpr bool kEnableNestedTransformPushdown = true;
         constexpr int kPushdownDepthGuard = 16;
         if (kEnableNestedTransformPushdown &&
@@ -591,11 +508,6 @@ BakedSceneBuilder::bakeCsgOperand(CsgOperand *operand, BakedScene &out)
             pushDownStepsIntoProgram(
                 out, baked.nestedCsgProgramIndex, operand->getSteps(), baked.objectToLocal);
             baked.hasTransform = false;
-            // Reset the matrices too: with pushdownFolded the wrapper stays
-            // on the compiled single-core-plane kernel, which applies
-            // objectToLocal/localToObject unconditionally - identity there
-            // is a bit-exact no-op, a stale wrapper matrix is a double
-            // transform.
             baked.objectToLocal = Matrix4x4d::identityMatrix();
             baked.localToObject = Matrix4x4d::identityMatrix();
             baked.pushdownFolded = true;
@@ -791,12 +703,6 @@ BakedSceneBuilder::bakeComposite(Composite *object, BakedScene &out)
     return baked;
 }
 
-// Ported from Scene.cpp's compileTracingObject. Returns the new object's
-// index in `out.traceableObjects` directly (the old CompiledTracingObject
-// return value - a small bounded/castsShadow/dispatch-index summary - is
-// gone; callers just re-index `out.traceableObjects[index]` for those
-// fields, which is safe: array growth reallocates the underlying storage,
-// never the logical index).
 int
 BakedSceneBuilder::compileTracingObject(SimpleBody *object, BakedScene &out)
 {
@@ -1036,10 +942,6 @@ BakedSceneBuilder::build(const java::ArrayList<SimpleBody*> &objects, BakedScene
         }
     }
 
-    // Plan 7: assign RaySharedCache slot indices, one per quadric/plane
-    // record that BakedQuadricIntersector's/BakedPlaneIntersector's
-    // viewpoint-constant helpers will query.
-    // Must run after the fixup loops above so quadricGeometry is final.
     int nextQuadricSlot = 0;
     int nextPlaneSlot = 0;
     for (long int i = 0; i < out.csgPrograms.size(); i++) {

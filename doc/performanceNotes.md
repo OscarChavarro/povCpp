@@ -120,6 +120,24 @@ interpreter depth on generic-morgan programs.
 - Composite children's `worldBounds` are composite-local, not world; a
   child's `noShadowFlag` is not consulted on nested paths. Both matter if
   composites are ever flattened.
+- `BakedScene::CompositeRecord::childObjectIndices` traversal order must
+  match the parsed `Composite`'s simple-body list verbatim — equal-depth
+  child ordering is load-bearing for some scenes' pixel output.
+- `BakedScene::operandCullBinsStorage` owns each `OperandCullBins` as an
+  individually heap-allocated element (never by value inside `CsgProgram`):
+  growing the owning `ArrayList<OperandCullBins*>` relocates the array of
+  pointers, never the pointees, so pointers handed to `CsgProgram` stay
+  valid for `BakedScene`'s lifetime.
+- `BakedGeometryBaker::bakeQuadric`/`bakePlane` must skip `TransformStep::Kind::Invert`
+  in the elementary-step replay: `invert()` is applied destructively to the
+  source `Geometry`'s coefficients at parse time (not deferred like
+  Translate/Rotate/Scale), so the `original` passed in already reflects it —
+  replaying it again inverts twice, silently discarding the actual invert.
+- `CsgMorganUnionTrace::traceMorganIntersectionGeneric`'s pre-scan early-out
+  (`return false` when a positive-quadric operand is a definite `trueMiss`)
+  is a correctness shortcut, not just an optimization: for an INTERSECTION,
+  if any operand's containment check can never be satisfied along the ray,
+  no crossing from any other operand can produce a valid candidate either.
 - Measurement discipline: interleave runs within one session (absolute
   timings drift across sessions); `CMakeLists.txt` forces the runtime
   output dir to `build/`, so an instrumented (`-pg`) build silently

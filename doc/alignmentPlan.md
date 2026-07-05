@@ -223,7 +223,7 @@ list of `RayHit`s or a port of `IntersectionCandidate` is exactly the
 hit-record taxonomy question flagged in `vitralNormalizationAnalysis.md` §3
 and must be settled there first.
 
-## Step 7 — Rename `RayWithSegments` → `TracingRay`
+## Step 7 — Rename `RayWithSegments` → `RayWithTracingState`
 
 The name is a historical misnomer: the class stores no segments (segments live
 in `RaySegments`, used only by the Roth CSG strategy). Its actual payload is
@@ -231,12 +231,14 @@ the per-trace workspace riding on the ray: quadric-term cache, AABB
 slab-reciprocal cache, containing-media stacks, shadow/primary classification,
 detail mask, and the `Statistics`/config/queue-pool service pointers.
 
-- Recommended name: `TracingRay` (a `Ray` plus everything one trace needs).
-  Alternatives considered: `RenderRay`, `RayTraversalState`.
+- Recommended name: `RayWithTracingState` (a `Ray` plus the tracing state one
+  trace needs; keeps the `RayWith*` shape of the old name while replacing the
+  wrong noun). Alternatives considered: `TracingRay`, `RenderRay`,
+  `RayTraversalState`.
 - Surface: 352 occurrences in 83 files — large but purely mechanical
   (sed-able), which is why it is sequenced late: by then the method renames
   will have proven the rename-then-gate workflow on smaller surfaces.
-- Include the file rename (`element/RayWithSegments.*` → `element/TracingRay.*`)
+- Include the file rename (`element/RayWithSegments.*` → `element/RayWithTracingState.*`)
   and guard rename in the same commit.
 
 ## Step 8 (optional, deferred) — Mirror VITRAL's geometry taxonomy
@@ -309,60 +311,6 @@ with `-v`, capturing stdout+stderr, against the same runs of a `3665f8f`
 build; every emitted line must map to an original category. Golden gate
 unaffected (messages never touch pixels); statistics text falls under ground
 rule 4.
-
-## Step 10 — Remove process-narration comments (let the code speak)
-
-Independent of steps 1–8; prioritize `render/bakedScene` first.
-
-**Baseline.** The `3665f8f` tree comments sparsely: a boxed file header
-(module purpose, copyright, POV-Team attribution) plus occasional short
-inline notes (~10–15% of lines, e.g. `spheres.cpp` 34/222). The current tree
-accumulated a different kind of comment during the performance-review cycles:
-agent-authored *process narration* — which plan/phase introduced a change,
-why the change is correct, measured call counts and timings, review history.
-Verified hot spots: `render/bakedScene` (`BakedSceneBuilder.cpp` 133 comment
-lines of 1068, `BakedScene.h` 100/310, `CsgMorganUnionTrace.h` 75/514),
-`RayWithSegments.h`, `CsgOperand.h`, `SimpleBody.h`, `TransformStep.h`,
-`RenderContext.h`. 77 comment blocks across 17 files cite plans or analysis
-docs; **22 of them reference `doc/performanceReviewPlan*.md` files that were
-deleted on 2026-07-04** — already-dangling pointers.
-
-**Deletion rule.** A comment is deleted when it narrates process or history:
-what plan/phase/commit introduced the code, why the edit was correct, what
-was measured, what the previous implementation did, what a future phase will
-do. That is commit-message and `doc/performanceNotes.md` material, and most
-of it already lives there.
-
-**Keep rule.** Two kinds survive:
-
-- **References**: comments citing sources — algorithm papers, the original
-  POV-Ray 1.0 code/docs, and cross-references to *existing* project docs when
-  they state a live constraint (a citation to a deleted plan doc is not a
-  reference, it is a dangling pointer — delete or repoint to
-  `performanceNotes.md`).
-- **Invariants the code cannot express**: a constraint that would be violated
-  by an innocent-looking edit (e.g. "do not renormalize between nested
-  non-uniform scales; compose first, normalize once at the top"). Reword
-  these to state the constraint only — strip the history of how it was
-  discovered.
-
-Everything the comment explains that the code could say itself (what the next
-lines do, what a well-named function already names) is deleted without
-replacement — rename the symbol instead if the name was the problem.
-
-**Migration rule.** Before deleting a rationale that is genuinely valuable
-and not yet recorded, move its essence to `doc/performanceNotes.md`; then
-delete the comment.
-
-**Order.** `render/bakedScene` (heaviest, explicit priority), then
-`environment/geometry/element` + CSG headers (`RayWithSegments.h`,
-`CsgOperand.h`), then `environment/scene`, then the remainder of the 17
-flagged files, then a final sweep grep for `Plan [0-9]`, `Phase [0-9]`,
-`doc/performanceReviewPlan`, `§1[0-9]` in `src/` and `base/`.
-
-**Verification.** Comments cannot change codegen, but the gate runs anyway
-(ground rule 1); the sweep greps above must come back empty except inside
-`doc/`.
 
 ## Cosmetic backlog (fold into steps that already touch the file)
 
