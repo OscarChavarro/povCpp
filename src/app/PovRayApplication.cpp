@@ -12,7 +12,6 @@
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/material/LoadedImageRegistry.h"
 #include "io/pov/scene/SceneParser.h"
-#include "render/bakedScene/BakedScene.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
 void
@@ -25,7 +24,6 @@ void
 PovRayApplication::printStatistics(
     const Statistics &stats,
     const Scene &frame,
-    const BakedScene &bakedScene,
     const PovRayRendererConfiguration &inputConfiguration)
 {
     char buffer[1024];
@@ -100,58 +98,6 @@ PovRayApplication::printStatistics(
     }
     if (stats.getTransmittedRaysTraced()) {
         snprintf(buffer, sizeof(buffer), "  Transmitted Rays: %10ld", stats.getTransmittedRaysTraced());
-        printProgress(buffer);
-    }
-
-    {
-        const BakedScene::Statistics &bakedSceneStats = bakedScene.statistics;
-        snprintf(buffer, sizeof(buffer),
-            "  Plan 6 baked model (built, not yet consumed): empty %ld  direct %ld  csg %ld  "
-            "composite %ld  bounded/clipped %ld  generic-fallback %ld",
-            bakedSceneStats.countByKind[(int)BakedScene::TraceKind::Empty],
-            bakedSceneStats.countByKind[(int)BakedScene::TraceKind::DirectPrimitive],
-            bakedSceneStats.countByKind[(int)BakedScene::TraceKind::Csg],
-            bakedSceneStats.countByKind[(int)BakedScene::TraceKind::Composite],
-            bakedSceneStats.countByKind[(int)BakedScene::TraceKind::BoundedGeneric],
-            bakedSceneStats.countByKind[(int)BakedScene::TraceKind::GenericFallback]);
-        printProgress(buffer);
-        snprintf(buffer, sizeof(buffer),
-            "  Plan 6 CSG programs: %ld total - generic-morgan %ld  ray-segments %ld  "
-            "plane-union %ld  disjoint-union %ld  core-plane %ld  fallback %ld",
-            bakedSceneStats.csgProgramCount,
-            bakedSceneStats.csgPlanGenericMorgan,
-            bakedSceneStats.csgPlanGenericRaySegments,
-            bakedSceneStats.csgPlanTopLevelPlaneUnion,
-            bakedSceneStats.csgPlanDisjointBoundedUnion,
-            bakedSceneStats.csgPlanSingleCorePlaneIntersection,
-            bakedSceneStats.csgPlanFallback);
-        printProgress(buffer);
-        snprintf(buffer, sizeof(buffer),
-            "  Plan 6 residual (un-collapsed) operands: transformed %ld  "
-            "(collapsed: quadric %ld  plane %ld)",
-            bakedSceneStats.residualTransformedOperands,
-            bakedSceneStats.residualBakedQuadricOperands,
-            bakedSceneStats.residualBakedPlaneOperands);
-        printProgress(buffer);
-        snprintf(buffer, sizeof(buffer),
-            "  Plan 8 R0 residual breakdown: cat1-nestedCsg %ld (pushdown-eligible %ld)  "
-            "cat2-emptySteps %ld  cat3-unbakeable %ld",
-            bakedSceneStats.residualCategory1NestedCsg,
-            bakedSceneStats.residualCategory1PushdownEligible,
-            bakedSceneStats.residualCategory2EmptySteps,
-            bakedSceneStats.residualCategory3Unbakeable);
-        printProgress(buffer);
-        snprintf(buffer, sizeof(buffer),
-            "  Plan 13 census: union-op histogram 1-4:%ld 5-16:%ld 17-64:%ld 65+:%ld  "
-            "(cull-safe %ld/%ld)  top-level objects %ld (cull-safe %ld)",
-            bakedSceneStats.unionProgramOperandHistogram[0],
-            bakedSceneStats.unionProgramOperandHistogram[1],
-            bakedSceneStats.unionProgramOperandHistogram[2],
-            bakedSceneStats.unionProgramOperandHistogram[3],
-            bakedSceneStats.unionProgramOperandCullSafeCount,
-            bakedSceneStats.unionProgramOperandTotalCount,
-            bakedSceneStats.topLevelObjectCount,
-            bakedSceneStats.topLevelObjectCullSafeCount);
         printProgress(buffer);
     }
 
@@ -347,7 +293,7 @@ void
 PovRayApplication::finalizeRun()
 {
     closeAll();
-    printStatistics(statistics, engine.getScene(), engine.getBakedScene(), configuration);
+    printStatistics(statistics, engine.getScene(), configuration);
 
     // image_map/bump_map/material_map images are intentionally shared (not
     // cloned) by every PovRayMaterial generation/clone that references them

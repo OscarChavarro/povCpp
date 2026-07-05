@@ -28,7 +28,6 @@ class PovRayApplication {
     void printStatistics(
         const Statistics &stats,
         const Scene &frame,
-        const BakedScene &bakedScene,
         const PovRayRendererConfiguration &inputConfiguration);
 
     void initializeFromCommandLine(int argc, char *argv[]);
