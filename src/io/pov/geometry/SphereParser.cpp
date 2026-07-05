@@ -43,13 +43,11 @@ SphereParser::parseSphere(ParserContext &ctx)
                 ctx.tokenStream().ungetToken();
                 PrimitiveParser::parseVector(&localCenter, ctx);
                 localRadius = PrimitiveParser::parseFloat(ctx);
-                localShape = new Sphere();
+                localShape = new Sphere(localRadius);
                 body = SceneBuilder::wrap(localShape);
-                // Keep the sphere canonical and accumulate primitive
-                // placement on the owner only: center/radius belong to the
-                // geometry definition, not to the material/texture transform path.
-                Vector3Dd radiusScale(localRadius, localRadius, localRadius);
-                body->scaleOwnerOnly(&radiusScale);
+                // The radius is intrinsic to the Sphere geometry now; only
+                // the center is accumulated on the owner transform, kept
+                // separate from the material/texture transform path.
                 body->translateOwnerOnly(&localCenter);
                 Exit_Flag = true;
                 break;

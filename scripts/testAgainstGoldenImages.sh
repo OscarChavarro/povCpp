@@ -2,7 +2,7 @@
 set -euo pipefail
 
 output_dir="output"
-reference_dir="../referenceTestImages.3new"
+reference_dir="../referenceTestImages"
 
 if [[ ! -d "${output_dir}" ]]; then
     echo "Missing output directory: ${output_dir}" >&2

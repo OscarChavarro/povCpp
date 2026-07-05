@@ -6,11 +6,13 @@
 
 class Statistics;
 
-// Canonical unit sphere centered at the origin. Placement and scaling are
+// Sphere centered at the origin in its own local space, with an intrinsic
+// radius (default 1.0). Rotation/translation/skew on top of that are still
 // owned by the caller (SimpleBody/CsgOperand), which transforms the ray into
-// local space before invoking this geometry.
+// local space before invoking this geometry; only the size is native here.
 class Sphere : public Geometry {
   private:
+    double radius;
     bool inverted;
 
     static bool intersectSphere(const RayWithTracingState *ray, const Sphere *sphere,
@@ -21,13 +23,19 @@ class Sphere : public Geometry {
         const Vector3Dd &origin,
         const Vector3Dd &direction,
         Statistics *stats,
+        double radius,
         double *depth1,
         double *depth2);
 
   public:
     Sphere();
     explicit Sphere(bool inverted);
+    explicit Sphere(double radius);
+    Sphere(double radius, bool inverted);
     Sphere(const Sphere &other);
+
+    double getRadius() const { return radius; }
+    void setRadius(double newRadius) { radius = newRadius; }
 
     bool isInverted() const { return inverted; }
     void toggleInverted() { inverted ^= true; }
