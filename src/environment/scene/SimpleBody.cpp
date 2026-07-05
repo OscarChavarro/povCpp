@@ -1,5 +1,5 @@
 #include "common/Config.h"
-#include "common/statistics/Statistics.h"
+#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
@@ -35,7 +35,7 @@ SimpleBody::doIntersectionForAllRayCrossings(
     SimpleBody *boundingShape;
     SimpleBody *clippingShape;
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
-    Statistics &stats = *ray->getStatistics();
+    GeometryStatistics &stats = *ray->getGeometryStatistics();
 
     // The body of the intersection routine, parameterized on the ray already
     // expressed in this body's object-local space. Factored into a lambda so the
@@ -58,7 +58,7 @@ SimpleBody::doIntersectionForAllRayCrossings(
         boundingShape = this->getBoundingShapes()[i];
         Vector3Dd rayOrigin(objectRay->getOrigin());
 
-        stats.getGeometryStatistics()->incrementBoundingRegionTests();
+        stats.incrementBoundingRegionTests();
         {
             IntersectionCandidate _boundingHit;
             if (!boundingShape->doIntersectionFirstHitViaCrossings(objectRay, _boundingHit) &&
@@ -67,7 +67,7 @@ SimpleBody::doIntersectionForAllRayCrossings(
                 return (false);
             }
         }
-        stats.getGeometryStatistics()->incrementBoundingRegionTestsSucceeded();
+        stats.incrementBoundingRegionTestsSucceeded();
     }
 
     localDepthQueue = ray->getIntersectionQueuePool()->pop(128);
@@ -120,14 +120,14 @@ SimpleBody::doIntersectionForAllRayCrossings(
         for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
             clippingShape = this->getClippingShapes()[i];
 
-            stats.getGeometryStatistics()->incrementClippingRegionTests();
+            stats.incrementClippingRegionTests();
             if (clippingShape->doContainmentTest(
                     objectLocalPoint,
                     Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
                 intersectionFound = false;
                 break;
             }
-            stats.getGeometryStatistics()->incrementClippingRegionTestsSucceeded();
+            stats.incrementClippingRegionTestsSucceeded();
         }
 
         if (intersectionFound) {

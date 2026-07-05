@@ -7,31 +7,26 @@ The focus is the required alignment surface between both codebases: rays,
 intersection results, traversal primitives, transforms, scene bodies, detail
 selection, renderer configuration, bounding information and camera snapshots.
 
-Sections 1–14 were re-verified against both trees on 2026-07-05. Sections
-15–17 are historical investigation records from the decoupling work and are
-kept as written; class names appearing there (notably `TransformedGeometry`,
-since deleted) describe the tree as it was at that time. The povCpp-side
-rename/extraction sequence derived from this analysis lives in
-`doc/alignmentPlan.md`.
+Re-verified against both trees on 2026-07-05.
 
 ---
 
 ## 1. Shared primitives already in use
 
-### 1.1. `RayWithSegments` extends VITRAL `Ray`
+### 1.1. `RayWithTracingState` extends VITRAL `Ray`
 
 `povCpp` uses VITRAL's `Ray` directly:
 
 ```cpp
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 
-class RayWithSegments : public Ray { ... };
+class RayWithTracingState : public Ray { ... };
 ```
 
 VITRAL `Ray` stores `origin`, `direction` and `t`, and exposes immutable-style
 builders (`withOrigin`, `withDirection`, `withT`) plus setters.
 
-`RayWithSegments` adds POV-specific render state:
+`RayWithTracingState` adds POV-specific render state:
 
 - Quadric cached terms: `position2`, `direction2`, `positionDirection`,
   `mixedPositionPosition`, `mixedDirectionDirection`,
@@ -42,8 +37,12 @@ builders (`withOrigin`, `withDirection`, `withT`) plus setters.
   `containingIndex`.
 - Ray classification: `isShadowRay`, `isPrimaryRay`.
 - Per-ray detail mask using VITRAL-compatible `DETAIL_*` constants.
-- Runtime pointers: `Statistics`, `PovRayRendererConfiguration`,
-  `PriorityQueuePool<IntersectionCandidate>`.
+- Runtime pointers: `GeometryStatistics`, `PovRayRendererConfiguration`,
+  `PriorityQueuePool<IntersectionCandidate>`. The ray only carries the
+  per-primitive `GeometryStatistics` counters; the render-level
+  `PovRayRenderStatistics` counters that are not tied to a single ray
+  (reflected/refracted/transmitted/shadow ray totals) are reached through
+  `TraceService::getStatistics()` instead (see §12).
 
 Alignment status: the ray base is shared; povCpp's extra state is specific to
 POV traversal, CSG and nested refraction.
@@ -82,7 +81,7 @@ IntersectionCandidate = Intersection + IntersectionAttributes
 
 - `hitGeometry` and `hitBody` (the owning `RayOperationOwner`)
 - the detail-owner chain (up to `MAX_DETAIL_OWNERS = 8` `RayOperationOwner*`
-  entries, pushed innermost-first by nested CSG/composite wrappers; see §17)
+  entries, pushed innermost-first by nested CSG/composite wrappers)
 - `material`
 - `objectTexture`
 - `objectColor`
@@ -127,27 +126,22 @@ struct GeometryIntersectionEmissionContext {
 };
 
 virtual int doIntersectionForAllRayCrossings(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride = nullptr);
 virtual int doIntersectionForAllRayCrossingsAnnotated(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     const GeometryIntersectionEmissionContext &context);
 virtual bool hasNativeAnnotatedCrossings() const;
 virtual Geometry *getWrappedGeometry() const;
-bool doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &out);
-virtual bool doIntersectionFirstHitNoQueue(
-    RayWithSegments *ray,
+bool doIntersectionFirstHitViaCrossings(RayWithTracingState *ray, IntersectionCandidate &out);
+virtual bool doIntersectionFirstHit(
+    RayWithTracingState *ray,
     IntersectionCandidate &out,
     Material *materialOverride = nullptr);
 virtual int doContainmentTest(const Vector3Dd &point, double distanceTolerance);
-virtual void normal(Vector3Dd *result, Vector3Dd *intersectionPoint);
-virtual void normal(
-    Vector3Dd *result,
-    Vector3Dd *intersectionPoint,
-    const PovRayRendererConfiguration *config);
-virtual void doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *hit);
+virtual void doExtraInformation(const RayWithTracingState &ray, double t, PovRayHit *hit);
 virtual AxisAlignedBoundingBox getMinMax() const;
 virtual void *copy() = 0;
 virtual void invertGeometry();
@@ -163,17 +157,15 @@ while emitting return `true` from `hasNativeAnnotatedCrossings()`; for the
 rest the base class stamps in a post-pass (via a fresh pooled queue when the
 target queue is not empty).
 
-`doIntersectionFirstHitNoQueue` is a virtual *direct* nearest-hit primitive —
-no queue involved — implemented by shapes with a cheap closed-form first hit
-(e.g. `Sphere`). It is the true counterpart of VITRAL's
-`doIntersectionFirstHit`; `doc/alignmentPlan.md` step 4 renames it
-accordingly.
-
-`Geometry::doIntersectionFirstHit` is a non-virtual adapter deriving
-nearest-hit from all-crossings:
+`doIntersectionFirstHit` is the virtual *direct* nearest-hit primitive — the
+same name and role VITRAL uses. Most shapes get a default (non-overridden)
+implementation that always misses; shapes with a cheap closed-form first hit
+(e.g. `Sphere`) override it directly. Shapes without one still support
+nearest-hit through `Geometry::doIntersectionFirstHitViaCrossings`, a
+non-virtual adapter that derives it from all-crossings:
 
 ```cpp
-bool Geometry::doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &out)
+bool Geometry::doIntersectionFirstHitViaCrossings(RayWithTracingState *ray, IntersectionCandidate &out)
 {
     java::PriorityQueue<IntersectionCandidate> * const depthQueue =
         ray->getIntersectionQueuePool()->pop(128);
@@ -187,12 +179,9 @@ bool Geometry::doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidat
 }
 ```
 
-Alignment status: both projects expose the `doIntersectionFirstHit` name, but
-they mean different things by it. VITRAL implements nearest-hit directly under
-that name; povCpp's method of that name is the queue-deriving adapter, while
-its direct nearest-hit lives under `doIntersectionFirstHitNoQueue`. The
-concepts now exist on both sides; only the names collide (resolved by
-`doc/alignmentPlan.md` step 4).
+Alignment status: both projects expose `doIntersectionFirstHit` as the direct
+nearest-hit virtual, with the same meaning. The queue-deriving adapter has its
+own, non-colliding name (`doIntersectionFirstHitViaCrossings`).
 
 ### 2.3. Required all-crossings alignment
 
@@ -223,8 +212,8 @@ nearest-hit if it is to host POV-compatible CSG and nested media traversal.
 | `material` | `IntersectionAttributes::material` | aligned role, different material type |
 | `texture` | `IntersectionAttributes::objectTexture` | aligned role, POV material model |
 | `normalMap` | part of povCpp material/normal pipeline | not a hit attribute |
-| `requiredDetailMask` | `RayWithSegments::requiredDetailMask` | constants aligned; owner differs |
-| consumed `Ray` | `RayWithSegments` plus `Intersection::t` | no stored consumed-ray object in candidate |
+| `requiredDetailMask` | `RayWithTracingState::requiredDetailMask` | constants aligned; owner differs |
+| consumed `Ray` | `RayWithTracingState` plus `Intersection::t` | no stored consumed-ray object in candidate |
 | no VITRAL field | `hitGeometry`, `hitBody`, detail-owner chain, `objectColor`, `noShadowFlag`, `materialUsesObjectLocalPoint` | POV-specific |
 
 Required alignment item: keep `Intersection` as the geometric core and keep
@@ -261,9 +250,8 @@ scene-level bodies as transform owners.
 
 ### 4.2. povCpp transform ownership
 
-`povCpp` `Geometry` is transform-free, and — since the deletion of the former
-`TransformedGeometry` intermediate class — so is every concrete shape
-(`Sphere`, `Box`, `Quadric`, `Triangle`, `InfinitePlane`, `Blob`,
+`povCpp` `Geometry` is transform-free, and so is every concrete shape
+(`Sphere`, `Box`, `Quadric`, `TriangleMesh`, `InfinitePlane`, `Blob`,
 `HeightField`, `ParametricBiCubicPatch`, `PolynomialShape`,
 `ConstructiveSolidGeometry`). Placement is owned by the two wrapper types
 that also own detail production (`RayOperationOwner` implementors):
@@ -291,17 +279,16 @@ fast-path identity flags, while povCpp stores composed matrix pairs plus the
 
 ### 4.3. Canonical shapes
 
-`povCpp` `Sphere` is a canonical unit sphere centered at the origin. Radius
-and placement are carried by the owning `SimpleBody`/`CsgOperand` transform,
-which maps the ray into the sphere's local space before intersecting.
+`povCpp` `Sphere` carries its own `radius` (default `1.0`) in the geometry;
+placement (translation/rotation/any additional scale) is owned by the
+`SimpleBody`/`CsgOperand` transform, which maps the ray into the sphere's
+local space before intersecting.
 
 VITRAL `Sphere` carries `radius_`/`radiusSquared_` in the geometry and relies on
 `SimpleBody` for body placement.
 
-Required alignment item: if geometry classes are to converge, the codebases
-need one agreed ownership model for intrinsic dimensions versus scene
-placement. Current povCpp puts sphere radius in the owner's transform; current
-VITRAL keeps radius in the shape.
+Alignment status: intrinsic-dimension ownership is aligned — both put radius
+on the shape and placement on the owning body/operand.
 
 ---
 
@@ -361,11 +348,11 @@ It handles:
 Its transforms propagate into children and region shapes.
 
 Alignment status: the `SimpleBody` name is shared, both are scene-object-level
-concepts, and — since the decoupling — both own placement at this level, so
-the §5 picture is now close. Residual differences: povCpp's `SimpleBody` also
-carries POV attribution (quick color, no-shadow), bounding/clipping regions
-and the two-layer matrix scheme; VITRAL's carries render-time material/
-texture/normal-map pointers and a modification-version check.
+concepts, and both own placement at this level. Residual differences:
+povCpp's `SimpleBody` also carries POV attribution (quick color, no-shadow),
+bounding/clipping regions and the two-layer matrix scheme; VITRAL's carries
+render-time material/texture/normal-map pointers and a modification-version
+check.
 
 Required alignment item: preserve the shared scene-body concept; converge the
 transform representation (decomposed-with-flags vs matrix-pairs-with-step-log)
@@ -453,7 +440,7 @@ details.
 
 ### 8.2. povCpp
 
-`povCpp` mirrors the same constants on `RayWithSegments`. The mask lives on the
+`povCpp` mirrors the same constants on `RayWithTracingState`. The mask lives on the
 ray because the all-crossings queue contains candidates before a final hit
 record exists.
 
@@ -534,7 +521,7 @@ virtual AxisAlignedBoundingBox getMinMax() const
 ```
 
 Concrete povCpp geometries overriding it: `Sphere`, `Box`, `Blob`, `Quadric`,
-`HeightField`, `Triangle`, `ParametricBiCubicPatch` and
+`HeightField`, `TriangleMesh`, `ParametricBiCubicPatch` and
 `ConstructiveSolidGeometry` (which unions its operands' transformed bounds).
 `CsgOperand` caches the child's bounds transformed by its operand matrix for
 union culling; `SimpleBody::getAABB()` returns the intersection of
@@ -548,8 +535,7 @@ unbounded state.
 
 Required alignment item: agree the return type. povCpp's
 `AxisAlignedBoundingBox` is the stronger API (no raw pointer, explicit
-unbounded semantics) and is the proposed winner — see `doc/alignmentPlan.md`,
-upstream item 1.
+unbounded semantics) and is the proposed winner.
 
 ---
 
@@ -620,9 +606,19 @@ semantics.
 
 ## 12. Statistics and hot-path allocation
 
-povCpp `Statistics` is per-render/per-task and records POV-specific counters:
-ray totals, primitive tests and successes, shadow tests, clipping/bounding
-tests, reflected/refracted/transmitted rays and related values.
+povCpp `PovRayRenderStatistics` (`src/render/shaders/PovRayRenderStatistics.h`)
+is per-render/per-task and records POV-specific counters: ray totals, shadow
+tests, reflected/refracted/transmitted rays and related values, plus two
+embedded sub-objects: `SolidTextureStatistics` for texture-specific counts,
+and `GeometryStatistics` (`base/src/main/vsdk/toolkit/common/statistics/`,
+alongside `SolidTextureStatistics`, built into `vitral_base`) for the
+per-primitive test/success pair counters and bounding/clipping region
+counters. `RayWithTracingState` carries only a `GeometryStatistics *`; the
+render-level counters that are not tied to a single ray are reached by
+shaders through `TraceService::getStatistics()` instead, since `TraceService`
+already threads through the whole shader call chain (`RayShaderPipeline` →
+`LocalSurfaceShader` → `MirrorReflectionShader`/`DirectLightShader`/
+`TransmissionRefractionShader`).
 
 VITRAL `RaytraceStatistics` exposes static recorders for ray categories and
 object intersection tests.
@@ -632,14 +628,16 @@ new queue for every intersection operation. VITRAL uses reusable hit/workspace
 records in the raytracer path.
 
 Alignment status: both avoid avoidable hot-path allocation, but statistics
-ownership and granularity are different.
+ownership and granularity are different. `GeometryStatistics` is colocated
+with `SolidTextureStatistics` in the shared `base/` location, but unlike
+`SolidTextureStatistics` (which VITRAL-side code — `TextureUtils`,
+`ProceduralNoise` — actually consumes), no VITRAL-side code references
+`GeometryStatistics` yet: it is positioned for sharing, not yet actually
+shared.
 
-Required alignment item: no direct 1:1 statistics mapping exists. Any shared
-statistics layer would need a common event taxonomy first. The first povCpp
-step toward it — extracting the ray↔geometry counters into a
-`GeometryStatistics` sub-object mirroring the already-shared
-`SolidTextureStatistics` pattern — is specified as step 1 of
-`doc/alignmentPlan.md`.
+Required alignment item: no direct 1:1 statistics mapping exists. A shared
+statistics layer needs a common event taxonomy against VITRAL's
+`RaytraceStatistics`.
 
 ---
 
@@ -647,20 +645,21 @@ step toward it — extracting the ray↔geometry counters into a
 
 | Area | Current povCpp | Current VITRAL | Alignment status |
 |---|---|---|---|
-| Ray type | `RayWithSegments : Ray` | `Ray` | shared base, POV extensions on derived ray |
+| Ray type | `RayWithTracingState : Ray` | `Ray` | shared base, POV extensions on derived ray |
 | Geometric hit core | VITRAL `Intersection` | `Intersection` | shared class |
 | Full hit record | `IntersectionCandidate` + `PovRayHit` projection | `RayHit` | conceptually mapped, storage differs |
 | Primary intersection primitive | all crossings | nearest hit | divergent, all-crossings required for POV |
-| Nearest-hit name | `doIntersectionFirstHit` = queue adapter; direct virtual is `doIntersectionFirstHitNoQueue` | `doIntersectionFirstHit` = pure virtual direct primitive | concepts on both sides; names collide (alignmentPlan step 4) |
+| Nearest-hit name | `doIntersectionFirstHit` = direct virtual; queue adapter is `doIntersectionFirstHitViaCrossings` | `doIntersectionFirstHit` = pure virtual direct primitive | name and meaning aligned |
 | Containment | `int`, same constants | `int`, enum-backed constants | signature/value aligned |
 | Geometry transform | none on `Geometry`; matrix layers on `SimpleBody`/`CsgOperand` | none on `Geometry`; transform on `SimpleBody` | owner aligned (scene level); representation differs |
 | Scene body | `SimpleBody : RayOperationOwner`, owns geometry + transforms + regions | `SimpleBody`, wraps geometry and transform | concept and transform ownership aligned; attribution differs |
 | CSG | supported through all crossings | no all-crossings CSG path | divergent |
-| Detail mask | `RayWithSegments::DETAIL_*`, normal gate in render engine | `RayHit::DETAIL_*`, per-detail lazy fill | constants aligned, granularity differs |
+| Detail mask | `RayWithTracingState::DETAIL_*`, normal gate in render engine | `RayHit::DETAIL_*`, per-detail lazy fill | constants aligned, granularity differs |
 | Renderer config | derives from VITRAL base plus POV flags | base display/render vocabulary | partially aligned |
 | Bounding API | `AxisAlignedBoundingBox getMinMax()` on `Geometry` | `double* getMinMax()` on `Geometry` | owner aligned; return type divergent |
 | Camera storage | VITRAL `CameraSnapshot` | `CameraSnapshot` | shared storage, generator semantics differ |
-| Statistics | per-instance/per-task POV counters | static raytrace recorders | divergent |
+| Statistics (render-level) | `PovRayRenderStatistics`, per-instance/per-task POV counters | static raytrace recorders | divergent |
+| Statistics (per-primitive) | `GeometryStatistics`, colocated in `base/` with `SolidTextureStatistics` | static raytrace recorders | positioned for sharing, not yet consumed by VITRAL-side code |
 
 ---
 
@@ -668,375 +667,19 @@ step toward it — extracting the ray↔geometry counters into a
 
 1. Add or design an all-crossings primitive for VITRAL that can represent
    ordered ray/solid crossings and carry enough attribution for CSG, shadows
-   and nested refraction. (povCpp-side contract frozen in
-   `doc/alignmentPlan.md` step 6.)
-2. ~~Decide the transform ownership model for shared geometry.~~ **Resolved**:
-   povCpp deleted `TransformedGeometry` and moved placement to
-   `SimpleBody`/`CsgOperand`, matching VITRAL's scene-level ownership (§4.2).
-   The narrower remaining question is the transform *representation*:
+   and nested refraction.
+2. Converge the transform *representation* on `SimpleBody`/`CsgOperand`:
    decomposed position/scale/rotation with fast-path flags (VITRAL) vs
    composed matrix pairs with a `TransformStep` replay log in two layers
-   (povCpp).
-3. Decide whether intrinsic dimensions such as sphere radius belong to geometry
-   or to placement transforms.
-4. Unify or bridge hit-detail masks so point, normal, UV and tangent laziness
-   have the same owner and semantics. (povCpp side: `doc/alignmentPlan.md`
-   step 3.)
-5. Define a shared bounding API. The owner is already aligned (`getMinMax()`
+   (povCpp). Ownership (§4.2) is already aligned; only the representation
+   differs.
+3. Unify or bridge hit-detail masks so point, normal, UV and tangent laziness
+   have the same owner and semantics.
+4. Define a shared bounding API. The owner is already aligned (`getMinMax()`
    on `Geometry` in both trees, §10); what remains is adopting one return
-   type — povCpp's `AxisAlignedBoundingBox` is the proposed winner
-   (`doc/alignmentPlan.md`, upstream item 1).
-6. Keep `CameraSnapshot` as the shared render-time camera record and treat ray
+   type — povCpp's `AxisAlignedBoundingBox` is the proposed winner.
+5. Keep `CameraSnapshot` as the shared render-time camera record and treat ray
    generation differences as intentional unless a visual-parity task requires
    alignment.
-7. Keep POV quality flags in `PovRayRendererConfiguration` unless VITRAL adds
+6. Keep POV quality flags in `PovRayRendererConfiguration` unless VITRAL adds
    equivalent feature-level rendering switches.
-
-The povCpp-side execution sequence for these items (renames, extractions and
-their ordering) is maintained in `doc/alignmentPlan.md`.
-
----
-
-## 15. Decoupling regression investigation (wg5 / chess), part 6
-
-This section records the investigation of the scenes broken by the
-"Decoupling TransformedGeometry from Geometry, part 6" commit (`47e94d4`),
-using the previous commit (`3fa7a81`, "part 5") as the known-good reference.
-It documents the experiments run, what was fixed, what is still broken, and
-concrete clues for whoever resumes this.
-
-### 15.1. Background: baked vs. matrix transforms
-
-The golden images in `referenceTestImages/` were produced by the **baked**
-transform model: `Quadric`, `PolynomialShape`, `ConstructiveSolidGeometry`,
-etc. mutated their own coefficients/operands when transformed
-(`scaleGeometry`/`translateGeometry`/`csg->scale()`), so by trace time the
-geometry already lived in world space and carried no transform.
-
-Part 6 moves CSG and `PolynomialShape` (and indirectly the quadrics nested
-under them) to a **matrix** model: the transform is kept as a
-`Matrix4x4d`/`Matrix4x4d` inverse pair on the owner (`SimpleBody`,
-`CsgOperand`) and applied to the ray (inward) and to the hit point/normal
-(outward) at trace time. `GeometryTransformMutator` still bakes
-`PolynomialShape`/`ParametricBiCubicPatch` where asked, but `CsgOperand` and
-`SimpleBody` deliberately route `PolynomialShape` and `ConstructiveSolidGeometry`
-through the matrix path.
-
-Because the goldens are baked-derived, the matrix path must reproduce the
-baked result. **Key empirical finding: it can.** Many transformed CSG/quadric
-cases reproduce the baked golden byte-for-byte (AE 0), so the remaining
-mismatches are *real bugs in the matrix path*, not irreducible float noise.
-
-### 15.2. Method
-
-- Built both commits in git worktrees plus a third tree with the candidate
-  fixes; rendered the same `.pov` with each binary and compared with
-  `compare -metric AE` (ImageMagick). `AE` counts any pixel that differs at all,
-  so it is the same metric the gate (`scripts/testAgainstGoldenImages.sh`) uses.
-- Worked at 320x200 / 160x100 for speed; the gate resolution is 1280x800. Note
-  that `povray`'s `+o` flag does **not** accept absolute paths here — render to a
-  relative name and move the file.
-- Isolated by carving the scene down: a preamble with all `#declare`s plus a
-  single `composite`/`object` under test. For wg5 the wine glass parts were
-  rendered one at a time by editing the `WineGlass` composite body.
-- Instrumented `SimpleBody::doExtraInformation` with a `static std::set<std::string>`
-  that prints each distinct `(detailOwnerCount, per-owner XF/identity,
-  body XF/identity, geometryTransform present)` signature exactly once, so a
-  full render emits a handful of lines instead of millions. This is how the
-  `[id,id,XF]`-style structure signatures below were obtained. (Removed before
-  hand-off; re-add behind `#ifdef DEBUG_DETAIL_OWNERS` if needed.)
-
-### 15.3. Bug 1 — dropped outer transform on nested CSG operands (FIXED)
-
-Symptom: the silver `Frame` of wg5 (declared `union { intersection { Disk_X
-scale<240,4.5,4.5> translate ... } ... }`, where `Disk_X` is itself an
-`intersection` of a cylinder quadric and two planes) rendered as a flat white
-slab instead of a rounded chrome tube — the cylinder's curvature/shading was
-gone.
-
-Root cause: `CsgOperand::doIntersectionForAllRayCrossings` now *always*
-`pushDetailOwner(this)` (the old early-return for the untransformed case was
-removed), so a hit on a deeply nested primitive accumulates a *stack* of
-owners, innermost-first. The instrumentation showed the frame hit produced
-`count=3 [id,id,XF]`: the meaningful `scale` sits on the **outermost** owner.
-But `SimpleBody::doExtraInformation` popped a **single** owner from the
-**front** (`popDetailOwner`, innermost) and applied only that one, dropping the
-outer `scale` entirely → un-scaled normal → flat shading.
-
-Fix:
-- `PovRayHit::popDetailOwnerBack()` (pop from the end = outermost first).
-- `SimpleBody::doExtraInformation` consumes via `popDetailOwnerBack`, and
-  `CsgOperand::doExtraInformation` recurses into the next inner owner
-  (`popDetailOwnerBack`) instead of straight to its own geometry; only the
-  innermost owner (no remaining owner) evaluates the primitive normal, and the
-  chain re-applies each operand's inverse to the normal while unwinding.
-- Deferred normalization: each `CsgOperand` level only multiplies by
-  `transformationInverse.withoutTranslation()`; the single `normalizedFast()`
-  happens once at the top (`SimpleBody`), because renormalizing between nested
-  non-uniform scales corrupts the composition.
-
-Verification: the isolated frame, frame+board, and **seven** hand-built nested
-structures all reach **AE 0 vs. good**:
-`union{intersection{quadric scale translate, plane}}` (`nest`), two nested
-scales (`nest2`), nested rotation (`nestr`), unit quadric scaled by the wrapping
-intersection (`nesta`), reflective union-of-union with `Gold_Texture`
-(`nestref`), and a hollow `inverse`/difference cylinder pair (`nestd`).
-`p_bead`/`p_base`/`p_stem` (single transformed quadrics) also stayed at AE 0/4.
-
-### 15.4. Bug 2 — `t` recomputed as a bare distance (FIXED)
-
-`SimpleBody` and `CsgOperand` recompute the crossing's `t` after moving the
-point to world space, using `point.subtract(ray->getOrigin()).length()`.
-`length()` is unsigned, so any crossing *behind* the ray origin — exactly the
-case for refracted/internal rays whose origin sits on or inside the body — is
-flipped to a positive `t`, sorts in front, and corrupts the CSG in/out
-classification (the depth queue and `peek()` rely on signed `t`).
-
-Fix: signed ray parameter
-`(point - origin)·dir / (dir·dir)`, which equals the geometry's native `t` for
-any ray direction. This is a correctness fix; on its own it did not change the
-wg5 / chess AE numbers measurably (primary rays are all forward), but it is the
-right invariant and is kept.
-
-### 15.5. wine glass — optics correct, global `rand()` dither amplifies (DIAGNOSED, NOT FIXED)
-
-The wine glass parts that diverge are `Top`/`Wine` (CSG `intersection`
-geometry) and `Rim` (`quartic`/`PolynomialShape`), all clipped + scaled +
-translated and refractive.
-
-Findings:
-- With an **opaque** texture the isolated `Top` is AE 27 (essentially exact):
-  geometry and normals are fine.
-- With the **refractive** Glass texture it jumps to ~33k, but with a **plain,
-  non-`texture_randomness` ground** it drops back to **AE 10**. So the wine
-  glass optics themselves are essentially correct.
-- The real amplifier is the ground texture `texture { 0.2 color RichBlue }`.
-  The leading `0.2` is **`texture_randomness`**, a dither applied in
-  `LambertShader::shade` as `intensity -= rand()/0x7FFF * textureRandomness`.
-  `rand()` is a **single global serial stream** (see the long comment in
-  `LambertShader.cpp`: this stream must stay identical for byte parity, and wg5
-  is explicitly on the list of `texture_randomness` scenes).
-- Any sub-pixel divergence in the glass refraction changes the number/order of
-  `LambertShader::shade` calls, desynchronizing `rand()` for every surface
-  shaded *afterwards* in scan order. The amplified diff confirms this: the
-  speckle starts at the glass and covers the whole floor below it; the sky above
-  is clean.
-
-Implication: to make wg5 match the (baked) golden, the matrix glass refraction
-must reproduce the baked `LambertShader` call sequence exactly. The wine glass
-optics being AE 10 (not 0) means a handful of silhouette/edge pixels still
-diverge, and that is enough to desync `rand()`. This is the same class of
-fragility as antialiasing dither.
-
-### 15.6. OPEN BUG — chess pieces darkened by the detail-owner chain
-
-This is the blocker. The part-6 (broken) chess pieces are **visually correct**:
-piece-region mean brightness 0.2785 vs. good 0.2786, AE 982 over the piece crop
-(the full-frame 78766 AE is almost entirely the `rand()` floor speckle, not the
-pieces). The chess golden equals the good output (good vs. golden AE 0).
-
-With the §15.3 detail-owner fix applied, the chess pieces **darken**: piece-crop
-mean brightness drops to 0.2309, AE 60547 over the same crop. So the fix that
-repairs the frame **regresses chess**.
-
-What is known:
-- It is the detail-owner change, not the `t`-sign change: reverting `t` alone
-  leaves chess at the same regressed AE (8652 at 320x200); reverting the
-  detail-owner change restores the good pieces.
-- It is **not** reproduced by any of the seven minimal nested structures in
-  §15.3 (all AE 0), including reflective ones, `inverse`/difference ones, and
-  unit-quadric-scaled-by-ancestor ones. The chess pieces are built from
-  `union { ... intersection { quadric scale translate } ... }` with structure
-  signatures up to `count=6`, including `[id,id,XF,id]` (XF in the middle) and
-  `[id,id,XF,XF,id]` (two non-identity owners). Some minimal subset of the real
-  chess nesting is still not captured by the reductions tried.
-
-Clues for resuming:
-1. The divergence is on the lit/reflective surface of the pieces, so it is a
-   **normal** error in the chain, surfacing through reflection (gold is
-   reflective) more than through diffuse.
-2. The minimal repros that pass all have the transform on either the primitive's
-   own operand or a *single* ancestor. The untested suspects are: (a) signatures
-   with **multiple** non-identity owners at non-adjacent depths
-   (`[id,id,XF,XF,id]`), (b) `count >= 5` depth (close to `MAX_DETAIL_OWNERS = 8`
-   in `IntersectionAttributes`; check for silent truncation by `pushDetailOwner`
-   when the stack is full — a truncated chain would drop a transform), and
-   (c) interaction with the per-piece placement transform on the enclosing
-   `SimpleBody` (`body=XF`) combined with operand-level `XF`s.
-3. Best next probe: use the per-pixel `DBG_ON()` trace already wired into
-   `RenderEngine`/`CsgOperand` (`g_dbgX/g_dbgY` in `common/DebugTrace.h`) on one
-   bright-in-good / dark-in-fixed piece pixel, and compare the printed
-   `n_local` → `n_after_tx` chain against a hand-computed baked normal. The good
-   tree has no trace, so compute the expected normal analytically or bake the
-   single piece in a scratch scene.
-4. Cross-check `MAX_DETAIL_OWNERS`: render chess with the §15.2 signature
-   instrumentation and look for `count == 8` (saturation). If present, raise the
-   cap or restructure so no transform is silently dropped.
-
-### 15.7. Hand-off state
-
-- Applied (matrix-path correctness fixes): `PovRayHit::popDetailOwnerBack`,
-  the detail-owner chain in `CsgOperand`/`SimpleBody`, deferred normalization,
-  and the signed-`t` fix. These make the frame and all isolable nested cases
-  AE 0, but **regress chess** (§15.6), so the tree is **not** ready for a golden
-  re-baseline as-is.
-- Not done (by request): re-baselining `referenceTestImages/`. The chess
-  regression must be resolved first, otherwise the re-baseline would bake the
-  darkened pieces — exactly the "recover toward `referenceTestImages.old`, not
-  the buggy re-baselined set" hazard.
-- The matrix model is the chosen direction (keep decoupling, re-baseline once
-  correct), so the path forward is to finish §15.6, confirm frame + chess +
-  wine glass all match the baked reference (modulo the `rand()` dither, which
-  may force an AE-similar rather than AE-0 acceptance for `texture_randomness`
-  scenes), then re-baseline manually.
-
-## 16. Texture-coordinate-frame regressions (desk / pool / fish13), part 7
-
-Three more part-6 regressions, all in how a texture's *evaluation point* and
-*transform* are derived once geometry transforms became matrices instead of
-baked coefficients. The targets (`referenceTestImages/level3/{desk,pool,fish13}`)
-are byte-identical to the part-5 good commit `3fa7a81` (verified: good-commit
-render vs golden = AE 0 for pool and fish13), so the good binary is ground truth.
-
-### 16.1. Bug A — `replayParsedTransforms` over-applies pre-texture object transforms (FIXED)
-
-`ObjectParser::parseObject` (new in part-6) recorded every `translate/rotate/scale`
-parsed *before* a `texture {}` block and **replayed** them onto the freshly
-parsed texture. That is wrong: in POV 1.0 / the good commit, object transforms
-that precede a texture hit the still-*default* texture, whose transform ops are
-a deliberate no-op (the "§1.4 no-op quirk" in `PovRayMaterial::translateTexture`).
-So the texture must inherit **none** of them.
-
-Symptoms:
-- `pool.pov` floating ball: `sphere translate <20 4 -15> texture { gradient ... }`.
-  Replay re-centred the gradient on the local origin → the beach-ball stripes
-  collapsed to one big red band. Fixed: ball is white with the red band/dot.
-- `desk.pov` picture frame: `intersection {...} translate<1 1 1> scale<20 15 1>
-  texture { image_map { gif "rough.gif" } scale ... }`. Replay forced the body
-  translate+scale onto the image_map UV → the picture sampled off-image and
-  rendered black. Fixed: the astronaut photo maps correctly (AE 0 against golden
-  in the picture region).
-
-Fix: delete the replay call (and the now-dead `replayParsedTransforms`). Object
-transforms that *follow* the texture still apply, because they go through
-`object->translate/rotate/scale` on the now-non-constant texture, untouched by
-this change. No regression: `steiner` and `wtorus` stay AE 0.
-
-### 16.2. Bug B — `LocalSurfaceShader` evaluates a top-level CSG texture in object-local space (FIXED)
-
-`CsgOperand` sets `materialUsesObjectLocalPoint = true` on every candidate so a
-*per-operand* texture is sampled in its operand-local frame. `RayShaderPipeline`
-gates that conversion on `hit.material != nullptr` (i.e. only a real per-operand
-material). `LocalSurfaceShader` instead used `usingMaterialTexture = (texture
-!= nullptr)`, but `texture` there is already resolved to `hit.material` **or**
-`hit.objectTexture`, so it was true even for a plain object texture — and the
-bump point got pulled into object-local space.
-
-Symptom: `fish13.pov` swamp water — `intersection { Cube scale<10000 1 500> ... }`
-with a `ripples 0.7 frequency 0.08` normal. Sampled in the unit-cube local frame,
-`frequency 0.08` produced ~zero variation → the concentric wave reflections
-vanished (flat dark water). Pre-existing in the part-6 broken commit too (not
-caused by the §15 detail-owner work). Fixed by mirroring `RayShaderPipeline`:
-`usingMaterialTexture = (hit.material != nullptr)`. Water ripples restored;
-`fish13` AE 533k→217k (remainder is the §15.5 `rand()` dither). Per-operand CSG
-textures are unaffected (their `hit.material` is non-null), so `chess`/`wg5`/
-`dfwood` do not regress.
-
-### 16.3. Results (full-res AE vs golden = good-commit `3fa7a81`)
-
-| scene   | broken 47e94d4 | with part-7 fixes | note |
-|---------|---------------:|------------------:|------|
-| steiner |              0 |                 0 | unchanged |
-| wtorus  |              0 |                 0 | unchanged |
-| pool    |         594857 |            557959 | ball fixed; rest = dither |
-| desk    |         701665 |            519171 | image_map fixed; rest = dither |
-| fish13  |         575815 |            217425 | ripples fixed; rest = dither |
-| chess   |          78766 |            136961 | §15.6 darkening (pre-existing); part-7 itself nudges 139061→136961 |
-| wg5     |         706457 |            533289 | glass recovered; floor = dither |
-| skyvase |            n/a |            384935 | structure ok; surface = dither |
-
-Both part-7 fixes move strictly toward the good commit and never regress a scene
-versus its own pre-fix state (chess measured with today's two files reverted =
-139061, i.e. slightly worse than with them). The dominant residual on every
-non-AE-0 scene is now the §15.5 `texture_randomness` / `rand()`-stream
-divergence, which is the remaining blocker for an AE-0 re-baseline and is
-independent of geometry/texture-frame correctness.
-
-## 17. Composite detail-owner ordering — the real §15.6 root cause (FIXED)
-
-While doing a focused second pass on `fish13.pov`, the stems (`composite {
-stem1 scale<3 3 3> ... }`, where `stem1` is a 3-level-nested composite of
-sphere `object`s carrying a `marble` texture) rendered washed-out: no marble
-veins, no phong highlights. The broken part-6 commit `47e94d4` renders them
-correctly, so this was a **regression introduced by the §15 detail-owner work**,
-not by the part-7 texture-frame fixes (confirmed by reverting the part-7 files —
-stems stay washed).
-
-### 17.1. Root cause
-
-The detail-owner stack has two producers that pushed in **opposite** orders:
-- `CsgOperand::doIntersectionForAllRayCrossings` uses `pushDetailOwner` (append),
-  so a nested CSG builds the stack innermost-first → `[inner … outer]`.
-- `Composite::doIntersectionForAllRayCrossings` used `prependDetailOwner`, so a
-  nested composite built it outermost-first → `[outer … inner]`.
-
-A single consume direction can only be correct for one of them:
-- `47e94d4` consumed from the **front** (`popDetailOwner`): correct for
-  composites (stems OK), **wrong for CSG** — that was the §15.3 frame flat-white bug.
-- The §15 fix switched to **back** consumption (`popDetailOwnerBack`): correct
-  for CSG (frame fixed), but it silently **reversed the order for every nested
-  composite**, applying the enclosing transforms to the surface normal in
-  scrambled order. The normal ended up non-unit / mis-rotated, so diffuse and
-  phong collapsed and any procedural pattern keyed off `N` washed out.
-
-This is the true root of the §15.6 "chess darkening": chess pieces are
-`composite`s of transformed CSG quadrics, so they hit exactly this reversed-order
-path — not a saturation of `MAX_DETAIL_OWNERS` as hypothesised in §15.6.
-
-### 17.2. Fix
-
-`Composite` now uses `pushDetailOwner` (append) like `CsgOperand`, so every
-producer builds the stack innermost-first and the single outermost-first
-`popDetailOwnerBack` consumer is correct for composites, CSG, and any nesting of
-the two. One line, no change to the §15 CSG path.
-
-### 17.3. Results (full-res AE vs golden = good commit `3fa7a81`)
-
-| scene   | before (part-7) | after §17 | note |
-|---------|----------------:|----------:|------|
-| fish13  |          217425 |        94 | stems restored; rest = dither |
-| chess   |          136961 |         4 | §15.6 darkening **resolved** |
-| desk    |          519171 |         3 | composite pencils/holder restored |
-| dfwood  |           76535 |         0 | pixel-perfect |
-| skyvase |          384935 |      2618 | near-perfect |
-| steiner |               0 |         0 | unchanged |
-| wtorus  |               0 |         0 | unchanged |
-| pool    |          557959 |    557958 | unchanged — genuine §15.5 dither (water/grass/sky) |
-| wg5     |          533289 |    533144 | unchanged — genuine §15.5 dither (glass/floor) |
-
-After §16 + §17, every non-trivial structural decoupling regression is resolved.
-The only scenes still far from AE 0 are `pool` and `wg5`, whose residual is the
-§15.5 `texture_randomness` / `rand()`-stream divergence (visually mild speckle on
-large procedurally-dithered surfaces — `compare -metric AE` counts every
-1-LSB-different pixel, so the count is large while the image looks identical).
-The tree is now a sound basis for the manual golden re-baseline.
-
-### 17.4. Full-gate regression sweep (108 scenes)
-
-A complete `renderAll.sh` of all 108 scenes confirms no regression from the
-§16/§17 changes. Judged by the project heat-map convention (`scripts/viewImages.sh`:
-black=match → blue → cyan → yellow → red): **a scene is only considered broken if
-its heat-map shows yellow/green/red; blue/cyan texture speckle from the §15.5
-`rand()` divergence is non-invalidating** (`compare -metric AE` over-counts it).
-
-- 60 scenes AE 0; the rest blue/cyan speckle only.
-- No scene's AE rose versus the part-6 broken commit `47e94d4`. Several dropped
-  sharply: iortest 180551→26541, pawns 159716→51045, tomb 299694→124709,
-  pacman 21074→7815, ionic5 440310→414262, plus the §17.3 wins.
-- The high-AE scenes (tetra 489874, kscope 444835, roman, snack, piece1, pool,
-  wg5, snail) are all-blue heat-maps — mild speckle, no structural error — so
-  they are rebaseline-ready as-is.
-
-Net: the matrix-decoupling regressions are resolved across the whole gate; the
-only remaining differences are the §15.5 dither, which the manual re-baseline
-will absorb.

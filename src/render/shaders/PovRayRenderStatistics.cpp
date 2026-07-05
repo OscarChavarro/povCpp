@@ -1,9 +1,9 @@
 #include "java/util/ArrayList.txx"
-#include "common/statistics/Statistics.h"
+#include "render/shaders/PovRayRenderStatistics.h"
 
-// Supports multi-thread ray tracing. Statistics must be totaled after all
+// Supports multi-thread ray tracing. PovRayRenderStatistics must be totaled after all
 // worker threads have been joined.
-Statistics::Statistics(java::ArrayList<Statistics*> *partsPerThread)
+PovRayRenderStatistics::PovRayRenderStatistics(java::ArrayList<PovRayRenderStatistics*> *partsPerThread)
 {
     reset();
 
@@ -20,7 +20,7 @@ Statistics::Statistics(java::ArrayList<Statistics*> *partsPerThread)
     java::ArrayList<GeometryStatistics*> geometryStatisticsParts;
 
     for (long i = 0; i < partsPerThread->size(); ++i) {
-        const Statistics *part = partsPerThread->get(i);
+        const PovRayRenderStatistics *part = partsPerThread->get(i);
         if (part == nullptr) {
             continue;
         }
@@ -45,13 +45,13 @@ Statistics::Statistics(java::ArrayList<Statistics*> *partsPerThread)
 }
 
 SolidTextureStatistics*
-Statistics::getSolidTextureStatistics()
+PovRayRenderStatistics::getSolidTextureStatistics()
 {
     return &solidTextureStatistics;
 }
 
 void
-Statistics::reset()
+PovRayRenderStatistics::reset()
 {
     numberOfPixels = 0L;
     numberOfRays = 0L;

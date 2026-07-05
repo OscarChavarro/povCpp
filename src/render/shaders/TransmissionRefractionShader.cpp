@@ -1,6 +1,6 @@
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/statistics/Statistics.h"
+#include "render/shaders/PovRayRenderStatistics.h"
 #include "environment/geometry/element/RayWithTracingState.h"
 #include "render/shaders/TraceService.h"
 #include "render/shaders/TransmissionRefractionShader.h"
@@ -19,17 +19,15 @@ TransmissionRefractionShader::shade(PovRayMaterial *texture, const Vector3Dd *in
     double temp;
     double ior;
 
-    Statistics &stats = *ray->getStatistics();
-
     if (surfaceNormal == nullptr) {
         newRay.setOriginAndDirection(*intersectionPoint, ray->getDirection());
 
         newRay.copyContainersFrom(ray);
-        newRay.setStatistics(ray->getStatistics());
+        newRay.setGeometryStatistics(ray->getGeometryStatistics());
         newRay.setConfig(ray->getConfig());
         newRay.setIntersectionQueuePool(ray->getIntersectionQueuePool());
         traceLevel++;
-        stats.incrementTransmittedRaysTraced();
+        traceService->getStatistics()->incrementTransmittedRaysTraced();
         tempColor.setR(0.0); tempColor.setG(0.0); tempColor.setB(0.0); tempColor.setA(0);
         newRay.setQuadricConstantsCached(false);
         traceService->trace(&newRay, &tempColor);
@@ -38,7 +36,7 @@ TransmissionRefractionShader::shade(PovRayMaterial *texture, const Vector3Dd *in
         color->setG(color->getG() + tempColor.getG());
         color->setB(color->getB() + tempColor.getB());
     } else {
-        stats.incrementRefractedRaysTraced();
+        traceService->getStatistics()->incrementRefractedRaysTraced();
         normalComponent = ray->getDirection().dotProduct(*surfaceNormal);
         if (normalComponent <= 0.0) {
             localNormal = Vector3Dd(
@@ -49,7 +47,7 @@ TransmissionRefractionShader::shade(PovRayMaterial *texture, const Vector3Dd *in
         }
 
         newRay.copyContainersFrom(ray);
-        newRay.setStatistics(ray->getStatistics());
+        newRay.setGeometryStatistics(ray->getGeometryStatistics());
         newRay.setConfig(ray->getConfig());
         newRay.setIntersectionQueuePool(ray->getIntersectionQueuePool());
 

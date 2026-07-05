@@ -7,7 +7,7 @@
 #include "vsdk/toolkit/numericalAnalysis/polynomial/QuadraticSolver.h"
 #include "vsdk/toolkit/numericalAnalysis/polynomial/QuarticSolver.h"
 #include "common/Config.h"
-#include "common/statistics/Statistics.h"
+#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/Blob.h"
 
@@ -331,9 +331,9 @@ Blob::traceCrossings(
     Vector3Dd intersectionPoint;
     Vector3Dd dv;
     bool intersectionFound = false;
-    Statistics &stats = *ray->getStatistics();
+    GeometryStatistics &stats = *ray->getGeometryStatistics();
 
-    stats.getGeometryStatistics()->incrementRayBlobTests();
+    stats.incrementRayBlobTests();
 
     // Transform the ray into the blob space
     if (blob->transformation != nullptr) {
@@ -473,7 +473,7 @@ Blob::traceCrossings(
         }
     }
     if (intersectionFound) {
-        stats.getGeometryStatistics()->incrementRayBlobTestsSucceeded();
+        stats.incrementRayBlobTestsSucceeded();
     }
     return intersectionFound;
 }

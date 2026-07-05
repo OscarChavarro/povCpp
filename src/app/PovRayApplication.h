@@ -2,7 +2,7 @@
 #define __POV_RAY_APPLICATION__
 
 #include "java/util/ArrayList.txx"
-#include "common/statistics/Statistics.h"
+#include "render/shaders/PovRayRenderStatistics.h"
 #include "io/context/RenderRuntimeState.h"
 #include "environment/material/PovRayRendererConfiguration.h"
 #include "environment/scene/Scene.h"
@@ -16,7 +16,7 @@ class PovRayApplication {
   private:
     PovRayRendererConfiguration configuration;
     FileLocator fileLocator;
-    Statistics statistics;
+    PovRayRenderStatistics statistics;
     RenderRuntimeState runtimeState;
     TextureUtils textureUtils;
     Scene scene;
@@ -26,7 +26,7 @@ class PovRayApplication {
 
     void printProgress(const char *message);
     void printStatistics(
-        const Statistics &stats,
+        const PovRayRenderStatistics &stats,
         const Scene &frame,
         const PovRayRendererConfiguration &inputConfiguration);
 

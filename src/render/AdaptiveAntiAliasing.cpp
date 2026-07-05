@@ -1,5 +1,5 @@
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
-#include "common/statistics/Statistics.h"
+#include "render/shaders/PovRayRenderStatistics.h"
 #include "environment/material/PovRayRendererConfiguration.h"
 #include "render/AdaptiveAntiAliasing.h"
 #include "render/ColorOperations.h"
@@ -17,7 +17,7 @@ AdaptiveAntiAliasing::rand3dInline(RenderWorker &worker, int a, int b)
 void
 AdaptiveAntiAliasing::superSample(
     RenderWorker &worker, ColorRgba *result, int x, int y, int width, int height,
-    PriorityQueuePool<IntersectionCandidate> *pool, Statistics *stats)
+    PriorityQueuePool<IntersectionCandidate> *pool, PovRayRenderStatistics *stats)
 {
     ColorRgba color(0.0, 0.0, 0.0, 0.0);
     static const double superSampleOffsets[SUPER_SAMPLE_COUNT][2] = {
@@ -70,7 +70,7 @@ AdaptiveAntiAliasing::superSample(
 void
 AdaptiveAntiAliasing::doAntiAliasing(RenderWorker &worker, int x, int y,
     ColorRgba *color, const RasterTileArea &area,
-    PriorityQueuePool<IntersectionCandidate> *pool, Statistics *stats)
+    PriorityQueuePool<IntersectionCandidate> *pool, PovRayRenderStatistics *stats)
 {
     char antialiasCenterFlag = 0;
 

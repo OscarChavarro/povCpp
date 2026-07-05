@@ -4,6 +4,7 @@
 #include "render/bakedScene/BakedPlaneIntersector.h"
 
 #include "common/Config.h"
+#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
 
@@ -16,8 +17,8 @@ BakedPlaneIntersector::intersectBakedPlane(
     RaySharedCache &cache,
     double *depth)
 {
-    Statistics &stats = *ray->getStatistics();
-    stats.getGeometryStatistics()->incrementRayPlaneTests();
+    GeometryStatistics &stats = *ray->getGeometryStatistics();
+    stats.incrementRayPlaneTests();
 
     double normalDotOrigin;
     if (ray->isPrimaryRayEnabled()) {
@@ -43,7 +44,7 @@ BakedPlaneIntersector::intersectBakedPlane(
     *depth = normalDotOrigin / normalDotDirection;
     if (*depth >= Config::SMALL_TOLERANCE &&
         *depth <= Config::MAX_DISTANCE) {
-        stats.getGeometryStatistics()->incrementRayPlaneTestsSucceeded();
+        stats.incrementRayPlaneTestsSucceeded();
         return true;
     }
     return false;

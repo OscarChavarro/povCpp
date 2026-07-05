@@ -13,7 +13,7 @@ This module implements the code for general 3 variable polynomial shapes
 #include "vsdk/toolkit/numericalAnalysis/polynomial/QuarticSolver.h"
 
 #include "common/Config.h"
-#include "common/statistics/Statistics.h"
+#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
@@ -114,7 +114,7 @@ PolynomialShape::doIntersectionForAllRayCrossings(
             Vector3Dd(ray->getDirection().x(), ray->getDirection().y(), ray->getDirection().z()));
     }
     newRay.setShadowRay(ray->isShadowRayEnabled());
-    newRay.setStatistics(ray->getStatistics());
+    newRay.setGeometryStatistics(ray->getGeometryStatistics());
     newRay.setConfig(ray->getConfig());
     newRay.setIntersectionQueuePool(ray->getIntersectionQueuePool());
 
@@ -128,8 +128,8 @@ PolynomialShape::doIntersectionForAllRayCrossings(
         newRay.getDirection().y() / len, newRay.getDirection().z() / len));
 
     intersectionFound = false;
-    Statistics &stats = *ray->getStatistics();
-    stats.getGeometryStatistics()->incrementRayPolyTests();
+    GeometryStatistics &stats = *ray->getGeometryStatistics();
+    stats.incrementRayPolyTests();
     if (shape->order == 4) {
         cnt = PolynomialShape::intersectQuartic(&newRay, shape, depths);
     } else {
@@ -138,7 +138,7 @@ PolynomialShape::doIntersectionForAllRayCrossings(
     }
 
     if (cnt > 0) {
-        stats.getGeometryStatistics()->incrementRayPolyTestsSucceeded();
+        stats.incrementRayPolyTestsSucceeded();
     }
     for (i = 0; i < cnt; i++) {
         if (depths[i] < 0) {
@@ -196,7 +196,7 @@ PolynomialShape::doIntersectionForAllRayCrossingsAnnotated(
             Vector3Dd(ray->getDirection().x(), ray->getDirection().y(), ray->getDirection().z()));
     }
     newRay.setShadowRay(ray->isShadowRayEnabled());
-    newRay.setStatistics(ray->getStatistics());
+    newRay.setGeometryStatistics(ray->getGeometryStatistics());
     newRay.setConfig(ray->getConfig());
     newRay.setIntersectionQueuePool(ray->getIntersectionQueuePool());
 
@@ -210,8 +210,8 @@ PolynomialShape::doIntersectionForAllRayCrossingsAnnotated(
         newRay.getDirection().y() / len, newRay.getDirection().z() / len));
 
     intersectionFound = false;
-    Statistics &stats = *ray->getStatistics();
-    stats.getGeometryStatistics()->incrementRayPolyTests();
+    GeometryStatistics &stats = *ray->getGeometryStatistics();
+    stats.incrementRayPolyTests();
     if (shape->order == 4) {
         cnt = PolynomialShape::intersectQuartic(&newRay, shape, depths);
     } else {
@@ -220,7 +220,7 @@ PolynomialShape::doIntersectionForAllRayCrossingsAnnotated(
     }
 
     if (cnt > 0) {
-        stats.getGeometryStatistics()->incrementRayPolyTestsSucceeded();
+        stats.incrementRayPolyTestsSucceeded();
     }
     for (i = 0; i < cnt; i++) {
         if (depths[i] < 0) {

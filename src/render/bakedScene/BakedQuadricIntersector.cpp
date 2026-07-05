@@ -5,6 +5,7 @@
 
 #include "java/lang/Math.h"
 #include "common/Config.h"
+#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 
 void
 BakedQuadricIntersector::mixVectorTerms(Vector3Dd &a, const Vector3Dd &b, const Vector3Dd &c)
@@ -24,8 +25,8 @@ BakedQuadricIntersector::intersectBakedQuadric(
     double *depth1,
     double *depth2)
 {
-    Statistics &stats = *ray->getStatistics();
-    stats.getGeometryStatistics()->incrementRayQuadricTests();
+    GeometryStatistics &stats = *ray->getGeometryStatistics();
+    stats.incrementRayQuadricTests();
 
     Vector3Dd position2;
     Vector3Dd direction2;
@@ -120,7 +121,7 @@ BakedQuadricIntersector::intersectBakedQuadric(
         *depth2 = *depth1;
     }
 
-    stats.getGeometryStatistics()->incrementRayQuadricTestsSucceeded();
+    stats.incrementRayQuadricTestsSucceeded();
     return true;
 }
 
@@ -137,8 +138,8 @@ BakedQuadricIntersector::intersectBakedQuadricWithTrueMiss(
     double *depth2,
     bool &trueMiss)
 {
-    Statistics &stats = *ray->getStatistics();
-    stats.getGeometryStatistics()->incrementRayQuadricTests();
+    GeometryStatistics &stats = *ray->getGeometryStatistics();
+    stats.incrementRayQuadricTests();
 
     Vector3Dd position2;
     Vector3Dd direction2;
@@ -227,7 +228,7 @@ BakedQuadricIntersector::intersectBakedQuadricWithTrueMiss(
         *depth2 = *depth1;
     }
 
-    stats.getGeometryStatistics()->incrementRayQuadricTestsSucceeded();
+    stats.incrementRayQuadricTestsSucceeded();
     return true;
 }
 
@@ -247,8 +248,8 @@ BakedQuadricIntersector::intersectBakedQuadricWithCoeffs(
     double &polyC,
     bool &trueMiss)
 {
-    Statistics &stats = *ray->getStatistics();
-    stats.getGeometryStatistics()->incrementRayQuadricTests();
+    GeometryStatistics &stats = *ray->getGeometryStatistics();
+    stats.incrementRayQuadricTests();
 
     Vector3Dd position2;
     Vector3Dd direction2;
@@ -346,6 +347,6 @@ BakedQuadricIntersector::intersectBakedQuadricWithCoeffs(
         *depth2 = *depth1;
     }
 
-    stats.getGeometryStatistics()->incrementRayQuadricTestsSucceeded();
+    stats.incrementRayQuadricTestsSucceeded();
     return true;
 }
