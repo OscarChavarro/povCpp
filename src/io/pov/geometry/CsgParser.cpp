@@ -28,6 +28,7 @@ environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryB
 #include "io/pov/geometry/QuadricParser.h"
 #include "io/pov/geometry/SphereParser.h"
 #include "io/pov/geometry/TriangleParser.h"
+#include "environment/geometry/surface/TriangleMesh.h"
 #include "io/pov/light/LightGeometryAdapter.h"
 #include "io/pov/light/LightSourceParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
@@ -47,6 +48,61 @@ addCsgShape(ConstructiveSolidGeometry *container, SimpleBodyBuilder *shape)
     delete shape;
 }
 
+static void
+flushPendingTriangles(
+    ConstructiveSolidGeometry *container,
+    java::ArrayList<SimpleBodyBuilder *> &pendingTriangles)
+{
+    if (pendingTriangles.size() == 0) {
+        return;
+    }
+    if (pendingTriangles.size() == 1) {
+        addCsgShape(container, pendingTriangles[0]);
+        pendingTriangles.clear();
+        return;
+    }
+
+    bool eligible = true;
+    Material * const sharedMaterial = pendingTriangles[0]->getMaterial();
+    for (long int i = 0; i < pendingTriangles.size() && eligible; i++) {
+        SimpleBodyBuilder *candidate = pendingTriangles[i];
+        if (candidate->getTransformation() != nullptr ||
+            candidate->getShapeColor() != nullptr ||
+            candidate->getMaterial() != sharedMaterial) {
+            eligible = false;
+        }
+    }
+
+    if (!eligible) {
+        for (long int i = 0; i < pendingTriangles.size(); i++) {
+            addCsgShape(container, pendingTriangles[i]);
+        }
+        pendingTriangles.clear();
+        return;
+    }
+
+    TriangleMesh *mergedMesh = new TriangleMesh();
+    for (long int i = 0; i < pendingTriangles.size(); i++) {
+        TriangleMesh *source =
+            static_cast<TriangleMesh *>(pendingTriangles[i]->getGeometry());
+        mergedMesh->appendFrom(*source, 0);
+    }
+
+    for (long int i = 1; i < pendingTriangles.size(); i++) {
+        pendingTriangles[i]->releaseMaterial();
+    }
+    Material * const mergedMaterial = pendingTriangles[0]->releaseMaterial();
+    SimpleBodyBuilder *mergedBuilder =
+        new SimpleBodyBuilder(mergedMesh, mergedMaterial, nullptr);
+
+    for (long int i = 0; i < pendingTriangles.size(); i++) {
+        delete pendingTriangles[i];
+    }
+    pendingTriangles.clear();
+
+    addCsgShape(container, mergedBuilder);
+}
+
 SimpleBodyBuilder *
 CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, bool isNested)
 {
@@ -54,6 +110,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
     SimpleBodyBuilder *containerShape = nullptr;
     SimpleBodyBuilder *localShape;
     bool firstShapeParsed = false;
+    java::ArrayList<SimpleBodyBuilder *> pendingTriangles;
 
     if (ctx.usesCsgRoth()) {
         // The Roth (ray-segment) algorithm needs DIFFERENCE kept as a
@@ -83,6 +140,9 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
         bool Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
+            if (ctx.token().getTokenId() != Tokenizer::TRIANGLE_TOKEN) {
+                flushPendingTriangles(container, pendingTriangles);
+            }
             switch (ctx.token().getTokenId()) {
             case Tokenizer::IDENTIFIER_TOKEN:
             {
@@ -148,7 +208,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                     localShape->invert();
                 }
                 firstShapeParsed = true;
-                addCsgShape(container, localShape);
+                pendingTriangles.add(localShape);
                 break;
 
 

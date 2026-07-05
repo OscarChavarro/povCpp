@@ -61,10 +61,10 @@ add_executable(povray
     src/environment/geometry/volume/HeightField.cpp
     src/environment/geometry/Geometry.cpp
     src/environment/geometry/surface/InfinitePlane.cpp
+    src/environment/geometry/surface/TriangleMesh.cpp
     src/environment/geometry/volume/polynomial/PolynomialShape.cpp
     src/environment/geometry/volume/Quadric.cpp
     src/environment/geometry/volume/Sphere.cpp
-    src/environment/geometry/element/Triangle.cpp
     src/environment/light/Light.cpp
     src/environment/light/PointLight.cpp
     src/environment/light/SpotLight.cpp

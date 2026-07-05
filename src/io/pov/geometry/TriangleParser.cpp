@@ -3,7 +3,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
-#include "environment/geometry/element/Triangle.h"
+#include "environment/geometry/surface/TriangleMesh.h"
 #include "io/pov/geometry/SceneBuilder.h"
 #include "io/pov/geometry/SimpleBodyBuilder.h"
 
@@ -20,7 +20,8 @@ SimpleBodyBuilder *
 TriangleParser::parseTriangle(ParserContext &ctx)
 {
     SimpleBodyBuilder *body = nullptr;
-    Triangle *localShape = nullptr;
+    TriangleMesh *localMesh = nullptr;
+    int localTriangleIndex = -1;
 
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
@@ -39,9 +40,10 @@ TriangleParser::parseTriangle(ParserContext &ctx)
                 PrimitiveParser::parseVector(&p1, ctx);
                 PrimitiveParser::parseVector(&p2, ctx);
                 PrimitiveParser::parseVector(&p3, ctx);
-                localShape = new Triangle(p1, p2, p3);
-                body = SceneBuilder::wrap(localShape);
-                if (localShape->isDegenerate()) {
+                localMesh = new TriangleMesh();
+                localTriangleIndex = localMesh->addTriangle(p1, p2, p3);
+                body = SceneBuilder::wrap(localMesh);
+                if (localMesh->isDegenerate(localTriangleIndex)) {
                     {
                         char _logMsg[1024];
                         snprintf(_logMsg, sizeof(_logMsg), "Degenerate triangle on line %d.  Please remove.\n", ctx.token().getTokenLineNumber());
@@ -62,7 +64,8 @@ TriangleParser::parseTriangle(ParserContext &ctx)
                         body = new SimpleBodyBuilder(
                                 *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
                                     .getConstantData());
-                        localShape = (Triangle *)body->getGeometry();
+                        localMesh = (TriangleMesh *)body->getGeometry();
+                        localTriangleIndex = 0;
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
