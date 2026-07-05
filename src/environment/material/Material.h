@@ -7,13 +7,9 @@ class Material {
   public:
     virtual ~Material() {}
 
-    virtual Material *copy() = 0;
     virtual Material *translate(Vector3Dd *vector) = 0;
     virtual Material *rotate(Vector3Dd *vector) = 0;
     virtual Material *scale(Vector3Dd *vector) = 0;
-    virtual double getObjectIndexOfRefraction() const = 0;
-    virtual Material *prependMaterialLayers(Material *existingMaterial) = 0;
-    virtual void releaseFromOwner() = 0;
 };
 
 #endif

@@ -4,12 +4,12 @@
 #include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/DetailMask.h"
 #include "environment/geometry/element/PriorityQueuePool.h"
-#include "environment/material/Material.h"
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/environment/material/RendererConfiguration.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 
 class IntersectionCandidate;
+class Material;
 
 class RayWithTracingState : public Ray {
   private:
@@ -98,7 +98,7 @@ class RayWithTracingState : public Ray {
     void makeRay();
     void initializeContainers();
     void copyContainersFrom(const RayWithTracingState *sourceRay);
-    void enterContainingMedium(Material *texture);
+    void enterContainingMedium(Material *texture, double indexOfRefraction);
     void exitContainingMedium();
     static void mixVectorTerms(Vector3Dd &a, const Vector3Dd &b, const Vector3Dd &c);
 };

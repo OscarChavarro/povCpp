@@ -17,7 +17,6 @@ class PovRayMaterial : public Material, public ICheckerTextureSlot {
     static void applyRotationTransform(PovRayMaterial *texture, Vector3Dd *vector);
     static void applyScaleTransform(PovRayMaterial *texture, const Vector3Dd *vector);
     static void applyTranslationTransform(PovRayMaterial *texture, const Vector3Dd *vector);
-    static PovRayMaterial *copyTextureNode(const PovRayMaterial *src);
     static bool needsTransform(const PovRayMaterial *texture);
 
     // TextureParser builds a texture incrementally, one POV attribute token at a time,
@@ -78,18 +77,17 @@ class PovRayMaterial : public Material, public ICheckerTextureSlot {
                    double pendingMortar, double pendingBumpAmount, double pendingFrequency,
                    double pendingPhase, int pendingNumberOfWaves,
                    ControlledRGBAImageHDRUncompressed *pendingBumpImage);
+    PovRayMaterial(const PovRayMaterial &other);
     ~PovRayMaterial() override;
 
-    PovRayMaterial *copy() override;
     ICheckerTextureSlot *copySlot() const override;
-    static PovRayMaterial *copyTexture(const PovRayMaterial *texture);
     const java::ArrayList<PovRayMaterial *>& getLayers() const;
     ControlledRGBAImageHDRUncompressed*getMaterialMapImage() const;
     const java::ArrayList<PovRayMaterial *>&getMaterialMapVariants() const;
     double getObjectAmbient() const;
     double getObjectBrilliance() const;
     double getObjectDiffuse() const;
-    double getObjectIndexOfRefraction() const override;
+    double getObjectIndexOfRefraction() const;
     double getObjectPhong() const;
     double getObjectPhongSize() const;
     double getObjectReflection() const;
@@ -114,8 +112,8 @@ class PovRayMaterial : public Material, public ICheckerTextureSlot {
     Matrix4x4d* getTextureTransformation() const;
     Matrix4x4d* getTextureTransformationInverse() const override;
     bool isMetallic() const;
-    Material *prependMaterialLayers(Material *existingMaterial) override;
-    void releaseFromOwner() override;
+    PovRayMaterial *prependMaterialLayers(PovRayMaterial *existingMaterial);
+    void releaseFromOwner();
 
     // Texture-space copy/transform engine. Because `friend` is forbidden, these member
     // functions are the only writers of the private state besides the constructors; they

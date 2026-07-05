@@ -1,5 +1,6 @@
 #include "io/pov/geometry/SimpleBodyBuilder.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+#include "environment/material/povray/PovRayMaterial.h"
 
 SimpleBodyBuilder::SimpleBodyBuilder(
     Geometry *geometry, Material *material, ColorRgba *shapeColor) :
@@ -80,14 +81,16 @@ void
 SimpleBodyBuilder::prependMaterialLayers(Material *newHead)
 {
     if (newHead != nullptr) {
-        material = newHead->prependMaterialLayers(material);
+        material = static_cast<PovRayMaterial *>(newHead)->prependMaterialLayers(
+            static_cast<PovRayMaterial *>(material));
     }
 }
 
 SimpleBodyBuilder::SimpleBodyBuilder(const SimpleBodyBuilder &other) :
     geometry(other.geometry != nullptr ?
         (Geometry *)other.geometry->copy() : nullptr),
-    material(other.material != nullptr ? other.material->copy() : nullptr),
+    material(other.material != nullptr ?
+        new PovRayMaterial(*static_cast<PovRayMaterial *>(other.material)) : nullptr),
     shapeColor(other.shapeColor != nullptr ? new ColorRgba(*other.shapeColor) : nullptr),
     transformation(other.transformation != nullptr ?
         new Matrix4x4d(*other.transformation) : nullptr),

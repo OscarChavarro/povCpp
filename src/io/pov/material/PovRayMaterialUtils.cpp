@@ -44,7 +44,7 @@ PovRayMaterialUtils::prependTextureLayers(
 PovRayMaterial *
 PovRayMaterialUtils::copyTexture(PovRayMaterial *texture)
 {
-    return PovRayMaterial::copyTexture(texture);
+    return new PovRayMaterial(*texture);
 }
 
 PovRayMaterial *

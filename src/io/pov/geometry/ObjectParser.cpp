@@ -102,7 +102,7 @@ ObjectParser::ensurePrivateTexture(Material *objectTexture)
         // Safe no-op if `texture` isn't the tracked default-texture alias
         // (e.g. it's some other #declare'd TEXTURE_CONSTANT).
         DefaultTextureAliasTracker::releaseAlias(texture);
-        return texture->copy();
+        return new PovRayMaterial(*texture);
     }
     return objectTexture;
 }
