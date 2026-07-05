@@ -4,7 +4,7 @@
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/Geometry.h"
-#include "environment/geometry/element/Triangle.h"
+#include "vsdk/toolkit/environment/geometry/element/Triangle.h"
 
 class TriangleMesh : public Geometry {
   public:
@@ -34,6 +34,18 @@ class TriangleMesh : public Geometry {
   private:
     java::ArrayList<Vector3Dd> vertices;
     java::ArrayList<Triangle> triangles;
+
+    // Per-triangle intersection-support data, parallel to `triangles` (same
+    // index). Computing intersections is a Geometry (i.e. TriangleMesh)
+    // responsibility, not Triangle's, so all of this - including the
+    // per-primary-ray plane-distance cache - lives here instead of on
+    // Triangle.
+    java::ArrayList<double> triangleDistance;
+    java::ArrayList<int> triangleDominantAxis;
+    java::ArrayList<bool> triangleInverted;
+    java::ArrayList<bool> triangleDegenerate;
+    java::ArrayList<bool> triangleVpCached;
+    java::ArrayList<double> triangleVpNormDotOrigin;
 
     static int max3Axis(double x, double y, double z);
     void computeTriangle(int index);

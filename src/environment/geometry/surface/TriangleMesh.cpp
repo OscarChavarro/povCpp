@@ -18,7 +18,13 @@ TriangleMesh::TriangleMesh()
 
 TriangleMesh::TriangleMesh(const TriangleMesh &other) :
     vertices(other.vertices),
-    triangles(other.triangles)
+    triangles(other.triangles),
+    triangleDistance(other.triangleDistance),
+    triangleDominantAxis(other.triangleDominantAxis),
+    triangleInverted(other.triangleInverted),
+    triangleDegenerate(other.triangleDegenerate),
+    triangleVpCached(other.triangleVpCached),
+    triangleVpNormDotOrigin(other.triangleVpNormDotOrigin)
 {
 }
 
@@ -31,7 +37,7 @@ TriangleMesh::getTriangleCount() const
 bool
 TriangleMesh::isDegenerate(int index) const
 {
-    return triangles.get(index).degenerateFlag;
+    return triangleDegenerate.get(index);
 }
 
 int
@@ -44,40 +50,43 @@ void
 TriangleMesh::computeTriangle(int index)
 {
     Triangle &triangle = triangles[index];
-    const Vector3Dd &p1 = vertices[triangle.v0];
-    const Vector3Dd &p2 = vertices[triangle.v1];
-    const Vector3Dd &p3 = vertices[triangle.v2];
+    const Vector3Dd &p1 = vertices[triangle.getPoint0()];
+    const Vector3Dd &p2 = vertices[triangle.getPoint1()];
+    const Vector3Dd &p3 = vertices[triangle.getPoint2()];
 
     Vector3Dd v1 = p1.subtract(p2);
     Vector3Dd v2 = p3.subtract(p2);
-    triangle.normal = v1.crossProduct(v2);
-    const double length = triangle.normal.length();
+    Vector3Dd normal = v1.crossProduct(v2);
+    const double length = normal.length();
 
     if (length < 1.0e-9) {
-        triangle.degenerateFlag = true;
+        triangleDegenerate[index] = true;
         return;
     }
 
-    triangle.normal = triangle.normal.multiply(1.0 / length);
-    triangle.distance = -triangle.normal.dotProduct(p1);
+    normal = normal.multiply(1.0 / length);
+    triangle.setNormal(normal);
+    triangleDistance[index] = -normal.dotProduct(p1);
 
+    int dominantAxis = 0;
     switch (TriangleMesh::max3Axis(
-        java::Math::abs(triangle.normal.x()),
-        java::Math::abs(triangle.normal.y()),
-        java::Math::abs(triangle.normal.z()))) {
+        java::Math::abs(normal.x()),
+        java::Math::abs(normal.y()),
+        java::Math::abs(normal.z()))) {
     case 1:
-        triangle.dominantAxis = X_AXIS;
+        dominantAxis = X_AXIS;
         break;
     case 2:
-        triangle.dominantAxis = Y_AXIS;
+        dominantAxis = Y_AXIS;
         break;
     case 3:
-        triangle.dominantAxis = Z_AXIS;
+        dominantAxis = Z_AXIS;
         break;
     }
+    triangleDominantAxis[index] = dominantAxis;
 
     bool swap = false;
-    switch (triangle.dominantAxis) {
+    switch (dominantAxis) {
     case X_AXIS:
         swap = (p2.y() - p3.y()) * (p2.z() - p1.z()) <
             (p2.z() - p3.z()) * (p2.y() - p1.y());
@@ -92,9 +101,9 @@ TriangleMesh::computeTriangle(int index)
         break;
     }
     if (swap) {
-        int tmp = triangle.v0;
-        triangle.v0 = triangle.v1;
-        triangle.v1 = tmp;
+        int tmp = triangle.getPoint0();
+        triangle.setPoint0(triangle.getPoint1());
+        triangle.setPoint1(tmp);
     }
 }
 
@@ -103,16 +112,22 @@ TriangleMesh::addTriangle(
     const Vector3Dd &p1, const Vector3Dd &p2, const Vector3Dd &p3, bool inverted)
 {
     Triangle triangle;
-    triangle.v0 = (int)vertices.size();
+    triangle.setPoint0((int)vertices.size());
     vertices.add(p1);
-    triangle.v1 = (int)vertices.size();
+    triangle.setPoint1((int)vertices.size());
     vertices.add(p2);
-    triangle.v2 = (int)vertices.size();
+    triangle.setPoint2((int)vertices.size());
     vertices.add(p3);
-    triangle.inverted = inverted;
 
     const int index = (int)triangles.size();
     triangles.add(triangle);
+    triangleDistance.add(0.0);
+    triangleDominantAxis.add(0);
+    triangleInverted.add(inverted);
+    triangleDegenerate.add(false);
+    triangleVpCached.add(false);
+    triangleVpNormDotOrigin.add(0.0);
+
     computeTriangle(index);
     return index;
 }
@@ -121,20 +136,27 @@ int
 TriangleMesh::appendFrom(const TriangleMesh &source, int sourceIndex)
 {
     Triangle triangle = source.triangles.get(sourceIndex);
-    const Vector3Dd sourceP0 = source.vertices.get(triangle.v0);
-    const Vector3Dd sourceP1 = source.vertices.get(triangle.v1);
-    const Vector3Dd sourceP2 = source.vertices.get(triangle.v2);
+    const Vector3Dd sourceP0 = source.vertices.get(triangle.getPoint0());
+    const Vector3Dd sourceP1 = source.vertices.get(triangle.getPoint1());
+    const Vector3Dd sourceP2 = source.vertices.get(triangle.getPoint2());
 
-    triangle.v0 = (int)vertices.size();
+    triangle.setPoint0((int)vertices.size());
     vertices.add(sourceP0);
-    triangle.v1 = (int)vertices.size();
+    triangle.setPoint1((int)vertices.size());
     vertices.add(sourceP1);
-    triangle.v2 = (int)vertices.size();
+    triangle.setPoint2((int)vertices.size());
     vertices.add(sourceP2);
-    triangle.vpCached = 0;
 
     const int index = (int)triangles.size();
     triangles.add(triangle);
+    triangleDistance.add(source.triangleDistance.get(sourceIndex));
+    triangleDominantAxis.add(source.triangleDominantAxis.get(sourceIndex));
+    triangleInverted.add(source.triangleInverted.get(sourceIndex));
+    triangleDegenerate.add(source.triangleDegenerate.get(sourceIndex));
+    // Fresh cache: the plane-distance memoization is tied to whichever ray
+    // last hit `source`, not meaningful for a newly-appended copy.
+    triangleVpCached.add(false);
+    triangleVpNormDotOrigin.add(0.0);
     return index;
 }
 
@@ -142,6 +164,7 @@ bool
 TriangleMesh::intersectTriangle(RayWithTracingState *ray, int index, double *depth)
 {
     Triangle &triangle = triangles[index];
+    const Vector3Dd &normal = triangle.getNormal();
     double normalDotOrigin;
     double normalDotDirection;
     double s;
@@ -149,31 +172,33 @@ TriangleMesh::intersectTriangle(RayWithTracingState *ray, int index, double *dep
     Statistics &stats = *ray->getStatistics();
 
     stats.getGeometryStatistics()->incrementRayTriangleTests();
-    if (triangle.degenerateFlag) {
+    if (triangleDegenerate[index]) {
         return false;
     }
 
+    const double distance = triangleDistance[index];
+
     if (ray->isPrimaryRayEnabled()) {
-        if (!triangle.vpCached) {
-            triangle.vpNormDotOrigin = triangle.normal.dotProduct(ray->getOrigin());
-            triangle.vpNormDotOrigin += triangle.distance;
-            triangle.vpNormDotOrigin *= -1.0;
-            triangle.vpCached = true;
+        if (!triangleVpCached[index]) {
+            triangleVpNormDotOrigin[index] = normal.dotProduct(ray->getOrigin());
+            triangleVpNormDotOrigin[index] += distance;
+            triangleVpNormDotOrigin[index] *= -1.0;
+            triangleVpCached[index] = true;
         }
 
-        normalDotDirection = triangle.normal.dotProduct(ray->getDirection());
+        normalDotDirection = normal.dotProduct(ray->getDirection());
         if ((normalDotDirection < Config::SMALL_TOLERANCE) &&
             (normalDotDirection > -Config::SMALL_TOLERANCE)) {
             return false;
         }
 
-        *depth = triangle.vpNormDotOrigin / normalDotDirection;
+        *depth = triangleVpNormDotOrigin[index] / normalDotDirection;
     } else {
-        normalDotOrigin = triangle.normal.dotProduct(ray->getOrigin());
-        normalDotOrigin += triangle.distance;
+        normalDotOrigin = normal.dotProduct(ray->getOrigin());
+        normalDotOrigin += distance;
         normalDotOrigin *= -1.0;
 
-        normalDotDirection = triangle.normal.dotProduct(ray->getDirection());
+        normalDotDirection = normal.dotProduct(ray->getDirection());
         if ((normalDotDirection < Config::SMALL_TOLERANCE) &&
             (normalDotDirection > -Config::SMALL_TOLERANCE)) {
             return false;
@@ -186,37 +211,38 @@ TriangleMesh::intersectTriangle(RayWithTracingState *ray, int index, double *dep
         return false;
     }
 
-    const Vector3Dd &p1 = vertices[triangle.v0];
-    const Vector3Dd &p2 = vertices[triangle.v1];
-    const Vector3Dd &p3 = vertices[triangle.v2];
+    const Vector3Dd &p1 = vertices[triangle.getPoint0()];
+    const Vector3Dd &p2 = vertices[triangle.getPoint1()];
+    const Vector3Dd &p3 = vertices[triangle.getPoint2()];
+    const bool inverted = triangleInverted[index];
 
-    switch (triangle.dominantAxis) {
+    switch (triangleDominantAxis[index]) {
     case X_AXIS:
         s = ray->getOrigin().y() + *depth * ray->getDirection().y();
         t = ray->getOrigin().z() + *depth * ray->getDirection().z();
 
         if (((p2.y() - s) * (p2.z() - p1.z())) < ((p2.z() - t) * (p2.y() - p1.y()))) {
-            if ((int)triangle.inverted) {
+            if (inverted) {
                 stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
                 return true;
             }
             return false;
         }
         if (((p3.y() - s) * (p3.z() - p2.z())) < ((p3.z() - t) * (p3.y() - p2.y()))) {
-            if ((int)triangle.inverted) {
+            if (inverted) {
                 stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
                 return true;
             }
             return false;
         }
         if (((p1.y() - s) * (p1.z() - p3.z())) < ((p1.z() - t) * (p1.y() - p3.y()))) {
-            if ((int)triangle.inverted) {
+            if (inverted) {
                 stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
                 return true;
             }
             return false;
         }
-        if (!(int)triangle.inverted) {
+        if (!inverted) {
             stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
             return true;
         }
@@ -227,27 +253,27 @@ TriangleMesh::intersectTriangle(RayWithTracingState *ray, int index, double *dep
         t = ray->getOrigin().z() + *depth * ray->getDirection().z();
 
         if ((p2.x() - s) * (p2.z() - p1.z()) < (p2.z() - t) * (p2.x() - p1.x())) {
-            if ((int)triangle.inverted) {
+            if (inverted) {
                 stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
                 return true;
             }
             return false;
         }
         if ((p3.x() - s) * (p3.z() - p2.z()) < (p3.z() - t) * (p3.x() - p2.x())) {
-            if ((int)triangle.inverted) {
+            if (inverted) {
                 stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
                 return true;
             }
             return false;
         }
         if ((p1.x() - s) * (p1.z() - p3.z()) < (p1.z() - t) * (p1.x() - p3.x())) {
-            if ((int)triangle.inverted) {
+            if (inverted) {
                 stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
                 return true;
             }
             return false;
         }
-        if (!(int)triangle.inverted) {
+        if (!inverted) {
             stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
             return true;
         }
@@ -258,27 +284,27 @@ TriangleMesh::intersectTriangle(RayWithTracingState *ray, int index, double *dep
         t = ray->getOrigin().y() + *depth * ray->getDirection().y();
 
         if ((p2.x() - s) * (p2.y() - p1.y()) < (p2.y() - t) * (p2.x() - p1.x())) {
-            if ((int)triangle.inverted) {
+            if (inverted) {
                 stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
                 return true;
             }
             return false;
         }
         if ((p3.x() - s) * (p3.y() - p2.y()) < (p3.y() - t) * (p3.x() - p2.x())) {
-            if ((int)triangle.inverted) {
+            if (inverted) {
                 stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
                 return true;
             }
             return false;
         }
         if ((p1.x() - s) * (p1.y() - p3.y()) < (p1.y() - t) * (p1.x() - p3.x())) {
-            if ((int)triangle.inverted) {
+            if (inverted) {
                 stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
                 return true;
             }
             return false;
         }
-        if (!(int)triangle.inverted) {
+        if (!inverted) {
             stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
             return true;
         }
@@ -304,7 +330,7 @@ TriangleMesh::doIntersectionForAllRayCrossings(
         localElement.getIntersection().t = depth;
         localElement.getIntersection().point =
             ray->getDirection().multiply(depth).add(ray->getOrigin());
-        localElement.getIntersection().normal = triangles[i].normal;
+        localElement.getIntersection().normal = triangles[i].getNormal();
         localElement.getAttributes().setHitGeometry(this);
         localElement.getAttributes().setMaterial(materialOverride);
         depthQueue->offer(localElement);
@@ -330,7 +356,7 @@ TriangleMesh::doIntersectionForAllRayCrossingsAnnotated(
         localElement.getIntersection().t = depth;
         localElement.getIntersection().point =
             ray->getDirection().multiply(depth).add(ray->getOrigin());
-        localElement.getIntersection().normal = triangles[i].normal;
+        localElement.getIntersection().normal = triangles[i].getNormal();
         localElement.getAttributes().setHitGeometry(this);
         localElement.getAttributes().setMaterial(context.materialOverride);
         localElement.getAttributes().pushDetailOwner(context.detailOwner);
@@ -373,8 +399,8 @@ TriangleMesh::copy()
 void
 TriangleMesh::invertGeometry()
 {
-    for (long int i = 0; i < triangles.size(); i++) {
-        triangles[i].inverted ^= true;
+    for (long int i = 0; i < triangleInverted.size(); i++) {
+        triangleInverted[i] = !triangleInverted[i];
     }
 }
 
@@ -384,9 +410,9 @@ TriangleMesh::getMinMax() const
     AxisAlignedBoundingBox box = AxisAlignedBoundingBox::empty();
     for (long int i = 0; i < triangles.size(); i++) {
         const Triangle &triangle = triangles.get(i);
-        box = box.expandedBy(vertices.get(triangle.v0));
-        box = box.expandedBy(vertices.get(triangle.v1));
-        box = box.expandedBy(vertices.get(triangle.v2));
+        box = box.expandedBy(vertices.get(triangle.getPoint0()));
+        box = box.expandedBy(vertices.get(triangle.getPoint1()));
+        box = box.expandedBy(vertices.get(triangle.getPoint2()));
     }
     return box;
 }
