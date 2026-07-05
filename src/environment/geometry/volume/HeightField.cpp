@@ -268,7 +268,7 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
         state.hfIntersection->getAttributes().setHitGeometry(hField);
         state.hfQueue->offer(*state.hfIntersection);
     }
-    stats.incrementRayHtFieldTestsSucceeded();
+    stats.getGeometryStatistics()->incrementRayHtFieldTestsSucceeded();
     return (true);
 }
 
@@ -857,7 +857,7 @@ HeightField::traceCrossings(
     IntersectionCandidate localElement;
 
     Statistics &stats = *ray->getStatistics();
-    stats.incrementRayHtFieldTests();
+    stats.getGeometryStatistics()->incrementRayHtFieldTests();
     localElement.getAttributes().setMaterial(materialOverride);
     if (context != nullptr) {
         localElement.getAttributes().pushDetailOwner(context->detailOwner);

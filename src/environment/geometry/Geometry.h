@@ -7,6 +7,7 @@
 #include "environment/geometry/element/AxisAlignedBoundingBox.h"
 #include "environment/material/PovRayRendererConfiguration.h"
 #include "environment/material/Material.h"
+#include "vsdk/toolkit/processing/Containment.h"
 
 class IntersectionCandidate;
 class PovRayHit;
@@ -20,9 +21,9 @@ struct GeometryIntersectionEmissionContext {
 
 class Geometry {
   public:
-    static constexpr int INSIDE = 1;
-    static constexpr int LIMIT = 0;
-    static constexpr int OUTSIDE = -1;
+    static constexpr int INSIDE = static_cast<int>(Containment::INSIDE);
+    static constexpr int LIMIT = static_cast<int>(Containment::LIMIT);
+    static constexpr int OUTSIDE = static_cast<int>(Containment::OUTSIDE);
 
     virtual int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,

@@ -129,7 +129,7 @@ PolynomialShape::doIntersectionForAllRayCrossings(
 
     intersectionFound = false;
     Statistics &stats = *ray->getStatistics();
-    stats.incrementRayPolyTests();
+    stats.getGeometryStatistics()->incrementRayPolyTests();
     if (shape->order == 4) {
         cnt = PolynomialShape::intersectQuartic(&newRay, shape, depths);
     } else {
@@ -138,7 +138,7 @@ PolynomialShape::doIntersectionForAllRayCrossings(
     }
 
     if (cnt > 0) {
-        stats.incrementRayPolyTestsSucceeded();
+        stats.getGeometryStatistics()->incrementRayPolyTestsSucceeded();
     }
     for (i = 0; i < cnt; i++) {
         if (depths[i] < 0) {
@@ -211,7 +211,7 @@ PolynomialShape::doIntersectionForAllRayCrossingsAnnotated(
 
     intersectionFound = false;
     Statistics &stats = *ray->getStatistics();
-    stats.incrementRayPolyTests();
+    stats.getGeometryStatistics()->incrementRayPolyTests();
     if (shape->order == 4) {
         cnt = PolynomialShape::intersectQuartic(&newRay, shape, depths);
     } else {
@@ -220,7 +220,7 @@ PolynomialShape::doIntersectionForAllRayCrossingsAnnotated(
     }
 
     if (cnt > 0) {
-        stats.incrementRayPolyTestsSucceeded();
+        stats.getGeometryStatistics()->incrementRayPolyTestsSucceeded();
     }
     for (i = 0; i < cnt; i++) {
         if (depths[i] < 0) {

@@ -63,17 +63,18 @@ PovRayApplication::printStatistics(
         }
     };
 
-    logIntersectionRow("  Sphere        ", stats.getRaySphereTests(), stats.getRaySphereTestsSucceeded());
-    logIntersectionRow("  Plane         ", stats.getRayPlaneTests(), stats.getRayPlaneTestsSucceeded());
-    logIntersectionRow("  Triangle     ", stats.getRayTriangleTests(), stats.getRayTriangleTestsSucceeded());
-    logIntersectionRow("  Quadric       ", stats.getRayQuadricTests(), stats.getRayQuadricTestsSucceeded());
-    logIntersectionRow("  Blob          ", stats.getRayBlobTests(), stats.getRayBlobTestsSucceeded());
-    logIntersectionRow("  Box           ", stats.getRayBoxTests(), stats.getRayBoxTestsSucceeded());
-    logIntersectionRow("  Quartic\\Poly ", stats.getRayPolyTests(), stats.getRayPolyTestsSucceeded());
-    logIntersectionRow("  Bezier Patch ", stats.getRayBicubicTests(), stats.getRayBicubicTestsSucceeded());
-    logIntersectionRow("  Height field   ", stats.getRayHtFieldTests(), stats.getRayHtFieldTestsSucceeded());
-    logIntersectionRow("  Bounds        ", stats.getBoundingRegionTests(), stats.getBoundingRegionTestsSucceeded());
-    logIntersectionRow("  Clips         ", stats.getClippingRegionTests(), stats.getClippingRegionTestsSucceeded());
+    const GeometryStatistics *geometryStats = stats.getGeometryStatistics();
+    logIntersectionRow("  Sphere        ", geometryStats->getRaySphereTests(), geometryStats->getRaySphereTestsSucceeded());
+    logIntersectionRow("  Plane         ", geometryStats->getRayPlaneTests(), geometryStats->getRayPlaneTestsSucceeded());
+    logIntersectionRow("  Triangle     ", geometryStats->getRayTriangleTests(), geometryStats->getRayTriangleTestsSucceeded());
+    logIntersectionRow("  Quadric       ", geometryStats->getRayQuadricTests(), geometryStats->getRayQuadricTestsSucceeded());
+    logIntersectionRow("  Blob          ", geometryStats->getRayBlobTests(), geometryStats->getRayBlobTestsSucceeded());
+    logIntersectionRow("  Box           ", geometryStats->getRayBoxTests(), geometryStats->getRayBoxTestsSucceeded());
+    logIntersectionRow("  Quartic\\Poly ", geometryStats->getRayPolyTests(), geometryStats->getRayPolyTestsSucceeded());
+    logIntersectionRow("  Bezier Patch ", geometryStats->getRayBicubicTests(), geometryStats->getRayBicubicTestsSucceeded());
+    logIntersectionRow("  Height field   ", geometryStats->getRayHtFieldTests(), geometryStats->getRayHtFieldTestsSucceeded());
+    logIntersectionRow("  Bounds        ", geometryStats->getBoundingRegionTests(), geometryStats->getBoundingRegionTestsSucceeded());
+    logIntersectionRow("  Clips         ", geometryStats->getClippingRegionTests(), geometryStats->getClippingRegionTestsSucceeded());
 
     if (stats.getSolidTextureStatistics()->callsToNoise) {
         snprintf(buffer, sizeof(buffer), "  Calls to Noise:    %10ld", stats.getSolidTextureStatistics()->callsToNoise);

@@ -32,7 +32,7 @@ Composite::doIntersectionForAllRayCrossings(
         boundingShape = this->getBoundingShapes()[i];
         Vector3Dd rayOrigin(compositeRay->getOrigin());
 
-        stats.incrementBoundingRegionTests();
+        stats.getGeometryStatistics()->incrementBoundingRegionTests();
         {
             IntersectionCandidate _boundingHit;
             if (!boundingShape->doIntersectionFirstHit(compositeRay, _boundingHit) &&
@@ -41,7 +41,7 @@ Composite::doIntersectionForAllRayCrossings(
                 return (false);
             }
         }
-        stats.incrementBoundingRegionTestsSucceeded();
+        stats.getGeometryStatistics()->incrementBoundingRegionTestsSucceeded();
     }
 
     localDepthQueue = ray->getIntersectionQueuePool()->pop(128);
@@ -69,14 +69,14 @@ Composite::doIntersectionForAllRayCrossings(
 
         for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
             clippingShape = this->getClippingShapes()[i];
-            stats.incrementClippingRegionTests();
+            stats.getGeometryStatistics()->incrementClippingRegionTests();
             if (clippingShape->doContainmentTest(
                     worldPointToLocal(localIntersection.getIntersection().point),
                     Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
                 intersectionFound = false;
                 break;
             }
-            stats.incrementClippingRegionTestsSucceeded();
+            stats.getGeometryStatistics()->incrementClippingRegionTestsSucceeded();
         }
 
         if (intersectionFound) {

@@ -12,11 +12,12 @@ Statistics::Statistics(java::ArrayList<Statistics*> *partsPerThread)
     }
 
     // Collected alongside the scalar counters below and reduced through
-    // SolidTextureStatistics's own parts-summing constructor, rather than
-    // summing callsToNoise/callsToDNoise inline here, so the noise-counter
-    // reduction lives in one place (SolidTextureStatistics) and stays in
-    // sync however many fields it grows to.
+    // SolidTextureStatistics's / GeometryStatistics's own parts-summing
+    // constructors, rather than summing their fields inline here, so each
+    // reduction lives in one place and stays in sync however many fields it
+    // grows to.
     java::ArrayList<SolidTextureStatistics*> solidTextureStatisticsParts;
+    java::ArrayList<GeometryStatistics*> geometryStatisticsParts;
 
     for (long i = 0; i < partsPerThread->size(); ++i) {
         const Statistics *part = partsPerThread->get(i);
@@ -26,32 +27,12 @@ Statistics::Statistics(java::ArrayList<Statistics*> *partsPerThread)
 
         solidTextureStatisticsParts.add(
             const_cast<SolidTextureStatistics*>(&part->solidTextureStatistics));
+        geometryStatisticsParts.add(
+            const_cast<GeometryStatistics*>(&part->geometryStatistics));
 
         numberOfPixels += part->numberOfPixels;
         numberOfRays += part->numberOfRays;
         numberOfPixelsSuperSampled += part->numberOfPixelsSuperSampled;
-        raySphereTests += part->raySphereTests;
-        raySphereTestsSucceeded += part->raySphereTestsSucceeded;
-        rayBoxTests += part->rayBoxTests;
-        rayBoxTestsSucceeded += part->rayBoxTestsSucceeded;
-        rayBlobTests += part->rayBlobTests;
-        rayBlobTestsSucceeded += part->rayBlobTestsSucceeded;
-        rayPlaneTests += part->rayPlaneTests;
-        rayPlaneTestsSucceeded += part->rayPlaneTestsSucceeded;
-        rayTriangleTests += part->rayTriangleTests;
-        rayTriangleTestsSucceeded += part->rayTriangleTestsSucceeded;
-        rayQuadricTests += part->rayQuadricTests;
-        rayQuadricTestsSucceeded += part->rayQuadricTestsSucceeded;
-        rayPolyTests += part->rayPolyTests;
-        rayPolyTestsSucceeded += part->rayPolyTestsSucceeded;
-        rayBicubicTests += part->rayBicubicTests;
-        rayBicubicTestsSucceeded += part->rayBicubicTestsSucceeded;
-        rayHtFieldTests += part->rayHtFieldTests;
-        rayHtFieldTestsSucceeded += part->rayHtFieldTestsSucceeded;
-        boundingRegionTests += part->boundingRegionTests;
-        boundingRegionTestsSucceeded += part->boundingRegionTestsSucceeded;
-        clippingRegionTests += part->clippingRegionTests;
-        clippingRegionTestsSucceeded += part->clippingRegionTestsSucceeded;
         shadowRayTests += part->shadowRayTests;
         reflectedRaysTraced += part->reflectedRaysTraced;
         refractedRaysTraced += part->refractedRaysTraced;
@@ -60,6 +41,7 @@ Statistics::Statistics(java::ArrayList<Statistics*> *partsPerThread)
     }
 
     solidTextureStatistics = SolidTextureStatistics(&solidTextureStatisticsParts);
+    geometryStatistics = GeometryStatistics(&geometryStatisticsParts);
 }
 
 SolidTextureStatistics*
@@ -74,28 +56,7 @@ Statistics::reset()
     numberOfPixels = 0L;
     numberOfRays = 0L;
     numberOfPixelsSuperSampled = 0L;
-    raySphereTests = 0L;
-    raySphereTestsSucceeded = 0L;
-    rayBoxTests = 0L;
-    rayBoxTestsSucceeded = 0L;
-    rayBlobTests = 0L;
-    rayBlobTestsSucceeded = 0L;
-    rayPlaneTests = 0L;
-    rayPlaneTestsSucceeded = 0L;
-    rayTriangleTests = 0L;
-    rayTriangleTestsSucceeded = 0L;
-    rayQuadricTests = 0L;
-    rayQuadricTestsSucceeded = 0L;
-    rayPolyTests = 0L;
-    rayPolyTestsSucceeded = 0L;
-    rayBicubicTests = 0L;
-    rayBicubicTestsSucceeded = 0L;
-    rayHtFieldTests = 0L;
-    rayHtFieldTestsSucceeded = 0L;
-    boundingRegionTests = 0L;
-    boundingRegionTestsSucceeded = 0L;
-    clippingRegionTests = 0L;
-    clippingRegionTestsSucceeded = 0L;
+    geometryStatistics.reset();
     solidTextureStatistics.reset();
     shadowRayTests = 0L;
     reflectedRaysTraced = 0L;

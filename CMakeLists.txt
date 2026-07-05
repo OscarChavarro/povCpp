@@ -17,6 +17,7 @@ add_subdirectory(base)
 
 add_executable(povray
     src/common/statistics/Statistics.cpp
+    src/common/statistics/GeometryStatistics.cpp
     src/environment/material/povray/PovRayMaterial.cpp
     src/io/pov/material/PovRayMaterialUtils.cpp
     src/io/pov/material/PovRayMaterialBuilder.cpp
