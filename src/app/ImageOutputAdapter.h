@@ -1,8 +1,8 @@
 #ifndef __IMAGE_OUTPUT_ADAPTER__
 #define __IMAGE_OUTPUT_ADAPTER__
 
-#include "environment/material/RenderOutput.h"
 #include "io/image/ImageOutput.h"
+#include "render/RenderOutput.h"
 
 class ImageOutputAdapter : public RenderOutput {
   private:

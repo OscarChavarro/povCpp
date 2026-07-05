@@ -1,26 +1,26 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "environment/material/RenderOutput.h"
 #include "environment/material/PovRayRendererConfiguration.h"
 #include "render/RenderEngine.h"
 #include "render/RenderImageWriter.h"
+#include "render/RenderOutput.h"
 
 void
 RenderImageWriter::readRenderedPart(ColorRgba *lineBuffer)
 {
     PovRayRendererConfiguration &config = renderEngine->getMutableConfig();
+    RenderOutput *output = renderEngine->getOutputFileInputStream();
     Scene &scene = renderEngine->getScene();
     int rc;
     int lineNumber;
 
-    while ((rc = config.getOutputFileInputStream()->readLine(
-                lineBuffer, &lineNumber)) == 1) {
+    while ((rc = output->readLine(lineBuffer, &lineNumber)) == 1) {
     }
 
     config.setFirstLine(lineNumber + 1);
 
     if (rc == 0) {
-        config.getOutputFileInputStream()->close();
-        if (config.getOutputFileInputStream()->open(
+        output->close();
+        if (output->open(
                 config.getOutputFileNameBuffer(),
                 &scene.getScreenWidth(),
                 &scene.getScreenHeight(),

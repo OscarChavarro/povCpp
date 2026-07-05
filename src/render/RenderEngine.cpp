@@ -12,7 +12,6 @@
 #include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/element/PriorityQueuePool.txx"
 #include "environment/material/povray/PovRayMaterial.h"
-#include "environment/material/RenderOutput.h"
 #include "environment/material/PovRayRendererConfiguration.h"
 #include "render/shaders/TraceService.h"
 #include "render/ColorOperations.h"
@@ -70,7 +69,8 @@ RenderEngine::RenderEngine()
       stopFlagValue(nullptr), worker(this),
       adaptiveAntiAliasing(this),
       imageWriter(this),
-      fatalErrorFound(false)
+      fatalErrorFound(false),
+      outputFileInputStream(nullptr)
 {
 }
 
@@ -157,9 +157,8 @@ RenderEngine::persistDestinationImage()
     if (!config.hasOptionFlags(PovRayRendererConfiguration::DISK_WRITE)) {
         return;
     }
-    RenderOutput *out = config.getOutputFileInputStream();
     for (int y = config.getFirstLine(); y < config.getLastLine(); y++) {
-        out->writeLine(destinationImage.rowPointer(y), y);
+        outputFileInputStream->writeLine(destinationImage.rowPointer(y), y);
     }
 }
 

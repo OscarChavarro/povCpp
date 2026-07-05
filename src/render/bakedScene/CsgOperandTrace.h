@@ -1,7 +1,7 @@
 #ifndef __CSG_OPERAND_TRACE__
 #define __CSG_OPERAND_TRACE__
 
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/RayWithTracingState.h"
@@ -165,7 +165,7 @@ public:
                         localDirection,
                         scratch.getCache(),
                         &depth) ||
-                    depth <= Config::SMALL_TOLERANCE) {
+                    depth <= GeometryConfig::SMALL_TOLERANCE) {
                     return false;
                 }
 
@@ -312,7 +312,7 @@ public:
                     ray->getDirection(),
                     scratch.getCache(),
                     &depth) ||
-                depth <= Config::SMALL_TOLERANCE) {
+                depth <= GeometryConfig::SMALL_TOLERANCE) {
                 return false;
             }
 

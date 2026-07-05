@@ -3,7 +3,6 @@
 #include "app/options/CommandLineOptions.h"
 #include "render/shaders/PovRayRenderStatistics.h"
 #include "environment/material/povray/PovRayMaterial.h"
-#include "environment/material/RenderOutput.h"
 #include "environment/material/PovRayRendererConfiguration.h"
 #include "environment/scene/Scene.h"
 #include "io/image/RawDumpFormat.h"
@@ -12,6 +11,7 @@
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/material/LoadedImageRegistry.h"
 #include "io/pov/scene/SceneParser.h"
+#include "render/RenderOutput.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
 void
@@ -182,12 +182,12 @@ PovRayApplication::configureOutputTarget()
     }
 
     selectedImageOutput->setFileLocator(&fileLocator);
-    configuration.setOutputFileInputStream(
+    engine.setOutputFileInputStream(
         new ImageOutputAdapter(selectedImageOutput));
 
     if (!configuration.hasOutputFileName()) {
         configuration.setOutputFileName(
-            configuration.getOutputFileInputStream()->defaultFileName());
+            engine.getOutputFileInputStream()->defaultFileName());
     }
 }
 
@@ -222,7 +222,7 @@ PovRayApplication::prepareRendering()
 
     if (configuration.hasOptionFlags(PovRayRendererConfiguration::DISK_WRITE)) {
         if (configuration.hasOptionFlags(PovRayRendererConfiguration::CONTINUE_TRACE)) {
-            if (configuration.getOutputFileInputStream()->open(
+            if (engine.getOutputFileInputStream()->open(
                     configuration.getOutputFileNameBuffer(),
                     &engine.getScene().getScreenWidth(), &engine.getScene().getScreenHeight(),
                     configuration.getFileBufferSize(), RenderOutput::READ_MODE,
@@ -233,7 +233,7 @@ PovRayApplication::prepareRendering()
                 printProgress(buffer);
                 configuration.clearOptionFlags(PovRayRendererConfiguration::CONTINUE_TRACE);
 
-                if (configuration.getOutputFileInputStream()->open(
+                if (engine.getOutputFileInputStream()->open(
                         configuration.getOutputFileNameBuffer(),
                         &engine.getScene().getScreenWidth(), &engine.getScene().getScreenHeight(),
                         configuration.getFileBufferSize(), RenderOutput::WRITE_MODE,
@@ -249,7 +249,7 @@ PovRayApplication::prepareRendering()
                 engine.readRenderedPart();
             }
         } else {
-            if (configuration.getOutputFileInputStream()->open(
+            if (engine.getOutputFileInputStream()->open(
                     configuration.getOutputFileNameBuffer(),
                     &engine.getScene().getScreenWidth(), &engine.getScene().getScreenHeight(),
                     configuration.getFileBufferSize(), RenderOutput::WRITE_MODE,
@@ -320,10 +320,10 @@ PovRayApplication::initVars()
 void
 PovRayApplication::closeAll()
 {
-    if (configuration.getOutputFileInputStream()) {
-        configuration.getOutputFileInputStream()->close();
-        delete configuration.getOutputFileInputStream();
-        configuration.setOutputFileInputStream(nullptr);
+    if (engine.getOutputFileInputStream()) {
+        engine.getOutputFileInputStream()->close();
+        delete engine.getOutputFileInputStream();
+        engine.setOutputFileInputStream(nullptr);
     }
     if (selectedImageOutput) {
         delete selectedImageOutput;

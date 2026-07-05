@@ -5,8 +5,9 @@
 #include <unistd.h>
 
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "environment/material/PovRayRendererConfiguration.h"
+#include "environment/material/normal/MaterialConfig.h"
 #include "environment/scene/Scene.h"
 #include "io/binaryIo/FileLocator.h"
 #include "app/options/CommandLineOptions.h"
@@ -49,7 +50,8 @@ CommandLineOptions::usage()
     Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     o<filename> = output file name");
     Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n  Ex: +l\\povray\\include +iscene.pov +oscene.tga +w320 "                     "+h200 +d -v +x");
     Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n  Ex: +iscene.pov +oscene.tga +w160 +h200 +v -d +x");
-    Config::print();
+    GeometryConfig::print();
+    MaterialConfig::print();
     Logger::reportMessage("CommandLineOptions", Logger::FATAL_ERROR, "", "\n");
 }
 

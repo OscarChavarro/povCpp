@@ -117,6 +117,12 @@ The diagram below was generated directly from the source code using
       <td>One class per shading step (ambient, direct light, Lambert, Phong, Blinn-Phong, shadowing, reflection, refraction, fog, bump handling) plus <code>TraceService</code>, the callback interface shaders use to request secondary rays without depending on <code>RenderEngine</code> directly</td>
     </tr>
     <tr>
+      <td style="background-color:#7d7ef8;color:#000;padding:8px">render</td>
+      <td><strong>Baked scene</strong></td>
+      <td><code>src/render/bakedScene</code></td>
+      <td>Pre-computes per-primitive intersection coefficients (planes, quadrics) and flattened CSG traversal structures once at render start, so the hot per-ray trace loop works against this cache instead of re-deriving geometry data on every ray; also implements ray-segment CSG combination and the Roth-style first-hit CSG traversal</td>
+    </tr>
+    <tr>
       <td style="background-color:#99fcfe;color:#000;padding:8px">base</td>
       <td><strong>Common</strong></td>
       <td><code>src/common</code></td>

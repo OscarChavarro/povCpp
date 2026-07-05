@@ -1,7 +1,7 @@
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "environment/geometry/element/PriorityQueuePool.txx"
 #include "render/shaders/PovRayRenderStatistics.h"
 #include "environment/material/PovRayRendererConfiguration.h"
@@ -81,7 +81,7 @@ DirectLightShader::traceShadowObject(
 
         const double t = firstHit.getIntersection().t;
         if (t > SHADOW_TOLERANCE &&
-            t < lightSourceDepth - Config::SMALL_TOLERANCE &&
+            t < lightSourceDepth - GeometryConfig::SMALL_TOLERANCE &&
             !firstHit.getAttributes().getNoShadowFlag()) {
             return true;
         }
@@ -93,7 +93,7 @@ DirectLightShader::traceShadowObject(
     while (localDepthQueue->size() > 0) {
         IntersectionCandidate localIntersection = localDepthQueue->poll();
         const double t = localIntersection.getIntersection().t;
-        if (t >= lightSourceDepth - Config::SMALL_TOLERANCE ||
+        if (t >= lightSourceDepth - GeometryConfig::SMALL_TOLERANCE ||
             t <= SHADOW_TOLERANCE) {
             continue;
         }
@@ -177,7 +177,7 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
                     !rayIntersectsAabbBefore(
                         lightSourceRay,
                         entry.worldBounds,
-                        lightSourceDepth - Config::SMALL_TOLERANCE)) {
+                        lightSourceDepth - GeometryConfig::SMALL_TOLERANCE)) {
                     continue;
                 }
 

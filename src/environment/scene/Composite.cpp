@@ -1,4 +1,4 @@
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/scene/Composite.h"
@@ -36,7 +36,7 @@ Composite::doIntersectionForAllRayCrossings(
         {
             IntersectionCandidate _boundingHit;
             if (!boundingShape->doIntersectionFirstHitViaCrossings(compositeRay, _boundingHit) &&
-                boundingShape->doContainmentTest(rayOrigin, Config::SMALL_TOLERANCE) ==
+                boundingShape->doContainmentTest(rayOrigin, GeometryConfig::SMALL_TOLERANCE) ==
                     Geometry::OUTSIDE) {
                 return (false);
             }
@@ -72,7 +72,7 @@ Composite::doIntersectionForAllRayCrossings(
             stats.incrementClippingRegionTests();
             if (clippingShape->doContainmentTest(
                     worldPointToLocal(localIntersection.getIntersection().point),
-                    Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                    GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
                 intersectionFound = false;
                 break;
             }

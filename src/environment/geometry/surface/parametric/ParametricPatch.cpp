@@ -4,7 +4,7 @@ This module implements the code for Bezier bicubic patch shapes
 
 #include <cstdio>
 
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "java/lang/Math.h"
 #include "java/util/HashMap.h"
 #include "java/util/PriorityQueue.txx"
@@ -1074,7 +1074,7 @@ ParametricBiCubicPatch::doExtraInformation(
     if (!hit->needsNormal()) {
         return;
     }
-    if (hit->n.length() > Config::PARAMETRIC_CURVE_EPSILON) {
+    if (hit->n.length() > GeometryConfig::PARAMETRIC_CURVE_EPSILON) {
         hit->n = hit->n.normalizedFast();
         return;
     }

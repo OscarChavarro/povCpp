@@ -1,6 +1,6 @@
 #include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/surface/InfinitePlane.h"
@@ -35,7 +35,7 @@ InfinitePlane::doIntersectionForAllRayCrossings(
     Vector3Dd intersectionPoint;
 
     if (InfinitePlane::intersectPlane(ray, shape, &depth)) {
-        if (depth > Config::SMALL_TOLERANCE) {
+        if (depth > GeometryConfig::SMALL_TOLERANCE) {
             // Construct the candidate only on a real hit: the default ctor zeroes
             // ~168 bytes, wasted on the ~36% of plane tests that miss.
             IntersectionCandidate localElement;
@@ -62,7 +62,7 @@ InfinitePlane::doIntersectionFirstHit(
     InfinitePlane * const shape = this;
     double depth;
     if (!InfinitePlane::intersectPlane(ray, shape, &depth) ||
-        depth <= Config::SMALL_TOLERANCE) {
+        depth <= GeometryConfig::SMALL_TOLERANCE) {
         return false;
     }
 
@@ -93,13 +93,13 @@ InfinitePlane::intersectPlane(
         }
 
         normalDotDirection = plane->normalVector.dotProduct(ray->getDirection());
-        if ((normalDotDirection < Config::SMALL_TOLERANCE) &&
-            (normalDotDirection > -Config::SMALL_TOLERANCE)) {
+        if ((normalDotDirection < GeometryConfig::SMALL_TOLERANCE) &&
+            (normalDotDirection > -GeometryConfig::SMALL_TOLERANCE)) {
             return (false);
         }
 
         *depth = plane->vpNormDotOrigin / normalDotDirection;
-        if ((*depth >= Config::SMALL_TOLERANCE) && (*depth <= Config::MAX_DISTANCE)) {
+        if ((*depth >= GeometryConfig::SMALL_TOLERANCE) && (*depth <= GeometryConfig::MAX_DISTANCE)) {
             stats.incrementRayPlaneTestsSucceeded();
             return (true);
         }
@@ -110,13 +110,13 @@ InfinitePlane::intersectPlane(
     normalDotOrigin *= -1.0;
 
     normalDotDirection = plane->normalVector.dotProduct(ray->getDirection());
-    if ((normalDotDirection < Config::SMALL_TOLERANCE) &&
-        (normalDotDirection > -Config::SMALL_TOLERANCE)) {
+    if ((normalDotDirection < GeometryConfig::SMALL_TOLERANCE) &&
+        (normalDotDirection > -GeometryConfig::SMALL_TOLERANCE)) {
         return (false);
     }
 
     *depth = normalDotOrigin / normalDotDirection;
-    if ((*depth >= Config::SMALL_TOLERANCE) && (*depth <= Config::MAX_DISTANCE)) {
+    if ((*depth >= GeometryConfig::SMALL_TOLERANCE) && (*depth <= GeometryConfig::MAX_DISTANCE)) {
         stats.incrementRayPlaneTestsSucceeded();
         return (true);
     }

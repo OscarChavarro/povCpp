@@ -15,7 +15,7 @@ each step.
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/HeightField.h"
@@ -188,7 +188,7 @@ HeightField::intersectPixel(int x, int z, const RayWithTracingState *ray,
         localNormal = t1V3.crossProduct(t1V2);
         dot = localNormal.dotProduct(ray->getDirection());
 
-        if ((dot > Config::INTERSECTION_EPSILON) || (dot < -Config::INTERSECTION_EPSILON)) {
+        if ((dot > GeometryConfig::INTERSECTION_EPSILON) || (dot < -GeometryConfig::INTERSECTION_EPSILON)) {
             pos1 = localNormal.dotProduct(t1V1);
 
             pos2 = localNormal.dotProduct(ray->getOrigin());
@@ -197,12 +197,12 @@ HeightField::intersectPixel(int x, int z, const RayWithTracingState *ray,
 
             depth1 = pos1 / dot;
 
-            if ((depth1 > Config::SMALL_TOLERANCE) && (depth1 < Config::MAX_DISTANCE)) {
+            if ((depth1 > GeometryConfig::SMALL_TOLERANCE) && (depth1 < GeometryConfig::MAX_DISTANCE)) {
                 s = ray->getOrigin().x() + (depth1 * ray->getDirection().x()) - (double)x;
                 t = ray->getOrigin().z() + (depth1 * ray->getDirection().z()) - (double)z;
 
-                if ((s < -Config::INTERSECTION_EPSILON) || (t < -Config::INTERSECTION_EPSILON) ||
-                    ((s + t) > 1.0 + Config::INTERSECTION_EPSILON)) {
+                if ((s < -GeometryConfig::INTERSECTION_EPSILON) || (t < -GeometryConfig::INTERSECTION_EPSILON) ||
+                    ((s + t) > 1.0 + GeometryConfig::INTERSECTION_EPSILON)) {
                     depth1 = HUGE_VAL;
                 }
             } else {
@@ -227,7 +227,7 @@ HeightField::intersectPixel(int x, int z, const RayWithTracingState *ray,
         localNormal = t2V3.crossProduct(t2V2);
         dot = localNormal.dotProduct(ray->getDirection());
 
-        if ((dot > Config::INTERSECTION_EPSILON) || (dot < -Config::INTERSECTION_EPSILON)) {
+        if ((dot > GeometryConfig::INTERSECTION_EPSILON) || (dot < -GeometryConfig::INTERSECTION_EPSILON)) {
             pos1 = localNormal.dotProduct(t2V1);
 
             pos2 = localNormal.dotProduct(ray->getOrigin());
@@ -235,12 +235,12 @@ HeightField::intersectPixel(int x, int z, const RayWithTracingState *ray,
 
             depth2 = pos1 / dot;
 
-            if ((depth2 > Config::SMALL_TOLERANCE) && (depth2 < Config::MAX_DISTANCE)) {
+            if ((depth2 > GeometryConfig::SMALL_TOLERANCE) && (depth2 < GeometryConfig::MAX_DISTANCE)) {
                 s = ray->getOrigin().x() + (depth2 * ray->getDirection().x()) - (double)x;
                 t = ray->getOrigin().z() + (depth2 * ray->getDirection().z()) - (double)z;
 
-                if ((s > 1.0 + Config::INTERSECTION_EPSILON) || (t > 1.0 + Config::INTERSECTION_EPSILON) ||
-                    ((s + t) < 1.0 - Config::INTERSECTION_EPSILON)) {
+                if ((s > 1.0 + GeometryConfig::INTERSECTION_EPSILON) || (t > 1.0 + GeometryConfig::INTERSECTION_EPSILON) ||
+                    ((s + t) < 1.0 - GeometryConfig::INTERSECTION_EPSILON)) {
                     depth2 = HUGE_VAL;
                 }
             } else {
@@ -249,7 +249,7 @@ HeightField::intersectPixel(int x, int z, const RayWithTracingState *ray,
         }
     }
 
-    if ((depth1 >= Config::MAX_DISTANCE) && (depth2 >= Config::MAX_DISTANCE)) {
+    if ((depth1 >= GeometryConfig::MAX_DISTANCE) && (depth2 >= GeometryConfig::MAX_DISTANCE)) {
         return (false);
     }
 
@@ -876,7 +876,7 @@ HeightField::traceCrossings(
         return (false);
     }
 
-    // if(      java::Math::abs(depth1 - depth2) < Config::SMALL_TOLERANCE) { Try Config::INTERSECTION_EPSILON if
+    // if(      java::Math::abs(depth1 - depth2) < GeometryConfig::SMALL_TOLERANCE) { Try GeometryConfig::INTERSECTION_EPSILON if
     // next line doesn't work
 
     if (depth1 == depth2) {
@@ -894,21 +894,21 @@ HeightField::traceCrossings(
 
     double mzx;
     double myx;
-    if (java::Math::abs(tempRay.getDirection().x()) > Config::INTERSECTION_EPSILON) {
+    if (java::Math::abs(tempRay.getDirection().x()) > GeometryConfig::INTERSECTION_EPSILON) {
         mzx = tempRay.getDirection().z() / tempRay.getDirection().x();
         myx = tempRay.getDirection().y() / tempRay.getDirection().x();
     } else {
-        mzx = tempRay.getDirection().z() / Config::INTERSECTION_EPSILON;
-        myx = tempRay.getDirection().y() / Config::INTERSECTION_EPSILON;
+        mzx = tempRay.getDirection().z() / GeometryConfig::INTERSECTION_EPSILON;
+        myx = tempRay.getDirection().y() / GeometryConfig::INTERSECTION_EPSILON;
     }
     double mxz;
     double myz;
-    if (java::Math::abs(tempRay.getDirection().z()) > Config::INTERSECTION_EPSILON) {
+    if (java::Math::abs(tempRay.getDirection().z()) > GeometryConfig::INTERSECTION_EPSILON) {
         mxz = tempRay.getDirection().x() / tempRay.getDirection().z();
         myz = tempRay.getDirection().y() / tempRay.getDirection().z();
     } else {
-        mxz = tempRay.getDirection().x() / Config::INTERSECTION_EPSILON;
-        myz = tempRay.getDirection().y() / Config::INTERSECTION_EPSILON;
+        mxz = tempRay.getDirection().x() / GeometryConfig::INTERSECTION_EPSILON;
+        myz = tempRay.getDirection().y() / GeometryConfig::INTERSECTION_EPSILON;
     }
 
     const int isdx = HeightField::signInline(tempRay.getDirection().x());

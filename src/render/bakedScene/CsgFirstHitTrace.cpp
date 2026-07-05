@@ -3,7 +3,7 @@
 
 #include "render/bakedScene/CsgFirstHitTrace.h"
 
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "render/bakedScene/CsgContainmentTest.h"
 #include "render/bakedScene/CsgOperandTrace.h"
 #include "render/bakedScene/SingleCorePlaneCsgTrace.h"
@@ -20,7 +20,7 @@ CsgFirstHitTrace::traceFirstHitByIntersectionMembership(
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue =
         scratch.borrowQueue();
     bool found = false;
-    double bestT = Config::MAX_DISTANCE;
+    double bestT = GeometryConfig::MAX_DISTANCE;
 
     for (long int i = bakedCsg.operands.size() - 1; i >= 0; i--) {
         localDepthQueue->clear();
@@ -34,7 +34,7 @@ CsgFirstHitTrace::traceFirstHitByIntersectionMembership(
 
         for (IntersectionCandidate &candidate : *localDepthQueue) {
             const double t = candidate.getIntersection().t;
-            if (t <= Config::SMALL_TOLERANCE || t >= bestT) {
+            if (t <= GeometryConfig::SMALL_TOLERANCE || t >= bestT) {
                 continue;
             }
             if (!CsgContainmentTest::candidateInsideAllOtherOperands(

@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/geometry/volume/Sphere.h"
 #include "render/bakedScene/AabbCullingSupport.h"
@@ -43,7 +43,7 @@ SingleCorePlaneCsgTrace::candidateInsideCompiledSingleCorePlaneOperands(
                 bakedCsg.operands[coreIndex],
                 bakedCsgs,
                 point,
-                Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
             return false;
         }
     }
@@ -58,7 +58,7 @@ SingleCorePlaneCsgTrace::candidateInsideCompiledSingleCorePlaneOperands(
                 bakedCsg.operands[operandIndex],
                 bakedCsgs,
                 point,
-                Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
             return false;
         }
     }
@@ -85,7 +85,7 @@ SingleCorePlaneCsgTrace::candidateInsideCompiledNestedContainmentSequence(
                 nestedCsg.operands[operandIndex],
                 bakedCsgs,
                 point,
-                Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
             return false;
         }
     }
@@ -112,7 +112,7 @@ SingleCorePlaneCsgTrace::candidateInsideDirectDescriptorOperands(
         if (BakedPlaneIntersector::planeContainmentTest(
                 nestedCsg.operands[planeIdx],
                 point,
-                Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
             return false;
         }
     }
@@ -122,7 +122,7 @@ SingleCorePlaneCsgTrace::candidateInsideDirectDescriptorOperands(
     if (skipIndex != coreIndex) {
         Quadric *quadric = nestedCsg.operands[coreIndex].quadricGeometry;
         if (quadric == nullptr ||
-            quadric->doContainmentTest(point, Config::SMALL_TOLERANCE) ==
+            quadric->doContainmentTest(point, GeometryConfig::SMALL_TOLERANCE) ==
                 Geometry::OUTSIDE) {
             return false;
         }
@@ -269,7 +269,7 @@ SingleCorePlaneCsgTrace::offerTransformedQuadricCoreCandidate(
     long int coreIndex,
     java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
-    if (depth <= Config::SMALL_TOLERANCE || depth >= Config::MAX_DISTANCE) {
+    if (depth <= GeometryConfig::SMALL_TOLERANCE || depth >= GeometryConfig::MAX_DISTANCE) {
         return false;
     }
 
@@ -412,7 +412,7 @@ SingleCorePlaneCsgTrace::makeTransformedQuadricCandidateInRaySpace(
     double depth,
     IntersectionCandidate &candidate)
 {
-    if (depth <= Config::SMALL_TOLERANCE || depth >= Config::MAX_DISTANCE) {
+    if (depth <= GeometryConfig::SMALL_TOLERANCE || depth >= GeometryConfig::MAX_DISTANCE) {
         return false;
     }
     candidate = IntersectionCandidate();
@@ -440,7 +440,7 @@ SingleCorePlaneCsgTrace::makeDirectQuadricCandidateInRaySpace(
     double depth,
     IntersectionCandidate &candidate)
 {
-    if (depth <= Config::SMALL_TOLERANCE || depth >= Config::MAX_DISTANCE) {
+    if (depth <= GeometryConfig::SMALL_TOLERANCE || depth >= GeometryConfig::MAX_DISTANCE) {
         return false;
     }
     candidate = IntersectionCandidate();
@@ -835,7 +835,7 @@ SingleCorePlaneCsgTrace::offerCompiledSingleCorePlaneFirstHitCandidate(
     IntersectionCandidate &out)
 {
     const double t = candidate.getIntersection().t;
-    if (t <= Config::SMALL_TOLERANCE || t >= bestT) {
+    if (t <= GeometryConfig::SMALL_TOLERANCE || t >= bestT) {
         return false;
     }
     if (!candidateInsideCompiledSingleCorePlaneOperands(
@@ -861,7 +861,7 @@ SingleCorePlaneCsgTrace::makeTransformedQuadricCandidate(
     double depth,
     IntersectionCandidate &candidate)
 {
-    if (depth <= Config::SMALL_TOLERANCE || depth >= Config::MAX_DISTANCE) {
+    if (depth <= GeometryConfig::SMALL_TOLERANCE || depth >= GeometryConfig::MAX_DISTANCE) {
         return false;
     }
     candidate = IntersectionCandidate();
@@ -1020,7 +1020,7 @@ SingleCorePlaneCsgTrace::traceFirstHitCompiledSingleCorePlane(
         return false;
     }
 
-    double bestT = Config::MAX_DISTANCE;
+    double bestT = GeometryConfig::MAX_DISTANCE;
     bool coreTrueMiss = false;
     bool found = traceCompiledCoreFirstHitCandidates(
         bakedCsg,

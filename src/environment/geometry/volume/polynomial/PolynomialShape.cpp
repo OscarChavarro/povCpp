@@ -12,7 +12,7 @@ This module implements the code for general 3 variable polynomial shapes
 #include "vsdk/toolkit/numericalAnalysis/polynomial/QuadraticSolver.h"
 #include "vsdk/toolkit/numericalAnalysis/polynomial/QuarticSolver.h"
 
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 
 #include "environment/geometry/element/IntersectionCandidate.h"
@@ -367,7 +367,7 @@ PolynomialShape::intersect(
         PolynomialSolver polynomialSolver(j, &t[i]);
         return polynomialSolver.solve(depths,
             ray->isShadowRayEnabled() ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
-            Config::POLYNOMIAL_SOLVER_EPSILON);
+            GeometryConfig::POLYNOMIAL_SOLVER_EPSILON);
     }
     if (j > 0) {
         return QuadraticSolver::solve(&t[i], depths);
@@ -406,7 +406,7 @@ PolynomialShape::evaluatePolynomial(const Vector3Dd *point, int order, const dou
 
     // The Epsilon fudge factor is so that points really near the
     // surface are considered inside the surface
-    return (result > -Config::INTERSECTION_EPSILON ? (result < Config::INTERSECTION_EPSILON ? 0.0 : result) : result);
+    return (result > -GeometryConfig::INTERSECTION_EPSILON ? (result < GeometryConfig::INTERSECTION_EPSILON ? 0.0 : result) : result);
 }
 
 // Normal to a polynomial
@@ -790,16 +790,16 @@ PolynomialShape::intersectQuartic(
             PolynomialSolver cubicSolver(3, &t[1]);
             return cubicSolver.solve(depths,
                 ray->isShadowRayEnabled() ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
-                Config::POLYNOMIAL_SOLVER_EPSILON);
+                GeometryConfig::POLYNOMIAL_SOLVER_EPSILON);
         }
         PolynomialSolver quarticSolver(4, &t[0]);
         return quarticSolver.solve(depths,
             ray->isShadowRayEnabled() ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
-            Config::POLYNOMIAL_SOLVER_EPSILON);
+            GeometryConfig::POLYNOMIAL_SOLVER_EPSILON);
     }
     return QuarticSolver::solve(&t[0], depths,
         ray->isShadowRayEnabled() ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
-        Config::POLYNOMIAL_SOLVER_EPSILON);
+        GeometryConfig::POLYNOMIAL_SOLVER_EPSILON);
 }
 
 // Normal to a quartic

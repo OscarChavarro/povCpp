@@ -1,7 +1,6 @@
 #ifndef __CSG_MORGAN_UNION_TRACE__
 #define __CSG_MORGAN_UNION_TRACE__
 
-#include "common/Config.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/material/Material.h"
