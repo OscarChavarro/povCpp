@@ -1,15 +1,11 @@
-#include "java/util/PriorityQueue.txx"
 #include "render/PovRayRendererConfiguration.h"
-#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
-#include "environment/geometry/element/RayWithTracingState.h"
 #include "render/shaders/AmbientLightShader.h"
 #include "render/shaders/BumpNormalShader.h"
 #include "render/shaders/DirectLightShader.h"
 #include "render/shaders/LocalSurfaceShader.h"
 #include "render/shaders/MirrorReflectionShader.h"
-#include "render/shaders/TraceService.h"
-#include "environment/scene/SimpleBody.h"
+#include "java/util/PriorityQueue.txx"
 
 void
 LocalSurfaceShader::shade(const RayWithTracingState *ray, PovRayMaterial *texture,

@@ -1,10 +1,8 @@
 #include "java/lang/Math.h"
-#include "java/util/PriorityQueue.txx"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/element/GeometryConfig.h"
-#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/Box.h"
+#include "java/util/PriorityQueue.txx"
 
 Box::Box() :
     Box(Vector3Dd(-1.0, -1.0, -1.0), Vector3Dd(1.0, 1.0, 1.0), false)

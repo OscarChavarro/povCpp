@@ -1,7 +1,6 @@
 #ifndef __BOX__
 #define __BOX__
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/Geometry.h"
 
 class Box : public Geometry {

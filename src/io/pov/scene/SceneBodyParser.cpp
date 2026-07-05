@@ -1,10 +1,6 @@
-#include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"
 
-#include "environment/scene/Scene.h"
 
 #include "io/pov/camera/CameraParser.h"
-#include "io/pov/context/ParserContext.h"
 #include "io/pov/geometry/ObjectParser.h"
 #include "io/pov/material/DefaultTextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
@@ -12,6 +8,8 @@
 #include "io/pov/scene/FogParser.h"
 #include "io/pov/scene/RenderSettingsParser.h"
 #include "io/pov/scene/SceneBodyParser.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
 
 void
 SceneBodyParser::parseFrame(Scene *framePtr)

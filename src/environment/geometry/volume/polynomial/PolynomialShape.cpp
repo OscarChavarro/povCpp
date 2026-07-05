@@ -6,17 +6,15 @@ This module implements the code for general 3 variable polynomial shapes
 
 #include "java/lang/Math.h"
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/numericalAnalysis/polynomial/PolynomialSolver.h"
 #include "vsdk/toolkit/numericalAnalysis/polynomial/QuadraticSolver.h"
 #include "vsdk/toolkit/numericalAnalysis/polynomial/QuarticSolver.h"
 
 #include "environment/geometry/element/GeometryConfig.h"
-#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
+#include "java/util/PriorityQueue.txx"
 
 /**
 Basic form of a quartic equation
@@ -947,4 +945,3 @@ PolynomialShape::invertGeometry()
     this->inverted = !this->inverted;
 }
 
-#include "java/util/PriorityQueue.txx"

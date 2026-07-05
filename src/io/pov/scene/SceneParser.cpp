@@ -1,14 +1,9 @@
-#include <cstdio>
 
-#include "environment/scene/SimpleBody.h"
 #include "io/pov/geometry/SimpleBodyBuilder.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "environment/scene/Composite.h"
-#include "environment/light/Light.h"
-#include "environment/material/povray/PovRayMaterial.h"
 #include "io/pov/material/PovRayMaterialUtils.h"
 #include "environment/scene/Scene.h"
-#include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
 #include "environment/material/povray/PovRayMaterialConstancy.h"
 #include "io/pov/camera/PovCameraSpec.h"
@@ -17,8 +12,6 @@
 #include "io/pov/scene/ScenePostProcessor.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
-#include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 void
 SceneParser::postProcessPhase(Scene *framePtr)

@@ -1,7 +1,6 @@
 #ifndef __PARAMETRIC_CONTROL_POINTS__
 #define __PARAMETRIC_CONTROL_POINTS__
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 class ParametricControlPoints {
   public:

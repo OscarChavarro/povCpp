@@ -2,7 +2,6 @@
 #define __POV_CAMERA_SPEC__
 
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/environment/camera/CameraSnapshot.h"
 
 class PovCameraSpec {

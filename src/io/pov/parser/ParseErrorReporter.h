@@ -1,7 +1,6 @@
 #ifndef __PARSE_ERROR_REPORTER__
 #define __PARSE_ERROR_REPORTER__
 
-#include "io/pov/lexer/Tokenizer.h"
 #include "io/pov/context/ParserContext.h"
 
 class ParseErrorReporter {

@@ -1,8 +1,6 @@
 #ifndef __TRIANGLE_MESH__
 #define __TRIANGLE_MESH__
 
-#include "java/util/ArrayList.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/Geometry.h"
 #include "vsdk/toolkit/environment/geometry/element/Triangle.h"
 

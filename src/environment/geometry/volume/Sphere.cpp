@@ -1,10 +1,8 @@
 #include "java/lang/Math.h"
-#include "java/util/PriorityQueue.txx"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/element/GeometryConfig.h"
-#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/Sphere.h"
+#include "java/util/PriorityQueue.txx"
 
 Sphere::Sphere() :
     radius(1.0),

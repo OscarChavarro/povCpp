@@ -1,11 +1,8 @@
 #ifndef __SIMPLE_BODY__
 #define __SIMPLE_BODY__
 
-#include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "environment/geometry/Geometry.h"
-#include "environment/geometry/element/AxisAlignedBoundingBox.h"
 #include "environment/geometry/element/RayOperationOwner.h"
 #include "environment/material/Material.h"
 #include "environment/scene/TransformStep.h"

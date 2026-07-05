@@ -1,7 +1,7 @@
-#include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"
 
 #include "render/bakedScene/AabbCullingSupport.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
 
 bool
 AabbCullingSupport::pointInsideAabb(const Vector3Dd &point, const AxisAlignedBoundingBox &box, double tolerance)

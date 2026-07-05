@@ -1,10 +1,8 @@
-#include <cstdio>
 #include <cstdlib>
 
-#include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "io/pov/context/ParserContext.h"
 #include "io/pov/parser/ParseErrorReporter.h"
+#include "java/util/PriorityQueue.txx"
 
 void
 ParseErrorReporter::reportLocation(ParserContext &ctx)

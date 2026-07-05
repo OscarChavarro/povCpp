@@ -1,4 +1,3 @@
-#include "io/image/GifFormat.h"
 
 #include "io/image/GifDecoder.h"
 

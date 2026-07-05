@@ -1,12 +1,11 @@
-#include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"
 
 #include "render/bakedScene/CsgContainmentTest.h"
 
 #include "environment/geometry/element/GeometryConfig.h"
-#include "environment/geometry/Geometry.h"
 #include "render/bakedScene/AabbCullingSupport.h"
 #include "render/bakedScene/BakedPlaneIntersector.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
 
 int
 CsgContainmentTest::containmentTestOperand(

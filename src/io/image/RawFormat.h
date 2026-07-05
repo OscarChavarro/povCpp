@@ -2,7 +2,6 @@
 #define __RAW_FORMAT__
 
 #include "java/io/FileInputStream.h"
-#include "java/io/OutputStream.h"
 #include "io/image/ImageOutput.h"
 
 class RawFormat : public ImageOutput {

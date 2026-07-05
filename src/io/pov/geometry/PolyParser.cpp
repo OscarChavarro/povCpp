@@ -1,22 +1,17 @@
-#include "java/util/PriorityQueue.txx"
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/numericalAnalysis/polynomial/PolynomialSolver.h"
 
-#include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "io/pov/geometry/SceneBuilder.h"
 #include "io/pov/geometry/GeometryBuilder.h"
-#include "io/pov/geometry/SimpleBodyBuilder.h"
 
-#include "io/pov/context/ParseGlobals.h"
-#include "io/pov/context/ParserContext.h"
 #include "io/pov/geometry/PolyParser.h"
 #include "environment/material/povray/PovRayMaterialConstancy.h"
 #include "io/pov/material/TextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
+#include "java/util/PriorityQueue.txx"
 
 SimpleBodyBuilder *
 PolyParser::rebuildBodyWithGeometry(SimpleBodyBuilder *body, Geometry *geometry)

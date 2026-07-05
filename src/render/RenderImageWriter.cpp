@@ -1,8 +1,5 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "render/PovRayRendererConfiguration.h"
 #include "render/RenderEngine.h"
-#include "render/RenderImageWriter.h"
-#include "render/RenderOutput.h"
 
 void
 RenderImageWriter::readRenderedPart(ColorRgba *lineBuffer)

@@ -1,14 +1,6 @@
 #ifndef __POV_RAY_MATERIAL_BUILDER__
 #define __POV_RAY_MATERIAL_BUILDER__
 
-#include "java/util/ArrayList.h"
-#include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/media/RGBAColorPalette.h"
-#include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
-#include "environment/material/normal/SolidTextureNormal.h"
-#include "environment/material/pigment/SolidTexturePigment.h"
 #include "environment/material/povray/PovRayMaterial.h"
 #include "io/pov/material/SolidTextureBumpyNames.h"
 #include "io/pov/material/SolidTextureColorNames.h"

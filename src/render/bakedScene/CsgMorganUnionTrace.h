@@ -1,18 +1,8 @@
 #ifndef __CSG_MORGAN_UNION_TRACE__
 #define __CSG_MORGAN_UNION_TRACE__
 
-#include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithTracingState.h"
-#include "environment/material/Material.h"
-#include "java/util/ArrayList.h"
-#include "java/util/PriorityQueue.h"
-#include "render/bakedScene/AabbCullingSupport.h"
-#include "render/bakedScene/BakedPlaneIntersector.h"
-#include "render/bakedScene/BakedQuadricIntersector.h"
-#include "render/bakedScene/BakedScene.h"
 #include "render/bakedScene/CsgContainmentTest.h"
 #include "render/bakedScene/CsgOperandTrace.h"
-#include "render/bakedScene/CsgScratchContext.h"
 
 class CsgMorganUnionTrace {
 public:

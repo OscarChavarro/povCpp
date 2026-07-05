@@ -1,15 +1,8 @@
 #include <cctype>
-#include <cstdio>
-#include <cstdlib>
-#include <strings.h>
 #include <unistd.h>
 
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/geometry/element/GeometryConfig.h"
-#include "render/PovRayRendererConfiguration.h"
 #include "environment/material/normal/MaterialConfig.h"
-#include "environment/scene/Scene.h"
-#include "vsdk/toolkit/io/FileLocator.h"
 #include "app/options/CommandLineOptions.h"
 
 static constexpr int MAX_FILE_NAMES = 1;

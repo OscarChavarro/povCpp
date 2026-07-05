@@ -5,12 +5,10 @@ This module implements the first part of a two part parser for the scene
 description files.  This phase changes the input file into tokens.
 */
 
-#include <cstdio>
 #include <cstring>
 #include <cctype>
 
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "vsdk/toolkit/io/FileLocator.h"
 #include "io/pov/lexer/Tokenizer.h"
 
 /**

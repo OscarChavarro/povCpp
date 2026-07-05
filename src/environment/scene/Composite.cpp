@@ -1,8 +1,6 @@
 #include "environment/geometry/element/GeometryConfig.h"
-#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/scene/Composite.h"
-#include "environment/material/Material.h"
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"

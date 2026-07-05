@@ -1,8 +1,6 @@
 #ifndef __COMPOSITE__
 #define __COMPOSITE__
 
-#include "java/util/ArrayList.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/scene/SimpleBody.h"
 
 class Composite : public SimpleBody {

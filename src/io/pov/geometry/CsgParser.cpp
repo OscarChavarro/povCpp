@@ -11,14 +11,10 @@ ConstructiveSolidGeometryByRaySegment nodes instead, which do implement
 [ROTH1982]'s ray-segment classification (see
 environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h).
 */
-#include "java/util/ArrayList.txx"
 #include "io/pov/geometry/CsgParser.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
-#include "io/pov/geometry/SimpleBodyBuilder.h"
 #include "io/pov/geometry/SceneBuilder.h"
 #include "io/pov/geometry/GeometryBuilder.h"
-#include "io/pov/context/ParseGlobals.h"
 #include "io/pov/geometry/BicubicPatchParser.h"
 #include "io/pov/geometry/BlobParser.h"
 #include "io/pov/geometry/BoxParser.h"
@@ -34,6 +30,7 @@ environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryB
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
+#include "java/util/ArrayList.txx"
 
 static void
 addCsgShape(ConstructiveSolidGeometry *container, SimpleBodyBuilder *shape)

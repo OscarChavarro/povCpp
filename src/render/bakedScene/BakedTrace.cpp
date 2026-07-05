@@ -1,15 +1,12 @@
-#include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"
 
-#include "environment/geometry/element/GeometryConfig.h"
-#include "environment/geometry/element/PriorityQueuePool.txx"
-#include "environment/geometry/volume/Quadric.h"
 #include "environment/scene/Composite.h"
-#include "render/bakedScene/BakedQuadricIntersector.h"
 #include "render/bakedScene/BakedTrace.h"
 #include "render/bakedScene/CsgContainmentTest.h"
 #include "render/bakedScene/CsgFirstHitTrace.h"
 #include "render/bakedScene/CsgOperandTrace.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
+#include "environment/geometry/element/PriorityQueuePool.txx"
 
 bool
 BakedTrace::rayIntersectsAabbForward(const RayWithTracingState &ray, const AxisAlignedBoundingBox &box)

@@ -8,17 +8,11 @@ the two triangles which form the pixel for an intersection with the ray at
 each step.
 */
 
-#include <cstdlib>
 
 #include "java/lang/Math.h"
-#include "java/util/PriorityQueue.txx"
-#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
-#include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/geometry/element/GeometryConfig.h"
-#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
-#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/HeightField.h"
+#include "java/util/PriorityQueue.txx"
 
 AxisAlignedBoundingBox
 HeightField::getMinMax() const

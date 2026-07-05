@@ -1,11 +1,9 @@
 #ifndef __PARAMETRIC_BI_CUBIC_PATCH__
 #define __PARAMETRIC_BI_CUBIC_PATCH__
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/surface/parametric/ParametricControlPoints.h"
 #include "environment/geometry/surface/parametric/ParametricPatchChild.h"
-#include "environment/geometry/surface/parametric/ParametricPatchNode.h"
 
 class ParametricBiCubicPatch : public Geometry {
   public:

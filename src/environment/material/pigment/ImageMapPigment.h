@@ -2,7 +2,6 @@
 #define __IMAGE_MAP_PIGMENT__
 
 #include "environment/material/pigment/SolidTexturePigment.h"
-#include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 
 class ImageMapPigment : public SolidTexturePigment {
   public:

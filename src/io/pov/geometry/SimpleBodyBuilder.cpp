@@ -1,5 +1,4 @@
 #include "io/pov/geometry/SimpleBodyBuilder.h"
-#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "environment/material/povray/PovRayMaterial.h"
 
 SimpleBodyBuilder::SimpleBodyBuilder(

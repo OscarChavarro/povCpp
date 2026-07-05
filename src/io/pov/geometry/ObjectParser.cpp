@@ -1,27 +1,11 @@
-#include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
-#include "io/pov/geometry/SimpleBodyBuilder.h"
-#include "environment/geometry/surface/parametric/ParametricPatch.h"
-#include "environment/geometry/volume/Blob.h"
-#include "environment/geometry/volume/Box.h"
-#include "environment/geometry/volume/HeightField.h"
-#include "environment/geometry/volume/Quadric.h"
-#include "environment/geometry/volume/Sphere.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
-#include "environment/scene/Composite.h"
-#include "environment/light/Light.h"
 #include "environment/material/povray/DefaultTextureAliasTracker.h"
 #include "io/pov/material/PovRayMaterialUtils.h"
-#include "environment/material/pigment/SolidTexturePigment.h"
-#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "io/pov/geometry/SceneBuilder.h"
 #include "io/pov/light/LightGeometryAdapter.h"
 
-#include "io/pov/context/ParseGlobals.h"
-#include "io/pov/context/ParserContext.h"
 #include "io/pov/geometry/BicubicPatchParser.h"
 #include "io/pov/geometry/BlobParser.h"
 #include "io/pov/geometry/BoxParser.h"
@@ -39,6 +23,8 @@
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
 
 static void
 releaseSimpleBody(

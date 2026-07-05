@@ -1,7 +1,6 @@
 #ifndef __PARAMETRIC_BI_CUBIC_INTERSECTION__
 #define __PARAMETRIC_BI_CUBIC_INTERSECTION__
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/element/RayWithTracingState.h"
 
 class ParametricBiCubicIntersection {

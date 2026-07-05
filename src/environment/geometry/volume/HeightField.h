@@ -1,13 +1,11 @@
 #ifndef __HEIGHT_FIELD__
 #define __HEIGHT_FIELD__
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "environment/geometry/volume/Box.h"
 #include "environment/geometry/volume/HeightFieldBlock.h"
 #include "environment/geometry/volume/HeightFieldTraversalState.h"
-#include "environment/geometry/Geometry.h"
 
 class HeightField : public Geometry {
   public:

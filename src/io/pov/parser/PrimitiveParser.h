@@ -3,7 +3,6 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "io/pov/context/ParserContext.h"
 
 class PrimitiveParser {
   public:

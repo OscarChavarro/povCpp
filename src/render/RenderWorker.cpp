@@ -1,6 +1,6 @@
 #include "render/RayShaderPipeline.h"
 #include "render/RenderEngine.h"
-#include "render/RenderWorker.h"
+#include "java/util/ArrayList.txx"
 
 RenderWorker::RenderWorker(RenderEngine *owner)
     : engine(owner),

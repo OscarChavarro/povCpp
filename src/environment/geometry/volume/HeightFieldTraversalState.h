@@ -1,9 +1,7 @@
 #ifndef __HEIGHT_FIELD_TRAVERSAL_STATE__
 #define __HEIGHT_FIELD_TRAVERSAL_STATE__
 
-#include "java/util/PriorityQueue.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithTracingState.h"
 
 class HeightField;
 

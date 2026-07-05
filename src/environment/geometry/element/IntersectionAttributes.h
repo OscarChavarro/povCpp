@@ -2,9 +2,7 @@
 #define __INTERSECTION_ATTRIBUTES__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "environment/material/Material.h"
 #include "environment/geometry/Geometry.h"
-#include "environment/geometry/element/RayOperationOwner.h"
 
 // Per-candidate attribution gathered while a ray is matched against the scene
 // (which geometry/material produced the hit, and the shading overrides a

@@ -1,9 +1,6 @@
 #ifndef __BAKED_PLANE_INTERSECTOR__
 #define __BAKED_PLANE_INTERSECTOR__
 
-#include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithTracingState.h"
-#include "environment/material/Material.h"
 #include "render/bakedScene/BakedScene.h"
 #include "render/raySharedCache/RaySharedCache.h"
 

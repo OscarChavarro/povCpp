@@ -1,9 +1,6 @@
 #ifndef __CONSTRUCTIVE_SOLID_GEOMETRY__
 #define __CONSTRUCTIVE_SOLID_GEOMETRY__
 
-#include "java/util/ArrayList.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/Geometry.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
 

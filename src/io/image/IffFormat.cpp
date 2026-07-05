@@ -4,10 +4,8 @@ iff.c
 This file implements a simple IFF format file reader.
 */
 
-#include <cstdio>
 
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "vsdk/toolkit/io/FileLocator.h"
 #include "io/image/IffFormat.h"
 
 static constexpr long FORM = 0x464f524dL;

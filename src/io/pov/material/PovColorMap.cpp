@@ -1,5 +1,5 @@
-#include "java/util/ArrayList.txx"
 #include "io/pov/material/PovColorMap.h"
+#include "java/util/ArrayList.txx"
 
 PovColorMap::PovColorMap() {
 }

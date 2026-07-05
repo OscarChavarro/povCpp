@@ -1,18 +1,14 @@
-#include "java/util/PriorityQueue.txx"
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 #include "environment/geometry/volume/Box.h"
 #include "io/pov/geometry/SceneBuilder.h"
-#include "io/pov/geometry/SimpleBodyBuilder.h"
 
-#include "io/pov/context/ParseGlobals.h"
-#include "io/pov/context/ParserContext.h"
 #include "io/pov/geometry/BoxParser.h"
 #include "environment/material/povray/PovRayMaterialConstancy.h"
 #include "io/pov/material/TextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/PrimitiveParser.h"
+#include "java/util/PriorityQueue.txx"
 
 SimpleBodyBuilder *
 BoxParser::parseBox()

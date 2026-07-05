@@ -1,8 +1,8 @@
-#include "java/util/ArrayList.txx"
 
 #include "vsdk/toolkit/environment/camera/Camera.h"
 
 #include "environment/scene/Scene.h"
+#include "java/util/ArrayList.txx"
 
 ColorRgba
 Scene::blackFogColor()

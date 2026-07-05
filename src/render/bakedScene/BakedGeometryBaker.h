@@ -1,7 +1,6 @@
 #ifndef __BAKED_GEOMETRY_BAKER__
 #define __BAKED_GEOMETRY_BAKER__
 
-#include "java/util/ArrayList.h"
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/scene/TransformStep.h"

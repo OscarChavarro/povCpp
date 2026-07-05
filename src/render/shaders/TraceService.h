@@ -1,9 +1,7 @@
 #ifndef __TRACE_SERVICE__
 #define __TRACE_SERVICE__
 
-#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithTracingState.h"
 #include "render/raySharedCache/RaySharedCache.h"
 
 class PovRayRenderStatistics;

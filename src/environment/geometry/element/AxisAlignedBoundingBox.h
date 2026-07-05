@@ -2,7 +2,6 @@
 #define __AXIS_ALIGNED_BOUNDING_BOX__
 
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 struct AxisAlignedBoundingBox {
     Vector3Dd min;

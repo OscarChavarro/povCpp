@@ -1,9 +1,6 @@
 #ifndef __RENDER_WORKER__
 #define __RENDER_WORKER__
 
-#include "java/util/ArrayList.h"
-#include "environment/geometry/element/RayWithTracingState.h"
-#include "render/raySharedCache/RaySharedCache.h"
 #include "render/shaders/TraceService.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 

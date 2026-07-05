@@ -4,13 +4,10 @@ raw.c
 This module contains the code to read and write the RAW file format.
 */
 
-#include <cstdio>
 #include <cstring>
 
 #include "java/lang/Math.h"
 #include "java/io/FileOutputStream.h"
-#include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include "io/image/RawFormat.h"
 
 class AppendableFileOutputStream : public java::OutputStream {

@@ -1,4 +1,3 @@
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include "io/context/RenderRuntimeState.h"
 
 void

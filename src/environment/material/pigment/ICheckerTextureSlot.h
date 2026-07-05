@@ -2,7 +2,6 @@
 #define __I_CHECKER_TEXTURE_SLOT__
 
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 class Material;
 class SolidTexturePigment;

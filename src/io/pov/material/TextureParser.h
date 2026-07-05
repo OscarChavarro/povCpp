@@ -1,11 +1,8 @@
 #ifndef __TEXTURE_PARSER__
 #define __TEXTURE_PARSER__
 
-#include "environment/material/povray/PovRayMaterial.h"
 #include "io/pov/material/PovRayMaterialBuilder.h"
 #include "io/pov/context/ParserContext.h"
-#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
-#include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 
 class TextureParser {
   public:

@@ -1,11 +1,6 @@
 #ifndef __POV_RAY_MATERIAL__
 #define __POV_RAY_MATERIAL__
 
-#include "java/util/ArrayList.h"
-#include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/media/RGBAColorPalette.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 #include "environment/material/Material.h"
 #include "environment/material/normal/SolidTextureNormal.h"

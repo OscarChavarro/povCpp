@@ -1,12 +1,10 @@
-#include "java/util/PriorityQueue.txx"
 
-#include "environment/scene/Scene.h"
 
-#include "io/pov/context/ParserContext.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 #include "io/pov/scene/FogParser.h"
+#include "java/util/PriorityQueue.txx"
 
 
 void

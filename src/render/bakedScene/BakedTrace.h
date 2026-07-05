@@ -1,9 +1,6 @@
 #ifndef __BAKED_TRACE__
 #define __BAKED_TRACE__
 
-#include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithTracingState.h"
-#include "environment/scene/Scene.h"
 #include "render/bakedScene/BakedScene.h"
 #include "render/raySharedCache/RaySharedCache.h"
 

@@ -1,17 +1,12 @@
 #include "app/ImageOutputAdapter.h"
 #include "app/PovRayApplication.h"
 #include "app/options/CommandLineOptions.h"
-#include "render/shaders/PovRayRenderStatistics.h"
 #include "environment/material/povray/PovRayMaterial.h"
-#include "render/PovRayRendererConfiguration.h"
-#include "environment/scene/Scene.h"
 #include "io/image/RawDumpFormat.h"
 #include "io/image/RawFormat.h"
 #include "io/image/TargaFormat.h"
-#include "io/pov/context/ParserContext.h"
 #include "io/pov/material/LoadedImageRegistry.h"
 #include "io/pov/scene/SceneParser.h"
-#include "render/RenderOutput.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
 void

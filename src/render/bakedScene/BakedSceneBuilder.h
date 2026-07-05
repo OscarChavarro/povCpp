@@ -1,7 +1,6 @@
 #ifndef __BAKED_SCENE_BUILDER__
 #define __BAKED_SCENE_BUILDER__
 
-#include "environment/scene/SimpleBody.h"
 #include "render/bakedScene/BakedScene.h"
 
 class ConstructiveSolidGeometry;

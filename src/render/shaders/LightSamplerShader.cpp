@@ -1,6 +1,3 @@
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/element/RayWithTracingState.h"
-#include "environment/light/Light.h"
 #include "render/shaders/LightSamplerShader.h"
 
 void

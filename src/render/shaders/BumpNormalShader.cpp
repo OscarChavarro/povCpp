@@ -1,7 +1,3 @@
-#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
-#include "vsdk/toolkit/media/solidTexture/from2d/ImageTexture.h"
-#include "vsdk/toolkit/media/solidTexture/procedural/BumpTextureFixture.h"
-#include "environment/material/normal/SolidTextureNormal.h"
 #include "render/shaders/BumpNormalShader.h"
 
 void

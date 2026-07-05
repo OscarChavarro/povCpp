@@ -1,7 +1,6 @@
 #ifndef __IO_SCENE_BUILDER__
 #define __IO_SCENE_BUILDER__
 
-#include "environment/geometry/Geometry.h"
 #include "io/pov/geometry/SimpleBodyBuilder.h"
 
 class SceneBuilder {

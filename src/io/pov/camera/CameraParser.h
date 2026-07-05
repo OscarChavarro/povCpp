@@ -3,7 +3,6 @@
 
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/camera/PovCameraSpec.h"
-#include "vsdk/toolkit/environment/camera/CameraSnapshot.h"
 
 class CameraParser {
   public:

@@ -2,9 +2,7 @@
 This module implements the code pertaining to rays.
 */
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "environment/material/Material.h"
 #include "environment/geometry/element/RayWithTracingState.h"
 #include "java/util/ArrayList.txx"
 

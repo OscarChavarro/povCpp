@@ -1,15 +1,12 @@
 #include "java/lang/Math.h"
-#include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/numericalAnalysis/polynomial/PolynomialSolver.h"
 #include "vsdk/toolkit/numericalAnalysis/polynomial/QuadraticSolver.h"
 #include "vsdk/toolkit/numericalAnalysis/polynomial/QuarticSolver.h"
 #include "environment/geometry/element/GeometryConfig.h"
-#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/Blob.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
 
 constexpr double Blob::COEFFICIENT_LIMIT;
 constexpr double Blob::INSIDE_TOLERANCE;

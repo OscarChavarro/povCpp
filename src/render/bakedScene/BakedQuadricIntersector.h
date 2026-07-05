@@ -1,7 +1,6 @@
 #ifndef __BAKED_QUADRIC_INTERSECTOR__
 #define __BAKED_QUADRIC_INTERSECTOR__
 
-#include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/geometry/volume/Quadric.h"
 #include "render/raySharedCache/RaySharedCache.h"
 

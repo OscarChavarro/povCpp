@@ -1,12 +1,10 @@
-#include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"
 
 #include "render/bakedScene/BakedPlaneIntersector.h"
 
 #include "environment/geometry/element/GeometryConfig.h"
-#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
-#include "environment/geometry/Geometry.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
 
 bool
 BakedPlaneIntersector::intersectBakedPlane(

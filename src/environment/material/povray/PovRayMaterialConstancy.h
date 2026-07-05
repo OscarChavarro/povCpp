@@ -1,7 +1,6 @@
 #ifndef __POV_RAY_MATERIAL_CONSTANCY__
 #define __POV_RAY_MATERIAL_CONSTANCY__
 
-#include "java/util/ArrayList.h"
 #include "environment/material/povray/PovRayMaterial.h"
 
 class PovRayMaterialConstancy {

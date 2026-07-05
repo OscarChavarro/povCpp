@@ -1,19 +1,14 @@
 #include "java/lang/Math.h"
-#include "java/util/PriorityQueue.txx"
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
-#include "environment/light/Light.h"
 #include "environment/light/PointLight.h"
 #include "environment/light/SpotLight.h"
-#include "vsdk/toolkit/common/color/ColorRgba.h"
 
-#include "io/pov/context/ParseGlobals.h"
-#include "io/pov/context/ParserContext.h"
 #include "io/pov/light/LightSourceParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
+#include "java/util/PriorityQueue.txx"
 
 
 Light *

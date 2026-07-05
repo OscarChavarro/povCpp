@@ -1,5 +1,5 @@
-#include "java/util/ArrayList.txx"
 #include "render/shaders/PovRayRenderStatistics.h"
+#include "java/util/ArrayList.txx"
 
 // Supports multi-thread ray tracing. PovRayRenderStatistics must be totaled after all
 // worker threads have been joined.
