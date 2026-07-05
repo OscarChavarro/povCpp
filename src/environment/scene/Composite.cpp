@@ -1,5 +1,5 @@
 #include "common/Config.h"
-#include "common/statistics/Statistics.h"
+#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/scene/Composite.h"
 #include "environment/material/Material.h"
@@ -21,7 +21,7 @@ Composite::doIntersectionForAllRayCrossings(
     SimpleBody *clippingShape;
     SimpleBody *localObject;
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
-    Statistics &stats = *ray->getStatistics();
+    GeometryStatistics &stats = *ray->getGeometryStatistics();
 
     // Body parameterized on the composite-local ray, factored into a lambda so
     // the local clone is built only when this composite carries a transform (an
@@ -32,7 +32,7 @@ Composite::doIntersectionForAllRayCrossings(
         boundingShape = this->getBoundingShapes()[i];
         Vector3Dd rayOrigin(compositeRay->getOrigin());
 
-        stats.getGeometryStatistics()->incrementBoundingRegionTests();
+        stats.incrementBoundingRegionTests();
         {
             IntersectionCandidate _boundingHit;
             if (!boundingShape->doIntersectionFirstHitViaCrossings(compositeRay, _boundingHit) &&
@@ -41,7 +41,7 @@ Composite::doIntersectionForAllRayCrossings(
                 return (false);
             }
         }
-        stats.getGeometryStatistics()->incrementBoundingRegionTestsSucceeded();
+        stats.incrementBoundingRegionTestsSucceeded();
     }
 
     localDepthQueue = ray->getIntersectionQueuePool()->pop(128);
@@ -69,14 +69,14 @@ Composite::doIntersectionForAllRayCrossings(
 
         for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
             clippingShape = this->getClippingShapes()[i];
-            stats.getGeometryStatistics()->incrementClippingRegionTests();
+            stats.incrementClippingRegionTests();
             if (clippingShape->doContainmentTest(
                     worldPointToLocal(localIntersection.getIntersection().point),
                     Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
                 intersectionFound = false;
                 break;
             }
-            stats.getGeometryStatistics()->incrementClippingRegionTestsSucceeded();
+            stats.incrementClippingRegionTestsSucceeded();
         }
 
         if (intersectionFound) {

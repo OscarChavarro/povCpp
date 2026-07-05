@@ -7,7 +7,7 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
 #include "vsdk/toolkit/render/raytracing/RasterTileGenerator.h"
-#include "common/statistics/Statistics.h"
+#include "render/shaders/PovRayRenderStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/element/PriorityQueuePool.txx"
@@ -94,7 +94,7 @@ RenderEngine::getMutableConfig()
 void
 RenderEngine::createRay(
     RayWithTracingState *localRay, int width, int height, double x, double y,
-    PriorityQueuePool<IntersectionCandidate> *pool, Statistics *stats)
+    PriorityQueuePool<IntersectionCandidate> *pool, PovRayRenderStatistics *stats)
 {
     double xScalar;
     double yScalar;
@@ -121,11 +121,14 @@ RenderEngine::createRay(
     localRay->setQuadricConstantsCached(false);
     if (context) {
         // The whole recursive ray tree (reflection/refraction/shadow rays)
-        // inherits this pointer via setStatistics(parent->getStatistics()),
-        // so routing the primary ray to the calling task's own Statistics is
+        // inherits this pointer via setGeometryStatistics(parent->getGeometryStatistics()),
+        // so routing the primary ray to the calling task's own PovRayRenderStatistics is
         // enough to make every per-primitive intersection counter (B5)
-        // thread-safe without touching any shader/geometry call site.
-        localRay->setStatistics(stats);
+        // thread-safe without touching any shader/geometry call site. Shading-level
+        // counters (reflected/refracted/transmitted/shadow rays, numberOfRays) are
+        // reached through TraceService::getStatistics() instead (set once per tile
+        // in renderTile), since the ray itself only carries GeometryStatistics.
+        localRay->setGeometryStatistics(stats->getGeometryStatistics());
         localRay->setConfig(&context->getConfig());
         localRay->setIntersectionQueuePool(pool);
     }
@@ -163,11 +166,17 @@ RenderEngine::persistDestinationImage()
 void
 RenderEngine::renderTile(
     RenderWorker &localWorker, PriorityQueuePool<IntersectionCandidate> &pool,
-    Statistics &stats, const RasterTileArea &area)
+    PovRayRenderStatistics &stats, const RasterTileArea &area)
 {
     ColorRgba color(0.0, 0.0, 0.0, 0.0);
     int x;
     int y;
+
+    // Shading-level counters (reflected/refracted/transmitted/shadow rays,
+    // numberOfRays) are reached by shaders through TraceService::getStatistics()
+    // rather than through the ray (which only carries GeometryStatistics); set
+    // once per tile since it does not change within it.
+    localWorker.getTraceService()->setStatistics(&stats);
     for (y = this->getConfig().hasOptionFlags(PovRayRendererConfiguration::ANTIALIAS)
                 ? area.getY0() - 1
                 : area.getY0();
@@ -308,15 +317,15 @@ RenderEngine::startTracingParallel()
     threadPool->shutdownNow();
     delete threadPool;
 
-    // B5: reduce every task's own Statistics into the shared total using the
+    // B5: reduce every task's own PovRayRenderStatistics into the shared total using the
     // existing parts-summing constructor, exactly as a single-task reduction
     // would (so serial-equivalent numbers come out the other end).
-    java::ArrayList<Statistics *> statisticsParts;
+    java::ArrayList<PovRayRenderStatistics *> statisticsParts;
     statisticsParts.reserve(tasks.size());
     for (long i = 0; i < tasks.size(); i++) {
         statisticsParts.add(&tasks[i]->statistics);
     }
-    context->getStatistics() = Statistics(&statisticsParts);
+    context->getStatistics() = PovRayRenderStatistics(&statisticsParts);
 
     for (long i = 0; i < tasks.size(); i++) {
         delete tasks[i];
@@ -424,7 +433,7 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithTracingState *localRay, Co
     IntersectionCandidate newIntersection;
     bool intersectionFound;
 
-    localRay->getStatistics()->incrementNumberOfRays();
+    localWorker.getTraceService()->getStatistics()->incrementNumberOfRays();
     color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0);
 
     intersectionFound = false;

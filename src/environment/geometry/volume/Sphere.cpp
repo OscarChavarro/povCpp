@@ -2,7 +2,7 @@
 #include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/Config.h"
-#include "common/statistics/Statistics.h"
+#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/Sphere.h"
 
@@ -40,12 +40,12 @@ bool
 Sphere::intersectSphereLocalSpace(
     const Vector3Dd &p,
     const Vector3Dd &d,
-    Statistics *stats,
+    GeometryStatistics *stats,
     double radius,
     double *depth1,
     double *depth2)
 {
-    stats->getGeometryStatistics()->incrementRaySphereTests();
+    stats->incrementRaySphereTests();
 
     // The object-space direction is NOT unit length whenever the caller's
     // remaining transform (rotation composed with any explicit scale) is
@@ -89,7 +89,7 @@ Sphere::intersectSphereLocalSpace(
         *depth2 = *depth1;
     }
 
-    stats->getGeometryStatistics()->incrementRaySphereTestsSucceeded();
+    stats->incrementRaySphereTestsSucceeded();
     return true;
 }
 
@@ -102,7 +102,7 @@ Sphere::intersectSphere(
     // space before invoking this sphere.
     return intersectSphereLocalSpace(
         ray->getOrigin(), ray->getDirection(),
-        ray->getStatistics(), sphere->getRadius(), depth1, depth2);
+        ray->getGeometryStatistics(), sphere->getRadius(), depth1, depth2);
 }
 
 int

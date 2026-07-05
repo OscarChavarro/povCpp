@@ -2,7 +2,7 @@
 #include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/Config.h"
-#include "common/statistics/Statistics.h"
+#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/Box.h"
 
@@ -135,9 +135,9 @@ Box::intersectBoxx(
     double tmax;
     Vector3Dd p;
     Vector3Dd d;
-    Statistics &stats = *ray->getStatistics();
+    GeometryStatistics &stats = *ray->getGeometryStatistics();
 
-    stats.getGeometryStatistics()->incrementRayBoxTests();
+    stats.incrementRayBoxTests();
 
     p = Vector3Dd(ray->getOrigin().x(), ray->getOrigin().y(), ray->getOrigin().z());
     d = Vector3Dd(ray->getDirection().x(), ray->getDirection().y(), ray->getDirection().z());
@@ -263,7 +263,7 @@ Box::intersectBoxx(
         *depth2 = *depth1;
     }
 
-    stats.getGeometryStatistics()->incrementRayBoxTestsSucceeded();
+    stats.incrementRayBoxTestsSucceeded();
     return (true);
 }
 

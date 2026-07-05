@@ -3,7 +3,7 @@
 #include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/Config.h"
-#include "common/statistics/Statistics.h"
+#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/surface/TriangleMesh.h"
@@ -169,9 +169,9 @@ TriangleMesh::intersectTriangle(RayWithTracingState *ray, int index, double *dep
     double normalDotDirection;
     double s;
     double t;
-    Statistics &stats = *ray->getStatistics();
+    GeometryStatistics &stats = *ray->getGeometryStatistics();
 
-    stats.getGeometryStatistics()->incrementRayTriangleTests();
+    stats.incrementRayTriangleTests();
     if (triangleDegenerate[index]) {
         return false;
     }
@@ -223,27 +223,27 @@ TriangleMesh::intersectTriangle(RayWithTracingState *ray, int index, double *dep
 
         if (((p2.y() - s) * (p2.z() - p1.z())) < ((p2.z() - t) * (p2.y() - p1.y()))) {
             if (inverted) {
-                stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
+                stats.incrementRayTriangleTestsSucceeded();
                 return true;
             }
             return false;
         }
         if (((p3.y() - s) * (p3.z() - p2.z())) < ((p3.z() - t) * (p3.y() - p2.y()))) {
             if (inverted) {
-                stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
+                stats.incrementRayTriangleTestsSucceeded();
                 return true;
             }
             return false;
         }
         if (((p1.y() - s) * (p1.z() - p3.z())) < ((p1.z() - t) * (p1.y() - p3.y()))) {
             if (inverted) {
-                stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
+                stats.incrementRayTriangleTestsSucceeded();
                 return true;
             }
             return false;
         }
         if (!inverted) {
-            stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
+            stats.incrementRayTriangleTestsSucceeded();
             return true;
         }
         return false;
@@ -254,27 +254,27 @@ TriangleMesh::intersectTriangle(RayWithTracingState *ray, int index, double *dep
 
         if ((p2.x() - s) * (p2.z() - p1.z()) < (p2.z() - t) * (p2.x() - p1.x())) {
             if (inverted) {
-                stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
+                stats.incrementRayTriangleTestsSucceeded();
                 return true;
             }
             return false;
         }
         if ((p3.x() - s) * (p3.z() - p2.z()) < (p3.z() - t) * (p3.x() - p2.x())) {
             if (inverted) {
-                stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
+                stats.incrementRayTriangleTestsSucceeded();
                 return true;
             }
             return false;
         }
         if ((p1.x() - s) * (p1.z() - p3.z()) < (p1.z() - t) * (p1.x() - p3.x())) {
             if (inverted) {
-                stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
+                stats.incrementRayTriangleTestsSucceeded();
                 return true;
             }
             return false;
         }
         if (!inverted) {
-            stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
+            stats.incrementRayTriangleTestsSucceeded();
             return true;
         }
         return false;
@@ -285,27 +285,27 @@ TriangleMesh::intersectTriangle(RayWithTracingState *ray, int index, double *dep
 
         if ((p2.x() - s) * (p2.y() - p1.y()) < (p2.y() - t) * (p2.x() - p1.x())) {
             if (inverted) {
-                stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
+                stats.incrementRayTriangleTestsSucceeded();
                 return true;
             }
             return false;
         }
         if ((p3.x() - s) * (p3.y() - p2.y()) < (p3.y() - t) * (p3.x() - p2.x())) {
             if (inverted) {
-                stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
+                stats.incrementRayTriangleTestsSucceeded();
                 return true;
             }
             return false;
         }
         if ((p1.x() - s) * (p1.y() - p3.y()) < (p1.y() - t) * (p1.x() - p3.x())) {
             if (inverted) {
-                stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
+                stats.incrementRayTriangleTestsSucceeded();
                 return true;
             }
             return false;
         }
         if (!inverted) {
-            stats.getGeometryStatistics()->incrementRayTriangleTestsSucceeded();
+            stats.incrementRayTriangleTestsSucceeded();
             return true;
         }
         return false;

@@ -1,7 +1,7 @@
 #include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "common/statistics/Statistics.h"
+#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicPatch.h"
@@ -324,8 +324,8 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
     int cnt = 0;
     int i;
     int intersectionFound = 0;
-    Statistics &stats = *ray->getStatistics();
-    stats.getGeometryStatistics()->incrementRayBicubicTests();
+    GeometryStatistics &stats = *ray->getGeometryStatistics();
+    stats.incrementRayBicubicTests();
     if (ray->isPrimaryRayEnabled()) {
         shape->setIntersectionCount(0);
     }
@@ -349,7 +349,7 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
         Logger::reportMessage("ParametricBiCubicSolver", Logger::FATAL_ERROR, "", "Bad patch type\n");
     }
     if (cnt > 0) {
-        stats.getGeometryStatistics()->incrementRayBicubicTestsSucceeded();
+        stats.incrementRayBicubicTestsSucceeded();
     }
     for (i = 0; i < cnt; i++) {
         if (!ray->isShadowRayEnabled()) {

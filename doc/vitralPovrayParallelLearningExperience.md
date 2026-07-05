@@ -103,14 +103,22 @@ Statistics are a good concrete illustration of the kind of divergence this
 effort needs to resolve, because both trees already solve the same problem —
 counting raytracing work — with genuinely different designs:
 
-- **povCpp** (`src/common/statistics/Statistics.h`) is an instance-based
-  counter bag: per-primitive test/success pair counters (sphere, box, blob,
-  plane, triangle, quadric, poly, bicubic, height field), bounding/clipping
-  region counters, shadow/reflected/refracted/transmitted ray counters, pixel
-  counters and elapsed time. Each render task owns one `Statistics` instance,
-  and a dedicated constructor (`Statistics(ArrayList<Statistics*> *partsPerThread)`)
+- **povCpp** (`src/render/shaders/PovRayRenderStatistics.h`) is an
+  instance-based counter bag: shadow/reflected/refracted/transmitted ray
+  counters, pixel counters and elapsed time, plus two embedded sub-objects:
+  `SolidTextureStatistics` for texture-specific counts, and
+  `GeometryStatistics` (`base/src/main/vsdk/toolkit/common/statistics/`,
+  alongside `SolidTextureStatistics`, built into `vitral_base`) for the
+  per-primitive test/success pair counters (sphere, box, blob, plane,
+  triangle, quadric, poly, bicubic, height field) and bounding/clipping
+  region counters. Each render task owns one `PovRayRenderStatistics`
+  instance, and a dedicated constructor
+  (`PovRayRenderStatistics(ArrayList<PovRayRenderStatistics*> *partsPerThread)`)
   sums per-thread instances back into one report after a `-parallel` join.
-  It embeds a `SolidTextureStatistics` sub-object for texture-specific counts.
+  `GeometryStatistics` lives in the shared location but, unlike
+  `SolidTextureStatistics` (which `TextureUtils`/`ProceduralNoise` genuinely
+  consume), no VITRAL-side code references it yet — it is positioned for
+  sharing, not yet actually shared.
 - **VITRAL** (`base/src/main/vsdk/toolkit/common/statistics/RaytraceStatistics.h`)
   is a static, event-based recorder: `recordPrimaryRay()`,
   `recordShadowRay()`, `recordReflectionRay()`, `recordSceneTraversal()`,
@@ -138,7 +146,9 @@ The intended direction — not yet designed in detail — is:
    pattern is the only one of the two that already solves this, so it is the
    natural starting point rather than a from-scratch design.
 3. Keep `SolidTextureStatistics` as the shared sub-model; it is already
-   independently present, unchanged, in both trees.
+   independently present, unchanged, in both trees. `GeometryStatistics` is
+   colocated the same way but still needs VITRAL to actually adopt it before
+   it can be called shared in the same sense.
 
 This same three-step shape (agree on the shared taxonomy → agree on the shared
 ownership model → keep whatever sub-model is already common) is the template

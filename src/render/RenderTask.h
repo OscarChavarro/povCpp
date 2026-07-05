@@ -3,7 +3,7 @@
 
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "vsdk/toolkit/render/raytracing/RasterTileArea.h"
-#include "common/statistics/Statistics.h"
+#include "render/shaders/PovRayRenderStatistics.h"
 #include "environment/geometry/element/PriorityQueuePool.h"
 #include "render/RenderWorker.h"
 
@@ -14,7 +14,7 @@ class RenderTask {
     RenderWorker worker;
     PriorityQueuePool<IntersectionCandidate> pool;
     RasterTileArea area;
-    Statistics statistics;
+    PovRayRenderStatistics statistics;
     TextureUtils textureUtils;
 
     RenderTask(RenderEngine *engine, const RasterTileArea &taskArea)

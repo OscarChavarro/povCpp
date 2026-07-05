@@ -1,7 +1,7 @@
 #include "app/ImageOutputAdapter.h"
 #include "app/PovRayApplication.h"
 #include "app/options/CommandLineOptions.h"
-#include "common/statistics/Statistics.h"
+#include "render/shaders/PovRayRenderStatistics.h"
 #include "environment/material/povray/PovRayMaterial.h"
 #include "environment/material/RenderOutput.h"
 #include "environment/material/PovRayRendererConfiguration.h"
@@ -22,7 +22,7 @@ PovRayApplication::printProgress(const char *message)
 
 void
 PovRayApplication::printStatistics(
-    const Statistics &stats,
+    const PovRayRenderStatistics &stats,
     const Scene &frame,
     const PovRayRendererConfiguration &inputConfiguration)
 {

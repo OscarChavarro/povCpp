@@ -46,7 +46,7 @@ class RenderEngine {
     const PovRayRendererConfiguration &getConfig() const;
     PovRayRendererConfiguration &getMutableConfig();
     const RenderContext &getRenderContext() const;
-    Statistics &getStatistics();
+    PovRayRenderStatistics &getStatistics();
     PriorityQueuePool<IntersectionCandidate> &getIntersectionQueuePool();
     void setScene(Scene *s);
     Scene &getScene();
@@ -60,11 +60,11 @@ class RenderEngine {
     void trace(RenderWorker &localWorker, RayWithTracingState *localRay, ColorRgba *color);
     void initializeRenderer(void);
     void createRay(RayWithTracingState *localRay, int width, int height, double x,
-        double y, PriorityQueuePool<IntersectionCandidate> *pool, Statistics *stats);
+        double y, PriorityQueuePool<IntersectionCandidate> *pool, PovRayRenderStatistics *stats);
     void checkStats(int y);
     void renderTile(
         RenderWorker &localWorker, PriorityQueuePool<IntersectionCandidate> &pool,
-        Statistics &stats, const RasterTileArea &area);
+        PovRayRenderStatistics &stats, const RasterTileArea &area);
 };
 
 inline void
@@ -97,7 +97,7 @@ RenderEngine::getRenderContext() const
     return *context;
 }
 
-inline Statistics &
+inline PovRayRenderStatistics &
 RenderEngine::getStatistics()
 {
     return context->getStatistics();

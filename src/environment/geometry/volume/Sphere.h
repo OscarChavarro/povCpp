@@ -4,7 +4,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/Geometry.h"
 
-class Statistics;
+class GeometryStatistics;
 
 // Sphere centered at the origin in its own local space, with an intrinsic
 // radius (default 1.0). Rotation/translation/skew on top of that are still
@@ -22,7 +22,7 @@ class Sphere : public Geometry {
     static bool intersectSphereLocalSpace(
         const Vector3Dd &origin,
         const Vector3Dd &direction,
-        Statistics *stats,
+        GeometryStatistics *stats,
         double radius,
         double *depth1,
         double *depth2);

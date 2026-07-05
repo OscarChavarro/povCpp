@@ -3,7 +3,7 @@
 #include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
 #include "common/Config.h"
 #include "environment/geometry/element/PriorityQueuePool.txx"
-#include "common/statistics/Statistics.h"
+#include "render/shaders/PovRayRenderStatistics.h"
 #include "environment/material/PovRayRendererConfiguration.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/RayWithTracingState.h"
@@ -152,7 +152,7 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
     // never reads a normal); document that explicitly via the mask, mirroring
     // VITRAL's RayHit::DETAIL_NONE for the same case.
     lightSourceRay.setRequiredDetailMask(RayWithTracingState::DETAIL_NONE);
-    lightSourceRay.setStatistics(eye->getStatistics());
+    lightSourceRay.setGeometryStatistics(eye->getGeometryStatistics());
     lightSourceRay.setConfig(eye->getConfig());
     lightSourceRay.setIntersectionQueuePool(eye->getIntersectionQueuePool());
 
@@ -165,7 +165,7 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
 
         // What objects does this ray intersect?
         if (eye->getConfig()->withShadows()) {
-            Statistics &stats = *eye->getStatistics();
+            PovRayRenderStatistics &stats = *traceService->getStatistics();
             const java::ArrayList<int> &boundedShadowObjects =
                 bakedScene.boundedShadowCastingObjectIndices;
             const java::ArrayList<int> &unboundedShadowObjects =

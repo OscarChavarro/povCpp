@@ -1,7 +1,7 @@
 #ifndef __RAY_WITH_TRACING_STATE__
 #define __RAY_WITH_TRACING_STATE__
 
-#include "common/statistics/Statistics.h"
+#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/DetailMask.h"
 #include "environment/geometry/element/PriorityQueuePool.h"
 #include "environment/material/Material.h"
@@ -13,13 +13,6 @@ class IntersectionCandidate;
 
 class RayWithTracingState : public Ray {
   public:
-    // Same bit values as PovRayHit::DETAIL_* (see DetailMask.h): which
-    // surface details the eventual hit actually needs, decided per ray
-    // before tracing so doExtraInformation() can skip work the shading path
-    // will never read. Lives on the ray (not the hit, unlike VITRAL) because
-    // in povCpp the decision is made before the hit exists - RenderEngine::
-    // trace must know whether to call doExtraInformation at all; the hit is
-    // still the mask's authority once it exists (see PovRayHit).
     static constexpr int DETAIL_NONE = DetailMask::NONE;
     static constexpr int DETAIL_POINT = DetailMask::POINT;
     static constexpr int DETAIL_NORMAL = DetailMask::NORMAL;
@@ -45,29 +38,14 @@ class RayWithTracingState : public Ray {
     bool isShadowRay;
     bool isPrimaryRay;
     int requiredDetailMask;
-    Statistics *statistics;
+    GeometryStatistics *statistics;
     const PovRayRendererConfiguration *config;
     PriorityQueuePool<IntersectionCandidate> *intersectionQueuePool;
   public:
-    // Tag selecting the cheap local-space intersection clone constructor.
     struct LocalIntersectionClone {};
 
     RayWithTracingState();
-    // Build a local-space clone of source for intersection only. Copies the
-    // geometric quadric cache and the per-ray bookkeeping the intersection path
-    // reads, but leaves the containing-media stacks (containingTextures /
-    // containingIORs) empty instead of deep-copying them. Those stacks are
-    // consumed only by the shading pipeline (TransmissionRefraction /
-    // MirrorReflection shaders) on the world-space ray via copyContainersFrom,
-    // never during doIntersectionForAllRayCrossings or doExtraInformation, so
-    // skipping their per-ray-per-body heap allocation is behaviour-preserving
-    // and removes the dominant allocator cost from the ray/body hot path.
     inline RayWithTracingState(LocalIntersectionClone, const RayWithTracingState &source) :
-        // Ray's copy constructor copies origin/direction/t without renormalizing
-        // (unlike Ray's value constructors, which call normalizeDirection - a sqrt
-        // we must not pay here). The origin/direction are overwritten with the
-        // local-space ray before use, but the plain copy is still cheaper than the
-        // renormalizing path, so we copy the base wholesale.
         Ray(source),
         containingIndex(-1),
         containingTextures(0),
@@ -147,8 +125,8 @@ class RayWithTracingState : public Ray {
     bool needsTangent() const { return (requiredDetailMask & DETAIL_TANGENT) != 0; }
     Material *getContainingTextureAt(int index) const { return containingTextures.get(index); }
     double getContainingIORAt(int index) const { return containingIORs.get(index); }
-    Statistics *getStatistics() const { return statistics; }
-    void setStatistics(Statistics *stats) { statistics = stats; }
+    GeometryStatistics *getGeometryStatistics() const { return statistics; }
+    void setGeometryStatistics(GeometryStatistics *stats) { statistics = stats; }
     const PovRayRendererConfiguration *getConfig() const { return config; }
     void setConfig(const PovRayRendererConfiguration *cfg) { config = cfg; }
     PriorityQueuePool<IntersectionCandidate> *getIntersectionQueuePool() const { return intersectionQueuePool; }
@@ -177,6 +155,7 @@ class RayWithTracingState : public Ray {
     void initializeContainers();
     void copyContainersFrom(const RayWithTracingState *sourceRay);
     void enterContainingMedium(Material *texture);
+
     void exitContainingMedium();
     static inline void mixVectorTerms(Vector3Dd &a, const Vector3Dd &b, const Vector3Dd &c)
     {

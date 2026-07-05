@@ -1,6 +1,6 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/Config.h"
-#include "common/statistics/Statistics.h"
+#include "render/shaders/PovRayRenderStatistics.h"
 #include "environment/geometry/element/RayWithTracingState.h"
 #include "render/shaders/MirrorReflectionShader.h"
 #include "render/shaders/TraceService.h"
@@ -18,8 +18,7 @@ MirrorReflectionShader::shade(const PovRayMaterial *texture, const Vector3Dd *in
     double normalComponent;
 
     if (texture->getObjectReflection() != 0.0) {
-        Statistics &stats = *ray->getStatistics();
-        stats.incrementReflectedRaysTraced();
+        traceService->getStatistics()->incrementReflectedRaysTraced();
         normalComponent = ray->getDirection().dotProduct(*surfaceNormal);
         if (normalComponent < 0.0) {
             localNormal = *surfaceNormal;
@@ -37,7 +36,7 @@ MirrorReflectionShader::shade(const PovRayMaterial *texture, const Vector3Dd *in
         newRay.setOrigin(newRay.getOrigin().add(surfaceOffset));
 
         newRay.copyContainersFrom(ray);
-        newRay.setStatistics(ray->getStatistics());
+        newRay.setGeometryStatistics(ray->getGeometryStatistics());
         newRay.setConfig(ray->getConfig());
         newRay.setIntersectionQueuePool(ray->getIntersectionQueuePool());
         traceLevel++;

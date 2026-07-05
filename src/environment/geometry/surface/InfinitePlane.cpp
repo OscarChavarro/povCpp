@@ -1,7 +1,7 @@
 #include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/Config.h"
-#include "common/statistics/Statistics.h"
+#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/surface/InfinitePlane.h"
 
@@ -80,9 +80,9 @@ InfinitePlane::intersectPlane(
 {
     double normalDotOrigin;
     double normalDotDirection;
-    Statistics &stats = *ray->getStatistics();
+    GeometryStatistics &stats = *ray->getGeometryStatistics();
 
-    stats.getGeometryStatistics()->incrementRayPlaneTests();
+    stats.incrementRayPlaneTests();
     if (ray->isPrimaryRayEnabled()) {
         if (!plane->vpCached) {
             plane->vpNormDotOrigin =
@@ -100,7 +100,7 @@ InfinitePlane::intersectPlane(
 
         *depth = plane->vpNormDotOrigin / normalDotDirection;
         if ((*depth >= Config::SMALL_TOLERANCE) && (*depth <= Config::MAX_DISTANCE)) {
-            stats.getGeometryStatistics()->incrementRayPlaneTestsSucceeded();
+            stats.incrementRayPlaneTestsSucceeded();
             return (true);
         }
         return (false);
@@ -117,7 +117,7 @@ InfinitePlane::intersectPlane(
 
     *depth = normalDotOrigin / normalDotDirection;
     if ((*depth >= Config::SMALL_TOLERANCE) && (*depth <= Config::MAX_DISTANCE)) {
-        stats.getGeometryStatistics()->incrementRayPlaneTestsSucceeded();
+        stats.incrementRayPlaneTestsSucceeded();
         return (true);
     }
     return (false);

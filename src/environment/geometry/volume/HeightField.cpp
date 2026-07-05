@@ -16,7 +16,7 @@ each step.
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/Config.h"
-#include "common/statistics/Statistics.h"
+#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/HeightField.h"
 
@@ -166,7 +166,7 @@ HeightField::intersectPixel(int x, int z, const RayWithTracingState *ray,
     double y4;
     double maxHeight;
     double minHeight;
-    Statistics &stats = *ray->getStatistics();
+    GeometryStatistics &stats = *ray->getGeometryStatistics();
 
     y1 = HeightField::getHeightAt(x, z, hField);
     y2 = HeightField::getHeightAt(x + 1, z, hField);
@@ -268,7 +268,7 @@ HeightField::intersectPixel(int x, int z, const RayWithTracingState *ray,
         state.hfIntersection->getAttributes().setHitGeometry(hField);
         state.hfQueue->offer(*state.hfIntersection);
     }
-    stats.getGeometryStatistics()->incrementRayHtFieldTestsSucceeded();
+    stats.incrementRayHtFieldTestsSucceeded();
     return (true);
 }
 
@@ -856,8 +856,8 @@ HeightField::traceCrossings(
     HeightField * const hField = this;
     IntersectionCandidate localElement;
 
-    Statistics &stats = *ray->getStatistics();
-    stats.getGeometryStatistics()->incrementRayHtFieldTests();
+    GeometryStatistics &stats = *ray->getGeometryStatistics();
+    stats.incrementRayHtFieldTests();
     localElement.getAttributes().setMaterial(materialOverride);
     if (context != nullptr) {
         localElement.getAttributes().pushDetailOwner(context->detailOwner);
@@ -868,7 +868,7 @@ HeightField::traceCrossings(
     tempRay.setOriginAndDirection(
         hField->transformationInverse->transformPoint(ray->getOrigin()),
         hField->transformationInverse->transformDirection(ray->getDirection()));
-    tempRay.setStatistics(ray->getStatistics());
+    tempRay.setGeometryStatistics(ray->getGeometryStatistics());
     tempRay.setConfig(ray->getConfig());
     tempRay.setIntersectionQueuePool(ray->getIntersectionQueuePool());
 

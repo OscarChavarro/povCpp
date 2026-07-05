@@ -1,7 +1,7 @@
 #ifndef __ADAPTIVE_ANTI_ALIASING__
 #define __ADAPTIVE_ANTI_ALIASING__
 
-#include "common/statistics/Statistics.h"
+#include "render/shaders/PovRayRenderStatistics.h"
 #include "environment/geometry/element/PriorityQueuePool.h"
 #include "render/RenderWorker.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
@@ -28,7 +28,7 @@ class AdaptiveAntiAliasing {
     inline unsigned short rand3dInline(RenderWorker &worker, int a, int b);
     void superSample(
         RenderWorker &worker, ColorRgba *result, int x, int y, int width,
-        int height, PriorityQueuePool<IntersectionCandidate> *pool, Statistics *stats);
+        int height, PriorityQueuePool<IntersectionCandidate> *pool, PovRayRenderStatistics *stats);
 
   public:
     explicit AdaptiveAntiAliasing(RenderEngine *engine)
@@ -36,7 +36,7 @@ class AdaptiveAntiAliasing {
 
     void doAntiAliasing(RenderWorker &worker, int x, int y, ColorRgba *color,
         const RasterTileArea &area, PriorityQueuePool<IntersectionCandidate> *pool,
-        Statistics *stats);
+        PovRayRenderStatistics *stats);
 };
 
 #endif

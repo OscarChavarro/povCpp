@@ -1,5 +1,5 @@
 #include "java/util/ArrayList.txx"
-#include "common/statistics/GeometryStatistics.h"
+#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 
 // Mirrors Statistics(ArrayList<Statistics*>*): supports multi-thread ray
 // tracing, where GeometryStatistics parts are totaled after all worker

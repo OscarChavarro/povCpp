@@ -2,7 +2,7 @@
 #include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/Config.h"
-#include "common/statistics/Statistics.h"
+#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/Quadric.h"
 
@@ -157,9 +157,9 @@ Quadric::intersectQuadric(
     double determinant2;
     double a2;
     double bMinus;
-    Statistics &stats = *ray->getStatistics();
+    GeometryStatistics &stats = *ray->getGeometryStatistics();
 
-    stats.getGeometryStatistics()->incrementRayQuadricTests();
+    stats.incrementRayQuadricTests();
     if (!ray->areQuadricConstantsCached()) {
         ray->makeRay();
     }
@@ -236,7 +236,7 @@ Quadric::intersectQuadric(
         *depth2 = *depth1;
     }
 
-    stats.getGeometryStatistics()->incrementRayQuadricTestsSucceeded();
+    stats.incrementRayQuadricTestsSucceeded();
     return (true);
 }
 
