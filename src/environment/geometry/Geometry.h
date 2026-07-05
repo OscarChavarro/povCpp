@@ -3,7 +3,7 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "java/util/PriorityQueue.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/geometry/element/AxisAlignedBoundingBox.h"
 #include "environment/material/PovRayRendererConfiguration.h"
 #include "environment/material/Material.h"
@@ -26,18 +26,18 @@ class Geometry {
     static constexpr int OUTSIDE = static_cast<int>(Containment::OUTSIDE);
 
     virtual int doIntersectionForAllRayCrossings(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr) { (void)ray; (void)depthQueue; (void)materialOverride; return 0; }
     virtual int doIntersectionForAllRayCrossingsAnnotated(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         const GeometryIntersectionEmissionContext &context);
     virtual bool hasNativeAnnotatedCrossings() const { return false; }
     virtual Geometry *getWrappedGeometry() const { return nullptr; }
-    bool doIntersectionFirstHitViaCrossings(RayWithSegments *ray, IntersectionCandidate &out);
+    bool doIntersectionFirstHitViaCrossings(RayWithTracingState *ray, IntersectionCandidate &out);
     virtual bool doIntersectionFirstHit(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         IntersectionCandidate &out,
         Material *materialOverride = nullptr)
     {
@@ -47,7 +47,7 @@ class Geometry {
         return false;
     }
     virtual int doContainmentTest(const Vector3Dd &point, double distanceTolerance) { (void)point; (void)distanceTolerance; return OUTSIDE; }
-    virtual void doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *hit);
+    virtual void doExtraInformation(const RayWithTracingState &ray, double t, PovRayHit *hit);
     virtual AxisAlignedBoundingBox getMinMax() const { return AxisAlignedBoundingBox::unbounded(); }
     virtual void *copy() = 0;
     virtual ~Geometry() {}
@@ -55,9 +55,6 @@ class Geometry {
     virtual void invertGeometry() {}
 
   protected:
-    // Implementation detail of doExtraInformation (its only caller, plus
-    // intra-package uses): not part of the public surface, matching VITRAL's
-    // Geometry, which has no public normal() at all.
     virtual void computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint) {}
     virtual void computeSurfaceNormal(
         Vector3Dd *result,

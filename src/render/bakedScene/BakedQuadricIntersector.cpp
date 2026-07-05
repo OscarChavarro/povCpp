@@ -15,7 +15,7 @@ BakedQuadricIntersector::mixVectorTerms(Vector3Dd &a, const Vector3Dd &b, const 
 bool
 BakedQuadricIntersector::intersectBakedQuadric(
     const Quadric &shape,
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     const Vector3Dd &origin,
     const Vector3Dd &direction,
     bool sharesRaySpace,
@@ -36,7 +36,7 @@ BakedQuadricIntersector::intersectBakedQuadric(
     if (sharesRaySpace) {
         // origin/direction are ray->getOrigin()/getDirection() verbatim (no
         // per-operand transform): reuse the ray's own aggregate cache
-        // (RayWithSegments::makeRay, reset on every new ray generation)
+        // (RayWithTracingState::makeRay, reset on every new ray generation)
         // instead of recomputing the same six vectors per operand.
         if (!ray->areQuadricConstantsCached()) {
             ray->makeRay();
@@ -127,7 +127,7 @@ BakedQuadricIntersector::intersectBakedQuadric(
 bool
 BakedQuadricIntersector::intersectBakedQuadricWithTrueMiss(
     const Quadric &shape,
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     const Vector3Dd &origin,
     const Vector3Dd &direction,
     bool sharesRaySpace,
@@ -234,7 +234,7 @@ BakedQuadricIntersector::intersectBakedQuadricWithTrueMiss(
 bool
 BakedQuadricIntersector::intersectBakedQuadricWithCoeffs(
     const Quadric &shape,
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     const Vector3Dd &origin,
     const Vector3Dd &direction,
     bool sharesRaySpace,

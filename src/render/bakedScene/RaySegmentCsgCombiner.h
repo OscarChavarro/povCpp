@@ -2,7 +2,7 @@
 #define __RAY_SEGMENT_CSG_COMBINER__
 
 #include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/RaySegments.h"
 #include "environment/material/Material.h"
 #include "java/util/ArrayList.h"
@@ -22,7 +22,7 @@ public:
         const BakedScene::CsgProgram &bakedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         CsgScratchContext &scratch,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride);
 
@@ -31,7 +31,7 @@ private:
         const BakedScene::CsgOperandRecord &operand,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         CsgScratchContext &scratch,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         Material *materialOverride);
 
     static bool combineUnion(bool insideLeft, bool insideRight);

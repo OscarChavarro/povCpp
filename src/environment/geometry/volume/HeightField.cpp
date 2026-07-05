@@ -142,7 +142,7 @@ HeightField::getHeightAt(int x, int z, const HeightField *hField)
     return (double)hField->Map[z][x];
 }
 int
-HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
+HeightField::intersectPixel(int x, int z, const RayWithTracingState *ray,
     HeightFieldTraversalState &state,
     HeightField *hField, double height1, double height2)
 {
@@ -274,7 +274,7 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
 
 int
 HeightField::intersectSubBlock(const HeightFieldBlock *block,
-    const RayWithSegments *ray, HeightFieldTraversalState &state,
+    const RayWithTracingState *ray, HeightFieldTraversalState &state,
     HeightField *hField, const Vector3Dd *start,
     const Vector3Dd *end)
 {
@@ -413,7 +413,7 @@ HeightField::intersectSubBlock(const HeightFieldBlock *block,
 }
 
 int
-HeightField::intersectHfNode(const RayWithSegments *ray,
+HeightField::intersectHfNode(const RayWithTracingState *ray,
     HeightFieldTraversalState &state, HeightField *hField,
     const Vector3Dd *start, const Vector3Dd *end)
 {
@@ -842,14 +842,14 @@ HeightField::findHfMinMax(HeightField *hField,
 
 int
 HeightField::traceCrossings(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride,
     const GeometryIntersectionEmissionContext *context)
 {
     Vector3Dd temp1;
     Vector3Dd temp2;
-    RayWithSegments tempRay;
+    RayWithTracingState tempRay;
     double depth1;
     double depth2;
     bool retVal = false;
@@ -929,7 +929,7 @@ HeightField::traceCrossings(
 
 int
 HeightField::doIntersectionForAllRayCrossings(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
@@ -938,7 +938,7 @@ HeightField::doIntersectionForAllRayCrossings(
 
 int
 HeightField::doIntersectionForAllRayCrossingsAnnotated(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     const GeometryIntersectionEmissionContext &context)
 {

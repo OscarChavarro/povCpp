@@ -35,7 +35,7 @@ be set to the distance along Ray at which the intersection occurs.
 */
 int
 ParametricBiCubicIntersection::intersectSubpatch(int patchType,
-    const RayWithSegments *ray, const Vector3Dd *v1, const Vector3Dd *v2,
+    const RayWithTracingState *ray, const Vector3Dd *v1, const Vector3Dd *v2,
     const Vector3Dd *v3, const Vector3Dd *n, double d, const Vector3Dd *n1,
     const Vector3Dd *n2, const Vector3Dd *n3, double *depth, Vector3Dd *ip,
     Vector3Dd *ipNorm)
@@ -229,7 +229,7 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
 
 int
 ParametricBiCubicIntersection::sphericalBoundsCheck(
-    const RayWithSegments *ray, const Vector3Dd *center, double radiusSquared)
+    const RayWithTracingState *ray, const Vector3Dd *center, double radiusSquared)
 {
     double x = center->x() - ray->getOrigin().x();
     double y = center->y() - ray->getOrigin().y();

@@ -3,7 +3,7 @@
 
 #include "environment/scene/Scene.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/light/Light.h"
 #include "environment/material/povray/PovRayMaterial.h"
 #include "java/util/ArrayList.h"
@@ -14,7 +14,7 @@
 
 class LocalSurfaceShader {
 public:
-    static void shade(const RayWithSegments *ray, PovRayMaterial *texture,
+    static void shade(const RayWithTracingState *ray, PovRayMaterial *texture,
         IntersectionCandidate *rayIntersection, ColorRgba *surfaceColor,
         const ColorRgba *filterColor, ColorRgba *color,
         const TraceService *traceService, const java::ArrayList<Light*> &lightSources,

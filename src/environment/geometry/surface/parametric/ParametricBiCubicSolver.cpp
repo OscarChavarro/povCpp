@@ -9,7 +9,7 @@
 
 int
 ParametricBiCubicSolver::intersectParametricBiCubicPatch0(
-    const RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
+    const RayWithTracingState *ray, ParametricBiCubicPatch *shape, double *depths)
 {
     int cnt = 0;
     const int intersectionCount = shape->getIntersectionCount();
@@ -91,7 +91,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch0(
 
 int
 ParametricBiCubicSolver::intersectParametricBiCubicPatch1(
-    const RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
+    const RayWithTracingState *ray, ParametricBiCubicPatch *shape, double *depths)
 {
     int cnt = 0;
     const int intersectionCount = shape->getIntersectionCount();
@@ -173,7 +173,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch1(
 
 int
 ParametricBiCubicSolver::intersectParametricBiCubicPatch2(
-    const RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
+    const RayWithTracingState *ray, ParametricBiCubicPatch *shape, double *depths)
 {
     int cnt = 0;
     double uValues[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
@@ -188,7 +188,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch2(
 
 int
 ParametricBiCubicSolver::intersectParametricBiCubicPatch3(
-    const RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
+    const RayWithTracingState *ray, ParametricBiCubicPatch *shape, double *depths)
 {
     int cnt = 0;
     ParametricBiCubicPatch::parametricTreeWalker(
@@ -198,7 +198,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch3(
 
 int
 ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
-    const RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
+    const RayWithTracingState *ray, ParametricBiCubicPatch *shape, double *depths)
 {
     int cnt = 0;
     const int intersectionCount = shape->getIntersectionCount();
@@ -317,7 +317,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
 
 int
 ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
-    ParametricBiCubicPatch *shape, RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
+    ParametricBiCubicPatch *shape, RayWithTracingState *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
     double depths[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
     IntersectionCandidate localElement;

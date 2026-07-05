@@ -1,16 +1,16 @@
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/statistics/Statistics.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "render/shaders/TraceService.h"
 #include "render/shaders/TransmissionRefractionShader.h"
 
 void
 TransmissionRefractionShader::shade(PovRayMaterial *texture, const Vector3Dd *intersectionPoint,
-    const RayWithSegments *ray, const Vector3Dd *surfaceNormal, ColorRgba *color,
+    const RayWithTracingState *ray, const Vector3Dd *surfaceNormal, ColorRgba *color,
     const TraceService *traceService, double atmosphereIor, int &traceLevel)
 {
-    RayWithSegments newRay;
+    RayWithTracingState newRay;
     ColorRgba tempColor(0.0, 0.0, 0.0, 0.0);
     Vector3Dd localNormal;
     Vector3Dd rayDirection;

@@ -17,7 +17,7 @@ class LightGeometryAdapter : public Geometry {
     void setLight(Light *lightSource) { light = lightSource; }
 
     int doIntersectionForAllRayCrossings(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;

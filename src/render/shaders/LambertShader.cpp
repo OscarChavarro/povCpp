@@ -2,11 +2,11 @@
 #include <mutex>
 
 #include "java/lang/Math.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "render/shaders/LambertShader.h"
 
 void
-LambertShader::shade(const PovRayMaterial *texture, const RayWithSegments *lightSourceRay,
+LambertShader::shade(const PovRayMaterial *texture, const RayWithTracingState *lightSourceRay,
     const Vector3Dd *surfaceNormal, ColorRgba *color, const ColorRgba *lightColor,
     const ColorRgba *surfaceColor, double attenuation)
 {

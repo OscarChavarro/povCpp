@@ -651,7 +651,7 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
 }
 
 void
-ParametricBiCubicPatch::parametricSubPatchIntersect(const RayWithSegments *ray,
+ParametricBiCubicPatch::parametricSubPatchIntersect(const RayWithTracingState *ray,
     ParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4], int *depthCount,
     double *depths)
 {
@@ -866,7 +866,7 @@ ParametricBiCubicPatch::flatEnough(
 }
 
 void
-ParametricBiCubicPatch::parametricSubDivider(const RayWithSegments *ray,
+ParametricBiCubicPatch::parametricSubDivider(const RayWithTracingState *ray,
     ParametricBiCubicPatch *object, Vector3Dd (*patch)[4][4], double u0,
     double u1, double v0, double v1, int recursionDepth, int *depthCount,
     double *depths, double *uValues, double *vValues)
@@ -975,7 +975,7 @@ ParametricBiCubicPatch::parametricTreeDeleter(ParametricPatchNode *node)
 }
 
 void
-ParametricBiCubicPatch::parametricTreeWalker(const RayWithSegments *ray,
+ParametricBiCubicPatch::parametricTreeWalker(const RayWithTracingState *ray,
     ParametricBiCubicPatch *shape, ParametricPatchNode *node, int depth,
     int *depthCount, double *depths)
 {
@@ -1068,7 +1068,7 @@ ParametricBiCubicPatch::doContainmentTest(const Vector3Dd &point, double distanc
 
 void
 ParametricBiCubicPatch::doExtraInformation(
-    const RayWithSegments &ray, double t, PovRayHit *hit)
+    const RayWithTracingState &ray, double t, PovRayHit *hit)
 {
     (void)t;
     if (!hit->needsNormal()) {
@@ -1166,7 +1166,7 @@ ParametricBiCubicPatch::invertGeometry()
 
 int
 ParametricBiCubicPatch::doIntersectionForAllRayCrossings(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
@@ -1180,7 +1180,7 @@ ParametricBiCubicPatch::doIntersectionForAllRayCrossings(
 
 int
 ParametricBiCubicPatch::doIntersectionForAllRayCrossingsAnnotated(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     const GeometryIntersectionEmissionContext &context)
 {

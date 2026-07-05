@@ -47,7 +47,7 @@ add_executable(povray
     src/environment/material/pigment/WoodPigment.cpp
     src/environment/material/PovRayRendererConfiguration.cpp
     src/io/pov/material/DefaultTextureAliasTracker.cpp
-    src/environment/geometry/element/RayWithSegments.cpp
+    src/environment/geometry/element/RayWithTracingState.cpp
     src/environment/geometry/surface/parametric/ParametricPatch.cpp
     src/environment/geometry/surface/parametric/ParametricBiCubicIntersection.cpp
     src/environment/geometry/surface/parametric/ParametricBiCubicSolver.cpp

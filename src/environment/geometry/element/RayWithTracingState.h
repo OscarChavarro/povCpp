@@ -1,5 +1,5 @@
-#ifndef __RAY_WITH_SEGMENTS__
-#define __RAY_WITH_SEGMENTS__
+#ifndef __RAY_WITH_TRACING_STATE__
+#define __RAY_WITH_TRACING_STATE__
 
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/element/DetailMask.h"
@@ -11,7 +11,7 @@
 
 class IntersectionCandidate;
 
-class RayWithSegments : public Ray {
+class RayWithTracingState : public Ray {
   public:
     // Same bit values as PovRayHit::DETAIL_* (see DetailMask.h): which
     // surface details the eventual hit actually needs, decided per ray
@@ -52,7 +52,7 @@ class RayWithSegments : public Ray {
     // Tag selecting the cheap local-space intersection clone constructor.
     struct LocalIntersectionClone {};
 
-    RayWithSegments();
+    RayWithTracingState();
     // Build a local-space clone of source for intersection only. Copies the
     // geometric quadric cache and the per-ray bookkeeping the intersection path
     // reads, but leaves the containing-media stacks (containingTextures /
@@ -62,7 +62,7 @@ class RayWithSegments : public Ray {
     // never during doIntersectionForAllRayCrossings or doExtraInformation, so
     // skipping their per-ray-per-body heap allocation is behaviour-preserving
     // and removes the dominant allocator cost from the ray/body hot path.
-    inline RayWithSegments(LocalIntersectionClone, const RayWithSegments &source) :
+    inline RayWithTracingState(LocalIntersectionClone, const RayWithTracingState &source) :
         // Ray's copy constructor copies origin/direction/t without renormalizing
         // (unlike Ray's value constructors, which call normalizeDirection - a sqrt
         // we must not pay here). The origin/direction are overwritten with the
@@ -162,20 +162,20 @@ class RayWithSegments : public Ray {
         this->position2 = origin.multiply(origin);
         this->direction2 = direction.multiply(direction);
         this->positionDirection = origin.multiply(direction);
-        RayWithSegments::mixVectorTerms(
+        RayWithTracingState::mixVectorTerms(
             this->mixedPositionPosition, origin, origin);
-        RayWithSegments::mixVectorTerms(
+        RayWithTracingState::mixVectorTerms(
             this->mixedDirectionDirection, direction, direction);
-        RayWithSegments::mixVectorTerms(
+        RayWithTracingState::mixVectorTerms(
             tempInitDir, origin, direction);
-        RayWithSegments::mixVectorTerms(
+        RayWithTracingState::mixVectorTerms(
             this->mixedPositionDirection, direction, origin);
         this->mixedPositionDirection =
             this->mixedPositionDirection.add(tempInitDir);
         this->quadricConstantsCached = true;
     }
     void initializeContainers();
-    void copyContainersFrom(const RayWithSegments *sourceRay);
+    void copyContainersFrom(const RayWithTracingState *sourceRay);
     void enterContainingMedium(Material *texture);
     void exitContainingMedium();
     static inline void mixVectorTerms(Vector3Dd &a, const Vector3Dd &b, const Vector3Dd &c)

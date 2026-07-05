@@ -7,7 +7,7 @@
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/element/RayOperationOwner.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/material/Material.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/geometry/volume/Box.h"
@@ -79,7 +79,7 @@ class CsgOperand : public RayOperationOwner {
     }
 
     static bool rayIntersectsAabbForward(
-        const RayWithSegments &ray, const AxisAlignedBoundingBox &box)
+        const RayWithTracingState &ray, const AxisAlignedBoundingBox &box)
     {
         const Vector3Dd origin = ray.getOrigin();
         double invDirX, invDirY, invDirZ;
@@ -191,7 +191,7 @@ class CsgOperand : public RayOperationOwner {
     }
 
     int doIntersectionForAllRayCrossings(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride)
     {
@@ -209,11 +209,11 @@ class CsgOperand : public RayOperationOwner {
         // Build a local-space ray clone only when this operand actually carries
         // a transform. The clone is consumed solely by the geometry call below,
         // so when there is no transform the geometry can intersect the parent
-        // ray directly - avoiding a RayWithSegments construction/destruction per
+        // ray directly - avoiding a RayWithTracingState construction/destruction per
         // operand per ray, which is the hottest allocation on the CSG path.
         int found;
         if (transformationInverse != nullptr) {
-            RayWithSegments localRay(RayWithSegments::LocalIntersectionClone{}, *ray);
+            RayWithTracingState localRay(RayWithTracingState::LocalIntersectionClone{}, *ray);
             localRay.setOrigin(transformationInverse->transformPoint(ray->getOrigin()));
             localRay.setDirection(transformationInverse->transformDirection(ray->getDirection()));
             localRay.setQuadricConstantsCached(false);
@@ -270,7 +270,7 @@ class CsgOperand : public RayOperationOwner {
     void rotate(Vector3Dd *vector);
     void scale(Vector3Dd *vector);
     void doExtraInformation(
-        const RayWithSegments &ray, double t, PovRayHit *hit) override
+        const RayWithTracingState &ray, double t, PovRayHit *hit) override
     {
         // Peel this operand's transform off the ray/point, then recurse into
         // the next inner detail owner (outermost-first consumption). The
@@ -280,7 +280,7 @@ class CsgOperand : public RayOperationOwner {
         // before the inner ones. Only the innermost owner (no further owner
         // left) evaluates its own primitive geometry's normal; each level then
         // re-applies its inverse to the normal while unwinding.
-        RayWithSegments localRay(RayWithSegments::LocalIntersectionClone{}, ray);
+        RayWithTracingState localRay(RayWithTracingState::LocalIntersectionClone{}, ray);
         const Vector3Dd parentPoint = hit->p;
         if (transformationInverse != nullptr && !bakedTransformFolded) {
             localRay.setOrigin(transformationInverse->transformPoint(ray.getOrigin()));

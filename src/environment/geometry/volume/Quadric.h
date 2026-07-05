@@ -39,19 +39,19 @@ class Quadric : public Geometry {
     void setNonZeroSquareTerm(bool value) { nonZeroSquareTerm = value; }
 
     static int intersectQuadric(
-        RayWithSegments *ray, Quadric *shape, double *depth1, double *depth2);
+        RayWithTracingState *ray, Quadric *shape, double *depth1, double *depth2);
 
     int doIntersectionForAllRayCrossings(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr) override;
     int doIntersectionForAllRayCrossingsAnnotated(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         const GeometryIntersectionEmissionContext &context) override;
     bool hasNativeAnnotatedCrossings() const override { return true; }
     bool doIntersectionFirstHit(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         IntersectionCandidate &out,
         Material *materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;

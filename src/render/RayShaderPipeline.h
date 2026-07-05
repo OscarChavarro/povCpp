@@ -4,14 +4,14 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "render/RenderContext.h"
 #include "render/shaders/TraceService.h"
 
 class RayShaderPipeline {
   public:
     static void shadeSurface(IntersectionCandidate *rayIntersection,
-        ColorRgba *color, const RayWithSegments *ray, int shadowRay,
+        ColorRgba *color, const RayWithTracingState *ray, int shadowRay,
         const TraceService *traceService, TextureUtils *textureUtils,
         const RenderContext &context, int &traceLevel);
 };

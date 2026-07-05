@@ -2,7 +2,7 @@
 #define __BAKED_PLANE_INTERSECTOR__
 
 #include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/material/Material.h"
 #include "render/bakedScene/BakedScene.h"
 #include "render/raySharedCache/RaySharedCache.h"
@@ -14,7 +14,7 @@ class BakedPlaneIntersector {
 public:
     static bool intersectBakedPlane(
         const BakedScene::CsgOperandRecord &operand,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         const Vector3Dd &origin,
         const Vector3Dd &direction,
         RaySharedCache &cache,
@@ -27,14 +27,14 @@ public:
 
     static bool tracePlaneOperandCandidate(
         const BakedScene::CsgOperandRecord &operand,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         RaySharedCache &cache,
         Material *materialOverride,
         IntersectionCandidate &candidate);
 
     static bool tracePlaneOperandCandidateInRaySpace(
         const BakedScene::CsgOperandRecord &operand,
-        RayWithSegments *statsRay,
+        RayWithTracingState *statsRay,
         const Vector3Dd &rayOrigin,
         const Vector3Dd &rayDirection,
         RaySharedCache &cache,

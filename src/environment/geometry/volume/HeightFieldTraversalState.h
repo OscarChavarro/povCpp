@@ -3,7 +3,7 @@
 
 #include "java/util/PriorityQueue.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 
 class HeightField;
 
@@ -21,7 +21,7 @@ class HeightFieldTraversalState {
     double myz;
     IntersectionCandidate *hfIntersection;
     java::PriorityQueue<IntersectionCandidate> *hfQueue;
-    RayWithSegments *rRay;
+    RayWithTracingState *rRay;
 
     friend class HeightField;
 
@@ -29,7 +29,7 @@ class HeightFieldTraversalState {
     HeightFieldTraversalState(int isdx, int isdz, bool xDom, double gdx,
         double gdy, double gdz, double myx, double mxz, double mzx,
         double myz, IntersectionCandidate *hfIntersection,
-        java::PriorityQueue<IntersectionCandidate> *hfQueue, RayWithSegments *rRay) :
+        java::PriorityQueue<IntersectionCandidate> *hfQueue, RayWithTracingState *rRay) :
         isdx(isdx),
         isdz(isdz),
         xDom(xDom),
@@ -58,7 +58,7 @@ class HeightFieldTraversalState {
     void setMyz(double value) { myz = value; }
     void setHfIntersection(IntersectionCandidate *value) { hfIntersection = value; }
     void setHfQueue(java::PriorityQueue<IntersectionCandidate> *value) { hfQueue = value; }
-    void setRRay(RayWithSegments *value) { rRay = value; }
+    void setRRay(RayWithTracingState *value) { rRay = value; }
 };
 
 #endif

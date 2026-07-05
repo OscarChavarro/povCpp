@@ -16,7 +16,7 @@ Geometry::applyAnnotatedEmissionContext(
 }
 
 bool
-Geometry::doIntersectionFirstHitViaCrossings(RayWithSegments *ray, IntersectionCandidate &out)
+Geometry::doIntersectionFirstHitViaCrossings(RayWithTracingState *ray, IntersectionCandidate &out)
 {
     java::PriorityQueue<IntersectionCandidate> * const depthQueue =
         ray->getIntersectionQueuePool()->pop(128);
@@ -31,7 +31,7 @@ Geometry::doIntersectionFirstHitViaCrossings(RayWithSegments *ray, IntersectionC
 
 int
 Geometry::doIntersectionForAllRayCrossingsAnnotated(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     const GeometryIntersectionEmissionContext &context)
 {
@@ -62,7 +62,7 @@ Geometry::doIntersectionForAllRayCrossingsAnnotated(
 }
 
 void
-Geometry::doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *hit)
+Geometry::doExtraInformation(const RayWithTracingState &ray, double t, PovRayHit *hit)
 {
     (void)t;
     if (hit->needsNormal()) {

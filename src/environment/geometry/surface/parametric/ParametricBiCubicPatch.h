@@ -41,26 +41,26 @@ class ParametricBiCubicPatch : public Geometry {
         Vector3Dd (*controlPoints)[4][4]);
     static void findAverage(
         int vectorCount, Vector3Dd *vectors, Vector3Dd *center, double *radius);
-    static void parametricSubDivider(const RayWithSegments *ray,
+    static void parametricSubDivider(const RayWithTracingState *ray,
         ParametricBiCubicPatch *object, Vector3Dd (*patch)[4][4], double u0,
         double u1, double v0, double v1, int recursionDepth, int *depthCount,
         double *depths, double *uValues, double *vValues);
-    static void parametricTreeWalker(const RayWithSegments *ray,
+    static void parametricTreeWalker(const RayWithTracingState *ray,
         ParametricBiCubicPatch *shape, ParametricPatchNode *node, int depth,
         int *depthCount, double *depths);
 
     AxisAlignedBoundingBox getMinMax() const override;
 
     int doIntersectionForAllRayCrossings(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr) override;
     int doIntersectionForAllRayCrossingsAnnotated(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         const GeometryIntersectionEmissionContext &context) override;
     bool hasNativeAnnotatedCrossings() const override { return true; }
-    void doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *hit) override;
+    void doExtraInformation(const RayWithTracingState &ray, double t, PovRayHit *hit) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void *copy() override;
     void invertGeometry() override;
@@ -136,7 +136,7 @@ class ParametricBiCubicPatch : public Geometry {
         ParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4]);
     static void parametricBoundingSphere(
         Vector3Dd (*patch)[4][4], Vector3Dd *center, double *radiusSquared);
-    static void parametricSubPatchIntersect(const RayWithSegments *ray,
+    static void parametricSubPatchIntersect(const RayWithTracingState *ray,
         ParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4],
         int *depthCount, double *depths);
     static void parametricSplitLeftRight(Vector3Dd (*patch)[4][4],

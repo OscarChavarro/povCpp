@@ -2,7 +2,7 @@
 #define __CSG_FIRST_HIT_TRACE__
 
 #include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/material/Material.h"
 #include "java/util/ArrayList.h"
 #include "render/bakedScene/BakedScene.h"
@@ -20,7 +20,7 @@ public:
     static bool traceFirstHit(
         const BakedScene::CsgProgram &bakedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         IntersectionCandidate &out,
         RaySharedCache &cache,
         Material *materialOverride = nullptr);
@@ -29,7 +29,7 @@ public:
         const BakedScene::CsgProgram &bakedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         CsgScratchContext &scratch,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         IntersectionCandidate &out,
         Material *materialOverride);
 
@@ -38,7 +38,7 @@ private:
         const BakedScene::CsgProgram &bakedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         CsgScratchContext &scratch,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         IntersectionCandidate &out,
         Material *materialOverride);
 };

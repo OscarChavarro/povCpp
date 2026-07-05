@@ -10,7 +10,7 @@ CsgMorganUnionTrace::traceMorganIntersection(
     const BakedScene::CsgProgram &bakedCsg,
     const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
     CsgScratchContext &scratch,
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
@@ -36,7 +36,7 @@ CsgMorganUnionTrace::traceMorganCsg(
     const BakedScene::CsgProgram &bakedCsg,
     const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
     CsgScratchContext &scratch,
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {

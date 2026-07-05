@@ -12,7 +12,7 @@
 #include "render/bakedScene/CsgOperandTrace.h"
 
 bool
-BakedTrace::rayIntersectsAabbForward(const RayWithSegments &ray, const AxisAlignedBoundingBox &box)
+BakedTrace::rayIntersectsAabbForward(const RayWithTracingState &ray, const AxisAlignedBoundingBox &box)
 {
     const Vector3Dd origin = ray.getOrigin();
     double invDirX, invDirY, invDirZ;
@@ -63,7 +63,7 @@ bool
 BakedTrace::finalizeSimpleBodyCandidate(
     const BakedScene &scene,
     const BakedScene::TraceableObject &baked,
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     IntersectionCandidate &candidate)
 {
     if (baked.hasGeometryTransform) {
@@ -104,7 +104,7 @@ bool
 BakedTrace::passesBoundingShapes(
     const BakedScene &scene,
     const BakedScene::TraceableObject &baked,
-    RayWithSegments *objectRayPtr,
+    RayWithTracingState *objectRayPtr,
     RaySharedCache &cache)
 {
     for (long int i = baked.boundingObjectIndices.size() - 1; i >= 0; i--) {
@@ -127,7 +127,7 @@ bool
 BakedTrace::traceSimpleBodyAllCrossings(
     const BakedScene &scene,
     const BakedScene::TraceableObject &baked,
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     RaySharedCache &cache)
 {
@@ -192,13 +192,13 @@ BakedTrace::traceSimpleBodyAllCrossings(
         return true;
     }
 
-    auto traceInObjectSpace = [&](RayWithSegments *objectRayPtr) -> bool {
+    auto traceInObjectSpace = [&](RayWithTracingState *objectRayPtr) -> bool {
 
     if (!passesBoundingShapes(scene, baked, objectRayPtr, cache)) {
         return false;
     }
 
-    auto traceInGeometrySpace = [&](RayWithSegments *geometryRayPtr) -> bool {
+    auto traceInGeometrySpace = [&](RayWithTracingState *geometryRayPtr) -> bool {
         java::PriorityQueue<IntersectionCandidate> * const localDepthQueue =
             ray->getIntersectionQueuePool()->pop(128);
         const bool foundAny = baked.csgProgramIndex >= 0 ?
@@ -232,8 +232,8 @@ BakedTrace::traceSimpleBodyAllCrossings(
     };
 
     if (baked.hasGeometryTransform) {
-        RayWithSegments geometryRay(
-            RayWithSegments::LocalIntersectionClone{}, *objectRayPtr);
+        RayWithTracingState geometryRay(
+            RayWithTracingState::LocalIntersectionClone{}, *objectRayPtr);
         geometryRay.setOrigin(
             baked.objectToGeometry.transformPoint(objectRayPtr->getOrigin()));
         geometryRay.setDirection(
@@ -245,8 +245,8 @@ BakedTrace::traceSimpleBodyAllCrossings(
     };
 
     if (baked.hasObjectTransform) {
-        RayWithSegments objectRay(
-            RayWithSegments::LocalIntersectionClone{}, *ray);
+        RayWithTracingState objectRay(
+            RayWithTracingState::LocalIntersectionClone{}, *ray);
         objectRay.setOrigin(baked.worldToObject.transformPoint(ray->getOrigin()));
         objectRay.setDirection(baked.worldToObject.transformDirection(ray->getDirection()));
         objectRay.setQuadricConstantsCached(false);
@@ -259,7 +259,7 @@ bool
 BakedTrace::traceSimpleBodyFirstHit(
     const BakedScene &scene,
     const BakedScene::TraceableObject &baked,
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     IntersectionCandidate &out,
     RaySharedCache &cache)
 {
@@ -270,13 +270,13 @@ BakedTrace::traceSimpleBodyFirstHit(
     const bool canUseGeometryFirstHit =
         baked.csgProgramIndex < 0 && !baked.hasBoundingShapes && !baked.hasClippingShapes;
 
-    auto traceInObjectSpace = [&](RayWithSegments *objectRayPtr) -> bool {
+    auto traceInObjectSpace = [&](RayWithTracingState *objectRayPtr) -> bool {
 
     if (!passesBoundingShapes(scene, baked, objectRayPtr, cache)) {
         return false;
     }
 
-    auto traceInGeometrySpace = [&](RayWithSegments *geometryRayPtr) -> bool {
+    auto traceInGeometrySpace = [&](RayWithTracingState *geometryRayPtr) -> bool {
     if (canUseGeometryFirstHit) {
         IntersectionCandidate candidate;
         if (baked.geometry->doIntersectionFirstHit(
@@ -340,8 +340,8 @@ BakedTrace::traceSimpleBodyFirstHit(
     };
 
     if (baked.hasGeometryTransform) {
-        RayWithSegments geometryRay(
-            RayWithSegments::LocalIntersectionClone{}, *objectRayPtr);
+        RayWithTracingState geometryRay(
+            RayWithTracingState::LocalIntersectionClone{}, *objectRayPtr);
         geometryRay.setOrigin(
             baked.objectToGeometry.transformPoint(objectRayPtr->getOrigin()));
         geometryRay.setDirection(
@@ -353,8 +353,8 @@ BakedTrace::traceSimpleBodyFirstHit(
     };
 
     if (baked.hasObjectTransform) {
-        RayWithSegments objectRay(
-            RayWithSegments::LocalIntersectionClone{}, *ray);
+        RayWithTracingState objectRay(
+            RayWithTracingState::LocalIntersectionClone{}, *ray);
         objectRay.setOrigin(baked.worldToObject.transformPoint(ray->getOrigin()));
         objectRay.setDirection(baked.worldToObject.transformDirection(ray->getDirection()));
         objectRay.setQuadricConstantsCached(false);
@@ -416,8 +416,8 @@ bool
 BakedTrace::traceCompositeAllCrossingsInCompositeSpace(
     const BakedScene &scene,
     const BakedScene::CompositeRecord &composite,
-    RayWithSegments *ray,
-    RayWithSegments *compositeRayPtr,
+    RayWithTracingState *ray,
+    RayWithTracingState *compositeRayPtr,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     RaySharedCache &cache)
 {
@@ -492,7 +492,7 @@ bool
 BakedTrace::traceCompositeAllCrossings(
     const BakedScene &scene,
     const BakedScene::CompositeRecord &composite,
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     RaySharedCache &cache)
 {
@@ -500,10 +500,10 @@ BakedTrace::traceCompositeAllCrossings(
         return false;
     }
 
-    RayWithSegments *compositeRayPtr = ray;
+    RayWithTracingState *compositeRayPtr = ray;
     if (composite.hasObjectTransform) {
-        RayWithSegments compositeRay(
-            RayWithSegments::LocalIntersectionClone{}, *ray);
+        RayWithTracingState compositeRay(
+            RayWithTracingState::LocalIntersectionClone{}, *ray);
         compositeRay.setOrigin(composite.worldToObject.transformPoint(ray->getOrigin()));
         compositeRay.setDirection(composite.worldToObject.transformDirection(ray->getDirection()));
         compositeRay.setQuadricConstantsCached(false);
@@ -521,7 +521,7 @@ bool
 BakedTrace::traceCompositeFirstHit(
     const BakedScene &scene,
     const BakedScene::CompositeRecord &composite,
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     IntersectionCandidate &out,
     RaySharedCache &cache)
 {
@@ -588,7 +588,7 @@ bool
 BakedTrace::traceFirstHit(
     const BakedScene &scene,
     int objectIndex,
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     IntersectionCandidate &out,
     RaySharedCache &cache)
 {
@@ -612,7 +612,7 @@ bool
 BakedTrace::traceAllCrossings(
     const BakedScene &scene,
     int objectIndex,
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     RaySharedCache &cache)
 {

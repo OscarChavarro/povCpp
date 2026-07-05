@@ -49,7 +49,7 @@ Quadric::updateSquareTermFlag()
 
 int
 Quadric::doIntersectionForAllRayCrossings(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
@@ -89,7 +89,7 @@ Quadric::doIntersectionForAllRayCrossings(
 
 int
 Quadric::doIntersectionForAllRayCrossingsAnnotated(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     const GeometryIntersectionEmissionContext &context)
 {
@@ -125,7 +125,7 @@ Quadric::doIntersectionForAllRayCrossingsAnnotated(
 
 bool
 Quadric::doIntersectionFirstHit(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     IntersectionCandidate &out,
     Material *materialOverride)
 {
@@ -147,7 +147,7 @@ Quadric::doIntersectionFirstHit(
 
 int
 Quadric::intersectQuadric(
-    RayWithSegments *ray, Quadric *shape, double *depth1, double *depth2)
+    RayWithTracingState *ray, Quadric *shape, double *depth1, double *depth2)
 {
     double squareTerm;
     double linearTerm;

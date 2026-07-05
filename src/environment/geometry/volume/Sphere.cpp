@@ -76,7 +76,7 @@ Sphere::intersectSphereLocalSpace(
 
 bool
 Sphere::intersectSphere(
-    const RayWithSegments *ray, const Sphere *,
+    const RayWithTracingState *ray, const Sphere *,
     double *depth1, double *depth2)
 {
     // The caller owns object placement and must transform the ray into object
@@ -88,7 +88,7 @@ Sphere::intersectSphere(
 
 int
 Sphere::doIntersectionForAllRayCrossings(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
@@ -123,7 +123,7 @@ Sphere::doIntersectionForAllRayCrossings(
 
 int
 Sphere::doIntersectionForAllRayCrossingsAnnotated(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     const GeometryIntersectionEmissionContext &context)
 {
@@ -159,7 +159,7 @@ Sphere::doIntersectionForAllRayCrossingsAnnotated(
 
 bool
 Sphere::doIntersectionFirstHit(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     IntersectionCandidate &out,
     Material *materialOverride)
 {

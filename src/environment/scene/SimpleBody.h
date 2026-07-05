@@ -92,13 +92,13 @@ class SimpleBody : public RayOperationOwner {
 
     AxisAlignedBoundingBox getAABB() const;
 
-    virtual bool doIntersectionFirstHitViaCrossings(RayWithSegments *ray, IntersectionCandidate &out);
+    virtual bool doIntersectionFirstHitViaCrossings(RayWithTracingState *ray, IntersectionCandidate &out);
     virtual int doIntersectionForAllRayCrossings(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr);
     virtual int doContainmentTest(const Vector3Dd &point, double distanceTolerance);
-    void doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *hit) override;
+    void doExtraInformation(const RayWithTracingState &ray, double t, PovRayHit *hit) override;
     virtual void *copy();
     // Virtual so a nested Composite child reached through a SimpleBody*
     // (e.g. from Composite::translate's simpleBodies loop) dispatches to

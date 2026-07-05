@@ -1,7 +1,7 @@
 #ifndef __BAKED_QUADRIC_INTERSECTOR__
 #define __BAKED_QUADRIC_INTERSECTOR__
 
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/geometry/volume/Quadric.h"
 #include "render/raySharedCache/RaySharedCache.h"
 
@@ -13,7 +13,7 @@ class BakedQuadricIntersector {
 public:
     static bool intersectBakedQuadric(
         const Quadric &shape,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         const Vector3Dd &origin,
         const Vector3Dd &direction,
         bool sharesRaySpace,
@@ -31,7 +31,7 @@ public:
     // pressure on every call.
     static bool intersectBakedQuadricWithTrueMiss(
         const Quadric &shape,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         const Vector3Dd &origin,
         const Vector3Dd &direction,
         bool sharesRaySpace,
@@ -49,7 +49,7 @@ public:
     // the quadric.
     static bool intersectBakedQuadricWithCoeffs(
         const Quadric &shape,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         const Vector3Dd &origin,
         const Vector3Dd &direction,
         bool sharesRaySpace,

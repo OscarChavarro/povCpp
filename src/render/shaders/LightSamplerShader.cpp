@@ -1,11 +1,11 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/light/Light.h"
 #include "render/shaders/LightSamplerShader.h"
 
 void
 LightSamplerShader::sample(const Light *lightSource, double *lightSourceDepth,
-    RayWithSegments *lightSourceRay, const Vector3Dd *intersectionPoint,
+    RayWithTracingState *lightSourceRay, const Vector3Dd *intersectionPoint,
     ColorRgba *lightColor)
 {
     double attenuation = 1.0;

@@ -136,7 +136,7 @@ Triangle::computeTriangle(Triangle *triangle)
 
 int
 Triangle::doIntersectionForAllRayCrossings(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
@@ -164,7 +164,7 @@ Triangle::doIntersectionForAllRayCrossings(
 
 int
 Triangle::doIntersectionForAllRayCrossingsAnnotated(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     const GeometryIntersectionEmissionContext &context)
 {
@@ -194,7 +194,7 @@ Triangle::doIntersectionForAllRayCrossingsAnnotated(
 
 int
 Triangle::intersectTriangle(
-    RayWithSegments *ray, Triangle *triangle, double *depth)
+    RayWithTracingState *ray, Triangle *triangle, double *depth)
 {
     double normalDotOrigin;
     double normalDotDirection;

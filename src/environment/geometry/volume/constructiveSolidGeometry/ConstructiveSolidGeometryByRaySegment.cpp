@@ -48,7 +48,7 @@ ConstructiveSolidGeometryByRaySegment::copy()
 // Per-child RAYCAST classification ([ROTH1982].3.3, "In-Out Classification").
 RaySegments
 ConstructiveSolidGeometryByRaySegment::buildRaySegments(
-    RayWithSegments *ray, CsgOperand *child, Material *materialOverride)
+    RayWithTracingState *ray, CsgOperand *child, Material *materialOverride)
 {
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue =
         ray->getIntersectionQueuePool()->pop(128);
@@ -176,7 +176,7 @@ ConstructiveSolidGeometryByRaySegment::mergeDifference(const RaySegments &left, 
 // way back up ([ROTH1982].3.3), folded here over an n-ary children list.
 int
 ConstructiveSolidGeometryByRaySegment::doIntersectionForAllRayCrossings(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {

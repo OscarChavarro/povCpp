@@ -34,7 +34,7 @@ class RenderEngine {
         const ColorRgba *line, int row, const RasterTileArea &area);
     void persistDestinationImage();
     static bool rayIntersectsAabbBefore(
-        const RayWithSegments &ray, const AxisAlignedBoundingBox &box, double maxT);
+        const RayWithTracingState &ray, const AxisAlignedBoundingBox &box, double maxT);
 
   public:
     RenderEngine();
@@ -57,9 +57,9 @@ class RenderEngine {
     void readRenderedPart(void);
     void startTracing(void);
     void startTracingParallel(void);
-    void trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorRgba *color);
+    void trace(RenderWorker &localWorker, RayWithTracingState *localRay, ColorRgba *color);
     void initializeRenderer(void);
-    void createRay(RayWithSegments *localRay, int width, int height, double x,
+    void createRay(RayWithTracingState *localRay, int width, int height, double x,
         double y, PriorityQueuePool<IntersectionCandidate> *pool, Statistics *stats);
     void checkStats(int y);
     void renderTile(

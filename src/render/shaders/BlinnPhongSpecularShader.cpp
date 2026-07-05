@@ -1,10 +1,10 @@
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "render/shaders/BlinnPhongSpecularShader.h"
 
 void
-BlinnPhongSpecularShader::shade(const PovRayMaterial *texture, const RayWithSegments *lightSourceRay,
+BlinnPhongSpecularShader::shade(const PovRayMaterial *texture, const RayWithTracingState *lightSourceRay,
     Vector3Dd rEye, const Vector3Dd *surfaceNormal, ColorRgba *color,
     const ColorRgba *lightColor, const ColorRgba *surfaceColor)
 {

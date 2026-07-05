@@ -21,11 +21,11 @@ class PolynomialShape : public Geometry {
     static const int *termCountsByOrder();
 
     int doIntersectionForAllRayCrossings(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr) override;
     int doIntersectionForAllRayCrossingsAnnotated(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         const GeometryIntersectionEmissionContext &context) override;
     bool hasNativeAnnotatedCrossings() const override { return true; }
@@ -48,9 +48,9 @@ class PolynomialShape : public Geometry {
     static void transform(int order, double *coeffs, Matrix4x4d *q);
     static int roll(int order, int x, int y, int z);
     static void unroll(int order, int index, int *x, int *y, int *z, int *w);
-    static int intersect(const RayWithSegments *ray, int order,
+    static int intersect(const RayWithTracingState *ray, int order,
         const double *coeffs, double *depths);
-    static int intersectQuartic(const RayWithSegments *ray,
+    static int intersectQuartic(const RayWithTracingState *ray,
         const PolynomialShape *shape, double *depths);
     static void quarticNormal(Vector3Dd *result, const PolynomialShape *shape,
         const Vector3Dd *intersectionPoint);

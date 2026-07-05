@@ -6,7 +6,7 @@
 #include "environment/material/pigment/SolidTexturePigment.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/scene/SimpleBody.h"
 #include "render/RayShaderPipeline.h"
 #include "render/shaders/BumpNormalShader.h"
@@ -16,7 +16,7 @@
 
 void
 RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
-    ColorRgba *color, const RayWithSegments *ray, int shadowRay,
+    ColorRgba *color, const RayWithTracingState *ray, int shadowRay,
     const TraceService *traceService, TextureUtils *textureUtils,
     const RenderContext &context, int &traceLevel)
 {

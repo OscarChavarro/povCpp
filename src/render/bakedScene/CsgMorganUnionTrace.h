@@ -3,7 +3,7 @@
 
 #include "common/Config.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/material/Material.h"
 #include "java/util/ArrayList.h"
 #include "java/util/PriorityQueue.h"
@@ -21,7 +21,7 @@ public:
         const BakedScene::CsgProgram &bakedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         CsgScratchContext &scratch,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride);
 
@@ -29,7 +29,7 @@ public:
         const BakedScene::CsgProgram &bakedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         CsgScratchContext &scratch,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride);
 
@@ -39,7 +39,7 @@ public:
         const BakedScene::CsgProgram &bakedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         CsgScratchContext &scratch,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride)
     {
@@ -137,7 +137,7 @@ public:
 
     static inline void dispatchDirectPrimitiveOperand(
         const BakedScene::CsgOperandRecord &operand,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride,
         bool &anyFound)
@@ -172,7 +172,7 @@ public:
         const BakedScene::CsgOperandRecord &operand,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         CsgScratchContext &scratch,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride,
         bool &anyFound)
@@ -216,7 +216,7 @@ public:
         const BakedScene::CsgProgram &bakedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         CsgScratchContext &scratch,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride)
     {
@@ -340,7 +340,7 @@ public:
         const BakedScene::CsgProgram &bakedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         CsgScratchContext &scratch,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride)
     {
