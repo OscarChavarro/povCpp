@@ -5,7 +5,7 @@
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/element/RayOperationOwner.h"
 #include "vsdk/toolkit/environment/material/Material.h"
-#include "environment/scene/TransformStep.h"
+#include "environment/geometry/element/TransformStep.h"
 
 class SimpleBody : public RayOperationOwner {
   protected:

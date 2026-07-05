@@ -3,7 +3,7 @@
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/geometry/Geometry.h"
-#include "environment/scene/TransformStep.h"
+#include "environment/geometry/element/TransformStep.h"
 
 class SimpleBodyBuilder {
   private:

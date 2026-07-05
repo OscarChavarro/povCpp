@@ -1,7 +1,7 @@
 
 
 #include "io/pov/camera/CameraParser.h"
-#include "io/pov/geometry/ObjectParser.h"
+#include "io/pov/scene/ObjectParser.h"
 #include "io/pov/material/DefaultTextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/scene/DeclarationParser.h"

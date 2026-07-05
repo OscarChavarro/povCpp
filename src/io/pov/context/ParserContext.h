@@ -4,7 +4,8 @@
 #include "io/context/RenderRuntimeState.h"
 #include "io/pov/context/SymbolTable.h"
 #include "io/pov/context/TokenizerStream.h"
-#include "environment/material/povray/PovRayMaterial.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/environment/material/Material.h"
 
 class ParserContext {
   public:
@@ -20,8 +21,12 @@ class ParserContext {
     void resetTokenStreamHistory();
     Tokenizer &tokenizer() { return mTokenizer; }
 
-    PovRayMaterial *getDefaultTexture() const { return mDefaultTexture; }
-    void setDefaultTexture(PovRayMaterial *texture) { mDefaultTexture = texture; }
+    // Stored as the framework-level Material base so io/pov/context does not
+    // depend on the POV-specific environment/material domain; callers that
+    // need the concrete PovRayMaterial type (io/pov/material parsers) cast it
+    // back themselves, as they already depend on that domain.
+    Material *getDefaultTexture() const { return mDefaultTexture; }
+    void setDefaultTexture(Material *texture) { mDefaultTexture = texture; }
 
     // Diagnostics needed by the error reporter, decoupled from the render-time
     // PovRayRendererConfiguration so io/pov/context does not depend on environment.
@@ -55,7 +60,7 @@ class ParserContext {
     ITokenStream *mTokenStream;
     SymbolTable * const mSymbols;
     int * const mDegenerateTriangles;
-    PovRayMaterial *mDefaultTexture;
+    Material *mDefaultTexture;
     bool mVerboseErrors;
     bool mCsgRoth = false;
     const char *mStatFileName;

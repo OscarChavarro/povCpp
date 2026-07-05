@@ -8,7 +8,8 @@
 void
 DefaultTextureParser::parseDefault(ParserContext &ctx)
 {
-    PovRayMaterial * const oldDefaultTexture = ctx.getDefaultTexture();
+    PovRayMaterial * const oldDefaultTexture =
+        static_cast<PovRayMaterial *>(ctx.getDefaultTexture());
     PovRayMaterial *parsedDefaultTexture = oldDefaultTexture;
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
     {
@@ -19,7 +20,7 @@ DefaultTextureParser::parseDefault(ParserContext &ctx)
             switch (ctx.token().getTokenId()) {
             case Tokenizer::TEXTURE_TOKEN:
                 parsedDefaultTexture = TextureParser::parseTexture(
-                    ctx.getDefaultTexture(), ctx);
+                    static_cast<PovRayMaterial *>(ctx.getDefaultTexture()), ctx);
                 break;
             case Tokenizer::RIGHT_CURLY_TOKEN:
                 Exit_Flag = true;

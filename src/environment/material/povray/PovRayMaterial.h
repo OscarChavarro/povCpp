@@ -122,6 +122,7 @@ class PovRayMaterial : public Material, public ICheckerTextureSlot {
     static void scaleTexture(PovRayMaterial **texturePtr, Vector3Dd *vector);
     Material *translate(Vector3Dd *vector) override;
     static void translateTexture(PovRayMaterial **texturePtr, Vector3Dd *vector);
+    Material *copy() const override;
 };
 
 inline const java::ArrayList<PovRayMaterial *>&

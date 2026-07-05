@@ -64,11 +64,11 @@ add_executable(povray
     src/environment/geometry/volume/polynomial/PolynomialShape.cpp
     src/environment/geometry/volume/Quadric.cpp
     src/environment/geometry/volume/Sphere.cpp
+    src/environment/geometry/element/TransformStepArrayList.cpp
     src/environment/light/Light.cpp
     src/environment/light/PointLight.cpp
     src/environment/light/SpotLight.cpp
     src/environment/scene/SimpleBody.cpp
-    src/environment/scene/TransformStepArrayList.cpp
     src/environment/scene/Composite.cpp
     src/environment/scene/Scene.cpp
     src/io/pov/geometry/SimpleBodyBuilder.cpp
@@ -136,13 +136,13 @@ add_executable(povray
     src/io/pov/geometry/BlobParser.cpp
     src/io/pov/geometry/CsgParser.cpp
     src/io/pov/geometry/HeightFieldParser.cpp
-    src/io/pov/geometry/ObjectParser.cpp
     src/io/pov/scene/SceneParser.cpp
     src/io/pov/scene/ScenePostProcessor.cpp
     src/io/pov/scene/FogParser.cpp
     src/io/pov/scene/RenderSettingsParser.cpp
     src/io/pov/camera/PovCameraSpec.cpp
     src/io/pov/camera/CameraParser.cpp
+    src/io/pov/scene/ObjectParser.cpp
     src/io/pov/scene/DeclarationParser.cpp
     src/io/pov/scene/SceneBodyParser.cpp
     src/io/pov/lexer/Tokenizer.cpp

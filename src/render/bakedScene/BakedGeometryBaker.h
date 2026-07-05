@@ -3,7 +3,7 @@
 
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/geometry/volume/Quadric.h"
-#include "environment/scene/TransformStep.h"
+#include "environment/geometry/element/TransformStep.h"
 
 class BakedGeometryBaker {
   public:
