@@ -7,16 +7,31 @@
 #include "environment/geometry/volume/Sphere.h"
 
 Sphere::Sphere() :
+    radius(1.0),
     inverted(false)
 {
 }
 
 Sphere::Sphere(bool inverted) :
+    radius(1.0),
+    inverted(inverted)
+{
+}
+
+Sphere::Sphere(double radius) :
+    radius(radius),
+    inverted(false)
+{
+}
+
+Sphere::Sphere(double radius, bool inverted) :
+    radius(radius),
     inverted(inverted)
 {
 }
 
 Sphere::Sphere(const Sphere &other) :
+    radius(other.radius),
     inverted(other.inverted)
 {
 }
@@ -26,33 +41,37 @@ Sphere::intersectSphereLocalSpace(
     const Vector3Dd &p,
     const Vector3Dd &d,
     Statistics *stats,
+    double radius,
     double *depth1,
     double *depth2)
 {
     stats->getGeometryStatistics()->incrementRaySphereTests();
 
-    // The object-space direction is NOT unit length: transformPoint/Direction by
-    // the inverse of translate(center)*scale(r) leaves |d| = |worldDir| / r. The
-    // closed-form chord formula below assumes a unit direction, so normalize d
-    // here and convert the resulting (normalized-units) t back to world t by
-    // dividing by |d|. Because the ray parameterization is shared between world
-    // and object space (affine map), world t == object t; this division recovers
-    // it exactly. (Skipping this is what made every sphere with r != 1 render at
+    // The object-space direction is NOT unit length whenever the caller's
+    // remaining transform (rotation composed with any explicit scale) is
+    // non-isotropic: |d| = |worldDir| / scale. The closed-form chord formula
+    // below assumes a unit direction, so normalize d here and convert the
+    // resulting (normalized-units) t back to world t by dividing by |d|.
+    // Because the ray parameterization is shared between world and object
+    // space (affine map), world t == object t; this division recovers it
+    // exactly. (Skipping this is what made every sphere with r != 1 render at
     // the wrong size, and made r >~ 1.4 vanish entirely - the discriminant went
     // negative.)
     const double directionLength = java::Math::sqrt(d.dotProduct(d));
     const Vector3Dd unitDirection = d.multiply(1.0 / directionLength);
 
-    // Unit sphere at origin: O2C = -p
+    // Sphere of the given radius at the origin: O2C = -p
+    const double radiusSquared = radius * radius;
     const double ocSquared = p.dotProduct(p);
-    const bool inside = (ocSquared < 1.0);
+    const bool inside = (ocSquared < radiusSquared);
     const double tClosestApproach = -p.dotProduct(unitDirection);
 
     if (!inside && tClosestApproach < Config::SMALL_TOLERANCE) {
         return false;
     }
 
-    const double tHalfChordSquared = 1.0 - ocSquared + tClosestApproach * tClosestApproach;
+    const double tHalfChordSquared =
+        radiusSquared - ocSquared + tClosestApproach * tClosestApproach;
     if (tHalfChordSquared < Config::SMALL_TOLERANCE) {
         return false;
     }
@@ -76,14 +95,14 @@ Sphere::intersectSphereLocalSpace(
 
 bool
 Sphere::intersectSphere(
-    const RayWithTracingState *ray, const Sphere *,
+    const RayWithTracingState *ray, const Sphere *sphere,
     double *depth1, double *depth2)
 {
     // The caller owns object placement and must transform the ray into object
-    // space before invoking this canonical unit sphere.
+    // space before invoking this sphere.
     return intersectSphereLocalSpace(
         ray->getOrigin(), ray->getDirection(),
-        ray->getStatistics(), depth1, depth2);
+        ray->getStatistics(), sphere->getRadius(), depth1, depth2);
 }
 
 int
@@ -186,17 +205,18 @@ Sphere::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
     Vector3Dd q;
     q = testPoint;
     const double distSq = q.dotProduct(q);
+    const double radiusSquared = radius * radius;
     if (inverted) {
-        return (distSq - 1.0 > distanceTolerance) ? INSIDE : OUTSIDE;
+        return (distSq - radiusSquared > distanceTolerance) ? INSIDE : OUTSIDE;
     }
-    return (distSq - 1.0 < distanceTolerance) ? INSIDE : OUTSIDE;
+    return (distSq - radiusSquared < distanceTolerance) ? INSIDE : OUTSIDE;
 }
 
 void
 Sphere::computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
-    // For the canonical unit sphere at origin, the local-space normal equals
-    // the local-space intersection point.
+    // For a sphere at the origin, the local-space normal is the local-space
+    // intersection point normalized, regardless of radius.
     *result = intersectionPoint->normalizedFast();
 }
 
@@ -215,5 +235,6 @@ Sphere::invertGeometry()
 AxisAlignedBoundingBox
 Sphere::getMinMax() const
 {
-    return AxisAlignedBoundingBox{Vector3Dd(-1.0, -1.0, -1.0), Vector3Dd(1.0, 1.0, 1.0)};
+    return AxisAlignedBoundingBox{
+        Vector3Dd(-radius, -radius, -radius), Vector3Dd(radius, radius, radius)};
 }

@@ -228,8 +228,9 @@ SingleCorePlaneCsgTrace::traceCompiledCoreOperandAllCrossings(
         double depth1;
         double depth2;
         if (!Sphere::intersectSphereLocalSpace(
-                localOrigin, localDirection,
-                ray->getStatistics(), &depth1, &depth2)) {
+                localOrigin, localDirection, ray->getStatistics(),
+                static_cast<Sphere *>(operand.geometry)->getRadius(),
+                &depth1, &depth2)) {
             return false;
         }
 
