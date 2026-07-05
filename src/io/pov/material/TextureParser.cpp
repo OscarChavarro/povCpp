@@ -53,7 +53,7 @@ PovRayMaterial *
 TextureParser::parseTexture(ParserContext &ctx)
 {
     return TextureParser::parseTexture(
-        ctx.getDefaultTexture(), ctx);
+        static_cast<PovRayMaterial *>(ctx.getDefaultTexture()), ctx);
 }
 
 PovRayMaterial *

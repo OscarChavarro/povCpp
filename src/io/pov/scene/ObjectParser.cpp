@@ -11,7 +11,7 @@
 #include "io/pov/geometry/BoxParser.h"
 #include "io/pov/geometry/CsgParser.h"
 #include "io/pov/geometry/HeightFieldParser.h"
-#include "io/pov/geometry/ObjectParser.h"
+#include "io/pov/scene/ObjectParser.h"
 #include "io/pov/geometry/PlaneParser.h"
 #include "io/pov/geometry/PolyParser.h"
 #include "io/pov/geometry/QuadricParser.h"

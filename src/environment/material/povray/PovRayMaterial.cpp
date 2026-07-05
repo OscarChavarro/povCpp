@@ -308,6 +308,12 @@ PovRayMaterial::scaleTexture(PovRayMaterial **texturePtr, Vector3Dd *vector)
 }
 
 Material *
+PovRayMaterial::copy() const
+{
+    return new PovRayMaterial(*this);
+}
+
+Material *
 PovRayMaterial::translate(Vector3Dd *vector)
 {
     // translateTexture copy-on-writes a constant material into a throwaway copy and

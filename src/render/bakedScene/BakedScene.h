@@ -5,7 +5,7 @@
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
-#include "environment/scene/TransformStep.h"
+#include "environment/geometry/element/TransformStep.h"
 #include "environment/scene/SimpleBody.h"
 #include "environment/scene/Composite.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"

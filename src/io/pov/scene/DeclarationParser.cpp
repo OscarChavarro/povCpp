@@ -7,7 +7,7 @@
 #include "io/pov/geometry/BoxParser.h"
 #include "io/pov/geometry/CsgParser.h"
 #include "io/pov/geometry/HeightFieldParser.h"
-#include "io/pov/geometry/ObjectParser.h"
+#include "io/pov/scene/ObjectParser.h"
 #include "io/pov/geometry/PlaneParser.h"
 #include "io/pov/geometry/PolyParser.h"
 #include "io/pov/geometry/QuadricParser.h"
@@ -188,7 +188,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                         switch (ctx.token().getTokenId()) {
                         case Tokenizer::TEXTURE_TOKEN:
                             localTexture = TextureParser::parseTexture(
-                                ctx.getDefaultTexture(), ctx);
+                                static_cast<PovRayMaterial *>(ctx.getDefaultTexture()), ctx);
                             if (PovRayMaterialConstancy::isConstant(localTexture)) {
                                 localTexture =
                                     TextureParser::copyTexture(localTexture);

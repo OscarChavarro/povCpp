@@ -1,4 +1,4 @@
 #include "java/util/ArrayList.txx"
-#include "environment/scene/TransformStep.h"
+#include "environment/geometry/element/TransformStep.h"
 
 template class java::ArrayList<TransformStep>;
