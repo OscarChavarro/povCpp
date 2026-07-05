@@ -1,7 +1,7 @@
 #include "java/lang/Math.h"
 #include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/Sphere.h"
@@ -66,13 +66,13 @@ Sphere::intersectSphereLocalSpace(
     const bool inside = (ocSquared < radiusSquared);
     const double tClosestApproach = -p.dotProduct(unitDirection);
 
-    if (!inside && tClosestApproach < Config::SMALL_TOLERANCE) {
+    if (!inside && tClosestApproach < GeometryConfig::SMALL_TOLERANCE) {
         return false;
     }
 
     const double tHalfChordSquared =
         radiusSquared - ocSquared + tClosestApproach * tClosestApproach;
-    if (tHalfChordSquared < Config::SMALL_TOLERANCE) {
+    if (tHalfChordSquared < GeometryConfig::SMALL_TOLERANCE) {
         return false;
     }
 
@@ -80,12 +80,12 @@ Sphere::intersectSphereLocalSpace(
     *depth1 = (tClosestApproach + halfChord) / directionLength;
     *depth2 = (tClosestApproach - halfChord) / directionLength;
 
-    if ((*depth1 < Config::SMALL_TOLERANCE) || (*depth1 > Config::MAX_DISTANCE)) {
-        if ((*depth2 < Config::SMALL_TOLERANCE) || (*depth2 > Config::MAX_DISTANCE)) {
+    if ((*depth1 < GeometryConfig::SMALL_TOLERANCE) || (*depth1 > GeometryConfig::MAX_DISTANCE)) {
+        if ((*depth2 < GeometryConfig::SMALL_TOLERANCE) || (*depth2 > GeometryConfig::MAX_DISTANCE)) {
             return false;
         }
         *depth1 = *depth2;
-    } else if ((*depth2 < Config::SMALL_TOLERANCE) || (*depth2 > Config::MAX_DISTANCE)) {
+    } else if ((*depth2 < GeometryConfig::SMALL_TOLERANCE) || (*depth2 > GeometryConfig::MAX_DISTANCE)) {
         *depth2 = *depth1;
     }
 

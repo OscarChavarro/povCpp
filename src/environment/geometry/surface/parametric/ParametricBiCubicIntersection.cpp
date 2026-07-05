@@ -1,6 +1,6 @@
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 
 /**
@@ -17,7 +17,7 @@ ParametricBiCubicIntersection::subpatchNormal(const Vector3Dd *v1,
     Vector3Dd edge2 = v3->subtract(*v2);
     *result = edge1.crossProduct(edge2);
     length = (*result).length();
-    if (length < Config::PARAMETRIC_CURVE_EPSILON) {
+    if (length < GeometryConfig::PARAMETRIC_CURVE_EPSILON) {
         *result = Vector3Dd(1.0, 0.0, 0.0);
         *d = -1.0 * v1->x();
         return 0;
@@ -60,7 +60,7 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
     }
     double t = ray->getOrigin().dotProduct(*n);
     *depth = 0.0 - (d + t) / s;
-    if (*depth < Config::SMALL_TOLERANCE) {
+    if (*depth < GeometryConfig::SMALL_TOLERANCE) {
         return 0;
     }
     *ip = ray->getDirection().multiply(*depth);
@@ -193,7 +193,7 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
         perp = perp.multiply(mu);
         tempV1 = ip->subtract(*v1);
         s = tempV1.dotProduct(perp);
-        if (s < Config::PARAMETRIC_CURVE_EPSILON) {
+        if (s < GeometryConfig::PARAMETRIC_CURVE_EPSILON) {
             *ipNorm = *n1;
             return 1;
         }
@@ -247,7 +247,7 @@ ParametricBiCubicIntersection::sphericalBoundsCheck(
     }
     double directionLengthSquared =
         ray->getDirection().dotProduct(ray->getDirection());
-    if (directionLengthSquared <= Config::PARAMETRIC_CURVE_EPSILON) {
+    if (directionLengthSquared <= GeometryConfig::PARAMETRIC_CURVE_EPSILON) {
         return 0;
     }
     double closestDistanceSquared =
@@ -267,7 +267,7 @@ ParametricBiCubicIntersection::pointPlaneDistance(
     double temp1 = (*p).dotProduct(*n);
     temp1 += *d;
     double temp2 = (*n).length();
-    if (java::Math::abs(temp2) < Config::PARAMETRIC_CURVE_EPSILON) {
+    if (java::Math::abs(temp2) < GeometryConfig::PARAMETRIC_CURVE_EPSILON) {
         return 0;
     }
     temp1 /= temp2;

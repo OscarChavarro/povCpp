@@ -8,6 +8,7 @@
 #include "render/AdaptiveAntiAliasing.h"
 #include "render/RenderContext.h"
 #include "render/RenderImageWriter.h"
+#include "render/RenderOutput.h"
 #include "render/RenderTargetImage.h"
 #include "render/RenderWorker.h"
 #include "render/bakedScene/BakedScene.h"
@@ -29,6 +30,7 @@ class RenderEngine {
     RasterTileArea renderArea;
     std::atomic<bool> fatalErrorFound;
     BakedScene bakedScene;
+    RenderOutput *outputFileInputStream;
 
     void copyLineToImage(
         const ColorRgba *line, int row, const RasterTileArea &area);
@@ -43,6 +45,8 @@ class RenderEngine {
     void setContext(RenderContext *ctx);
     void setMaxTraceLevel(double &value);
     void setStopFlag(bool &value);
+    RenderOutput *getOutputFileInputStream() const;
+    void setOutputFileInputStream(RenderOutput *out);
     const PovRayRendererConfiguration &getConfig() const;
     PovRayRendererConfiguration &getMutableConfig();
     const RenderContext &getRenderContext() const;
@@ -83,6 +87,18 @@ inline void
 RenderEngine::setStopFlag(bool &value)
 {
     stopFlagValue = &value;
+}
+
+inline RenderOutput *
+RenderEngine::getOutputFileInputStream() const
+{
+    return outputFileInputStream;
+}
+
+inline void
+RenderEngine::setOutputFileInputStream(RenderOutput *out)
+{
+    outputFileInputStream = out;
 }
 
 inline const PovRayRendererConfiguration &

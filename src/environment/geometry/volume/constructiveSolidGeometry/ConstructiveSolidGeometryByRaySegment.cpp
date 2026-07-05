@@ -1,6 +1,6 @@
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
 #include "environment/geometry/element/PriorityQueuePool.txx"
 #include "environment/geometry/element/IntersectionCandidate.h"
@@ -70,7 +70,7 @@ ConstructiveSolidGeometryByRaySegment::buildRaySegments(
         // starting exactly on this child's surface needs a positive offset,
         // not a negative tolerance, to land reliably on the correct side.
         Vector3Dd samplePoint =
-            ray->getOrigin().add(ray->getDirection().multiply(2.0 * Config::SMALL_TOLERANCE));
+            ray->getOrigin().add(ray->getDirection().multiply(2.0 * GeometryConfig::SMALL_TOLERANCE));
         initialInside =
             child->doContainmentTest(samplePoint, 0.0) == Geometry::INSIDE;
     }

@@ -3,7 +3,7 @@
 
 #include "render/bakedScene/BakedPlaneIntersector.h"
 
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
@@ -36,14 +36,14 @@ BakedPlaneIntersector::intersectBakedPlane(
 
     const double normalDotDirection =
         operand.planeNormal.dotProduct(direction);
-    if (normalDotDirection < Config::SMALL_TOLERANCE &&
-        normalDotDirection > -Config::SMALL_TOLERANCE) {
+    if (normalDotDirection < GeometryConfig::SMALL_TOLERANCE &&
+        normalDotDirection > -GeometryConfig::SMALL_TOLERANCE) {
         return false;
     }
 
     *depth = normalDotOrigin / normalDotDirection;
-    if (*depth >= Config::SMALL_TOLERANCE &&
-        *depth <= Config::MAX_DISTANCE) {
+    if (*depth >= GeometryConfig::SMALL_TOLERANCE &&
+        *depth <= GeometryConfig::MAX_DISTANCE) {
         stats.incrementRayPlaneTestsSucceeded();
         return true;
     }
@@ -90,7 +90,7 @@ BakedPlaneIntersector::tracePlaneOperandCandidate(
                 localDirection,
                 cache,
                 &depth) ||
-            depth <= Config::SMALL_TOLERANCE) {
+            depth <= GeometryConfig::SMALL_TOLERANCE) {
             return false;
         }
 
@@ -120,7 +120,7 @@ BakedPlaneIntersector::tracePlaneOperandCandidate(
             ray->getDirection(),
             cache,
             &depth) ||
-        depth <= Config::SMALL_TOLERANCE) {
+        depth <= GeometryConfig::SMALL_TOLERANCE) {
         return false;
     }
 
@@ -167,7 +167,7 @@ BakedPlaneIntersector::tracePlaneOperandCandidateInRaySpace(
             localDirection,
             cache,
             &depth) ||
-        depth <= Config::SMALL_TOLERANCE) {
+        depth <= GeometryConfig::SMALL_TOLERANCE) {
         return false;
     }
 

@@ -1,4 +1,4 @@
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
@@ -62,7 +62,7 @@ SimpleBody::doIntersectionForAllRayCrossings(
         {
             IntersectionCandidate _boundingHit;
             if (!boundingShape->doIntersectionFirstHitViaCrossings(objectRay, _boundingHit) &&
-                boundingShape->doContainmentTest(rayOrigin, Config::SMALL_TOLERANCE) ==
+                boundingShape->doContainmentTest(rayOrigin, GeometryConfig::SMALL_TOLERANCE) ==
                     Geometry::OUTSIDE) {
                 return (false);
             }
@@ -123,7 +123,7 @@ SimpleBody::doIntersectionForAllRayCrossings(
             stats.incrementClippingRegionTests();
             if (clippingShape->doContainmentTest(
                     objectLocalPoint,
-                    Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                    GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
                 intersectionFound = false;
                 break;
             }

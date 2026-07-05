@@ -4,7 +4,7 @@
 #include "render/bakedScene/BakedQuadricIntersector.h"
 
 #include "java/lang/Math.h"
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 
 void
@@ -109,15 +109,15 @@ BakedQuadricIntersector::intersectBakedQuadric(
         *depth2 = *depth1;
     }
 
-    if ((*depth1 < Config::SMALL_TOLERANCE) ||
-        (*depth1 > Config::MAX_DISTANCE)) {
-        if ((*depth2 < Config::SMALL_TOLERANCE) ||
-            (*depth2 > Config::MAX_DISTANCE)) {
+    if ((*depth1 < GeometryConfig::SMALL_TOLERANCE) ||
+        (*depth1 > GeometryConfig::MAX_DISTANCE)) {
+        if ((*depth2 < GeometryConfig::SMALL_TOLERANCE) ||
+            (*depth2 > GeometryConfig::MAX_DISTANCE)) {
             return false;
         }
         *depth1 = *depth2;
-    } else if ((*depth2 < Config::SMALL_TOLERANCE) ||
-               (*depth2 > Config::MAX_DISTANCE)) {
+    } else if ((*depth2 < GeometryConfig::SMALL_TOLERANCE) ||
+               (*depth2 > GeometryConfig::MAX_DISTANCE)) {
         *depth2 = *depth1;
     }
 
@@ -203,7 +203,7 @@ BakedQuadricIntersector::intersectBakedQuadricWithTrueMiss(
     if (squareTerm != 0.0) {
         const double determinant2 = linearTerm * linearTerm - 4.0 * squareTerm * constantTerm;
         if (determinant2 < 0.0) {
-            trueMiss = determinant2 < -4.0 * squareTerm * Config::SMALL_TOLERANCE;
+            trueMiss = determinant2 < -4.0 * squareTerm * GeometryConfig::SMALL_TOLERANCE;
             return false;
         }
         const double determinant = java::Math::sqrt(determinant2);
@@ -219,12 +219,12 @@ BakedQuadricIntersector::intersectBakedQuadricWithTrueMiss(
         *depth2 = *depth1;
     }
 
-    if ((*depth1 < Config::SMALL_TOLERANCE) || (*depth1 > Config::MAX_DISTANCE)) {
-        if ((*depth2 < Config::SMALL_TOLERANCE) || (*depth2 > Config::MAX_DISTANCE)) {
+    if ((*depth1 < GeometryConfig::SMALL_TOLERANCE) || (*depth1 > GeometryConfig::MAX_DISTANCE)) {
+        if ((*depth2 < GeometryConfig::SMALL_TOLERANCE) || (*depth2 > GeometryConfig::MAX_DISTANCE)) {
             return false;
         }
         *depth1 = *depth2;
-    } else if ((*depth2 < Config::SMALL_TOLERANCE) || (*depth2 > Config::MAX_DISTANCE)) {
+    } else if ((*depth2 < GeometryConfig::SMALL_TOLERANCE) || (*depth2 > GeometryConfig::MAX_DISTANCE)) {
         *depth2 = *depth1;
     }
 
@@ -318,7 +318,7 @@ BakedQuadricIntersector::intersectBakedQuadricWithCoeffs(
             // along the ray is -discriminant2/(4*polyA), so trueMiss is safe exactly
             // when -discriminant2/(4*polyA) > SMALL_TOLERANCE, i.e.
             // discriminant2 < -4*polyA*SMALL_TOLERANCE.
-            trueMiss = determinant2 < -4.0 * polyA * Config::SMALL_TOLERANCE;
+            trueMiss = determinant2 < -4.0 * polyA * GeometryConfig::SMALL_TOLERANCE;
             return false;
         }
 
@@ -335,15 +335,15 @@ BakedQuadricIntersector::intersectBakedQuadricWithCoeffs(
         *depth2 = *depth1;
     }
 
-    if ((*depth1 < Config::SMALL_TOLERANCE) ||
-        (*depth1 > Config::MAX_DISTANCE)) {
-        if ((*depth2 < Config::SMALL_TOLERANCE) ||
-            (*depth2 > Config::MAX_DISTANCE)) {
+    if ((*depth1 < GeometryConfig::SMALL_TOLERANCE) ||
+        (*depth1 > GeometryConfig::MAX_DISTANCE)) {
+        if ((*depth2 < GeometryConfig::SMALL_TOLERANCE) ||
+            (*depth2 > GeometryConfig::MAX_DISTANCE)) {
             return false;
         }
         *depth1 = *depth2;
-    } else if ((*depth2 < Config::SMALL_TOLERANCE) ||
-               (*depth2 > Config::MAX_DISTANCE)) {
+    } else if ((*depth2 < GeometryConfig::SMALL_TOLERANCE) ||
+               (*depth2 > GeometryConfig::MAX_DISTANCE)) {
         *depth2 = *depth1;
     }
 

@@ -3,7 +3,7 @@
 
 #include "render/bakedScene/CsgContainmentTest.h"
 
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "environment/geometry/Geometry.h"
 #include "render/bakedScene/AabbCullingSupport.h"
 #include "render/bakedScene/BakedPlaneIntersector.h"
@@ -74,7 +74,7 @@ CsgContainmentTest::candidateInsideAllOtherOperands(
                 bakedCsg.operands[j],
                 bakedCsgs,
                 point,
-                Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
             return false;
         }
     }
@@ -94,7 +94,7 @@ CsgContainmentTest::candidateInsideOperandsCoreFirst(
                 bakedCsg.operands[coreIndex],
                 bakedCsgs,
                 point,
-                Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
             return false;
         }
     }
@@ -107,7 +107,7 @@ CsgContainmentTest::candidateInsideOperandsCoreFirst(
                 bakedCsg.operands[j],
                 bakedCsgs,
                 point,
-                Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
             return false;
         }
     }

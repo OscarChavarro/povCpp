@@ -1,6 +1,6 @@
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
 #include "environment/geometry/element/PriorityQueuePool.txx"
 #include "environment/geometry/element/IntersectionCandidate.h"
@@ -22,7 +22,7 @@ ConstructiveSolidGeometryByMorganRules::ConstructiveSolidGeometryByMorganRules(c
 int
 ConstructiveSolidGeometryByMorganRules::insideCsgChild(Vector3Dd *point, CsgOperand *operand)
 {
-    return operand->doContainmentTest(*point, Config::SMALL_TOLERANCE) != Geometry::OUTSIDE;
+    return operand->doContainmentTest(*point, GeometryConfig::SMALL_TOLERANCE) != Geometry::OUTSIDE;
 }
 
 int

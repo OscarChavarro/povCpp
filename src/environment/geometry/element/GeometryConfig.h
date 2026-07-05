@@ -1,11 +1,11 @@
-#ifndef __CONFIG__
-#define __CONFIG__
+#ifndef __GEOMETRY_CONFIG__
+#define __GEOMETRY_CONFIG__
 
 #include <cstdio>
 
 #include "vsdk/toolkit/common/logging/Logger.h"
 
-class Config {
+class GeometryConfig {
   public:
     static constexpr double SMALL_TOLERANCE = 0.001;
     static constexpr double MAX_DISTANCE = 1.0e7;
@@ -17,26 +17,26 @@ class Config {
 };
 
 inline void
-Config::print()
+GeometryConfig::print()
 {
     char buffer[256];
 
-    Logger::reportMessage("Config", Logger::WARNING, "", "\nConfig:");
+    Logger::reportMessage("GeometryConfig", Logger::WARNING, "", "\nGeometryConfig:");
 
     snprintf(buffer, sizeof(buffer), "    SMALL_TOLERANCE = %.17g", SMALL_TOLERANCE);
-    Logger::reportMessage("Config", Logger::WARNING, "", buffer);
+    Logger::reportMessage("GeometryConfig", Logger::WARNING, "", buffer);
 
     snprintf(buffer, sizeof(buffer), "    MAX_DISTANCE = %.17g", MAX_DISTANCE);
-    Logger::reportMessage("Config", Logger::WARNING, "", buffer);
+    Logger::reportMessage("GeometryConfig", Logger::WARNING, "", buffer);
 
     snprintf(buffer, sizeof(buffer), "    INTERSECTION_EPSILON = %.17g", INTERSECTION_EPSILON);
-    Logger::reportMessage("Config", Logger::WARNING, "", buffer);
+    Logger::reportMessage("GeometryConfig", Logger::WARNING, "", buffer);
 
     snprintf(buffer, sizeof(buffer), "    POLYNOMIAL_SOLVER_EPSILON = %.17g", POLYNOMIAL_SOLVER_EPSILON);
-    Logger::reportMessage("Config", Logger::WARNING, "", buffer);
+    Logger::reportMessage("GeometryConfig", Logger::WARNING, "", buffer);
 
     snprintf(buffer, sizeof(buffer), "    PARAMETRIC_CURVE_EPSILON = %.17g", PARAMETRIC_CURVE_EPSILON);
-    Logger::reportMessage("Config", Logger::WARNING, "", buffer);
+    Logger::reportMessage("GeometryConfig", Logger::WARNING, "", buffer);
 }
 
 #endif

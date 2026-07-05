@@ -1,7 +1,7 @@
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "environment/geometry/element/PriorityQueuePool.txx"
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/scene/Composite.h"
@@ -78,7 +78,7 @@ BakedTrace::finalizeSimpleBodyCandidate(
                     scene,
                     baked.clippingObjectIndices[i],
                     objectLocalPoint,
-                    Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                    GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
                 return false;
             }
         }
@@ -116,7 +116,7 @@ BakedTrace::passesBoundingShapes(
                 scene,
                 boundingIndex,
                 objectRayOrigin,
-                Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
             return false;
         }
     }
@@ -430,7 +430,7 @@ BakedTrace::traceCompositeAllCrossingsInCompositeSpace(
                 scene,
                 boundingIndex,
                 compositeRayOrigin,
-                Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
             return false;
         }
     }
@@ -468,7 +468,7 @@ BakedTrace::traceCompositeAllCrossingsInCompositeSpace(
                     scene,
                     composite.clippingObjectIndices[i],
                     compositeLocalPoint,
-                    Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                    GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
                 intersectionFound = false;
                 break;
             }

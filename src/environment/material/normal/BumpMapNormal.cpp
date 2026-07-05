@@ -1,5 +1,5 @@
 #include "environment/material/normal/BumpMapNormal.h"
-#include "common/Config.h"
+#include "environment/material/normal/MaterialConfig.h"
 
 BumpMapNormal::BumpMapNormal(double bumpAmount, const ControlledRGBAImageHDRUncompressed *bumpImage) :
     bumpAmount(bumpAmount),
@@ -14,7 +14,7 @@ BumpMapNormal::applyTo(const Vector3Dd *point, Vector3Dd *newNormal,
     double x = point->x();
     double y = point->y();
     double z = point->z();
-    mapFixture.bumpMap(x, y, z, bumpImage, bumpAmount, newNormal, Config::SMALL_TOLERANCE);
+    mapFixture.bumpMap(x, y, z, bumpImage, bumpAmount, newNormal, MaterialConfig::BUMP_SMALL_TOLERANCE);
 }
 
 SolidTextureNormal *

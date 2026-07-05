@@ -34,7 +34,6 @@ PovRayRendererConfiguration::reset()
     inputFileName[0] = '\0';
     outputFileName[0] = '\0';
     statFileName[0] = '\0';
-    outputFileInputStream = nullptr;
     fileBufferSize = 0;
     antialiasThreshold = 0.3;
     firstLine = 0;

@@ -3,7 +3,7 @@
 
 #include "render/bakedScene/RaySegmentCsgCombiner.h"
 
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "environment/geometry/Geometry.h"
 #include "render/bakedScene/CsgContainmentTest.h"
 #include "render/bakedScene/CsgOperandTrace.h"
@@ -38,7 +38,7 @@ RaySegmentCsgCombiner::buildRaySegments(
                 operand, bakedCsgs, samplePoint, 0.0) == Geometry::INSIDE;
     } else {
         Vector3Dd samplePoint =
-            ray->getOrigin().add(ray->getDirection().multiply(2.0 * Config::SMALL_TOLERANCE));
+            ray->getOrigin().add(ray->getDirection().multiply(2.0 * GeometryConfig::SMALL_TOLERANCE));
         initialInside =
             CsgContainmentTest::containmentTestOperand(
                 operand, bakedCsgs, samplePoint, 0.0) == Geometry::INSIDE;

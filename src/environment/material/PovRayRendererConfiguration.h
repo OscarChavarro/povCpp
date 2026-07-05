@@ -2,7 +2,6 @@
 #define __POV_RAY_RENDERER_CONFIGURATION__
 
 #include "vsdk/toolkit/environment/material/RendererConfiguration.h"
-#include "environment/material/RenderOutput.h"
 
 class PovRayRendererConfiguration : public RendererConfiguration {
   private:
@@ -12,7 +11,6 @@ class PovRayRendererConfiguration : public RendererConfiguration {
     char inputFileName[RENDER_FILE_NAME_LENGTH];
     char outputFileName[RENDER_FILE_NAME_LENGTH];
     char statFileName[RENDER_FILE_NAME_LENGTH];
-    RenderOutput *outputFileInputStream;
     int fileBufferSize;
     double antialiasThreshold;
     int firstLine;
@@ -71,8 +69,6 @@ class PovRayRendererConfiguration : public RendererConfiguration {
     void setOutputFileName(const char* name);
     const char* getStatFileName() const;
     void setStatFileName(const char* name);
-    RenderOutput* getOutputFileInputStream() const;
-    void setOutputFileInputStream(RenderOutput* out);
     int getFileBufferSize() const;
     void setFileBufferSize(int size);
     double getAntialiasThreshold() const;
@@ -242,18 +238,6 @@ inline const char*
 PovRayRendererConfiguration::getStatFileName() const
 {
     return statFileName;
-}
-
-inline RenderOutput*
-PovRayRendererConfiguration::getOutputFileInputStream() const
-{
-    return outputFileInputStream;
-}
-
-inline void
-PovRayRendererConfiguration::setOutputFileInputStream(RenderOutput* out)
-{
-    outputFileInputStream = out;
 }
 
 inline int

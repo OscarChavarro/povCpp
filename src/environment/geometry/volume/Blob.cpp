@@ -6,7 +6,7 @@
 #include "vsdk/toolkit/numericalAnalysis/polynomial/PolynomialSolver.h"
 #include "vsdk/toolkit/numericalAnalysis/polynomial/QuadraticSolver.h"
 #include "vsdk/toolkit/numericalAnalysis/polynomial/QuarticSolver.h"
-#include "common/Config.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/Blob.h"
@@ -38,8 +38,8 @@ Blob::Blob(double thresholdValue,
 {
     for (int i = 0; i < numberOfPoints; i++) {
         BlobElement *element = blobElements->get(i);
-        if (java::Math::abs(element->getCoeffs()[2]) < Config::INTERSECTION_EPSILON ||
-            element->getRadius2() < Config::INTERSECTION_EPSILON) {
+        if (java::Math::abs(element->getCoeffs()[2]) < GeometryConfig::INTERSECTION_EPSILON ||
+            element->getRadius2() < GeometryConfig::INTERSECTION_EPSILON) {
             Logger::reportMessage(
                 "Blob", Logger::ERROR, "", "Degenerate blob element\n");
         }
@@ -120,7 +120,7 @@ Blob::determineInfluences(
         b = v.dotProduct(*d);
         t = v.dotProduct(v);
         disc = b * b - t + blob->list[i].getRadius2();
-        if (disc < Config::INTERSECTION_EPSILON) {
+        if (disc < GeometryConfig::INTERSECTION_EPSILON) {
             continue;
         }
         disc = java::Math::sqrt(disc);
@@ -238,7 +238,7 @@ Blob::validateHit(const Blob *blob, const Vector3Dd *p)
         }
     }
     val = n.dotProduct(n);
-    if (val < Config::INTERSECTION_EPSILON) {
+    if (val < GeometryConfig::INTERSECTION_EPSILON) {
         return false;
     }
     return true;
@@ -418,7 +418,7 @@ Blob::traceCrossings(
             // Use Ferrari's method
             rootCount = QuarticSolver::solve(coefficients, &roots[0],
                 ray->isShadowRayEnabled() ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
-                Config::POLYNOMIAL_SOLVER_EPSILON);
+                GeometryConfig::POLYNOMIAL_SOLVER_EPSILON);
         } else
             // Sturm sequences
             if (java::Math::abs(coefficients[0]) < COEFFICIENT_LIMIT) {
@@ -428,13 +428,13 @@ Blob::traceCrossings(
                     PolynomialSolver cubicSolver(3, &coefficients[1]);
                     rootCount = cubicSolver.solve(&roots[0],
                         ray->isShadowRayEnabled() ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
-                        Config::POLYNOMIAL_SOLVER_EPSILON);
+                        GeometryConfig::POLYNOMIAL_SOLVER_EPSILON);
                 }
             } else {
                 PolynomialSolver quarticSolver(4, coefficients);
                 rootCount = quarticSolver.solve(&roots[0],
                     ray->isShadowRayEnabled() ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
-                    Config::POLYNOMIAL_SOLVER_EPSILON);
+                    GeometryConfig::POLYNOMIAL_SOLVER_EPSILON);
             }
 
         // See if any of the roots are valid
@@ -562,7 +562,7 @@ Blob::computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint)
     }
     val = (result->x() * result->x() + result->y() * result->y() +
            result->z() * result->z());
-    if (val < Config::INTERSECTION_EPSILON) {
+    if (val < GeometryConfig::INTERSECTION_EPSILON) {
         *result = Vector3Dd(1.0, 0.0, 0.0);
     } else {
         val = 1.0 / java::Math::sqrt(val);
