@@ -35,7 +35,7 @@ Box::closeTo(double x, double y)
 
 int
 Box::doIntersectionForAllRayCrossings(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
@@ -71,7 +71,7 @@ Box::doIntersectionForAllRayCrossings(
 
 int
 Box::doIntersectionForAllRayCrossingsAnnotated(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     const GeometryIntersectionEmissionContext &context)
 {
@@ -106,7 +106,7 @@ Box::doIntersectionForAllRayCrossingsAnnotated(
 
 bool
 Box::doIntersectionFirstHit(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     IntersectionCandidate &out,
     Material *materialOverride)
 {
@@ -128,7 +128,7 @@ Box::doIntersectionFirstHit(
 
 int
 Box::intersectBoxx(
-    const RayWithSegments *ray, const Box *box, double *depth1, double *depth2)
+    const RayWithTracingState *ray, const Box *box, double *depth1, double *depth2)
 {
     double t;
     double tmin;

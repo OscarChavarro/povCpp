@@ -6,7 +6,7 @@
 #include "common/statistics/Statistics.h"
 #include "environment/material/PovRayRendererConfiguration.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/light/Light.h"
 #include "render/shaders/BlinnPhongSpecularShader.h"
 #include "render/shaders/DirectLightShader.h"
@@ -21,7 +21,7 @@ static constexpr double SHADOW_TOLERANCE = 0.05;
 
 bool
 DirectLightShader::rayIntersectsAabbBefore(
-    const RayWithSegments &ray, const AxisAlignedBoundingBox &box, double maxT)
+    const RayWithTracingState &ray, const AxisAlignedBoundingBox &box, double maxT)
 {
     const Vector3Dd origin = ray.getOrigin();
     const Vector3Dd direction = ray.getDirection();
@@ -64,7 +64,7 @@ bool
 DirectLightShader::traceShadowObject(
     const BakedScene &bakedScene,
     int objectIndex,
-    RayWithSegments *lightSourceRay,
+    RayWithTracingState *lightSourceRay,
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue,
     double lightSourceDepth,
     ColorRgba *lightColor,
@@ -117,13 +117,13 @@ DirectLightShader::traceShadowObject(
 
 void
 DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *intersectionPoint,
-    const RayWithSegments *eye, const Vector3Dd *surfaceNormal, const ColorRgba *surfaceColor,
+    const RayWithTracingState *eye, const Vector3Dd *surfaceNormal, const ColorRgba *surfaceColor,
     ColorRgba *color, double attenuation, const TraceService *traceService,
     const java::ArrayList<Light*> &lightSources,
     const BakedScene &bakedScene)
 {
     double lightSourceDepth;
-    RayWithSegments lightSourceRay;
+    RayWithTracingState lightSourceRay;
     bool intersectionFound;
     Vector3Dd rEye;
     ColorRgba lightColor(0.0, 0.0, 0.0, 0.0);
@@ -151,7 +151,7 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
     // Shadow rays only ever need doIntersectionForAllRayCrossings()'s hitDistance (ShadowShader
     // never reads a normal); document that explicitly via the mask, mirroring
     // VITRAL's RayHit::DETAIL_NONE for the same case.
-    lightSourceRay.setRequiredDetailMask(RayWithSegments::DETAIL_NONE);
+    lightSourceRay.setRequiredDetailMask(RayWithTracingState::DETAIL_NONE);
     lightSourceRay.setStatistics(eye->getStatistics());
     lightSourceRay.setConfig(eye->getConfig());
     lightSourceRay.setIntersectionQueuePool(eye->getIntersectionQueuePool());

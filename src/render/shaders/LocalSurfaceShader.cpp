@@ -2,7 +2,7 @@
 #include "environment/material/PovRayRendererConfiguration.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "render/shaders/AmbientLightShader.h"
 #include "render/shaders/BumpNormalShader.h"
 #include "render/shaders/DirectLightShader.h"
@@ -12,7 +12,7 @@
 #include "environment/scene/SimpleBody.h"
 
 void
-LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
+LocalSurfaceShader::shade(const RayWithTracingState *ray, PovRayMaterial *texture,
     IntersectionCandidate *rayIntersection, ColorRgba *surfaceColor,
     const ColorRgba *filterColor, ColorRgba *color,
     const TraceService *traceService, const java::ArrayList<Light*> &lightSources,

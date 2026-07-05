@@ -43,11 +43,11 @@ class Triangle : public Geometry {
     AxisAlignedBoundingBox getMinMax() const override;
 
     int doIntersectionForAllRayCrossings(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr) override;
     int doIntersectionForAllRayCrossingsAnnotated(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         const GeometryIntersectionEmissionContext &context) override;
     bool hasNativeAnnotatedCrossings() const override { return true; }
@@ -76,7 +76,7 @@ class Triangle : public Geometry {
     static int max3Axis(double x, double y, double z);
     static void findTriangleDominantAxis(Triangle *triangle);
     static int intersectTriangle(
-        RayWithSegments *ray, Triangle *triangle, double *depth);
+        RayWithTracingState *ray, Triangle *triangle, double *depth);
 };
 
 #endif

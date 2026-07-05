@@ -2,7 +2,7 @@
 #define __RENDER_WORKER__
 
 #include "java/util/ArrayList.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "render/raySharedCache/RaySharedCache.h"
 #include "render/shaders/TraceService.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
@@ -12,8 +12,8 @@ class RenderEngine;
 class RenderWorker {
   private:
     RenderEngine *engine;
-    RayWithSegments ray;
-    RayWithSegments *primaryRay;
+    RayWithTracingState ray;
+    RayWithTracingState *primaryRay;
     int traceLevel;
     ColorRgba *previousLine;
     ColorRgba *currentLine;
@@ -24,7 +24,7 @@ class RenderWorker {
     RaySharedCache raySharedCache;
 
     static ColorRgba *allocateColorBuffer(int count);
-    static void traceServiceTrace(void *context, const RayWithSegments *ray,
+    static void traceServiceTrace(void *context, const RayWithTracingState *ray,
         ColorRgba *color);
     static void traceServiceShadeShadow(
         void *context, IntersectionCandidate *intersection, ColorRgba *color);
@@ -36,8 +36,8 @@ class RenderWorker {
     void initializeLineBuffers(int width, bool antialiasEnabled);
     void swapLines();
 
-    RayWithSegments *getPrimaryRay() { return primaryRay; }
-    RayWithSegments &getRay() { return ray; }
+    RayWithTracingState *getPrimaryRay() { return primaryRay; }
+    RayWithTracingState &getRay() { return ray; }
     int &getTraceLevel() { return traceLevel; }
     void setTraceLevel(int level) { traceLevel = level; }
     ColorRgba *getPreviousLine() { return previousLine; }

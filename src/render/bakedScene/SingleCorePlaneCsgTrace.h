@@ -2,7 +2,7 @@
 #define __SINGLE_CORE_PLANE_CSG_TRACE__
 
 #include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/material/Material.h"
 #include "java/util/ArrayList.h"
 #include "java/util/PriorityQueue.h"
@@ -40,7 +40,7 @@ public:
         const BakedScene::CsgOperandRecord &operand,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         CsgScratchContext &scratch,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride);
 
@@ -48,7 +48,7 @@ public:
         const BakedScene::CsgProgram &bakedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         const BakedScene::CsgOperandRecord &coreOperand,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         Material *effectiveMaterial,
         const Vector3Dd &localOrigin,
         const Vector3Dd &localDirection,
@@ -59,7 +59,7 @@ public:
     static bool traceTransformedQuadricCorePlaneIntersection(
         const BakedScene::CsgProgram &bakedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         RaySharedCache &cache,
         Material *materialOverride,
@@ -68,14 +68,14 @@ public:
 
     static void emitNestedCandidateToParentOperand(
         const BakedScene::CsgOperandRecord &parentOperand,
-        RayWithSegments *parentRay,
+        RayWithTracingState *parentRay,
         const Matrix4x4d &nestedToParent,
         IntersectionCandidate &candidate,
         java::PriorityQueue<IntersectionCandidate> *depthQueue);
 
     static bool makeTransformedQuadricCandidateInRaySpace(
         const BakedScene::CsgOperandRecord &operand,
-        RayWithSegments *statsRay,
+        RayWithTracingState *statsRay,
         Material *effectiveMaterial,
         const Vector3Dd &rayOrigin,
         const Vector3Dd &rayDirection,
@@ -94,7 +94,7 @@ public:
         const BakedScene::CsgOperandRecord &parentOperand,
         const BakedScene::CsgProgram &nestedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
-        RayWithSegments *parentRay,
+        RayWithTracingState *parentRay,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         RaySharedCache &cache,
         Material *materialOverride);
@@ -103,7 +103,7 @@ public:
         const BakedScene::CsgProgram &bakedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         CsgScratchContext &scratch,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride,
         long int coreIndex);
@@ -119,7 +119,7 @@ public:
 
     static bool makeTransformedQuadricCandidate(
         const BakedScene::CsgOperandRecord &operand,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         Material *effectiveMaterial,
         const Vector3Dd &localOrigin,
         const Vector3Dd &localDirection,
@@ -130,7 +130,7 @@ public:
         const BakedScene::CsgProgram &bakedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         CsgScratchContext &scratch,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         Material *materialOverride,
         double &bestT,
         IntersectionCandidate &out,
@@ -140,7 +140,7 @@ public:
         const BakedScene::CsgProgram &bakedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         CsgScratchContext &scratch,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         IntersectionCandidate &out,
         Material *materialOverride);
 

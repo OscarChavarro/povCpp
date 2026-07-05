@@ -42,7 +42,7 @@ class ConstructiveSolidGeometry : public Geometry {
     AxisAlignedBoundingBox getMinMax() const override;
 
     int doIntersectionForAllRayCrossings(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr) override = 0;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override = 0;

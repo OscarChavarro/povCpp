@@ -27,7 +27,7 @@ ConstructiveSolidGeometryByMorganRules::insideCsgChild(Vector3Dd *point, CsgOper
 
 int
 ConstructiveSolidGeometryByMorganRules::doIntersectionForAllRayCrossings(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
@@ -39,7 +39,7 @@ ConstructiveSolidGeometryByMorganRules::doIntersectionForAllRayCrossings(
 
 int
 ConstructiveSolidGeometryByMorganRules::allCsgUnionIntersections(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
@@ -56,7 +56,7 @@ ConstructiveSolidGeometryByMorganRules::allCsgUnionIntersections(
 
 int
 ConstructiveSolidGeometryByMorganRules::allCsgIntersectIntersections(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {

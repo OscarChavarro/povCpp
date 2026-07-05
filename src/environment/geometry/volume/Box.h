@@ -17,22 +17,22 @@ class Box : public Geometry {
     bool isInverted() const { return inverted; }
     void setInverted(bool value) { inverted = value; }
 
-    static int intersectBoxx(const RayWithSegments *ray, const Box *box,
+    static int intersectBoxx(const RayWithTracingState *ray, const Box *box,
         double *depth1, double *depth2);
 
     AxisAlignedBoundingBox getMinMax() const override;
 
     int doIntersectionForAllRayCrossings(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr) override;
     int doIntersectionForAllRayCrossingsAnnotated(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         const GeometryIntersectionEmissionContext &context) override;
     bool hasNativeAnnotatedCrossings() const override { return true; }
     bool doIntersectionFirstHit(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         IntersectionCandidate &out,
         Material *materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;

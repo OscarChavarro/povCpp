@@ -36,7 +36,7 @@ class Composite : public SimpleBody {
     const java::ArrayList<SimpleBody*> &getSimpleBodies() const;
 
     int doIntersectionForAllRayCrossings(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;

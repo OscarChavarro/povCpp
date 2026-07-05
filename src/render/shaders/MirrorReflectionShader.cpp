@@ -1,16 +1,16 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "render/shaders/MirrorReflectionShader.h"
 #include "render/shaders/TraceService.h"
 
 void
 MirrorReflectionShader::shade(const PovRayMaterial *texture, const Vector3Dd *intersectionPoint,
-    const RayWithSegments *ray, const Vector3Dd *surfaceNormal,
+    const RayWithTracingState *ray, const Vector3Dd *surfaceNormal,
     ColorRgba *color, const TraceService *traceService, int &traceLevel)
 {
-    RayWithSegments newRay;
+    RayWithTracingState newRay;
     ColorRgba tempColor(0.0, 0.0, 0.0, 0.0);
     Vector3Dd localNormal;
     Vector3Dd normalProjection;

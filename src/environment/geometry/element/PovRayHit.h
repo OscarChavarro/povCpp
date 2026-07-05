@@ -22,7 +22,7 @@ class PovRayHit {
   public:
     static constexpr int MAX_DETAIL_OWNERS = 8;
 
-    // Same bit values as RayWithSegments::DETAIL_* (see DetailMask.h): the
+    // Same bit values as RayWithTracingState::DETAIL_* (see DetailMask.h): the
     // hit is the mask's authority at doExtraInformation time (VITRAL style -
     // see Sphere::doExtraInformation in VITRAL), even though the ray remains
     // the mask's pre-hit transport in povCpp.

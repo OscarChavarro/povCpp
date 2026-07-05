@@ -7,11 +7,11 @@ class ConstructiveSolidGeometryByMorganRules : public ConstructiveSolidGeometry 
   private:
     static int insideCsgChild(Vector3Dd *point, CsgOperand *operand);
     int allCsgUnionIntersections(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride);
     int allCsgIntersectIntersections(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride);
     int insideCsgUnion(Vector3Dd *point);
@@ -23,7 +23,7 @@ class ConstructiveSolidGeometryByMorganRules : public ConstructiveSolidGeometry 
     ConstructiveSolidGeometryByMorganRules(const ConstructiveSolidGeometryByMorganRules &other);
 
     int doIntersectionForAllRayCrossings(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;

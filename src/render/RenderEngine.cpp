@@ -25,7 +25,7 @@
 
 bool
 RenderEngine::rayIntersectsAabbBefore(
-    const RayWithSegments &ray, const AxisAlignedBoundingBox &box, double maxT)
+    const RayWithTracingState &ray, const AxisAlignedBoundingBox &box, double maxT)
 {
     const Vector3Dd origin = ray.getOrigin();
     const Vector3Dd direction = ray.getDirection();
@@ -93,7 +93,7 @@ RenderEngine::getMutableConfig()
 
 void
 RenderEngine::createRay(
-    RayWithSegments *localRay, int width, int height, double x, double y,
+    RayWithTracingState *localRay, int width, int height, double x, double y,
     PriorityQueuePool<IntersectionCandidate> *pool, Statistics *stats)
 {
     double xScalar;
@@ -418,7 +418,7 @@ RenderEngine::initializeRenderer()
 }
 
 void
-RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorRgba *color)
+RenderEngine::trace(RenderWorker &localWorker, RayWithTracingState *localRay, ColorRgba *color)
 {
     IntersectionCandidate localIntersection;
     IntersectionCandidate newIntersection;
@@ -494,8 +494,8 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
         // here is exactly the per-ray "needs normal" decision.
         localRay->setRequiredDetailMask(
             localRay->getConfig()->withSurfaceLighting()
-                ? RayWithSegments::DETAIL_ALL
-                : RayWithSegments::DETAIL_NONE);
+                ? RayWithTracingState::DETAIL_ALL
+                : RayWithTracingState::DETAIL_NONE);
 
         if (localRay->needsNormal()) {
             PovRayHit winningHit;

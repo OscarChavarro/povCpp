@@ -2,7 +2,7 @@
 
 int
 LightGeometryAdapter::doIntersectionForAllRayCrossings(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {

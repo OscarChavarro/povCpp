@@ -2,7 +2,7 @@
 #define __BAKED_TRACE__
 
 #include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/scene/Scene.h"
 #include "render/bakedScene/BakedScene.h"
 #include "render/raySharedCache/RaySharedCache.h"
@@ -12,14 +12,14 @@ class BakedTrace {
     static bool traceFirstHit(
         const BakedScene &scene,
         int objectIndex,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         IntersectionCandidate &out,
         RaySharedCache &cache);
 
     static bool traceAllCrossings(
         const BakedScene &scene,
         int objectIndex,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         RaySharedCache &cache);
 
@@ -33,14 +33,14 @@ class BakedTrace {
     static bool traceSimpleBodyAllCrossings(
         const BakedScene &scene,
         const BakedScene::TraceableObject &baked,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         RaySharedCache &cache);
 
     static bool traceSimpleBodyFirstHit(
         const BakedScene &scene,
         const BakedScene::TraceableObject &baked,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         IntersectionCandidate &out,
         RaySharedCache &cache);
 
@@ -53,34 +53,34 @@ class BakedTrace {
     static bool finalizeSimpleBodyCandidate(
         const BakedScene &scene,
         const BakedScene::TraceableObject &baked,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         IntersectionCandidate &candidate);
 
     static bool passesBoundingShapes(
         const BakedScene &scene,
         const BakedScene::TraceableObject &baked,
-        RayWithSegments *objectRayPtr,
+        RayWithTracingState *objectRayPtr,
         RaySharedCache &cache);
 
     static bool traceCompositeAllCrossings(
         const BakedScene &scene,
         const BakedScene::CompositeRecord &composite,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         RaySharedCache &cache);
 
     static bool traceCompositeAllCrossingsInCompositeSpace(
         const BakedScene &scene,
         const BakedScene::CompositeRecord &composite,
-        RayWithSegments *ray,
-        RayWithSegments *compositeRayPtr,
+        RayWithTracingState *ray,
+        RayWithTracingState *compositeRayPtr,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         RaySharedCache &cache);
 
     static bool traceCompositeFirstHit(
         const BakedScene &scene,
         const BakedScene::CompositeRecord &composite,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         IntersectionCandidate &out,
         RaySharedCache &cache);
 
@@ -91,7 +91,7 @@ class BakedTrace {
         double distanceTolerance);
 
     static bool rayIntersectsAabbForward(
-        const RayWithSegments &ray, const AxisAlignedBoundingBox &box);
+        const RayWithTracingState &ray, const AxisAlignedBoundingBox &box);
 
     static bool pointInsideAabb(
         const Vector3Dd &point, const AxisAlignedBoundingBox &box, double tolerance);

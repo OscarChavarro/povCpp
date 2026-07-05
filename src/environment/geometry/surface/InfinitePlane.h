@@ -27,14 +27,14 @@ class InfinitePlane : public Geometry {
     void setVpCached(bool value) { vpCached = value; }
 
     static int intersectPlane(
-        RayWithSegments *ray, InfinitePlane *plane, double *depth);
+        RayWithTracingState *ray, InfinitePlane *plane, double *depth);
 
     int doIntersectionForAllRayCrossings(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr) override;
     bool doIntersectionFirstHit(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         IntersectionCandidate &out,
         Material *materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;

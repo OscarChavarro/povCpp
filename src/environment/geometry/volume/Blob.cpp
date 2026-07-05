@@ -302,7 +302,7 @@ root solvers that are available.
 */
 int
 Blob::traceCrossings(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride,
     const GeometryIntersectionEmissionContext *context)
@@ -480,7 +480,7 @@ Blob::traceCrossings(
 
 int
 Blob::doIntersectionForAllRayCrossings(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
@@ -489,7 +489,7 @@ Blob::doIntersectionForAllRayCrossings(
 
 int
 Blob::doIntersectionForAllRayCrossingsAnnotated(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     const GeometryIntersectionEmissionContext &context)
 {

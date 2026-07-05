@@ -10,7 +10,7 @@
 bool
 BakedPlaneIntersector::intersectBakedPlane(
     const BakedScene::CsgOperandRecord &operand,
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     const Vector3Dd &origin,
     const Vector3Dd &direction,
     RaySharedCache &cache,
@@ -63,7 +63,7 @@ BakedPlaneIntersector::planeContainmentTest(
 bool
 BakedPlaneIntersector::tracePlaneOperandCandidate(
     const BakedScene::CsgOperandRecord &operand,
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     RaySharedCache &cache,
     Material *materialOverride,
     IntersectionCandidate &candidate)
@@ -137,7 +137,7 @@ BakedPlaneIntersector::tracePlaneOperandCandidate(
 bool
 BakedPlaneIntersector::tracePlaneOperandCandidateInRaySpace(
     const BakedScene::CsgOperandRecord &operand,
-    RayWithSegments *statsRay,
+    RayWithTracingState *statsRay,
     const Vector3Dd &rayOrigin,
     const Vector3Dd &rayDirection,
     RaySharedCache &cache,

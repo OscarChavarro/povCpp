@@ -12,7 +12,7 @@
 class ConstructiveSolidGeometryByRaySegment : public ConstructiveSolidGeometry {
   private:
     static RaySegments buildRaySegments(
-        RayWithSegments *ray, CsgOperand *child, Material *materialOverride);
+        RayWithTracingState *ray, CsgOperand *child, Material *materialOverride);
     static RaySegments mergeUnion(const RaySegments &left, const RaySegments &right);
     static RaySegments mergeIntersection(const RaySegments &left, const RaySegments &right);
     static RaySegments mergeDifference(const RaySegments &left, const RaySegments &right);
@@ -29,7 +29,7 @@ class ConstructiveSolidGeometryByRaySegment : public ConstructiveSolidGeometry {
     ConstructiveSolidGeometryByRaySegment(const ConstructiveSolidGeometryByRaySegment &other);
 
     int doIntersectionForAllRayCrossings(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;

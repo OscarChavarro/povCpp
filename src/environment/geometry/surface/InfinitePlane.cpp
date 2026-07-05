@@ -26,7 +26,7 @@ InfinitePlane::InfinitePlane(const Vector3Dd &normalVector, double distance,
 
 int
 InfinitePlane::doIntersectionForAllRayCrossings(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
@@ -55,7 +55,7 @@ InfinitePlane::doIntersectionForAllRayCrossings(
 
 bool
 InfinitePlane::doIntersectionFirstHit(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     IntersectionCandidate &out,
     Material *materialOverride)
 {
@@ -76,7 +76,7 @@ InfinitePlane::doIntersectionFirstHit(
 
 int
 InfinitePlane::intersectPlane(
-    RayWithSegments *ray, InfinitePlane *plane, double *depth)
+    RayWithTracingState *ray, InfinitePlane *plane, double *depth)
 {
     double normalDotOrigin;
     double normalDotDirection;

@@ -2,7 +2,7 @@
 #define __AABB_CULLING_SUPPORT__
 
 #include "environment/geometry/element/AxisAlignedBoundingBox.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "java/util/ArrayList.h"
 #include "render/bakedScene/BakedScene.h"
 
@@ -11,7 +11,7 @@ public:
     static constexpr int OPERAND_CULL_SCRATCH_CAPACITY = 4096;
 
     static inline bool rayIntersectsAabbForward(
-        const RayWithSegments &ray,
+        const RayWithTracingState &ray,
         const AxisAlignedBoundingBox &box)
     {
         const Vector3Dd origin = ray.getOrigin();
@@ -59,7 +59,7 @@ public:
         const BakedScene::OperandCullBins &bins,
         const java::ArrayList<int> &bucket,
         const java::ArrayList<BakedScene::CsgOperandRecord> &operands,
-        RayWithSegments &ray,
+        RayWithTracingState &ray,
         int *outPositions,
         int capacity)
     {

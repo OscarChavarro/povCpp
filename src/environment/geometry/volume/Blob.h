@@ -31,7 +31,7 @@ class Blob : public Geometry {
     static double calculateFieldValue(const Blob *blob, const Vector3Dd *pos);
     static bool validateHit(const Blob *blob, const Vector3Dd *p);
     int traceCrossings(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride,
         const GeometryIntersectionEmissionContext *context);
@@ -54,11 +54,11 @@ class Blob : public Geometry {
     AxisAlignedBoundingBox getMinMax() const override;
 
     int doIntersectionForAllRayCrossings(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr) override;
     int doIntersectionForAllRayCrossingsAnnotated(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         const GeometryIntersectionEmissionContext &context) override;
     bool hasNativeAnnotatedCrossings() const override { return true; }

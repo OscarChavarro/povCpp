@@ -35,11 +35,11 @@ class HeightField : public Geometry {
     AxisAlignedBoundingBox getMinMax() const override;
 
     int doIntersectionForAllRayCrossings(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr) override;
     int doIntersectionForAllRayCrossingsAnnotated(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         const GeometryIntersectionEmissionContext &context) override;
     bool hasNativeAnnotatedCrossings() const override { return true; }
@@ -70,18 +70,18 @@ class HeightField : public Geometry {
     static void allocateHfBlocks(HeightField *hField, int maxX, int maxZ,
         double width, double height);
     static double getHeightAt(int x, int z, const HeightField *hField);
-    static int intersectPixel(int x, int z, const RayWithSegments *ray,
+    static int intersectPixel(int x, int z, const RayWithTracingState *ray,
         HeightFieldTraversalState &state,
         HeightField *hField, double height1, double height2);
     static int intersectSubBlock(const HeightFieldBlock *block,
-        const RayWithSegments *ray, HeightFieldTraversalState &state,
+        const RayWithTracingState *ray, HeightFieldTraversalState &state,
         HeightField *hField,
         const Vector3Dd *start, const Vector3Dd *end);
-    static int intersectHfNode(const RayWithSegments *ray,
+    static int intersectHfNode(const RayWithTracingState *ray,
         HeightFieldTraversalState &state, HeightField *hField,
         const Vector3Dd *start, const Vector3Dd *end);
     int traceCrossings(
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride,
         const GeometryIntersectionEmissionContext *context);

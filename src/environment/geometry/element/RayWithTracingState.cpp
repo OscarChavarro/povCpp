@@ -4,37 +4,37 @@ This module implements the code pertaining to rays.
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "java/util/ArrayList.txx"
 
 template class java::ArrayList<Material *>;
 
-RayWithSegments::RayWithSegments() :
-    containingTextures(RayWithSegments::MAX_CONTAINING_OBJECTS),
-    containingIORs(RayWithSegments::MAX_CONTAINING_OBJECTS)
+RayWithTracingState::RayWithTracingState() :
+    containingTextures(RayWithTracingState::MAX_CONTAINING_OBJECTS),
+    containingIORs(RayWithTracingState::MAX_CONTAINING_OBJECTS)
 {
     containingIndex = -1;
     quadricConstantsCached = false;
     aabbReciprocalsCached = false;
     isShadowRay = false;
     isPrimaryRay = false;
-    requiredDetailMask = RayWithSegments::DETAIL_ALL;
+    requiredDetailMask = RayWithTracingState::DETAIL_ALL;
     statistics = nullptr;
     config = nullptr;
     intersectionQueuePool = nullptr;
 }
 
 void
-RayWithSegments::initializeContainers()
+RayWithTracingState::initializeContainers()
 {
     this->containingIndex = -1;
     this->isShadowRay = false;
     this->isPrimaryRay = false;
-    this->requiredDetailMask = RayWithSegments::DETAIL_ALL;
+    this->requiredDetailMask = RayWithTracingState::DETAIL_ALL;
 }
 
 void
-RayWithSegments::copyContainersFrom(const RayWithSegments *sourceRay)
+RayWithTracingState::copyContainersFrom(const RayWithTracingState *sourceRay)
 {
     this->containingIndex = sourceRay->containingIndex;
     this->isShadowRay = sourceRay->isShadowRay;
@@ -45,7 +45,7 @@ RayWithSegments::copyContainersFrom(const RayWithSegments *sourceRay)
 }
 
 void
-RayWithSegments::enterContainingMedium(Material *texture)
+RayWithTracingState::enterContainingMedium(Material *texture)
 {
     int index;
 
@@ -61,9 +61,9 @@ RayWithSegments::enterContainingMedium(Material *texture)
 }
 
 void
-RayWithSegments::exitContainingMedium()
+RayWithTracingState::exitContainingMedium()
 {
     if (--(this->containingIndex) < -1) {
-        Logger::reportMessage("RayWithSegments", Logger::FATAL_ERROR, "", "Too many exits from refractions\n");
+        Logger::reportMessage("RayWithTracingState", Logger::FATAL_ERROR, "", "Too many exits from refractions\n");
     }
 }

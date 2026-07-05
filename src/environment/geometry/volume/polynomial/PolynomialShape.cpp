@@ -87,7 +87,7 @@ PolynomialShape::~PolynomialShape()
 
 int
 PolynomialShape::doIntersectionForAllRayCrossings(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
@@ -101,7 +101,7 @@ PolynomialShape::doIntersectionForAllRayCrossings(
     int i;
     int j;
     bool intersectionFound;
-    RayWithSegments newRay;
+    RayWithTracingState newRay;
 
     // Transform the ray into the polynomial's space
     if (shape->transformation != nullptr) {
@@ -170,7 +170,7 @@ PolynomialShape::doIntersectionForAllRayCrossings(
 
 int
 PolynomialShape::doIntersectionForAllRayCrossingsAnnotated(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     const GeometryIntersectionEmissionContext &context)
 {
@@ -184,7 +184,7 @@ PolynomialShape::doIntersectionForAllRayCrossingsAnnotated(
     int i;
     int j;
     bool intersectionFound;
-    RayWithSegments newRay;
+    RayWithTracingState newRay;
 
     if (shape->transformation != nullptr) {
         newRay.setOriginAndDirection(
@@ -324,7 +324,7 @@ PolynomialShape::unroll(int order, int index, int *x, int *y, int *z, int *w)
 // Intersection of a ray and an arbitrary polynomial function
 int
 PolynomialShape::intersect(
-    const RayWithSegments *ray, int order, const double *coeffs, double *depths)
+    const RayWithTracingState *ray, int order, const double *coeffs, double *depths)
 {
     Matrix4x4d q;
     double *a;
@@ -594,7 +594,7 @@ PolynomialShape::transform(int order, double *coeffs, Matrix4x4d *q)
 // Intersection of a ray and a quartic
 int
 PolynomialShape::intersectQuartic(
-    const RayWithSegments *ray, const PolynomialShape *shape, double *depths)
+    const RayWithTracingState *ray, const PolynomialShape *shape, double *depths)
 {
     double t[5];
 

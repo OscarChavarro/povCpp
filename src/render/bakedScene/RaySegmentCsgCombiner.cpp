@@ -14,7 +14,7 @@ RaySegmentCsgCombiner::buildRaySegments(
     const BakedScene::CsgOperandRecord &operand,
     const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
     CsgScratchContext &scratch,
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     Material *materialOverride)
 {
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue =
@@ -126,7 +126,7 @@ RaySegmentCsgCombiner::traceRaySegmentCsg(
     const BakedScene::CsgProgram &bakedCsg,
     const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
     CsgScratchContext &scratch,
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {

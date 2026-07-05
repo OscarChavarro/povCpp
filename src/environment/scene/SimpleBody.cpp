@@ -11,7 +11,7 @@
 #include "environment/geometry/element/PriorityQueuePool.txx"
 
 bool
-SimpleBody::doIntersectionFirstHitViaCrossings(RayWithSegments *ray, IntersectionCandidate &out)
+SimpleBody::doIntersectionFirstHitViaCrossings(RayWithTracingState *ray, IntersectionCandidate &out)
 {
     java::PriorityQueue<IntersectionCandidate> * const depthQueue =
         ray->getIntersectionQueuePool()->pop(128);
@@ -26,7 +26,7 @@ SimpleBody::doIntersectionFirstHitViaCrossings(RayWithSegments *ray, Intersectio
 
 int
 SimpleBody::doIntersectionForAllRayCrossings(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
@@ -41,11 +41,11 @@ SimpleBody::doIntersectionForAllRayCrossings(
     // expressed in this body's object-local space. Factored into a lambda so the
     // object-local clone below is built only when a transform actually exists:
     // an untransformed body passes the parent ray straight through with no
-    // RayWithSegments construction at all, and RAII still destroys the clone
+    // RayWithTracingState construction at all, and RAII still destroys the clone
     // across the early bounding-shape rejection return.
-    auto intersectInObjectSpace = [&](RayWithSegments *objectRay) -> int {
-    RayWithSegments geometryLocalRay(
-        RayWithSegments::LocalIntersectionClone{}, *objectRay);
+    auto intersectInObjectSpace = [&](RayWithTracingState *objectRay) -> int {
+    RayWithTracingState geometryLocalRay(
+        RayWithTracingState::LocalIntersectionClone{}, *objectRay);
     bool hasGeometryLocalSpace = geometryTransformationInverse != nullptr;
     if (hasGeometryLocalSpace) {
         geometryLocalRay.setOrigin(
@@ -141,7 +141,7 @@ SimpleBody::doIntersectionForAllRayCrossings(
     };
 
     if (transformationInverse != nullptr) {
-        RayWithSegments localRay(RayWithSegments::LocalIntersectionClone{}, *ray);
+        RayWithTracingState localRay(RayWithTracingState::LocalIntersectionClone{}, *ray);
         localRay.setOrigin(transformationInverse->transformPoint(ray->getOrigin()));
         localRay.setDirection(transformationInverse->transformDirection(ray->getDirection()));
         localRay.setQuadricConstantsCached(false);
@@ -184,7 +184,7 @@ SimpleBody::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 }
 
 void
-SimpleBody::doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *hit)
+SimpleBody::doExtraInformation(const RayWithTracingState &ray, double t, PovRayHit *hit)
 {
     Geometry *detailGeometry = hit->hitGeometry != nullptr ? hit->hitGeometry : geometry;
     const bool bakedLeaf = bakedTransformFolded;
@@ -199,7 +199,7 @@ SimpleBody::doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *
     // owner here would drop every outer operand's transform.
     RayOperationOwner *detailOwner = hit->popDetailOwnerBack();
     if (detailGeometry != nullptr) {
-        RayWithSegments localRay(RayWithSegments::LocalIntersectionClone{}, ray);
+        RayWithTracingState localRay(RayWithTracingState::LocalIntersectionClone{}, ray);
         const Vector3Dd worldPoint = hit->p;
         if (transformationInverse != nullptr && !bakedLeaf) {
             localRay.setOrigin(transformationInverse->transformPoint(ray.getOrigin()));
@@ -210,8 +210,8 @@ SimpleBody::doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *
         if (detailOwner != nullptr) {
             detailOwner->doExtraInformation(localRay, t, hit);
         } else {
-            RayWithSegments geometryLocalRay(
-                RayWithSegments::LocalIntersectionClone{}, localRay);
+            RayWithTracingState geometryLocalRay(
+                RayWithTracingState::LocalIntersectionClone{}, localRay);
             if (geometryTransformationInverse != nullptr && !bakedLeaf) {
                 geometryLocalRay.setOrigin(
                     geometryTransformationInverse->transformPoint(localRay.getOrigin()));

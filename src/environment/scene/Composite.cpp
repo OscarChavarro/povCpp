@@ -10,7 +10,7 @@
 
 int
 Composite::doIntersectionForAllRayCrossings(
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
@@ -25,9 +25,9 @@ Composite::doIntersectionForAllRayCrossings(
 
     // Body parameterized on the composite-local ray, factored into a lambda so
     // the local clone is built only when this composite carries a transform (an
-    // untransformed composite forwards the parent ray with no RayWithSegments
+    // untransformed composite forwards the parent ray with no RayWithTracingState
     // construction); RAII still destroys it across the early bounding rejection.
-    auto intersectInCompositeSpace = [&](RayWithSegments *compositeRay) -> int {
+    auto intersectInCompositeSpace = [&](RayWithTracingState *compositeRay) -> int {
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
         Vector3Dd rayOrigin(compositeRay->getOrigin());
@@ -90,7 +90,7 @@ Composite::doIntersectionForAllRayCrossings(
     };
 
     if (getTransformationInverse() != nullptr) {
-        RayWithSegments localRay(RayWithSegments::LocalIntersectionClone{}, *ray);
+        RayWithTracingState localRay(RayWithTracingState::LocalIntersectionClone{}, *ray);
         localRay.setOrigin(getTransformationInverse()->transformPoint(ray->getOrigin()));
         localRay.setDirection(getTransformationInverse()->transformDirection(ray->getDirection()));
         localRay.setQuadricConstantsCached(false);

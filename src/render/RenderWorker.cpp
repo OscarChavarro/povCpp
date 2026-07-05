@@ -79,11 +79,11 @@ RenderWorker::swapLines()
 }
 
 void
-RenderWorker::traceServiceTrace(void *context, const RayWithSegments *ray,
+RenderWorker::traceServiceTrace(void *context, const RayWithTracingState *ray,
     ColorRgba *color)
 {
     RenderWorker *worker = static_cast<RenderWorker *>(context);
-    RayWithSegments localRay = *ray;
+    RayWithTracingState localRay = *ray;
     worker->engine->trace(*worker, &localRay, color);
 }
 

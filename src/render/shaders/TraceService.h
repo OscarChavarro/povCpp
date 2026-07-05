@@ -3,12 +3,12 @@
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "render/raySharedCache/RaySharedCache.h"
 
 class TraceService {
   private:
-    typedef void (*TraceFn)(void *context, const RayWithSegments *ray,
+    typedef void (*TraceFn)(void *context, const RayWithTracingState *ray,
         ColorRgba *color);
     typedef void (*ShadowShadeFn)(void *context, IntersectionCandidate *intersection, ColorRgba *color);
     TraceFn traceFn;
@@ -19,7 +19,7 @@ class TraceService {
   public:
     TraceService(TraceFn traceFn, ShadowShadeFn shadowShadeFn, void *context,
         RaySharedCache *raySharedCache);
-    inline void trace(const RayWithSegments *ray, ColorRgba *color) const;
+    inline void trace(const RayWithTracingState *ray, ColorRgba *color) const;
     inline void shadeShadow(IntersectionCandidate *intersection, ColorRgba *color) const;
     RaySharedCache &getRaySharedCache() const { return *raySharedCache; }
 };
@@ -33,7 +33,7 @@ TraceService::TraceService(TraceFn traceFn, ShadowShadeFn shadowShadeFn,
 }
 
 inline void
-TraceService::trace(const RayWithSegments *ray, ColorRgba *color) const
+TraceService::trace(const RayWithTracingState *ray, ColorRgba *color) const
 {
     traceFn(context, ray, color);
 }

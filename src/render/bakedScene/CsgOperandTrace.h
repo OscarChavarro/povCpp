@@ -4,7 +4,7 @@
 #include "common/Config.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/geometry/volume/Sphere.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
 #include "environment/material/Material.h"
@@ -27,7 +27,7 @@ public:
     static bool traceAllCrossings(
         const BakedScene::CsgProgram &bakedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         RaySharedCache &cache,
         Material *materialOverride = nullptr);
@@ -36,7 +36,7 @@ public:
         const BakedScene::CsgProgram &bakedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         CsgScratchContext &scratch,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride);
 
@@ -44,13 +44,13 @@ public:
         const BakedScene::CsgOperandRecord &operand,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         CsgScratchContext &scratch,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride);
 
     static void offerTransformedPrimitiveCandidate(
         const BakedScene::CsgOperandRecord &operand,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         Material *effectiveMaterial,
         const Vector3Dd &localOrigin,
         const Vector3Dd &localDirection,
@@ -100,7 +100,7 @@ public:
         const BakedScene::CsgOperandRecord &operand,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
         CsgScratchContext &scratch,
-        RayWithSegments *ray,
+        RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride)
     {
@@ -139,7 +139,7 @@ public:
             break;
         }
 
-        RayWithSegments *localRayPtr = ray;
+        RayWithTracingState *localRayPtr = ray;
         if (operand.kind ==
                 BakedScene::CsgOperandKind::TransformedPlane ||
             operand.kind ==
@@ -260,7 +260,7 @@ public:
                 return true;
             }
 
-            RayWithSegments localRay(RayWithSegments::LocalIntersectionClone{}, *ray);
+            RayWithTracingState localRay(RayWithTracingState::LocalIntersectionClone{}, *ray);
             localRay.setOrigin(operand.localToObject.transformPoint(ray->getOrigin()));
             localRay.setDirection(operand.localToObject.transformDirection(ray->getDirection()));
             localRay.setQuadricConstantsCached(false);

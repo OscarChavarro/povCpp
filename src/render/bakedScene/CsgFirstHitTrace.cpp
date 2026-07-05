@@ -13,7 +13,7 @@ CsgFirstHitTrace::traceFirstHitByIntersectionMembership(
     const BakedScene::CsgProgram &bakedCsg,
     const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
     CsgScratchContext &scratch,
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     IntersectionCandidate &out,
     Material *materialOverride)
 {
@@ -59,7 +59,7 @@ CsgFirstHitTrace::traceFirstHitWithScratch(
     const BakedScene::CsgProgram &bakedCsg,
     const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
     CsgScratchContext &scratch,
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     IntersectionCandidate &out,
     Material *materialOverride)
 {
@@ -104,7 +104,7 @@ bool
 CsgFirstHitTrace::traceFirstHit(
     const BakedScene::CsgProgram &bakedCsg,
     const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
-    RayWithSegments *ray,
+    RayWithTracingState *ray,
     IntersectionCandidate &out,
     RaySharedCache &cache,
     Material *materialOverride)
