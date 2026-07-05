@@ -44,8 +44,7 @@ SimpleBody::doIntersectionForAllRayCrossings(
     // RayWithTracingState construction at all, and RAII still destroys the clone
     // across the early bounding-shape rejection return.
     auto intersectInObjectSpace = [&](RayWithTracingState *objectRay) -> int {
-    RayWithTracingState geometryLocalRay(
-        RayWithTracingState::LocalIntersectionClone{}, *objectRay);
+    RayWithTracingState geometryLocalRay = RayWithTracingState::localIntersectionClone(*objectRay);
     bool hasGeometryLocalSpace = geometryTransformationInverse != nullptr;
     if (hasGeometryLocalSpace) {
         geometryLocalRay.setOrigin(
@@ -141,7 +140,7 @@ SimpleBody::doIntersectionForAllRayCrossings(
     };
 
     if (transformationInverse != nullptr) {
-        RayWithTracingState localRay(RayWithTracingState::LocalIntersectionClone{}, *ray);
+        RayWithTracingState localRay = RayWithTracingState::localIntersectionClone(*ray);
         localRay.setOrigin(transformationInverse->transformPoint(ray->getOrigin()));
         localRay.setDirection(transformationInverse->transformDirection(ray->getDirection()));
         localRay.setQuadricConstantsCached(false);
@@ -199,7 +198,7 @@ SimpleBody::doExtraInformation(const RayWithTracingState &ray, double t, PovRayH
     // owner here would drop every outer operand's transform.
     RayOperationOwner *detailOwner = hit->popDetailOwnerBack();
     if (detailGeometry != nullptr) {
-        RayWithTracingState localRay(RayWithTracingState::LocalIntersectionClone{}, ray);
+        RayWithTracingState localRay = RayWithTracingState::localIntersectionClone(ray);
         const Vector3Dd worldPoint = hit->p;
         if (transformationInverse != nullptr && !bakedLeaf) {
             localRay.setOrigin(transformationInverse->transformPoint(ray.getOrigin()));
@@ -210,8 +209,7 @@ SimpleBody::doExtraInformation(const RayWithTracingState &ray, double t, PovRayH
         if (detailOwner != nullptr) {
             detailOwner->doExtraInformation(localRay, t, hit);
         } else {
-            RayWithTracingState geometryLocalRay(
-                RayWithTracingState::LocalIntersectionClone{}, localRay);
+            RayWithTracingState geometryLocalRay = RayWithTracingState::localIntersectionClone(localRay);
             if (geometryTransformationInverse != nullptr && !bakedLeaf) {
                 geometryLocalRay.setOrigin(
                     geometryTransformationInverse->transformPoint(localRay.getOrigin()));

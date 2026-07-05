@@ -90,7 +90,7 @@ Composite::doIntersectionForAllRayCrossings(
     };
 
     if (getTransformationInverse() != nullptr) {
-        RayWithTracingState localRay(RayWithTracingState::LocalIntersectionClone{}, *ray);
+        RayWithTracingState localRay = RayWithTracingState::localIntersectionClone(*ray);
         localRay.setOrigin(getTransformationInverse()->transformPoint(ray->getOrigin()));
         localRay.setDirection(getTransformationInverse()->transformDirection(ray->getDirection()));
         localRay.setQuadricConstantsCached(false);

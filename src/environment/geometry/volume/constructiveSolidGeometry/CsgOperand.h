@@ -213,7 +213,7 @@ class CsgOperand : public RayOperationOwner {
         // operand per ray, which is the hottest allocation on the CSG path.
         int found;
         if (transformationInverse != nullptr) {
-            RayWithTracingState localRay(RayWithTracingState::LocalIntersectionClone{}, *ray);
+            RayWithTracingState localRay = RayWithTracingState::localIntersectionClone(*ray);
             localRay.setOrigin(transformationInverse->transformPoint(ray->getOrigin()));
             localRay.setDirection(transformationInverse->transformDirection(ray->getDirection()));
             localRay.setQuadricConstantsCached(false);
@@ -280,7 +280,7 @@ class CsgOperand : public RayOperationOwner {
         // before the inner ones. Only the innermost owner (no further owner
         // left) evaluates its own primitive geometry's normal; each level then
         // re-applies its inverse to the normal while unwinding.
-        RayWithTracingState localRay(RayWithTracingState::LocalIntersectionClone{}, ray);
+        RayWithTracingState localRay = RayWithTracingState::localIntersectionClone(ray);
         const Vector3Dd parentPoint = hit->p;
         if (transformationInverse != nullptr && !bakedTransformFolded) {
             localRay.setOrigin(transformationInverse->transformPoint(ray.getOrigin()));
