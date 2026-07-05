@@ -16,7 +16,7 @@ Geometry::applyAnnotatedEmissionContext(
 }
 
 bool
-Geometry::doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &out)
+Geometry::doIntersectionFirstHitViaCrossings(RayWithSegments *ray, IntersectionCandidate &out)
 {
     java::PriorityQueue<IntersectionCandidate> * const depthQueue =
         ray->getIntersectionQueuePool()->pop(128);

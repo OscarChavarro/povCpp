@@ -54,7 +54,7 @@ InfinitePlane::doIntersectionForAllRayCrossings(
 }
 
 bool
-InfinitePlane::doIntersectionFirstHitNoQueue(
+InfinitePlane::doIntersectionFirstHit(
     RayWithSegments *ray,
     IntersectionCandidate &out,
     Material *materialOverride)

@@ -92,7 +92,7 @@ class SimpleBody : public RayOperationOwner {
 
     AxisAlignedBoundingBox getAABB() const;
 
-    virtual bool doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &out);
+    virtual bool doIntersectionFirstHitViaCrossings(RayWithSegments *ray, IntersectionCandidate &out);
     virtual int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,

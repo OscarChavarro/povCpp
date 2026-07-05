@@ -31,7 +31,7 @@ class Box : public Geometry {
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         const GeometryIntersectionEmissionContext &context) override;
     bool hasNativeAnnotatedCrossings() const override { return true; }
-    bool doIntersectionFirstHitNoQueue(
+    bool doIntersectionFirstHit(
         RayWithSegments *ray,
         IntersectionCandidate &out,
         Material *materialOverride = nullptr) override;

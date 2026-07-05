@@ -279,7 +279,7 @@ BakedTrace::traceSimpleBodyFirstHit(
     auto traceInGeometrySpace = [&](RayWithSegments *geometryRayPtr) -> bool {
     if (canUseGeometryFirstHit) {
         IntersectionCandidate candidate;
-        if (baked.geometry->doIntersectionFirstHitNoQueue(
+        if (baked.geometry->doIntersectionFirstHit(
                 geometryRayPtr, candidate, baked.geometryMaterial)) {
             if (!finalizeSimpleBodyCandidate(scene, baked, ray, candidate)) {
                 return false;

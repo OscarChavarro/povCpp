@@ -11,7 +11,7 @@
 #include "environment/geometry/element/PriorityQueuePool.txx"
 
 bool
-SimpleBody::doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &out)
+SimpleBody::doIntersectionFirstHitViaCrossings(RayWithSegments *ray, IntersectionCandidate &out)
 {
     java::PriorityQueue<IntersectionCandidate> * const depthQueue =
         ray->getIntersectionQueuePool()->pop(128);
@@ -61,7 +61,7 @@ SimpleBody::doIntersectionForAllRayCrossings(
         stats.getGeometryStatistics()->incrementBoundingRegionTests();
         {
             IntersectionCandidate _boundingHit;
-            if (!boundingShape->doIntersectionFirstHit(objectRay, _boundingHit) &&
+            if (!boundingShape->doIntersectionFirstHitViaCrossings(objectRay, _boundingHit) &&
                 boundingShape->doContainmentTest(rayOrigin, Config::SMALL_TOLERANCE) ==
                     Geometry::OUTSIDE) {
                 return (false);

@@ -35,8 +35,8 @@ class Geometry {
         const GeometryIntersectionEmissionContext &context);
     virtual bool hasNativeAnnotatedCrossings() const { return false; }
     virtual Geometry *getWrappedGeometry() const { return nullptr; }
-    bool doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &out);
-    virtual bool doIntersectionFirstHitNoQueue(
+    bool doIntersectionFirstHitViaCrossings(RayWithSegments *ray, IntersectionCandidate &out);
+    virtual bool doIntersectionFirstHit(
         RayWithSegments *ray,
         IntersectionCandidate &out,
         Material *materialOverride = nullptr)

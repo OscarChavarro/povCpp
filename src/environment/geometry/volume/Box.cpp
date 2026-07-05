@@ -105,7 +105,7 @@ Box::doIntersectionForAllRayCrossingsAnnotated(
 }
 
 bool
-Box::doIntersectionFirstHitNoQueue(
+Box::doIntersectionFirstHit(
     RayWithSegments *ray,
     IntersectionCandidate &out,
     Material *materialOverride)

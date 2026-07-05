@@ -35,7 +35,7 @@ Composite::doIntersectionForAllRayCrossings(
         stats.getGeometryStatistics()->incrementBoundingRegionTests();
         {
             IntersectionCandidate _boundingHit;
-            if (!boundingShape->doIntersectionFirstHit(compositeRay, _boundingHit) &&
+            if (!boundingShape->doIntersectionFirstHitViaCrossings(compositeRay, _boundingHit) &&
                 boundingShape->doContainmentTest(rayOrigin, Config::SMALL_TOLERANCE) ==
                     Geometry::OUTSIDE) {
                 return (false);
