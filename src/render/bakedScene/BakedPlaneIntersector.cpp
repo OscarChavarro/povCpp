@@ -17,7 +17,7 @@ BakedPlaneIntersector::intersectBakedPlane(
     double *depth)
 {
     Statistics &stats = *ray->getStatistics();
-    stats.incrementRayPlaneTests();
+    stats.getGeometryStatistics()->incrementRayPlaneTests();
 
     double normalDotOrigin;
     if (ray->isPrimaryRayEnabled()) {
@@ -43,7 +43,7 @@ BakedPlaneIntersector::intersectBakedPlane(
     *depth = normalDotOrigin / normalDotDirection;
     if (*depth >= Config::SMALL_TOLERANCE &&
         *depth <= Config::MAX_DISTANCE) {
-        stats.incrementRayPlaneTestsSucceeded();
+        stats.getGeometryStatistics()->incrementRayPlaneTestsSucceeded();
         return true;
     }
     return false;

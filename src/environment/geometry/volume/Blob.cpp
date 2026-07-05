@@ -333,7 +333,7 @@ Blob::traceCrossings(
     bool intersectionFound = false;
     Statistics &stats = *ray->getStatistics();
 
-    stats.incrementRayBlobTests();
+    stats.getGeometryStatistics()->incrementRayBlobTests();
 
     // Transform the ray into the blob space
     if (blob->transformation != nullptr) {
@@ -473,7 +473,7 @@ Blob::traceCrossings(
         }
     }
     if (intersectionFound) {
-        stats.incrementRayBlobTestsSucceeded();
+        stats.getGeometryStatistics()->incrementRayBlobTestsSucceeded();
     }
     return intersectionFound;
 }

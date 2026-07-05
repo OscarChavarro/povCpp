@@ -137,7 +137,7 @@ Box::intersectBoxx(
     Vector3Dd d;
     Statistics &stats = *ray->getStatistics();
 
-    stats.incrementRayBoxTests();
+    stats.getGeometryStatistics()->incrementRayBoxTests();
 
     p = Vector3Dd(ray->getOrigin().x(), ray->getOrigin().y(), ray->getOrigin().z());
     d = Vector3Dd(ray->getDirection().x(), ray->getDirection().y(), ray->getDirection().z());
@@ -263,7 +263,7 @@ Box::intersectBoxx(
         *depth2 = *depth1;
     }
 
-    stats.incrementRayBoxTestsSucceeded();
+    stats.getGeometryStatistics()->incrementRayBoxTestsSucceeded();
     return (true);
 }
 

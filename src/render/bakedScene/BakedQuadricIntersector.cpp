@@ -25,7 +25,7 @@ BakedQuadricIntersector::intersectBakedQuadric(
     double *depth2)
 {
     Statistics &stats = *ray->getStatistics();
-    stats.incrementRayQuadricTests();
+    stats.getGeometryStatistics()->incrementRayQuadricTests();
 
     Vector3Dd position2;
     Vector3Dd direction2;
@@ -120,7 +120,7 @@ BakedQuadricIntersector::intersectBakedQuadric(
         *depth2 = *depth1;
     }
 
-    stats.incrementRayQuadricTestsSucceeded();
+    stats.getGeometryStatistics()->incrementRayQuadricTestsSucceeded();
     return true;
 }
 
@@ -138,7 +138,7 @@ BakedQuadricIntersector::intersectBakedQuadricWithTrueMiss(
     bool &trueMiss)
 {
     Statistics &stats = *ray->getStatistics();
-    stats.incrementRayQuadricTests();
+    stats.getGeometryStatistics()->incrementRayQuadricTests();
 
     Vector3Dd position2;
     Vector3Dd direction2;
@@ -227,7 +227,7 @@ BakedQuadricIntersector::intersectBakedQuadricWithTrueMiss(
         *depth2 = *depth1;
     }
 
-    stats.incrementRayQuadricTestsSucceeded();
+    stats.getGeometryStatistics()->incrementRayQuadricTestsSucceeded();
     return true;
 }
 
@@ -248,7 +248,7 @@ BakedQuadricIntersector::intersectBakedQuadricWithCoeffs(
     bool &trueMiss)
 {
     Statistics &stats = *ray->getStatistics();
-    stats.incrementRayQuadricTests();
+    stats.getGeometryStatistics()->incrementRayQuadricTests();
 
     Vector3Dd position2;
     Vector3Dd direction2;
@@ -346,6 +346,6 @@ BakedQuadricIntersector::intersectBakedQuadricWithCoeffs(
         *depth2 = *depth1;
     }
 
-    stats.incrementRayQuadricTestsSucceeded();
+    stats.getGeometryStatistics()->incrementRayQuadricTestsSucceeded();
     return true;
 }

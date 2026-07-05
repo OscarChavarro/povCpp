@@ -29,7 +29,7 @@ Sphere::intersectSphereLocalSpace(
     double *depth1,
     double *depth2)
 {
-    stats->incrementRaySphereTests();
+    stats->getGeometryStatistics()->incrementRaySphereTests();
 
     // The object-space direction is NOT unit length: transformPoint/Direction by
     // the inverse of translate(center)*scale(r) leaves |d| = |worldDir| / r. The
@@ -70,7 +70,7 @@ Sphere::intersectSphereLocalSpace(
         *depth2 = *depth1;
     }
 
-    stats->incrementRaySphereTestsSucceeded();
+    stats->getGeometryStatistics()->incrementRaySphereTestsSucceeded();
     return true;
 }
 

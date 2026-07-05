@@ -82,7 +82,7 @@ InfinitePlane::intersectPlane(
     double normalDotDirection;
     Statistics &stats = *ray->getStatistics();
 
-    stats.incrementRayPlaneTests();
+    stats.getGeometryStatistics()->incrementRayPlaneTests();
     if (ray->isPrimaryRayEnabled()) {
         if (!plane->vpCached) {
             plane->vpNormDotOrigin =
@@ -100,7 +100,7 @@ InfinitePlane::intersectPlane(
 
         *depth = plane->vpNormDotOrigin / normalDotDirection;
         if ((*depth >= Config::SMALL_TOLERANCE) && (*depth <= Config::MAX_DISTANCE)) {
-            stats.incrementRayPlaneTestsSucceeded();
+            stats.getGeometryStatistics()->incrementRayPlaneTestsSucceeded();
             return (true);
         }
         return (false);
@@ -117,7 +117,7 @@ InfinitePlane::intersectPlane(
 
     *depth = normalDotOrigin / normalDotDirection;
     if ((*depth >= Config::SMALL_TOLERANCE) && (*depth <= Config::MAX_DISTANCE)) {
-        stats.incrementRayPlaneTestsSucceeded();
+        stats.getGeometryStatistics()->incrementRayPlaneTestsSucceeded();
         return (true);
     }
     return (false);

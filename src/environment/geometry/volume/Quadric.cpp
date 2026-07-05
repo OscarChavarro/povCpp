@@ -159,7 +159,7 @@ Quadric::intersectQuadric(
     double bMinus;
     Statistics &stats = *ray->getStatistics();
 
-    stats.incrementRayQuadricTests();
+    stats.getGeometryStatistics()->incrementRayQuadricTests();
     if (!ray->areQuadricConstantsCached()) {
         ray->makeRay();
     }
@@ -236,7 +236,7 @@ Quadric::intersectQuadric(
         *depth2 = *depth1;
     }
 
-    stats.incrementRayQuadricTestsSucceeded();
+    stats.getGeometryStatistics()->incrementRayQuadricTestsSucceeded();
     return (true);
 }
 
