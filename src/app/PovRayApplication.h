@@ -4,7 +4,7 @@
 #include "java/util/ArrayList.txx"
 #include "render/shaders/PovRayRenderStatistics.h"
 #include "io/context/RenderRuntimeState.h"
-#include "environment/material/PovRayRendererConfiguration.h"
+#include "render/PovRayRendererConfiguration.h"
 #include "environment/scene/Scene.h"
 #include "vsdk/toolkit/io/FileLocator.h"
 #include "io/image/ImageOutput.h"

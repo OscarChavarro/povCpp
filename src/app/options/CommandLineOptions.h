@@ -1,7 +1,7 @@
 #ifndef __COMMAND_LINE_OPTIONS__
 #define __COMMAND_LINE_OPTIONS__
 
-#include "environment/material/PovRayRendererConfiguration.h"
+#include "render/PovRayRendererConfiguration.h"
 #include "environment/scene/Scene.h"
 #include "vsdk/toolkit/io/FileLocator.h"
 

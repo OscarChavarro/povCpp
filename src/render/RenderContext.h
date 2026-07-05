@@ -2,6 +2,7 @@
 #define __RENDER_CONTEXT__
 
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
+#include "render/PovRayRendererConfiguration.h"
 #include "render/shaders/PovRayRenderStatistics.h"
 #include "environment/scene/Scene.h"
 #include "render/RenderContext.h"

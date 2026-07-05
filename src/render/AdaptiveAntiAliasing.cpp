@@ -1,6 +1,6 @@
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "render/shaders/PovRayRenderStatistics.h"
-#include "environment/material/PovRayRendererConfiguration.h"
+#include "render/PovRayRendererConfiguration.h"
 #include "render/AdaptiveAntiAliasing.h"
 #include "render/ColorOperations.h"
 #include "render/RenderEngine.h"

@@ -4,7 +4,7 @@
 #include "environment/geometry/element/GeometryConfig.h"
 #include "environment/geometry/element/PriorityQueuePool.txx"
 #include "render/shaders/PovRayRenderStatistics.h"
-#include "environment/material/PovRayRendererConfiguration.h"
+#include "render/PovRayRendererConfiguration.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/light/Light.h"
@@ -71,7 +71,8 @@ DirectLightShader::traceShadowObject(
     const TraceService *traceService)
 {
     RaySharedCache &cache = traceService->getRaySharedCache();
-    if (!lightSourceRay->getConfig()->withFilteredShadows() &&
+    if (!static_cast<const PovRayRendererConfiguration *>(
+            lightSourceRay->getConfig())->withFilteredShadows() &&
         canUseCsgFirstHitForShadow(bakedScene, objectIndex)) {
         IntersectionCandidate firstHit;
         if (!BakedTrace::traceFirstHit(
@@ -102,7 +103,8 @@ DirectLightShader::traceShadowObject(
             continue;
         }
 
-        if (!lightSourceRay->getConfig()->withFilteredShadows()) {
+        if (!static_cast<const PovRayRendererConfiguration *>(
+                lightSourceRay->getConfig())->withFilteredShadows()) {
             localDepthQueue->clear();
             return true;
         }
@@ -164,7 +166,7 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
             intersectionPoint, &lightColor);
 
         // What objects does this ray intersect?
-        if (eye->getConfig()->withShadows()) {
+        if (static_cast<const PovRayRendererConfiguration *>(eye->getConfig())->withShadows()) {
             PovRayRenderStatistics &stats = *traceService->getStatistics();
             const java::ArrayList<int> &boundedShadowObjects =
                 bakedScene.boundedShadowCastingObjectIndices;

@@ -1,6 +1,6 @@
 #include <cstring>
 
-#include "environment/material/PovRayRendererConfiguration.h"
+#include "render/PovRayRendererConfiguration.h"
 
 void
 PovRayRendererConfiguration::setInputFileName(const char* name)

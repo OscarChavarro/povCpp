@@ -3,7 +3,7 @@
 #include "app/options/CommandLineOptions.h"
 #include "render/shaders/PovRayRenderStatistics.h"
 #include "environment/material/povray/PovRayMaterial.h"
-#include "environment/material/PovRayRendererConfiguration.h"
+#include "render/PovRayRendererConfiguration.h"
 #include "environment/scene/Scene.h"
 #include "io/image/RawDumpFormat.h"
 #include "io/image/RawFormat.h"

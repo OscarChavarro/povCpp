@@ -5,8 +5,8 @@
 #include "java/util/PriorityQueue.h"
 #include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/geometry/element/AxisAlignedBoundingBox.h"
-#include "environment/material/PovRayRendererConfiguration.h"
 #include "environment/material/Material.h"
+#include "vsdk/toolkit/environment/material/RendererConfiguration.h"
 #include "vsdk/toolkit/processing/Containment.h"
 
 class IntersectionCandidate;
@@ -57,7 +57,7 @@ class Geometry {
     virtual void computeSurfaceNormal(
         Vector3Dd *result,
         Vector3Dd *intersectionPoint,
-        const PovRayRendererConfiguration *config)
+        const RendererConfiguration *config)
     {
         (void)config;
         computeSurfaceNormal(result, intersectionPoint);
