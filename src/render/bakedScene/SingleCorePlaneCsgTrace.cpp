@@ -1,19 +1,12 @@
-#include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"
 
 #include "render/bakedScene/SingleCorePlaneCsgTrace.h"
 
 #include <cstdlib>
-#include <cstring>
 
-#include "environment/geometry/element/GeometryConfig.h"
-#include "environment/geometry/volume/Quadric.h"
-#include "environment/geometry/volume/Sphere.h"
-#include "render/bakedScene/AabbCullingSupport.h"
-#include "render/bakedScene/BakedPlaneIntersector.h"
-#include "render/bakedScene/BakedQuadricIntersector.h"
 #include "render/bakedScene/CsgContainmentTest.h"
 #include "render/bakedScene/CsgOperandTrace.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
 
 bool
 SingleCorePlaneCsgTrace::canUseCompiledSingleCorePlanePlan(

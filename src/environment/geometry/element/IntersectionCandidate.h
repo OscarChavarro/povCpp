@@ -1,7 +1,6 @@
 #ifndef __INTERSECTION_CANDIDATE__
 #define __INTERSECTION_CANDIDATE__
 
-#include "java/util/PriorityQueue.h"
 #include "vsdk/toolkit/environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/IntersectionAttributes.h"
 

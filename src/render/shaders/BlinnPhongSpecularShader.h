@@ -3,8 +3,6 @@
 
 #include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/material/povray/PovRayMaterial.h"
-#include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 class BlinnPhongSpecularShader {
 public:

@@ -1,7 +1,4 @@
-#include "vsdk/toolkit/media/RGBAColorPalette.h"
-#include "io/pov/context/ParserContext.h"
 #include "io/pov/material/ColorMapParser.h"
-#include "io/pov/material/PovColorMap.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"

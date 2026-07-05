@@ -1,9 +1,7 @@
 #include "java/lang/Math.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "render/shaders/PovRayRenderStatistics.h"
-#include "environment/geometry/element/RayWithTracingState.h"
-#include "render/shaders/TraceService.h"
 #include "render/shaders/TransmissionRefractionShader.h"
+#include "java/util/ArrayList.txx"
 
 void
 TransmissionRefractionShader::shade(PovRayMaterial *texture, const Vector3Dd *intersectionPoint,

@@ -1,5 +1,4 @@
 #include "io/pov/material/LoadedImageRegistry.h"
-#include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 #include "java/util/ArrayList.txx"
 
 java::ArrayList<ControlledRGBAImageHDRUncompressed *> &

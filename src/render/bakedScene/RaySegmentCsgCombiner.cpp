@@ -1,13 +1,11 @@
-#include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"
 
 #include "render/bakedScene/RaySegmentCsgCombiner.h"
 
-#include "environment/geometry/element/GeometryConfig.h"
-#include "environment/geometry/Geometry.h"
 #include "render/bakedScene/CsgContainmentTest.h"
 #include "render/bakedScene/CsgOperandTrace.h"
 #include "render/bakedScene/SingleCorePlaneCsgTrace.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
 
 RaySegments
 RaySegmentCsgCombiner::buildRaySegments(

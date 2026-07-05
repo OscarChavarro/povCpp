@@ -1,8 +1,6 @@
-#include <cstdlib>
 #include <mutex>
 
 #include "java/lang/Math.h"
-#include "environment/geometry/element/RayWithTracingState.h"
 #include "render/shaders/LambertShader.h"
 
 void

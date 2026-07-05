@@ -1,7 +1,6 @@
 #ifndef __PARAMETRIC_BI_CUBIC_SOLVER__
 #define __PARAMETRIC_BI_CUBIC_SOLVER__
 
-#include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicPatch.h"
 
 class ParametricBiCubicSolver {

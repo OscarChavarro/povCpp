@@ -1,11 +1,8 @@
 #ifndef __SCENE__
 #define __SCENE__
 
-#include "java/util/ArrayList.h"
-#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/environment/camera/CameraSnapshot.h"
 #include "environment/light/Light.h"
-#include "environment/material/Material.h"
 #include "environment/scene/SimpleBody.h"
 
 class Scene {

@@ -1,7 +1,6 @@
 #ifndef __CSG_CONTAINMENT_TEST__
 #define __CSG_CONTAINMENT_TEST__
 
-#include "java/util/ArrayList.h"
 #include "render/bakedScene/BakedScene.h"
 
 // Point-in-solid containment testing for baked CSG programs: per-operand

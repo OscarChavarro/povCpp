@@ -1,20 +1,17 @@
-#include "java/util/PriorityQueue.txx"
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
 #include "environment/geometry/surface/TriangleMesh.h"
 #include "io/pov/geometry/SceneBuilder.h"
-#include "io/pov/geometry/SimpleBodyBuilder.h"
 
-#include "io/pov/context/ParseGlobals.h"
-#include "io/pov/context/ParserContext.h"
 #include "io/pov/geometry/TriangleParser.h"
 #include "environment/material/povray/PovRayMaterialConstancy.h"
 #include "io/pov/material/TextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
+#include "java/util/PriorityQueue.txx"
+#include "java/util/ArrayList.txx"
 
 SimpleBodyBuilder *
 TriangleParser::parseTriangle(ParserContext &ctx)

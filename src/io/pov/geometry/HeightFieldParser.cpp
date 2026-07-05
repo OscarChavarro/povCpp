@@ -1,23 +1,17 @@
-#include "java/util/PriorityQueue.txx"
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
-#include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 
 #include "environment/geometry/volume/HeightField.h"
 #include "io/pov/geometry/SceneBuilder.h"
-#include "io/pov/geometry/SimpleBodyBuilder.h"
 
 #include "io/image/GifFormat.h"
 #include "io/image/TargaFormat.h"
-#include "io/pov/context/ParseGlobals.h"
-#include "io/pov/context/ParserContext.h"
 #include "io/pov/geometry/HeightFieldParser.h"
 #include "environment/material/povray/PovRayMaterialConstancy.h"
 #include "io/pov/material/TextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
+#include "java/util/PriorityQueue.txx"
 
 SimpleBodyBuilder *
 HeightFieldParser::parseHeightField()

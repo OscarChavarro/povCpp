@@ -1,12 +1,8 @@
 #ifndef __GEOMETRY__
 #define __GEOMETRY__
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "java/util/PriorityQueue.h"
 #include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/geometry/element/AxisAlignedBoundingBox.h"
-#include "environment/material/Material.h"
-#include "vsdk/toolkit/environment/material/RendererConfiguration.h"
 #include "vsdk/toolkit/processing/Containment.h"
 
 class IntersectionCandidate;

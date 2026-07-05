@@ -1,18 +1,10 @@
-#include "java/util/ArrayList.txx"
 
-#include <cmath>
 
-#include "environment/geometry/surface/InfinitePlane.h"
-#include "environment/geometry/volume/Blob.h"
-#include "environment/geometry/volume/Box.h"
-#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
-#include "environment/geometry/volume/HeightField.h"
-#include "environment/geometry/volume/Quadric.h"
-#include "environment/geometry/volume/Sphere.h"
 #include "environment/scene/Composite.h"
 #include "render/bakedScene/BakedGeometryBaker.h"
 #include "render/bakedScene/BakedSceneBuilder.h"
+#include "java/util/ArrayList.txx"
 
 bool
 BakedSceneBuilder::isBakeableSimpleBody(SimpleBody *object)

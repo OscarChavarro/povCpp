@@ -1,11 +1,8 @@
-#include "java/util/PriorityQueue.txx"
-#include "java/util/ArrayList.txx"
 #include "environment/geometry/element/GeometryConfig.h"
-#include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
-#include "environment/geometry/element/PriorityQueuePool.txx"
-#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
 #include "environment/geometry/surface/InfinitePlane.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
 
 // A top-level union of unbounded planes has no real in/out solid to
 // classify (Table 3 of [ROTH1982].3.3 assumes bounded operands), so

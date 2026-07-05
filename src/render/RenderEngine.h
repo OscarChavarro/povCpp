@@ -3,16 +3,11 @@
 
 #include <atomic>
 
-#include "environment/geometry/element/PriorityQueuePool.h"
-#include "environment/scene/Scene.h"
 #include "render/AdaptiveAntiAliasing.h"
 #include "render/RenderContext.h"
 #include "render/RenderImageWriter.h"
 #include "render/RenderOutput.h"
 #include "render/RenderTargetImage.h"
-#include "render/RenderWorker.h"
-#include "render/bakedScene/BakedScene.h"
-#include "vsdk/toolkit/render/raytracing/RasterTileArea.h"
 
 class IntersectionCandidate;
 

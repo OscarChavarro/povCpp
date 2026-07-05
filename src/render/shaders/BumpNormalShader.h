@@ -2,7 +2,6 @@
 #define __BUMP_NORMAL_SHADER__
 
 #include "environment/material/povray/PovRayMaterial.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 
 class BumpNormalShader {

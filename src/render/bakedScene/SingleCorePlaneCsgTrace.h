@@ -1,14 +1,8 @@
 #ifndef __SINGLE_CORE_PLANE_CSG_TRACE__
 #define __SINGLE_CORE_PLANE_CSG_TRACE__
 
-#include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithTracingState.h"
-#include "environment/material/Material.h"
-#include "java/util/ArrayList.h"
-#include "java/util/PriorityQueue.h"
 #include "render/bakedScene/BakedScene.h"
 #include "render/bakedScene/CsgScratchContext.h"
-#include "render/raySharedCache/RaySharedCache.h"
 
 class SingleCorePlaneCsgTrace {
 public:

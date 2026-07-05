@@ -1,9 +1,6 @@
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/element/GeometryConfig.h"
 #include "render/shaders/PovRayRenderStatistics.h"
-#include "environment/geometry/element/RayWithTracingState.h"
 #include "render/shaders/MirrorReflectionShader.h"
-#include "render/shaders/TraceService.h"
 
 void
 MirrorReflectionShader::shade(const PovRayMaterial *texture, const Vector3Dd *intersectionPoint,

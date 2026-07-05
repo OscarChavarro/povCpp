@@ -1,11 +1,6 @@
-#include "environment/material/povray/PovRayMaterial.h"
-#include "environment/material/pigment/ICheckerTextureSlot.h"
-#include "environment/material/pigment/SolidTexturePigment.h"
-#include "environment/material/normal/SolidTextureNormal.h"
 #include "environment/material/povray/DefaultTextureAliasTracker.h"
 #include "environment/material/povray/PovRayMaterialConstancy.h"
 #include "java/util/ArrayList.txx"
-#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 
 PovRayMaterial::PovRayMaterial(
     double objReflection, double objAmbient, double objDiffuse,

@@ -1,4 +1,3 @@
-#include "render/bakedScene/CsgOperandTrace.h"
 
 #include "environment/geometry/element/PriorityQueuePool.txx"
 #include "render/bakedScene/CsgMorganUnionTrace.h"

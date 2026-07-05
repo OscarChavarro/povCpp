@@ -1,6 +1,5 @@
-#include "java/util/ArrayList.txx"
 #include "environment/material/povray/PovRayMaterialConstancy.h"
-#include "environment/material/povray/PovRayMaterial.h"
+#include "java/util/ArrayList.txx"
 
 java::ArrayList<const PovRayMaterial *> &
 PovRayMaterialConstancy::constantMaterials()

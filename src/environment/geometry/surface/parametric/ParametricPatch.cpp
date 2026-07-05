@@ -2,20 +2,13 @@
 This module implements the code for Bezier bicubic patch shapes
 */
 
-#include <cstdio>
 
 #include "environment/geometry/element/GeometryConfig.h"
 #include "java/lang/Math.h"
 #include "java/util/HashMap.h"
-#include "java/util/PriorityQueue.txx"
-#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
-#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
-#include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
-#include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
+#include "java/util/PriorityQueue.txx"
 
 static constexpr double EPSILON_PARAMETRIC_PATCH = 1.0e-10;
 

@@ -2,7 +2,6 @@
 #define __AMBIENT_LIGHT_SHADER__
 
 #include "environment/material/povray/PovRayMaterial.h"
-#include "vsdk/toolkit/common/color/ColorRgba.h"
 
 class AmbientLightShader {
 public:

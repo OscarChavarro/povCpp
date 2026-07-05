@@ -1,5 +1,5 @@
-#include "java/util/ArrayList.txx"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+#include "java/util/ArrayList.txx"
 
 ConstructiveSolidGeometry::ConstructiveSolidGeometry(BooleanSetOperations initialGeometryType) :
     geometryType(initialGeometryType)

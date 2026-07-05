@@ -1,12 +1,8 @@
 #ifndef __SIMPLE_BODY_BUILDER__
 #define __SIMPLE_BODY_BUILDER__
 
-#include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/Geometry.h"
-#include "environment/material/Material.h"
 #include "environment/scene/TransformStep.h"
 
 class SimpleBodyBuilder {

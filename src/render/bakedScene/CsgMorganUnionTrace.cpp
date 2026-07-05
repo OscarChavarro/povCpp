@@ -1,9 +1,9 @@
-#include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"
 
 #include "render/bakedScene/CsgMorganUnionTrace.h"
 
 #include "render/bakedScene/SingleCorePlaneCsgTrace.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
 
 int
 CsgMorganUnionTrace::traceMorganIntersection(

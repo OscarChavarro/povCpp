@@ -4,7 +4,6 @@
 #include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/DetailMask.h"
 #include "environment/geometry/element/PriorityQueuePool.h"
-#include "java/util/ArrayList.h"
 #include "vsdk/toolkit/environment/material/RendererConfiguration.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 

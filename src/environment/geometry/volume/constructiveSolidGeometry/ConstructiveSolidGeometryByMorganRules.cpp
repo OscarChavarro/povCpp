@@ -1,10 +1,7 @@
-#include "java/util/PriorityQueue.txx"
-#include "java/util/ArrayList.txx"
 #include "environment/geometry/element/GeometryConfig.h"
-#include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
-#include "environment/geometry/element/PriorityQueuePool.txx"
-#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByMorganRules.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
 
 ConstructiveSolidGeometryByMorganRules::ConstructiveSolidGeometryByMorganRules(BooleanSetOperations initialGeometryType) :
     ConstructiveSolidGeometry(initialGeometryType)

@@ -1,9 +1,6 @@
 #ifndef __CSG_SCRATCH_CONTEXT__
 #define __CSG_SCRATCH_CONTEXT__
 
-#include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithTracingState.h"
-#include "java/util/PriorityQueue.h"
 #include "render/raySharedCache/RaySharedCache.h"
 
 class CsgScratchContext {

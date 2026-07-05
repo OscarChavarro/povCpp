@@ -1,8 +1,6 @@
 #ifndef __BLOB__
 #define __BLOB__
 
-#include "java/util/ArrayList.h"
-#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/volume/BlobElement.h"
 #include "environment/geometry/volume/BlobInterval.h"

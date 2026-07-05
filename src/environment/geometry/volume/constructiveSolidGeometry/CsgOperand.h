@@ -1,17 +1,10 @@
 #ifndef __CSG_OPERAND__
 #define __CSG_OPERAND__
 
-#include "java/util/PriorityQueue.h"
-#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "environment/geometry/Geometry.h"
-#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/element/RayOperationOwner.h"
-#include "environment/geometry/element/RayWithTracingState.h"
-#include "environment/material/Material.h"
 #include "environment/material/povray/PovRayMaterial.h"
 #include "environment/geometry/volume/Blob.h"
-#include "environment/geometry/volume/Box.h"
 #include "environment/geometry/volume/HeightField.h"
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/geometry/volume/Sphere.h"

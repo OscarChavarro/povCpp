@@ -1,11 +1,6 @@
 #ifndef __RENDER_TASK__
 #define __RENDER_TASK__
 
-#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
-#include "vsdk/toolkit/render/raytracing/RasterTileArea.h"
-#include "render/shaders/PovRayRenderStatistics.h"
-#include "environment/geometry/element/PriorityQueuePool.h"
-#include "render/RenderWorker.h"
 
 class IntersectionCandidate;
 

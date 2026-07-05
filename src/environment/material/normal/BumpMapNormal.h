@@ -2,7 +2,6 @@
 #define __BUMP_MAP_NORMAL__
 
 #include "environment/material/normal/SolidTextureNormal.h"
-#include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 
 class BumpMapNormal : public SolidTextureNormal {
   public:

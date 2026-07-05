@@ -2,7 +2,6 @@
 #define __FOG_PARSER__
 
 #include "environment/scene/Scene.h"
-#include "io/pov/context/ParserContext.h"
 
 class FogParser {
   public:

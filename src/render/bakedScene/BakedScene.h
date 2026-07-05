@@ -1,14 +1,10 @@
 #ifndef __BAKED_SCENE__
 #define __BAKED_SCENE__
 
-#include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "environment/geometry/element/AxisAlignedBoundingBox.h"
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
-#include "environment/material/Material.h"
 #include "environment/scene/TransformStep.h"
 
 class SimpleBody;

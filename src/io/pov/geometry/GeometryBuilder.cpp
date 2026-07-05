@@ -1,7 +1,6 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByMorganRules.h"
-#include "environment/geometry/volume/polynomial/PolynomialShape.h"
 
 #include "io/pov/geometry/GeometryBuilder.h"
 

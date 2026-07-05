@@ -1,7 +1,6 @@
 #ifndef __SOLID_TEXTURE_NORMAL__
 #define __SOLID_TEXTURE_NORMAL__
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageTexture.h"
 #include "vsdk/toolkit/media/solidTexture/procedural/BumpTextureFixture.h"
 

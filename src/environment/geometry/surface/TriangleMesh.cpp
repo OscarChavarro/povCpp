@@ -1,12 +1,9 @@
 #include "java/lang/Math.h"
-#include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/element/GeometryConfig.h"
-#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
-#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/surface/TriangleMesh.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
 
 static constexpr int X_AXIS = 0;
 static constexpr int Y_AXIS = 1;

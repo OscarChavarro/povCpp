@@ -1,11 +1,8 @@
-#include "java/util/PriorityQueue.txx"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
-#include "environment/geometry/surface/parametric/ParametricBiCubicPatch.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
+#include "java/util/PriorityQueue.txx"
 
 int
 ParametricBiCubicSolver::intersectParametricBiCubicPatch0(

@@ -1,8 +1,6 @@
 #ifndef __LIGHT_SAMPLER_SHADER__
 #define __LIGHT_SAMPLER_SHADER__
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/light/Light.h"
 #include "environment/geometry/element/RayWithTracingState.h"
 

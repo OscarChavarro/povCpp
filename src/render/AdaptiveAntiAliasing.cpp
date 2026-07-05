@@ -1,10 +1,5 @@
-#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
-#include "render/shaders/PovRayRenderStatistics.h"
-#include "render/PovRayRendererConfiguration.h"
-#include "render/AdaptiveAntiAliasing.h"
 #include "render/ColorOperations.h"
 #include "render/RenderEngine.h"
-#include "render/RenderWorker.h"
 
 inline unsigned short
 AdaptiveAntiAliasing::rand3dInline(RenderWorker &worker, int a, int b)

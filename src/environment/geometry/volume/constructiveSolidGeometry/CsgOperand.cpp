@@ -1,6 +1,5 @@
-#include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
-#include "environment/geometry/volume/polynomial/PolynomialShape.h"
+#include "java/util/PriorityQueue.txx"
 
 void
 CsgOperand::translate(Vector3Dd *vector)

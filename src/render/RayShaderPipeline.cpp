@@ -1,18 +1,11 @@
-#include "java/util/ArrayList.txx"
-#include "vsdk/toolkit/media/solidTexture/from2d/ImageTexture.h"
-#include "vsdk/toolkit/media/solidTexture/procedural/ColorTextureFixture.h"
 #include "environment/geometry/element/GeometryConfig.h"
-#include "render/PovRayRendererConfiguration.h"
-#include "environment/material/pigment/SolidTexturePigment.h"
-#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
-#include "environment/geometry/element/RayWithTracingState.h"
-#include "environment/scene/SimpleBody.h"
 #include "render/RayShaderPipeline.h"
 #include "render/shaders/BumpNormalShader.h"
 #include "render/shaders/ExponentialFogShader.h"
 #include "render/shaders/LocalSurfaceShader.h"
 #include "render/shaders/TransmissionRefractionShader.h"
+#include "java/util/ArrayList.txx"
 
 void
 RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,

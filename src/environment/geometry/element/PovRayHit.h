@@ -1,12 +1,6 @@
 #ifndef __POV_RAY_HIT__
 #define __POV_RAY_HIT__
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "environment/material/Material.h"
-#include "environment/geometry/Geometry.h"
-#include "environment/geometry/element/DetailMask.h"
-#include "environment/geometry/element/RayOperationOwner.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 
 // Read-only projection of IntersectionCandidate onto a record shaped like

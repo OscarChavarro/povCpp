@@ -1,7 +1,6 @@
 #ifndef __SPHERE__
 #define __SPHERE__
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/Geometry.h"
 
 class GeometryStatistics;

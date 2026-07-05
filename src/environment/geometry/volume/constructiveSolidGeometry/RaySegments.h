@@ -1,7 +1,6 @@
 #ifndef __RAY_SEGMENTS__
 #define __RAY_SEGMENTS__
 
-#include "java/util/ArrayList.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/RaySegmentCrossing.h"
 
 // RAYCAST's per-primitive in/out classification result ([ROTH1982].3.3).

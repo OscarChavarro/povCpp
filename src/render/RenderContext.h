@@ -5,7 +5,6 @@
 #include "render/PovRayRendererConfiguration.h"
 #include "render/shaders/PovRayRenderStatistics.h"
 #include "environment/scene/Scene.h"
-#include "render/RenderContext.h"
 #include "render/bakedScene/BakedScene.h"
 
 class RenderContext {

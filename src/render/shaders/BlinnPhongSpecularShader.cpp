@@ -1,6 +1,4 @@
 #include "java/lang/Math.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/element/RayWithTracingState.h"
 #include "render/shaders/BlinnPhongSpecularShader.h"
 
 void

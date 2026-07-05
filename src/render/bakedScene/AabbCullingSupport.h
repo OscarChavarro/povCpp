@@ -1,9 +1,6 @@
 #ifndef __AABB_CULLING_SUPPORT__
 #define __AABB_CULLING_SUPPORT__
 
-#include "environment/geometry/element/AxisAlignedBoundingBox.h"
-#include "environment/geometry/element/RayWithTracingState.h"
-#include "java/util/ArrayList.h"
 #include "render/bakedScene/BakedScene.h"
 
 class AabbCullingSupport {

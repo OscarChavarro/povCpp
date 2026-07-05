@@ -1,16 +1,9 @@
 #ifndef __POV_RAY_APPLICATION__
 #define __POV_RAY_APPLICATION__
 
-#include "java/util/ArrayList.txx"
-#include "render/shaders/PovRayRenderStatistics.h"
 #include "io/context/RenderRuntimeState.h"
-#include "render/PovRayRendererConfiguration.h"
-#include "environment/scene/Scene.h"
-#include "vsdk/toolkit/io/FileLocator.h"
 #include "io/image/ImageOutput.h"
-#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "render/RenderEngine.h"
-#include "render/RenderContext.h"
 
 class PovRayApplication {
   private:

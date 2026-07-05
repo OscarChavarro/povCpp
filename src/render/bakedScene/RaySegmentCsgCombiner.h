@@ -1,12 +1,7 @@
 #ifndef __RAY_SEGMENT_CSG_COMBINER__
 #define __RAY_SEGMENT_CSG_COMBINER__
 
-#include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/RaySegments.h"
-#include "environment/material/Material.h"
-#include "java/util/ArrayList.h"
-#include "java/util/PriorityQueue.h"
 #include "render/bakedScene/BakedScene.h"
 #include "render/bakedScene/CsgScratchContext.h"
 

@@ -9,9 +9,6 @@ sources/frequencies used by ripple/wave bump textures, and texture-space transfo
 #ifndef __POV_RAY_MATERIAL_UTILS__
 #define __POV_RAY_MATERIAL_UTILS__
 
-#include "environment/material/Material.h"
-#include "environment/material/povray/PovRayMaterial.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 class PovRayMaterialUtils {
   public:

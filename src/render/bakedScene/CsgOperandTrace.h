@@ -2,20 +2,13 @@
 #define __CSG_OPERAND_TRACE__
 
 #include "environment/geometry/element/GeometryConfig.h"
-#include "environment/geometry/Geometry.h"
-#include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithTracingState.h"
-#include "environment/geometry/volume/Sphere.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
-#include "environment/material/Material.h"
-#include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"
 #include "render/bakedScene/AabbCullingSupport.h"
 #include "render/bakedScene/BakedPlaneIntersector.h"
 #include "render/bakedScene/BakedQuadricIntersector.h"
-#include "render/bakedScene/BakedScene.h"
 #include "render/bakedScene/CsgScratchContext.h"
-#include "render/raySharedCache/RaySharedCache.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
 
 // Generic per-operand "all crossings" dispatch engine: the fallback path
 // that walks every BakedScene::CsgOperandKind directly (used whenever an

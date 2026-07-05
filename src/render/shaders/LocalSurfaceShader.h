@@ -2,15 +2,6 @@
 #define __LOCAL_SURFACE_SHADER__
 
 #include "environment/scene/Scene.h"
-#include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayWithTracingState.h"
-#include "environment/light/Light.h"
-#include "environment/material/povray/PovRayMaterial.h"
-#include "java/util/ArrayList.h"
-#include "render/bakedScene/BakedScene.h"
-#include "render/shaders/TraceService.h"
-#include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 
 class LocalSurfaceShader {
 public:

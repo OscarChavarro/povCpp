@@ -1,10 +1,8 @@
 #ifndef __OBJECT_PARSER__
 #define __OBJECT_PARSER__
 
-#include "environment/scene/SimpleBody.h"
 #include "environment/scene/Composite.h"
 #include "io/pov/geometry/SimpleBodyBuilder.h"
-#include "io/pov/context/ParserContext.h"
 
 class ObjectParser {
   public:

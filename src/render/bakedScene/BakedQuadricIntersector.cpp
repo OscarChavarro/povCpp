@@ -1,11 +1,10 @@
-#include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"
 
 #include "render/bakedScene/BakedQuadricIntersector.h"
 
 #include "java/lang/Math.h"
 #include "environment/geometry/element/GeometryConfig.h"
-#include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
 
 void
 BakedQuadricIntersector::mixVectorTerms(Vector3Dd &a, const Vector3Dd &b, const Vector3Dd &c)

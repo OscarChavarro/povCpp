@@ -1,7 +1,6 @@
 #ifndef __MATERIAL__
 #define __MATERIAL__
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 class Material {
   public:

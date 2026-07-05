@@ -1,10 +1,8 @@
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "io/pov/context/ParseGlobals.h"
-#include "io/pov/context/ParserContext.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 #include "io/pov/camera/CameraParser.h"
+#include "java/util/PriorityQueue.txx"
 
 CameraSnapshot
 CameraParser::parseCamera()
@@ -144,4 +142,3 @@ CameraParser::parseCamera(PovCameraSpec *givenVp, ParserContext &ctx)
 
     *givenVp = parsedCamera;
 }
-#include "java/util/PriorityQueue.txx"

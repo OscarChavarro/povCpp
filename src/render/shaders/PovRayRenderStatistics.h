@@ -1,7 +1,6 @@
 #ifndef __POV_RAY_RENDER_STATISTICS__
 #define __POV_RAY_RENDER_STATISTICS__
 
-#include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/statistics/SolidTextureStatistics.h"
 #include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 

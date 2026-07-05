@@ -1,12 +1,11 @@
-#include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"
 
 #include "render/bakedScene/CsgFirstHitTrace.h"
 
-#include "environment/geometry/element/GeometryConfig.h"
 #include "render/bakedScene/CsgContainmentTest.h"
 #include "render/bakedScene/CsgOperandTrace.h"
 #include "render/bakedScene/SingleCorePlaneCsgTrace.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
 
 bool
 CsgFirstHitTrace::traceFirstHitByIntersectionMembership(

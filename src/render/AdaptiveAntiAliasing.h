@@ -1,10 +1,7 @@
 #ifndef __ADAPTIVE_ANTI_ALIASING__
 #define __ADAPTIVE_ANTI_ALIASING__
 
-#include "render/shaders/PovRayRenderStatistics.h"
-#include "environment/geometry/element/PriorityQueuePool.h"
 #include "render/RenderWorker.h"
-#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/render/raytracing/RasterTileArea.h"
 
 class RenderEngine;

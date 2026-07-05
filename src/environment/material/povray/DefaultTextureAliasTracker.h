@@ -1,8 +1,6 @@
 #ifndef __DEFAULT_TEXTURE_ALIAS_TRACKER__
 #define __DEFAULT_TEXTURE_ALIAS_TRACKER__
 
-#include "java/util/ArrayList.h"
-#include "environment/material/povray/PovRayMaterial.h"
 #include "environment/material/povray/TextureAliasEntry.h"
 
 class DefaultTextureAliasTracker {

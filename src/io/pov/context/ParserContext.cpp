@@ -1,8 +1,6 @@
-#include "java/util/PriorityQueue.txx"
 
 #include "io/pov/context/ParserContext.h"
-#include "io/pov/context/TokenizerStream.h"
-#include "io/pov/lexer/ITokenStream.h"
+#include "java/util/PriorityQueue.txx"
 
 ParserContext::ParserContext()
     : mTokenizer(),
