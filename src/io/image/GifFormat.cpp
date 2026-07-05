@@ -9,7 +9,7 @@ Gif-format file reader.
 #include <cstring>
 
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "io/binaryIo/FileLocator.h"
+#include "vsdk/toolkit/io/FileLocator.h"
 #include "io/image/GifDecoder.h"
 #include "io/image/GifFormat.h"
 
@@ -56,7 +56,13 @@ GifFormat::readGifImage(IndexedColorImageHDRUncompressed *image, const char *fil
         0x007F, 0x00FF, 0x01FF, 0x03FF, 0x07FF, 0x0FFF}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         {0}, nullptr, nullptr, nullptr, nullptr};
 
-    gif.bitStream = locator.locateAsStream(filename);
+    {
+        java::File * const located = locator.locate(filename);
+        if (located != nullptr) {
+            gif.bitStream = new java::FileInputStream(located->getPath().toCString());
+            delete located;
+        }
+    }
     if (gif.bitStream == nullptr) {
         {
             char _logMsg[1024];

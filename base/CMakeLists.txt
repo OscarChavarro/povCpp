@@ -32,6 +32,7 @@ set(VITRAL_BASE_SOURCES
     src/main/java/io/PrintStream.cpp
     src/main/java/util/Formatter.cpp
     src/main/vsdk/toolkit/io/PersistenceElement.cpp
+    src/main/vsdk/toolkit/io/FileLocator.cpp
     src/main/vsdk/toolkit/media/RGBAImageHDRUncompressed.cpp
     src/main/vsdk/toolkit/media/RGBAColorPalette.cpp
     src/main/vsdk/toolkit/media/RGBPixel.cpp

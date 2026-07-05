@@ -6,7 +6,7 @@
 #include "io/context/RenderRuntimeState.h"
 #include "environment/material/PovRayRendererConfiguration.h"
 #include "environment/scene/Scene.h"
-#include "io/binaryIo/FileLocator.h"
+#include "vsdk/toolkit/io/FileLocator.h"
 #include "io/image/ImageOutput.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "render/RenderEngine.h"

@@ -3,7 +3,7 @@
 
 #include "environment/material/PovRayRendererConfiguration.h"
 #include "environment/scene/Scene.h"
-#include "io/binaryIo/FileLocator.h"
+#include "vsdk/toolkit/io/FileLocator.h"
 
 class CommandLineOptions {
   private:

@@ -105,7 +105,6 @@ add_executable(povray
     src/render/RenderEngine.cpp
     src/render/RenderImageWriter.cpp
     src/io/context/RenderRuntimeState.cpp
-    src/io/binaryIo/FileLocator.cpp
     src/io/image/RawDumpFormat.cpp
     src/io/image/GifFormat.cpp
     src/io/image/GifDecoder.cpp

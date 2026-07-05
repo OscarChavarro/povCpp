@@ -10,7 +10,7 @@ description files.  This phase changes the input file into tokens.
 #include <cctype>
 
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "io/binaryIo/FileLocator.h"
+#include "vsdk/toolkit/io/FileLocator.h"
 #include "io/pov/lexer/Tokenizer.h"
 
 /**
@@ -184,7 +184,11 @@ Tokenizer::initializeTokenizer(const char *filename)
     sGlobalIncludeFileIndex = 0;
     sGlobalDataFile = &sGlobalIncludeFiles[0];
 
-    sGlobalDataFile->setFile(mFileLocator->locate(filename, "r"));
+    {
+        java::File * const located = mFileLocator->locate(filename);
+        sGlobalDataFile->setFile(located == nullptr ? nullptr : fopen(located->getPath().toCString(), "r"));
+        delete located;
+    }
     if (sGlobalDataFile->getFile() == nullptr) {
         Logger::reportMessage("Tokenizer", Logger::FATAL_ERROR, "", "Cannot open input file\n");
     }
@@ -546,8 +550,11 @@ Tokenizer::getToken()
 
             strcpy(sGlobalDataFile->getFilename(), token().getTokenString());
 
-            sGlobalDataFile->setFile(mFileLocator->locate(
-                token().getTokenString(), "r"));
+            {
+                java::File * const located = mFileLocator->locate(token().getTokenString());
+                sGlobalDataFile->setFile(located == nullptr ? nullptr : fopen(located->getPath().toCString(), "r"));
+                delete located;
+            }
             if (sGlobalDataFile->getFile() == nullptr) {
                 {
                     char _logMsg[1024];

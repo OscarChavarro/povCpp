@@ -1,7 +1,7 @@
 #ifndef __TOKENIZER__
 #define __TOKENIZER__
 
-#include "io/binaryIo/FileLocator.h"
+#include "vsdk/toolkit/io/FileLocator.h"
 #include "io/pov/lexer/DataFile.h"
 #include "io/pov/lexer/PovToken.h"
 #include "io/pov/lexer/ReservedWord.h"
