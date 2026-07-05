@@ -4,7 +4,6 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 #include "io/pov/geometry/SimpleBodyBuilder.h"
-#include "environment/geometry/element/Triangle.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/geometry/volume/Box.h"

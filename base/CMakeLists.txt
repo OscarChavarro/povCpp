@@ -51,6 +51,7 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/media/solidTexture/from2d/SolidTextureCoordinateMapper.cpp
     src/main/vsdk/toolkit/media/solidTexture/from2d/ImageTexture.cpp
     src/main/vsdk/toolkit/environment/geometry/element/Ray.cpp
+    src/main/vsdk/toolkit/environment/geometry/element/Triangle.cpp
     src/main/vsdk/toolkit/environment/camera/Camera.cpp
     src/main/vsdk/toolkit/render/raytracing/RasterTileArea.cpp
     src/main/vsdk/toolkit/render/raytracing/RasterTileGenerator.cpp
