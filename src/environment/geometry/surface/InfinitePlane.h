@@ -33,7 +33,7 @@ class InfinitePlane : public Geometry {
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr) override;
-    bool doIntersectionFirstHitNoQueue(
+    bool doIntersectionFirstHit(
         RayWithSegments *ray,
         IntersectionCandidate &out,
         Material *materialOverride = nullptr) override;

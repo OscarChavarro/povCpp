@@ -124,7 +124,7 @@ Quadric::doIntersectionForAllRayCrossingsAnnotated(
 }
 
 bool
-Quadric::doIntersectionFirstHitNoQueue(
+Quadric::doIntersectionFirstHit(
     RayWithSegments *ray,
     IntersectionCandidate &out,
     Material *materialOverride)

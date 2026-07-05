@@ -158,7 +158,7 @@ Sphere::doIntersectionForAllRayCrossingsAnnotated(
 }
 
 bool
-Sphere::doIntersectionFirstHitNoQueue(
+Sphere::doIntersectionFirstHit(
     RayWithSegments *ray,
     IntersectionCandidate &out,
     Material *materialOverride)
