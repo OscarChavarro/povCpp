@@ -44,9 +44,11 @@ class HeightField : public Geometry {
         const GeometryIntersectionEmissionContext &context) override;
     bool hasNativeAnnotatedCrossings() const override { return true; }
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
-    void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;
     void invertGeometry() override;
+
+  protected:
+    void computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
 
   private:
     Matrix4x4d *transformation;

@@ -365,7 +365,7 @@ Triangle::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 }
 
 void
-Triangle::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
+Triangle::computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
     *result = normalVector;
 }

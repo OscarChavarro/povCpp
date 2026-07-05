@@ -525,7 +525,7 @@ Blob::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
 }
 
 void
-Blob::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
+Blob::computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
     Vector3Dd newPoint;
     Vector3Dd v;

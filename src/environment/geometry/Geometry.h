@@ -47,21 +47,26 @@ class Geometry {
         return false;
     }
     virtual int doContainmentTest(const Vector3Dd &point, double distanceTolerance) { (void)point; (void)distanceTolerance; return OUTSIDE; }
-    virtual void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) {}
-    virtual void normal(
-        Vector3Dd *result,
-        Vector3Dd *intersectionPoint,
-        const PovRayRendererConfiguration *config)
-    {
-        (void)config;
-        normal(result, intersectionPoint);
-    }
     virtual void doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *hit);
     virtual AxisAlignedBoundingBox getMinMax() const { return AxisAlignedBoundingBox::unbounded(); }
     virtual void *copy() = 0;
     virtual ~Geometry() {}
 
     virtual void invertGeometry() {}
+
+  protected:
+    // Implementation detail of doExtraInformation (its only caller, plus
+    // intra-package uses): not part of the public surface, matching VITRAL's
+    // Geometry, which has no public normal() at all.
+    virtual void computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint) {}
+    virtual void computeSurfaceNormal(
+        Vector3Dd *result,
+        Vector3Dd *intersectionPoint,
+        const PovRayRendererConfiguration *config)
+    {
+        (void)config;
+        computeSurfaceNormal(result, intersectionPoint);
+    }
 
   private:
     static void applyAnnotatedEmissionContext(

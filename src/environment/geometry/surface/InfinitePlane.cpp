@@ -133,7 +133,7 @@ InfinitePlane::doContainmentTest(const Vector3Dd &testPoint, double distanceTole
 }
 
 void
-InfinitePlane::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
+InfinitePlane::computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
     *result = normalVector;
 }

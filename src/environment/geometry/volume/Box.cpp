@@ -291,7 +291,7 @@ Box::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
 }
 
 void
-Box::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
+Box::computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
     Vector3Dd newPoint;
     const Box *box = this;
