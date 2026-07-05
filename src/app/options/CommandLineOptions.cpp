@@ -9,7 +9,7 @@
 #include "environment/material/PovRayRendererConfiguration.h"
 #include "environment/material/normal/MaterialConfig.h"
 #include "environment/scene/Scene.h"
-#include "io/binaryIo/FileLocator.h"
+#include "vsdk/toolkit/io/FileLocator.h"
 #include "app/options/CommandLineOptions.h"
 
 static constexpr int MAX_FILE_NAMES = 1;
@@ -273,7 +273,7 @@ CommandLineOptions::parseOption(const char *optionString, PovRayRendererConfigur
 
     case 'L':
     case 'l':
-        if (fileLocator.searchPaths().size() >= 10) {
+        if (fileLocator.getSearchPaths().size() >= 10) {
             Logger::reportMessage("CommandLineOptions", Logger::FATAL_ERROR, "", "Too many library directories specified\n");
         }
         fileLocator.addSearchPath(&optionString[1]);

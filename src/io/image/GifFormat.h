@@ -3,7 +3,7 @@
 
 #include "java/io/FileInputStream.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
-#include "io/binaryIo/FileLocator.h"
+#include "vsdk/toolkit/io/FileLocator.h"
 
 // Scratch state threaded through the GifDecoder C-style callbacks
 // (GifFormat::outLine/getByte) via a void* context pointer.

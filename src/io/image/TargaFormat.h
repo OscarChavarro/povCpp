@@ -4,7 +4,7 @@
 #include "java/io/FileInputStream.h"
 #include "java/io/OutputStream.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
-#include "io/binaryIo/FileLocator.h"
+#include "vsdk/toolkit/io/FileLocator.h"
 #include "io/image/ImageOutput.h"
 
 class TargaFormat : public ImageOutput {

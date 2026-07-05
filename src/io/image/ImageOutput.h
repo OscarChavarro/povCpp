@@ -2,7 +2,7 @@
 #define __IMAGE_OUTPUT__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "io/binaryIo/FileLocator.h"
+#include "vsdk/toolkit/io/FileLocator.h"
 
 class ImageOutput {
   protected:

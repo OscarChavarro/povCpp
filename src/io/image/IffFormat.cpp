@@ -7,7 +7,7 @@ This file implements a simple IFF format file reader.
 #include <cstdio>
 
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "io/binaryIo/FileLocator.h"
+#include "vsdk/toolkit/io/FileLocator.h"
 #include "io/image/IffFormat.h"
 
 static constexpr long FORM = 0x464f524dL;
@@ -89,7 +89,14 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, const char *filenam
     int iwidth = 0;
     int iheight = 0;
 
-    java::FileInputStream * const fileStream = locator.locateAsStream(filename);
+    java::FileInputStream *fileStream = nullptr;
+    {
+        java::File * const located = locator.locate(filename);
+        if (located != nullptr) {
+            fileStream = new java::FileInputStream(located->getPath().toCString());
+            delete located;
+        }
+    }
     if (fileStream == nullptr) {
         {
             char _logMsg[1024];

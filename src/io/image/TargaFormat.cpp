@@ -5,7 +5,7 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
-#include "io/binaryIo/FileLocator.h"
+#include "vsdk/toolkit/io/FileLocator.h"
 #include "io/image/TargaFormat.h"
 
 class AppendableFileOutputStream : public java::OutputStream {
@@ -83,9 +83,13 @@ TargaFormat::open(char *name, int *w, int *h, int bufferSize, int openMode, int 
 
     switch (mode) {
     case READ_MODE:
-        inputStream = fileLocator->locateAsStream(name);
-        if (inputStream == nullptr) {
-            return 0;
+        {
+            java::File * const located = fileLocator->locate(name);
+            if (located == nullptr) {
+                return 0;
+            }
+            inputStream = new java::FileInputStream(located->getPath().toCString());
+            delete located;
         }
         for (int i = 0; i < 12; i++) {
             if (inputStream->read() == -1) {

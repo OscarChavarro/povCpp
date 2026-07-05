@@ -23,7 +23,7 @@ The format is as follows:
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/io/PersistenceElement.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
-#include "io/binaryIo/FileLocator.h"
+#include "vsdk/toolkit/io/FileLocator.h"
 #include "io/image/RawDumpFormat.h"
 
 class AppendableFileOutputStream : public java::OutputStream {
@@ -101,9 +101,13 @@ RawDumpFormat::open(char *name, int *w, int *h, int bufferSize, int openMode, in
 
     switch (mode) {
     case READ_MODE:
-        inputStream = fileLocator->locateAsStream(name);
-        if (inputStream == nullptr) {
-            return 0;
+        {
+            java::File * const located = fileLocator->locate(name);
+            if (located == nullptr) {
+                return 0;
+            }
+            inputStream = new java::FileInputStream(located->getPath().toCString());
+            delete located;
         }
         *w = PersistenceElement::readSignedShortLE(*inputStream);
         *h = PersistenceElement::readSignedShortLE(*inputStream);
