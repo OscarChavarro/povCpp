@@ -1,7 +1,6 @@
 #ifndef __MATERIAL__
 #define __MATERIAL__
 
-
 class Material {
   public:
     virtual ~Material() {}

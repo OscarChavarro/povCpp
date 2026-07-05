@@ -6,10 +6,9 @@
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
 #include "environment/scene/TransformStep.h"
-
-class SimpleBody;
-class Composite;
-class CsgOperand;
+#include "environment/scene/SimpleBody.h"
+#include "environment/scene/Composite.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
 
 class BakedScene {
   public:

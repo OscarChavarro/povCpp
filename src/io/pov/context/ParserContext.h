@@ -4,8 +4,7 @@
 #include "io/context/RenderRuntimeState.h"
 #include "io/pov/context/SymbolTable.h"
 #include "io/pov/context/TokenizerStream.h"
-
-class PovRayMaterial;
+#include "environment/material/povray/PovRayMaterial.h"
 
 class ParserContext {
   public:

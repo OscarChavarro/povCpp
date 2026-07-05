@@ -6,9 +6,9 @@
 #include "environment/geometry/element/PriorityQueuePool.h"
 #include "vsdk/toolkit/environment/material/RendererConfiguration.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
+#include "vsdk/toolkit/environment/material/Material.h"
 
 class IntersectionCandidate;
-class Material;
 
 class RayWithTracingState : public Ray {
   private:
