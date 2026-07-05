@@ -15,12 +15,6 @@
 #include "render/bakedScene/CsgOperandTrace.h"
 #include "render/bakedScene/CsgScratchContext.h"
 
-// Fast path for wide unions and De Morgan-rewritten intersections: instead
-// of the generic per-operand dispatch (CsgOperandTrace), this class walks
-// baked per-kind operand buckets (planes / direct primitives / nested CSGs
-// / transformed primitives) directly, optionally skipping most operands via
-// a bake-time AABB cull-bins index (Plan 13) for scenes with wide fan-out
-// (spline/ntreal/piece3-class unions).
 class CsgMorganUnionTrace {
 public:
     static int traceMorganCsg(
@@ -39,16 +33,6 @@ public:
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride);
 
-    // Plan 7 Phase 4: prescan and main loop both need each TransformedQuadric
-    // operand's local-space intersection - without this cache the transform
-    // (2 matrix-vector ops) and the quadric solve (~40 FLOPs) ran twice per
-    // operand per ray. Cache scope is exactly this one function call (one CSG
-    // program, one ray): a plain stack array indexed by the loop index `i`,
-    // not the global RaySharedCache - no cross-call generation-stamp risk,
-    // since the array cannot outlive the call that filled it. Capped at
-    // MAX_CACHED_QUADRIC_OPERANDS; CSGs with more top-level operands than
-    // that just skip the optimization and re-trace as before (always
-    // correct, only forgoes the speedup).
     static constexpr long int MAX_CACHED_QUADRIC_OPERANDS = 64;
 
     static inline int traceMorganIntersectionGeneric(
@@ -73,10 +57,6 @@ public:
             }
         }
 
-        // Pre-scan: if any positive-quadric (polyA>0) operand definitely misses the ray
-        // (trueMiss), all points along the ray are outside that operand. No crossing from
-        // any other operand can satisfy the containment check for it → the whole INTERSECTION
-        // produces no valid candidates. Early exit saves 3 operand evals per X_Tube miss.
         for (long int i = 0; i < operandCount; i++) {
             const BakedScene::CsgOperandRecord &op = bakedCsg.operands[i];
             if (op.kind != BakedScene::CsgOperandKind::TransformedQuadric ||
@@ -155,15 +135,6 @@ public:
         return anyIntersectionFound;
     }
 
-    // Plan 13 Phase 1: dispatch body factored out of
-    // traceGenericMorganUnion's direct-primitives bucket so the built/
-    // not-built loops below share one copy of it instead of two - an
-    // earlier version duplicated this body in both branches, which grew
-    // traceGenericMorganUnion (the hottest, most frequently called frame in
-    // the CSG trace - tens of millions of calls in drums/iortest) enough to
-    // regress those scenes ~6-10% purely from the larger static code size,
-    // even though neither scene ever takes the "built" branch at all (see
-    // doc/performanceReviewPlan13.md Phase 1).
     static inline void dispatchDirectPrimitiveOperand(
         const BakedScene::CsgOperandRecord &operand,
         RayWithSegments *ray,
@@ -197,9 +168,6 @@ public:
         }
     }
 
-    // Same rationale as dispatchDirectPrimitiveOperand above, for the
-    // transformed-primitives bucket's TransformedQuadric fast path +
-    // generic CsgOperandTrace::traceOperandAllCrossings fallback.
     static inline void dispatchTransformedPrimitiveOperand(
         const BakedScene::CsgOperandRecord &operand,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
@@ -244,14 +212,6 @@ public:
         }
     }
 
-    // Plan 13 Phase 1: kept byte-for-byte identical to the pre-Plan-13 code
-    // (no cull-bins references at all). traceMorganCsg picks this one
-    // whenever neither operand bucket has a built cull index, so scenes
-    // like drums/iortest - whose union programs never reach the fan-out
-    // threshold (see doc/performanceReviewPlan13.md Phase 0 census) -
-    // execute the exact same instructions as before Plan 13, with zero risk
-    // of the struct-growth/code-size regression that motivated splitting
-    // this out (see traceGenericMorganUnionWithCullBins's comment).
     static inline bool traceGenericMorganUnion(
         const BakedScene::CsgProgram &bakedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
@@ -325,13 +285,6 @@ public:
             }
         }
 
-        // Transformed primitives and quadrics: TransformedQuadric (the
-        // dominant residual-transformed kind) gets a direct fused branch
-        // instead of paying traceOperandAllCrossings's function-call
-        // boundary and generic kind dispatch (Plan 8 Phase 1); everything
-        // else keeps the generic path. Iteration order is unchanged (same
-        // array, same direction) so candidate/tie-break ordering across
-        // operand kinds is preserved exactly.
         for (long int t = bakedCsg.transformedPrimitiveOperandIndices.size() - 1;
              t >= 0; t--) {
             const BakedScene::CsgOperandRecord &operand =
@@ -383,13 +336,6 @@ public:
         return anyFound;
     }
 
-    // Plan 13 Phase 1: only called when at least one bucket has a built
-    // OperandCullBins (wide unions - spline/ntreal/piece3 class scenes;
-    // see doc/performanceReviewPlan13.md Phase 0 census). Uses the bins to
-    // skip most per-operand AABB tests instead of scanning every operand
-    // linearly; dispatch itself is unchanged (dispatchDirectPrimitiveOperand/
-    // dispatchTransformedPrimitiveOperand, shared with traceGenericMorganUnion's
-    // own fallback loops for the OTHER bucket, if only one of the two is built).
     static inline bool traceGenericMorganUnionWithCullBins(
         const BakedScene::CsgProgram &bakedCsg,
         const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
@@ -412,19 +358,6 @@ public:
             }
         }
 
-        // Plan 13 Phase 1: thread_local, not a CsgScratchContext member -
-        // CsgScratchContext is stack-constructed on every top-level
-        // traceAllCrossings/traceFirstHit call (up to ~1M times for drums),
-        // and giving it two 4096-int members measurably cost several
-        // percent even fully unused (likely cold-stack-page first-touch
-        // cost), on top of the even larger hit from declaring them as
-        // per-call locals inside this function directly (tried first, see
-        // doc/performanceReviewPlan13.md Phase 1). A thread_local pays for
-        // the storage exactly once per render worker thread. Reuse across
-        // nested-union recursion within one thread is safe for the same
-        // reason a CsgScratchContext-owned buffer would have been: each use
-        // is fully drained (gather -> sort -> dispatch) before any nested
-        // call that could re-enter and overwrite it runs.
         thread_local int directPositionsStorage[AabbCullingSupport::OPERAND_CULL_SCRATCH_CAPACITY];
         int *directPositions = directPositionsStorage;
         int directCount = -1;

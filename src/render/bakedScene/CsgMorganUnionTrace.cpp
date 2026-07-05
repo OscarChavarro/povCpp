@@ -47,9 +47,6 @@ CsgMorganUnionTrace::traceMorganCsg(
 
     if (bakedCsg.geometryType == BooleanSetOperations::UNION &&
         bakedCsg.planKind == BakedScene::CsgPlanKind::GenericMorgan) {
-        // Plan 13 Phase 1: only programs with a built cull index (wide
-        // unions) pay for the extra branching/gather logic; everything
-        // else runs the byte-for-byte pre-Plan-13 function.
         if (bakedCsg.directPrimitiveCullBins != nullptr ||
             bakedCsg.transformedPrimitiveCullBins != nullptr) {
             return traceGenericMorganUnionWithCullBins(

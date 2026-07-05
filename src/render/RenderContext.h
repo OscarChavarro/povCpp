@@ -12,11 +12,6 @@ class RenderContext {
     Statistics &statistics;
     const Scene &scene;
     TextureUtils &textureUtils;
-    // Set once by RenderEngine::buildBakedScene(), after parsing finishes -
-    // null until then. Every render-time reader (RayShaderPipeline's shadow
-    // chain, in every -parallel worker) runs strictly after that point, so
-    // this is read-only, shared, race-free state for the whole render - see
-    // doc/performanceReviewPlan6.md Phase 4.
     const BakedScene *bakedScene = nullptr;
 
   public:

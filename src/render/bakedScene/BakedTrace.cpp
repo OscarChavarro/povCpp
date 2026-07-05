@@ -11,9 +11,6 @@
 #include "render/bakedScene/CsgFirstHitTrace.h"
 #include "render/bakedScene/CsgOperandTrace.h"
 
-// Uses RayWithSegments's cached per-axis reciprocals (Plan 12 Phase 3 - see
-// AabbCullingSupport::rayIntersectsAabbForward for the identical pattern and
-// rationale) instead of dividing on every call.
 bool
 BakedTrace::rayIntersectsAabbForward(const RayWithSegments &ray, const AxisAlignedBoundingBox &box)
 {

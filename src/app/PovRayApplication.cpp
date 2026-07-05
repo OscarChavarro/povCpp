@@ -370,7 +370,6 @@ PovRayApplication::initVars()
     engine.getScene().setScreenWidth(100);
 }
 
-// Close all the stuff that has been opened
 void
 PovRayApplication::closeAll()
 {

@@ -7,12 +7,6 @@
 #include "render/bakedScene/BakedScene.h"
 #include "render/raySharedCache/RaySharedCache.h"
 
-// Plan 6: the new trace entry points, reading BakedScene exclusively -
-// Phase 2 ported the non-CSG paths (with a temporary bridge to the old CSG
-// layer for Csg-kind objects); Phase 3 ported the CSG algorithms themselves
-// (see CsgOperandTrace and friends) and removed that bridge, so every TraceKind now
-// resolves entirely against BakedScene with no dependency on
-// Scene::CompiledTracingScene.
 class BakedTrace {
   public:
     static bool traceFirstHit(

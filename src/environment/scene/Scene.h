@@ -38,11 +38,6 @@ class Scene {
     }
     const ColorRgba& getFogColor() const { return fogColor; }
     const java::ArrayList<SimpleBody*>& getObjects() const { return Objects; }
-    // Plan 6 Phase 4: Scene is once again just the parsed-scene owner - it no
-    // longer builds or owns any baked/compiled tracing representation.
-    // render/bakedScene/BakedSceneBuilder consumes getObjects() directly, and
-    // RenderEngine owns the resulting BakedScene (built once, after parsing
-    // finishes, alongside where finalizeCompiledTracingScene() used to run).
     void setObjects(const java::ArrayList<SimpleBody*> &objects) { Objects = objects; }
 
     // The scene's default texture is aliased (not cloned) into every untextured

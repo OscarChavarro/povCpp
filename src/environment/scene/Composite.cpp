@@ -54,17 +54,6 @@ Composite::doIntersectionForAllRayCrossings(
     }
 
     for (IntersectionCandidate& localIntersection : *localDepthQueue) {
-        // Append (not prepend) the child as a detail owner so the detail-owner
-        // stack is built innermost-first, exactly like CsgOperand. The normal
-        // chain is consumed outermost-first via PovRayHit::popDetailOwnerBack
-        // (see SimpleBody::doExtraInformation); a single consume direction can
-        // only be correct if every producer pushes in the same order. The
-        // original prependDetailOwner reversed the order for composites, so a
-        // nested composite (e.g. fish13's stems: composite{composite{...sphere
-        // texture}} placed with scale<3 3 3>) had its enclosing transforms
-        // applied to the surface normal in scrambled order, flattening the
-        // marble + phong shading. Appending matches the CSG ordering and keeps
-        // the §15 frame/CSG fixes intact.
         localIntersection.getAttributes().pushDetailOwner(
             localIntersection.getAttributes().getHitBody());
         localIntersection.getAttributes().setHitBody(this);

@@ -37,16 +37,6 @@ class RayWithSegments : public Ray {
     java::ArrayList<Material *> containingTextures;
     java::ArrayList<double> containingIORs;
     bool quadricConstantsCached;
-    // Per-ray AABB slab-test reciprocals (Plan 12 Phase 3): a ray's direction
-    // is fixed for its whole traversal, but the same ray is tested against
-    // hundreds of operand/object bounding boxes (e.g. spline.pov: 430 per
-    // traversal), and the slab test used 1.0/direction.{x,y,z} recomputed on
-    // every single call - measured at 33-48% of self-time in AABB-culled
-    // scenes (Plan 11 Section 2). Cached lazily on first use, mutable because
-    // the AABB test call sites hold `const RayWithSegments&`; invalidated
-    // together with quadricConstantsCached (see setQuadricConstantsCached
-    // below) since both are derived solely from origin/direction and every
-    // call site that resets one already resets both at the same point.
     mutable bool aabbReciprocalsCached;
     mutable double invDirectionX, invDirectionY, invDirectionZ;
     mutable bool degenerateAxisX, degenerateAxisY, degenerateAxisZ;
@@ -70,12 +60,6 @@ class RayWithSegments : public Ray {
     // never during doIntersectionForAllRayCrossings or doExtraInformation, so
     // skipping their per-ray-per-body heap allocation is behaviour-preserving
     // and removes the dominant allocator cost from the ray/body hot path.
-    //
-    // Defined inline (not in RayWithSegments.cpp): measured as the single
-    // hottest self-time leaf in the drums/iortest gprof profiles even after
-    // LTO (Plan 12 Phase 2) - called tens of millions of times per render,
-    // and LTO's own cross-TU inlining did not reach every call site. Header
-    // definition guarantees every call site sees the full body.
     inline RayWithSegments(LocalIntersectionClone, const RayWithSegments &source) :
         // Ray's copy constructor copies origin/direction/t without renormalizing
         // (unlike Ray's value constructors, which call normalizeDirection - a sqrt
@@ -83,13 +67,7 @@ class RayWithSegments : public Ray {
         // local-space ray before use, but the plain copy is still cheaper than the
         // renormalizing path, so we copy the base wholesale.
         Ray(source),
-        // The six quadric-cache vectors are deliberately left default rather than
-        // copied: overwriting origin/direction forces quadricConstantsCached false,
-        // so Quadric::doIntersectionForAllRayCrossings rebuilds them via makeRay()
-        // on first use (the original full-copy path also reset the flag).
         containingIndex(-1),
-        // Capacity 0: no backing allocation. The intersection path never enters a
-        // containing medium, so these stay empty; see the header note above.
         containingTextures(0),
         containingIORs(0),
         quadricConstantsCached(false),
@@ -122,12 +100,6 @@ class RayWithSegments : public Ray {
     const Vector3Dd &getMixedPositionDirection() const { return mixedPositionDirection; }
     int getContainingIndex() const { return containingIndex; }
     bool areQuadricConstantsCached() const { return quadricConstantsCached; }
-    // Every call site that invalidates the quadric-constant cache does so
-    // right after overwriting origin/direction (transform into a local
-    // space, build a new ray, etc.) - exactly the condition that also
-    // invalidates the AABB reciprocal cache below, so resetting both here
-    // keeps every existing call site correct without having to touch each
-    // one individually (see doc/performanceReviewPlan12.md Phase 3).
     void setQuadricConstantsCached(bool value)
     {
         quadricConstantsCached = value;
@@ -135,10 +107,6 @@ class RayWithSegments : public Ray {
             aabbReciprocalsCached = false;
         }
     }
-    // Lazily computes and caches the per-axis slab-test reciprocals
-    // (Plan 12 Phase 3). Bit-identical to computing 1.0/directionCoord fresh
-    // on every call: the direction is invariant for as long as the cache is
-    // valid, so IEEE 754 division of the same bits yields the same bits.
     void getAabbSlabReciprocals(
         double *invDirX, double *invDirY, double *invDirZ,
         bool *degenerateX, bool *degenerateY, bool *degenerateZ) const
@@ -183,9 +151,6 @@ class RayWithSegments : public Ray {
     void setConfig(const PovRayRendererConfiguration *cfg) { config = cfg; }
     PriorityQueuePool<IntersectionCandidate> *getIntersectionQueuePool() const { return intersectionQueuePool; }
     void setIntersectionQueuePool(PriorityQueuePool<IntersectionCandidate> *pool) { intersectionQueuePool = pool; }
-    // Defined inline (not in RayWithSegments.cpp): called on every primary
-    // quadric intersection test (8-11 M calls/scene, Plan 12 Phase 2);
-    // header-inlining removes the out-of-line call regardless of LTO.
     inline void makeRay()
     {
         Vector3Dd tempInitDir;

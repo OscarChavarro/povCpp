@@ -6,24 +6,8 @@
 #include "java/util/ArrayList.h"
 #include "render/bakedScene/BakedScene.h"
 
-// Bounding-box culling primitives shared by the CSG trace fast paths
-// (SingleCorePlaneCsgTrace, CsgOperandTrace, CsgMorganUnionTrace). Kept
-// header-only and inline: rayIntersectsAabbForward is the single hottest
-// leaf in the profile of AABB-culled scenes (Plan 11/12 gprof sweep -
-// 33-48% of self-time in union-heavy scenes like spline/ntreal, called
-// tens of millions of times per render) and LTO alone did not fold it into
-// its many call sites (still a distinct symbol post-LTO). Header-inlining
-// removes the out-of-line call itself, independent of whatever the LTO
-// pass decides.
 class AabbCullingSupport {
 public:
-    // Plan 13 Phase 1: fixed-capacity, allocation-free scratch for the
-    // per-ray survivor-position gather below. 4096 comfortably covers every
-    // measured bucket (spline 430, ntreal/piece3 well under that per single
-    // program - see doc/performanceReviewPlan13.md Phase 0 census); if a
-    // future scene ever exceeds it, gatherCullSurvivors signals overflow
-    // (-1) and the caller falls back to the untouched full linear scan, so
-    // there is no correctness cliff, only a missed optimization.
     static constexpr int OPERAND_CULL_SCRATCH_CAPACITY = 4096;
 
     static inline bool rayIntersectsAabbForward(
@@ -31,9 +15,6 @@ public:
         const AxisAlignedBoundingBox &box)
     {
         const Vector3Dd origin = ray.getOrigin();
-        // Plan 12 Phase 3: the three reciprocals are cached on the ray
-        // (invariant for as long as its origin/direction don't change), so
-        // the slab test below no longer pays a division per axis per call.
         double invDirX, invDirY, invDirZ;
         bool degenerateX, degenerateY, degenerateZ;
         ray.getAabbSlabReciprocals(

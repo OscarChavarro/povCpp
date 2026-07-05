@@ -23,18 +23,8 @@ class SimpleBody : public RayOperationOwner {
     bool noShadowFlag;
     ColorRgba *objectColor;
     Material *objectTexture;
-    // Elementary steps behind `transformation`/`geometryTransformation`
-    // above, recorded in the same chronological order those matrices were
-    // composed in. geometrySteps is the innermost layer (applied to the raw
-    // local geometry, including Invert); bodySteps is the outer object-level
-    // layer. See doc/performanceReviewPlan5.md Phase 1.
     java::ArrayList<TransformStep> bodySteps{4};
     java::ArrayList<TransformStep> geometrySteps{4};
-    // Set once at bake time (Scene.cpp::bakeSimpleBody, Plan 5 Phase 4) when
-    // this body's geometry was collapsed into a world-space baked copy whose
-    // coefficients already fold in transformation/geometryTransformation.
-    // Non-destructive: doesn't touch the transform matrices or geometry
-    // themselves, just tells doExtraInformation() not to re-apply them.
     bool bakedTransformFolded = false;
 
   public:

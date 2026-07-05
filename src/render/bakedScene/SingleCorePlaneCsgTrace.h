@@ -10,13 +10,6 @@
 #include "render/bakedScene/CsgScratchContext.h"
 #include "render/raySharedCache/RaySharedCache.h"
 
-// Compiled "single core plane" fast path: baked CSG programs that reduce to
-// one dominant core shape (a quadric or nested sub-CSG) intersected against
-// a handful of bounding planes get a specialized trace/first-hit/
-// containment path that skips the generic per-operand dispatch and its
-// containment-membership bookkeeping. This is the hottest fast path in the
-// profile of scenes built from CSG "carved" primitives (drums.pov and
-// similar - Plan 8/13/17 gprof sweeps).
 class SingleCorePlaneCsgTrace {
 public:
     static bool canUseCompiledSingleCorePlanePlan(
