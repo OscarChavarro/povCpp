@@ -1007,7 +1007,7 @@ HeightField::doContainmentTest(const Vector3Dd &testPoint, double distanceTolera
 }
 
 void
-HeightField::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
+HeightField::computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
     const HeightField *hField = this;
     int px;

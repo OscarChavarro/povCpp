@@ -48,9 +48,11 @@ class Sphere : public Geometry {
         IntersectionCandidate &out,
         Material *materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
-    void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;
     void invertGeometry() override;
+
+  protected:
+    void computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
 };
 
 #endif

@@ -193,7 +193,7 @@ Sphere::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
 }
 
 void
-Sphere::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
+Sphere::computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
     // For the canonical unit sphere at origin, the local-space normal equals
     // the local-space intersection point.

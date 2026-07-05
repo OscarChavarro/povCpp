@@ -1078,17 +1078,17 @@ ParametricBiCubicPatch::doExtraInformation(
         hit->n = hit->n.normalizedFast();
         return;
     }
-    normal(&hit->n, &hit->p, ray.getConfig());
+    computeSurfaceNormal(&hit->n, &hit->p, ray.getConfig());
 }
 
 void
-ParametricBiCubicPatch::normal(Vector3Dd *result, Vector3Dd *localIntersectionPoint)
+ParametricBiCubicPatch::computeSurfaceNormal(Vector3Dd *result, Vector3Dd *localIntersectionPoint)
 {
-    normal(result, localIntersectionPoint, nullptr);
+    computeSurfaceNormal(result, localIntersectionPoint, nullptr);
 }
 
 void
-ParametricBiCubicPatch::normal(
+ParametricBiCubicPatch::computeSurfaceNormal(
     Vector3Dd *result,
     Vector3Dd *localIntersectionPoint,
     const PovRayRendererConfiguration * /*config*/)

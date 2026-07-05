@@ -62,21 +62,23 @@ class ParametricBiCubicPatch : public Geometry {
     bool hasNativeAnnotatedCrossings() const override { return true; }
     void doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *hit) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
-    void normal(Vector3Dd *result, Vector3Dd *localIntersectionPoint) override;
-    void normal(
+    void *copy() override;
+    void invertGeometry() override;
+
+  protected:
+    void computeSurfaceNormal(Vector3Dd *result, Vector3Dd *localIntersectionPoint) override;
+    void computeSurfaceNormal(
         Vector3Dd *result,
         Vector3Dd *localIntersectionPoint,
         const PovRayRendererConfiguration *config) override;
-    void *copy() override;
-    void invertGeometry() override;
 
   private:
     static int maxDepthReached;
 
     // Per-ray scratch a patch needs between doIntersectionForAllRayCrossings()
-    // (which fills it in) and the later normal() call for the winning hit
-    // (which reads it back by matching the intersection point - see
-    // ParametricBiCubicPatch::normal's doc comment). Used to live as plain
+    // (which fills it in) and the later computeSurfaceNormal() call for the
+    // winning hit (which reads it back by matching the intersection point -
+    // see ParametricBiCubicPatch::computeSurfaceNormal's doc comment). Used to live as plain
     // instance fields on the shared, scene-wide ParametricBiCubicPatch
     // object; under `-parallel`, two threads hitting the same patch
     // concurrently tore each other's writes (the speckled/missing-pixel
@@ -110,7 +112,7 @@ class ParametricBiCubicPatch : public Geometry {
     const double flatnessValue;
     // intersectionCount/normalVector/intersectionPoint used to live here as
     // plain instance fields: scratch space written by doIntersectionForAllRayCrossings() and
-    // read back later by normal() (and by ParametricBiCubicSolver, which
+    // read back later by computeSurfaceNormal() (and by ParametricBiCubicSolver, which
     // stores the *hit point itself* through getIntersectionPointAt() - see
     // ParametricBiCubicSolver::allParametricBiCubicPatchIntersections).
     // That is safe only when one thread touches one patch instance at a

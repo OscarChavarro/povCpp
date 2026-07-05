@@ -261,7 +261,7 @@ Quadric::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
 }
 
 void
-Quadric::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
+Quadric::computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
     const Quadric *intersectionShape = this;
     Vector3Dd derivativeLinear;

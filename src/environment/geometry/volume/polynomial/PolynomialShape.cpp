@@ -885,7 +885,7 @@ PolynomialShape::doContainmentTest(const Vector3Dd &testPoint, double distanceTo
 
 // Normal to a polynomial
 void
-PolynomialShape::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
+PolynomialShape::computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
     const PolynomialShape *shape = this;
     Vector3Dd newPoint;
