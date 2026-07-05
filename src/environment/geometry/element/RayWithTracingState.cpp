@@ -4,6 +4,7 @@ This module implements the code pertaining to rays.
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
+#include "environment/material/Material.h"
 #include "environment/geometry/element/RayWithTracingState.h"
 #include "java/util/ArrayList.txx"
 
@@ -45,7 +46,7 @@ RayWithTracingState::copyContainersFrom(const RayWithTracingState *sourceRay)
 }
 
 void
-RayWithTracingState::enterContainingMedium(Material *texture)
+RayWithTracingState::enterContainingMedium(Material *texture, double indexOfRefraction)
 {
     int index;
 
@@ -53,10 +54,10 @@ RayWithTracingState::enterContainingMedium(Material *texture)
 
     if (index < this->containingTextures.size()) {
         this->containingTextures.set(index, texture);
-        this->containingIORs.set(index, texture->getObjectIndexOfRefraction());
+        this->containingIORs.set(index, indexOfRefraction);
     } else {
         this->containingTextures.add(texture);
-        this->containingIORs.add(texture->getObjectIndexOfRefraction());
+        this->containingIORs.add(indexOfRefraction);
     }
 }
 

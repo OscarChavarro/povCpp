@@ -51,11 +51,12 @@ TransmissionRefractionShader::shade(PovRayMaterial *texture, const Vector3Dd *in
         newRay.setConfig(ray->getConfig());
         newRay.setIntersectionQueuePool(ray->getIntersectionQueuePool());
 
+        const double textureIor = texture->getObjectIndexOfRefraction();
+
         if (ray->getContainingIndex() == -1) {
             // The ray is entering from the atmosphere
-            newRay.enterContainingMedium(texture);
-            ior = atmosphereIor /
-                  (texture->getObjectIndexOfRefraction());
+            newRay.enterContainingMedium(texture, textureIor);
+            ior = atmosphereIor / textureIor;
         } else {
             // The ray is currently inside an object
             if (newRay.getContainingTextureAt(newRay.getContainingIndex()) == texture)
@@ -71,13 +72,13 @@ TransmissionRefractionShader::shade(PovRayMaterial *texture, const Vector3Dd *in
                     tempIor = newRay.getContainingIORAt(newRay.getContainingIndex());
                 }
 
-                ior = (texture->getObjectIndexOfRefraction()) / tempIor;
+                ior = textureIor / tempIor;
             } else {
                 // The ray is entering a new object
                 tempIor = newRay.getContainingIORAt(newRay.getContainingIndex());
-                newRay.enterContainingMedium(texture);
+                newRay.enterContainingMedium(texture, textureIor);
 
-                ior = tempIor / (texture->getObjectIndexOfRefraction());
+                ior = tempIor / textureIor;
             }
         }
 

@@ -22,7 +22,7 @@ SimpleBodyBuilder *
 PolyParser::rebuildBodyWithGeometry(SimpleBodyBuilder *body, Geometry *geometry)
 {
     Material *clonedMaterial = (body->getMaterial() != nullptr) ?
-        body->getMaterial()->copy() : nullptr;
+        new PovRayMaterial(*static_cast<PovRayMaterial *>(body->getMaterial())) : nullptr;
     ColorRgba *clonedShapeColor = (body->getShapeColor() != nullptr) ?
         new ColorRgba(*body->getShapeColor()) : nullptr;
     SimpleBodyBuilder *newBody = new SimpleBodyBuilder(geometry, clonedMaterial, clonedShapeColor);

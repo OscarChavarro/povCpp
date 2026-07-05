@@ -110,7 +110,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                         // check DeclarationParser.cpp already applies before mutating
                         // one in place.
                         if (PovRayMaterialConstancy::isConstant(texture)) {
-                            texture = PovRayMaterial::copyTexture(texture);
+                            texture = new PovRayMaterial(*texture);
                         }
                     } else {
                         ParseErrorReporter::typeError(ctx);

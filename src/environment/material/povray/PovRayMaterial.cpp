@@ -54,6 +54,51 @@ PovRayMaterial::PovRayMaterial(
 {
 }
 
+PovRayMaterial::PovRayMaterial(const PovRayMaterial &other) :
+    pendingBumpAmount(other.pendingBumpAmount),
+    pendingFrequency(other.pendingFrequency),
+    pendingMortar(other.pendingMortar),
+    pendingPhase(other.pendingPhase),
+    pendingTurbulence(other.pendingTurbulence),
+    pendingNumberOfWaves(other.pendingNumberOfWaves),
+    pendingOctaves(other.pendingOctaves),
+    pendingBumpImage(other.pendingBumpImage),
+    pendingColorMap(SolidTexturePigment::cloneColorMap(other.pendingColorMap)),
+    layers(),
+    materialMapImage(other.materialMapImage),
+    materialMapVariants(),
+    metallicFlag(other.metallicFlag),
+    objectAmbient(other.objectAmbient),
+    objectBrilliance(other.objectBrilliance),
+    objectDiffuse(other.objectDiffuse),
+    objectIndexOfRefraction(other.objectIndexOfRefraction),
+    objectPhong(other.objectPhong),
+    objectPhongSize(other.objectPhongSize),
+    objectReflection(other.objectReflection),
+    objectRefraction(other.objectRefraction),
+    objectRoughness(other.objectRoughness),
+    objectSpecular(other.objectSpecular),
+    objectTransmit(other.objectTransmit),
+    pigment(other.pigment != nullptr ? other.pigment->copy() : nullptr),
+    normal(other.normal != nullptr ? other.normal->copy() : nullptr),
+    quickColor(nullptr),
+    textureRandomness(other.textureRandomness),
+    textureTransformation(other.textureTransformation != nullptr ?
+        new Matrix4x4d(*other.textureTransformation) : nullptr),
+    textureTransformationInverse(other.textureTransformationInverse != nullptr ?
+        new Matrix4x4d(*other.textureTransformationInverse) : nullptr)
+{
+    for (long int i = 0; i < other.layers.size(); i++) {
+        layers.add(new PovRayMaterial(*other.layers[i]));
+    }
+    for (long int i = 0; i < other.materialMapVariants.size(); i++) {
+        materialMapVariants.add(new PovRayMaterial(*other.materialMapVariants[i]));
+    }
+    if (other.quickColor != nullptr) {
+        quickColor = new ColorRgba(*other.quickColor);
+    }
+}
+
 PovRayMaterial::~PovRayMaterial()
 {
     delete pigment;
@@ -128,63 +173,10 @@ PovRayMaterial::applyTranslationTransform(
         *texture->textureTransformationInverse);
 }
 
-PovRayMaterial *
-PovRayMaterial::copy()
-{
-    return copyTexture(this);
-}
-
 ICheckerTextureSlot *
 PovRayMaterial::copySlot() const
 {
-    return copyTexture(this);
-}
-
-PovRayMaterial *
-PovRayMaterial::copyTexture(const PovRayMaterial *texture)
-{
-    PovRayMaterial * const newHead = copyTextureNode(texture);
-
-    newHead->layers.clear();
-    for (long int i = 0; i < texture->layers.size(); i++) {
-        newHead->layers.add(copyTextureNode(texture->layers[i]));
-    }
-
-    newHead->materialMapVariants.clear();
-    for (long int i = 0; i < texture->materialMapVariants.size(); i++) {
-        newHead->materialMapVariants.add(copyTexture(texture->materialMapVariants[i]));
-    }
-
-    return newHead;
-}
-
-PovRayMaterial *
-PovRayMaterial::copyTextureNode(const PovRayMaterial *src)
-{
-    Matrix4x4d *transformation = nullptr;
-    Matrix4x4d *transformationInverse = nullptr;
-    if (src->textureTransformation != nullptr) {
-        transformation = new Matrix4x4d(*src->textureTransformation);
-        transformationInverse = new Matrix4x4d(*src->textureTransformationInverse);
-    }
-    SolidTexturePigment *newPigment = (src->pigment != nullptr) ? src->pigment->copy() : nullptr;
-    SolidTextureNormal *newNormal = (src->normal != nullptr) ? src->normal->copy() : nullptr;
-    PovRayMaterial * const newNode = new PovRayMaterial(
-        src->objectReflection, src->objectAmbient, src->objectDiffuse,
-        src->objectBrilliance, src->objectIndexOfRefraction, src->objectRefraction,
-        src->objectTransmit, src->objectSpecular, src->objectRoughness,
-        src->objectPhong, src->objectPhongSize, src->textureRandomness,
-        transformation, transformationInverse, newPigment, newNormal,
-        src->materialMapImage, src->metallicFlag,
-        src->layers, src->materialMapVariants,
-        src->pendingTurbulence, src->pendingOctaves,
-        SolidTexturePigment::cloneColorMap(src->pendingColorMap),
-        src->pendingMortar, src->pendingBumpAmount, src->pendingFrequency,
-        src->pendingPhase, src->pendingNumberOfWaves, src->pendingBumpImage);
-    if (src->quickColor != nullptr) {
-        newNode->quickColor = new ColorRgba(*src->quickColor);
-    }
-    return newNode;
+    return new PovRayMaterial(*this);
 }
 
 ColorRgba *
@@ -208,16 +200,15 @@ PovRayMaterial::needsTransform(const PovRayMaterial *texture)
            (texture->normal != nullptr);
 }
 
-Material *
-PovRayMaterial::prependMaterialLayers(Material *existingMaterial)
+PovRayMaterial *
+PovRayMaterial::prependMaterialLayers(PovRayMaterial *existingMaterial)
 {
-    PovRayMaterial *existingPovRay = static_cast<PovRayMaterial *>(existingMaterial);
-    if (existingPovRay != nullptr && existingPovRay != this) {
-        layers.add(existingPovRay);
-        for (long int i = 0; i < existingPovRay->layers.size(); i++) {
-            layers.add(existingPovRay->layers[i]);
+    if (existingMaterial != nullptr && existingMaterial != this) {
+        layers.add(existingMaterial);
+        for (long int i = 0; i < existingMaterial->layers.size(); i++) {
+            layers.add(existingMaterial->layers[i]);
         }
-        existingPovRay->layers.clear();
+        existingMaterial->layers.clear();
     }
     return this;
 }

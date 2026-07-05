@@ -5,6 +5,7 @@
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "environment/scene/SimpleBody.h"
 #include "environment/material/Material.h"
+#include "environment/material/povray/PovRayMaterial.h"
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
@@ -240,7 +241,7 @@ SimpleBody::SimpleBody(const SimpleBody &other) :
     geometry(other.getGeometry() != nullptr ?
         (Geometry *)other.getGeometry()->copy() : nullptr),
     geometryMaterial(other.getGeometryMaterial() != nullptr ?
-        other.getGeometryMaterial()->copy() : nullptr),
+        new PovRayMaterial(*static_cast<PovRayMaterial *>(other.getGeometryMaterial())) : nullptr),
     transformation(other.getTransformation() != nullptr ?
         new Matrix4x4d(*other.getTransformation()) : nullptr),
     transformationInverse(other.getTransformationInverse() != nullptr ?
@@ -253,7 +254,7 @@ SimpleBody::SimpleBody(const SimpleBody &other) :
     objectColor(other.getObjectColor() != nullptr ?
         new ColorRgba(*other.getObjectColor()) : nullptr),
     objectTexture(other.getObjectTexture() != nullptr ?
-        other.getObjectTexture()->copy() : nullptr),
+        new PovRayMaterial(*static_cast<PovRayMaterial *>(other.getObjectTexture())) : nullptr),
     bodySteps(other.getBodySteps()),
     geometrySteps(other.getGeometrySteps())
 {
@@ -278,10 +279,9 @@ SimpleBody::~SimpleBody()
     delete objectColor;
     // objectTexture may be a private clone (delete it) or an alias to a shared
     // constant such as the scene's default texture (do not delete, just close
-    // out its alias bookkeeping). releaseFromOwner() encapsulates that decision
-    // so this destructor needs to know nothing about the concrete material type.
+    // out its alias bookkeeping). releaseFromOwner() encapsulates that decision.
     if (objectTexture != nullptr) {
-        objectTexture->releaseFromOwner();
+        static_cast<PovRayMaterial *>(objectTexture)->releaseFromOwner();
     }
     for (long int i = 0; i < boundingShapes.size(); i++) {
         delete boundingShapes[i];
