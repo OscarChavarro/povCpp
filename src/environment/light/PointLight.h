@@ -5,11 +5,22 @@
 
 class PointLight : public Light {
   public:
-    PointLight(const ColorRgba *shapeColor, const Vector3Dd &center,
-        const Vector3Dd &pointsAt, bool inverted, double coefficient,
-        double radius, double falloff);
+    PointLight(const ColorRgba &shapeColor, const Vector3Dd &position);
+    PointLight(const PointLight &other);
     double evaluateLightResponseFactor(const Ray *lightSourceRay) const override;
     PointLight *copy() override;
 };
+
+inline
+PointLight::PointLight(const ColorRgba &shapeColor, const Vector3Dd &position) :
+    Light(shapeColor, position)
+{
+}
+
+inline
+PointLight::PointLight(const PointLight &other) :
+    Light(other)
+{
+}
 
 #endif

@@ -65,7 +65,6 @@ add_executable(povray
     src/environment/geometry/volume/Quadric.cpp
     src/environment/geometry/volume/Sphere.cpp
     src/environment/geometry/element/TransformStepArrayList.cpp
-    src/environment/light/Light.cpp
     src/environment/light/PointLight.cpp
     src/environment/light/SpotLight.cpp
     src/environment/scene/SimpleBody.cpp

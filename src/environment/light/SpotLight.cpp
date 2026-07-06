@@ -1,13 +1,6 @@
 #include "java/lang/Math.h"
 #include "environment/light/SpotLight.h"
 
-SpotLight::SpotLight(const ColorRgba *shapeColor, const Vector3Dd &center,
-    const Vector3Dd &pointsAt, bool inverted, double coefficient,
-    double radius, double falloff) :
-    Light(shapeColor, center, pointsAt, inverted, coefficient, radius, falloff)
-{
-}
-
 double
 SpotLight::cubicSpline(double low, double high, double pos)
 {
@@ -29,7 +22,7 @@ double
 SpotLight::evaluateLightResponseFactor(const Ray *lightSourceRay) const
 {
     double attenuation;
-    Vector3Dd spotDirection = this->getPointsAt().subtract(this->getCenter());
+    Vector3Dd spotDirection = this->getPointsAt().subtract(this->getPosition());
 
     double len = spotDirection.length();
     if (len > 0.0) {
@@ -54,6 +47,5 @@ SpotLight::evaluateLightResponseFactor(const Ray *lightSourceRay) const
 SpotLight *
 SpotLight::copy()
 {
-    return new SpotLight(getShapeColor(), getCenter(), getPointsAt(),
-        isInverted(), getCoefficient(), getRadius(), getFalloff());
+    return new SpotLight(*this);
 }

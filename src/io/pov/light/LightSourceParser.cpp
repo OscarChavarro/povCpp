@@ -1,6 +1,6 @@
 #include "java/lang/Math.h"
 
-
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "environment/light/PointLight.h"
 #include "environment/light/SpotLight.h"
 
@@ -24,7 +24,6 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
     Vector3Dd localVector;
     Vector3Dd center(0.0, 0.0, 0.0);
     Vector3Dd pointsAt(0.0, 0.0, 1.0);
-    bool inverted = false;
     double coefficient = 10.0;
     double radius = 0.35;
     double falloff = 0.35;
@@ -52,7 +51,6 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                 ctx.tokenStream().ungetToken();
                 center = Vector3Dd(0.0, 0.0, 0.0);
                 pointsAt = Vector3Dd(0.0, 0.0, 1.0);
-                inverted = false;
                 coefficient = 10.0;
                 radius = 0.35;
                 falloff = 0.35;
@@ -72,12 +70,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                         ParseGlobals::LIGHT_SOURCE_CONSTANT) {
                         Light * const constantLight = static_cast<Light *>(
                             ctx.constants()[(int)constantId].getConstantData());
-                        center = constantLight->getCenter();
-                        pointsAt = constantLight->getPointsAt();
-                        inverted = constantLight->isInverted();
-                        coefficient = constantLight->getCoefficient();
-                        radius = constantLight->getRadius();
-                        falloff = constantLight->getFalloff();
+                        center = constantLight->getPosition();
                         // Clone, don't alias: the second token loop below may
                         // mutate localColor in place via parseColor(), and
                         // constantLight is owned by the LIGHT_SOURCE_CONSTANT
@@ -85,9 +78,22 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                         // DeclarationParser re-declaring this same identifier
                         // later in the file) while this Light is still being
                         // built.
-                        localColor = new ColorRgba(*constantLight->getShapeColor());
+                        localColor = new ColorRgba(constantLight->getShapeColor());
                         ownsLocalColor = true;
-                        spotlight = dynamic_cast<SpotLight *>(constantLight) != nullptr;
+                        // pointsAt/coefficient/radius/falloff live only on
+                        // SpotLight now; a cloned PointLight constant has no
+                        // spot state to carry forward, so the defaults set
+                        // above stand.
+                        if (const SpotLight *constantSpotLight =
+                                dynamic_cast<const SpotLight *>(constantLight)) {
+                            pointsAt = constantSpotLight->getPointsAt();
+                            coefficient = constantSpotLight->getCoefficient();
+                            radius = constantSpotLight->getRadius();
+                            falloff = constantSpotLight->getFalloff();
+                            spotlight = true;
+                        } else {
+                            spotlight = false;
+                        }
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -178,11 +184,8 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
 
     Light * const result = spotlight ?
         static_cast<Light *>(new SpotLight(
-            localColor, center, pointsAt, inverted, coefficient, radius,
-            falloff)) :
-        static_cast<Light *>(new PointLight(
-            localColor, center, pointsAt, inverted, coefficient, radius,
-            falloff));
+            *localColor, center, pointsAt, coefficient, radius, falloff)) :
+        static_cast<Light *>(new PointLight(*localColor, center));
     if (ownsLocalColor) {
         delete localColor;
     }

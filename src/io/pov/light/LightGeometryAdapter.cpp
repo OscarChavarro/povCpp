@@ -25,11 +25,3 @@ LightGeometryAdapter::copy()
 {
     return new LightGeometryAdapter(*this);
 }
-
-void
-LightGeometryAdapter::invertGeometry()
-{
-    if (getLight() != nullptr) {
-        getLight()->invert();
-    }
-}
