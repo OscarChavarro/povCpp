@@ -67,14 +67,21 @@ BakedTrace::finalizeSimpleBodyCandidate(
         candidate.getIntersection().point =
             baked.geometryToObject.transformPoint(candidate.getIntersection().point);
     }
-    const Vector3Dd objectLocalPoint = candidate.getIntersection().point;
+
+    // Clipping shapes live in the object's outer frame (they only ever receive
+    // object/composite-level transform deltas, never ones internal to a CSG
+    // block), so containment must be tested after the object transform.
+    Vector3Dd clipTestPoint = candidate.getIntersection().point;
+    if (baked.hasObjectTransform) {
+        clipTestPoint = baked.objectToWorld.transformPoint(clipTestPoint);
+    }
 
     if (baked.hasClippingShapes) {
         for (long int i = baked.clippingObjectIndices.size() - 1; i >= 0; i--) {
             if (BakedTrace::containmentTest(
                     scene,
                     baked.clippingObjectIndices[i],
-                    objectLocalPoint,
+                    clipTestPoint,
                     GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
                 return false;
             }
@@ -368,9 +375,11 @@ BakedTrace::simpleBodyContainmentTest(
         localPoint = baked.worldToObject.transformPoint(point);
     }
 
+    // Bounding/clipping shapes live in this object's outer frame (the same
+    // frame `point` arrives in), not in its own local/geometry frame.
     for (long int i = baked.boundingObjectIndices.size() - 1; i >= 0; i--) {
         if (BakedTrace::containmentTest(
-                scene, baked.boundingObjectIndices[i], localPoint, distanceTolerance) ==
+                scene, baked.boundingObjectIndices[i], point, distanceTolerance) ==
             Geometry::OUTSIDE) {
             return Geometry::OUTSIDE;
         }
@@ -378,7 +387,7 @@ BakedTrace::simpleBodyContainmentTest(
 
     for (long int i = baked.clippingObjectIndices.size() - 1; i >= 0; i--) {
         if (BakedTrace::containmentTest(
-                scene, baked.clippingObjectIndices[i], localPoint, distanceTolerance) ==
+                scene, baked.clippingObjectIndices[i], point, distanceTolerance) ==
             Geometry::OUTSIDE) {
             return Geometry::OUTSIDE;
         }
@@ -449,18 +458,19 @@ BakedTrace::traceCompositeAllCrossingsInCompositeSpace(
         candidate.getAttributes().pushDetailOwner(
             candidate.getAttributes().getHitBody());
         candidate.getAttributes().setHitBody(composite.object);
-        const Vector3Dd compositeLocalPoint = candidate.getIntersection().point;
         if (composite.hasObjectTransform) {
             candidate.getIntersection().point =
                 composite.objectToWorld.transformPoint(candidate.getIntersection().point);
         }
 
+        // The composite's own clipping shapes live in its outer frame, so
+        // containment must be tested after the composite's object transform.
         bool intersectionFound = true;
         for (long int i = composite.clippingObjectIndices.size() - 1; i >= 0; i--) {
             if (BakedTrace::containmentTest(
                     scene,
                     composite.clippingObjectIndices[i],
-                    compositeLocalPoint,
+                    candidate.getIntersection().point,
                     GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
                 intersectionFound = false;
                 break;
@@ -541,11 +551,14 @@ BakedTrace::compositeContainmentTest(
         localPoint = composite.worldToObject.transformPoint(point);
     }
 
+    // The composite's own bounding/clipping shapes live in its outer frame
+    // (the frame `point` arrives in), not in the composite-local frame used
+    // by its children below.
     for (long int i = composite.boundingObjectIndices.size() - 1; i >= 0; i--) {
         if (BakedTrace::containmentTest(
                 scene,
                 composite.boundingObjectIndices[i],
-                localPoint,
+                point,
                 distanceTolerance) == Geometry::OUTSIDE) {
             return Geometry::OUTSIDE;
         }
@@ -555,7 +568,7 @@ BakedTrace::compositeContainmentTest(
         if (BakedTrace::containmentTest(
                 scene,
                 composite.clippingObjectIndices[i],
-                localPoint,
+                point,
                 distanceTolerance) == Geometry::OUTSIDE) {
             return Geometry::OUTSIDE;
         }
