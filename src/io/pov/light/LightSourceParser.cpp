@@ -1,8 +1,8 @@
 #include "java/lang/Math.h"
 
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "environment/light/PointLight.h"
-#include "environment/light/SpotLight.h"
+#include "vsdk/toolkit/environment/light/PointLight.h"
+#include "vsdk/toolkit/environment/light/SpotLight.h"
 
 #include "io/pov/light/LightSourceParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
@@ -31,10 +31,10 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
     ColorRgba *localColor = nullptr;
     // Both branches that set localColor (LEFT_ANGLE_TOKEN: fresh allocation;
     // IDENTIFIER_TOKEN: a clone of the referenced LIGHT_SOURCE_CONSTANT's own
-    // shapeColor, never an alias - the constant is owned independently and
+    // color, never an alias - the constant is owned independently and
     // could be freed by a #declare re-declare while this Light is still being
     // built) leave this function owning localColor. Light/PointLight/
-    // SpotLight's constructor always clones shapeColor internally, so
+    // SpotLight's constructor always clones color internally, so
     // localColor itself is no longer needed once the Light below is built.
     bool ownsLocalColor = false;
     int constantId;
@@ -78,7 +78,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                         // DeclarationParser re-declaring this same identifier
                         // later in the file) while this Light is still being
                         // built.
-                        localColor = new ColorRgba(constantLight->getShapeColor());
+                        localColor = new ColorRgba(constantLight->getColor());
                         ownsLocalColor = true;
                         // pointsAt/coefficient/radius/falloff live only on
                         // SpotLight now; a cloned PointLight constant has no

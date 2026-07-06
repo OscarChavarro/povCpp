@@ -61,6 +61,8 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/common/statistics/GeometryStatistics.cpp
     src/main/vsdk/toolkit/environment/material/ShadingType.cpp
     src/main/vsdk/toolkit/environment/material/RendererConfiguration.cpp
+    src/main/vsdk/toolkit/environment/light/PointLight.cpp
+    src/main/vsdk/toolkit/environment/light/SpotLight.cpp
 )
 
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ArrayListInstantiations.cpp" [=[

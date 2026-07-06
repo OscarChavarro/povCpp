@@ -1,7 +1,7 @@
 #ifndef __DIRECT_LIGHT_SHADER__
 #define __DIRECT_LIGHT_SHADER__
 
-#include "environment/light/Light.h"
+#include "vsdk/toolkit/environment/light/Light.h"
 #include "render/bakedScene/BakedScene.h"
 #include "render/shaders/TraceService.h"
 

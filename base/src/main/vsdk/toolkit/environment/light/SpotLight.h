@@ -1,7 +1,7 @@
 #ifndef __SPOT_LIGHT__
 #define __SPOT_LIGHT__
 
-#include "environment/light/Light.h"
+#include "vsdk/toolkit/environment/light/Light.h"
 
 class SpotLight : public Light {
   private:
@@ -13,25 +13,24 @@ class SpotLight : public Light {
     static double cubicSpline(double low, double high, double pos);
 
   public:
-    SpotLight(const ColorRgba &shapeColor, const Vector3Dd &position,
+    SpotLight(const ColorRgba &color, const Vector3Dd &position,
         const Vector3Dd &pointsAt, double coefficient, double radius,
         double falloff);
     SpotLight(const SpotLight &other);
 
-    Vector3Dd& getPointsAt() { return pointsAt; }
-    const Vector3Dd& getPointsAt() const { return pointsAt; }
-    double getCoefficient() const { return coefficient; }
-    double getRadius() const { return radius; }
-    double getFalloff() const { return falloff; }
+    const Vector3Dd& getPointsAt() const;
+    void setPointsAt(const Vector3Dd &pointsAt);
+    double getCoefficient() const;
+    double getRadius() const;
+    double getFalloff() const;
     double evaluateLightResponseFactor(const Ray *lightSourceRay) const override;
-    SpotLight *copy() override;
 };
 
 inline
-SpotLight::SpotLight(const ColorRgba &shapeColor, const Vector3Dd &position,
+SpotLight::SpotLight(const ColorRgba &color, const Vector3Dd &position,
     const Vector3Dd &pointsAt, double coefficient, double radius,
     double falloff) :
-    Light(shapeColor, position),
+    Light(color, position),
     pointsAt(pointsAt),
     coefficient(coefficient),
     radius(radius),
@@ -47,6 +46,36 @@ SpotLight::SpotLight(const SpotLight &other) :
     radius(other.radius),
     falloff(other.falloff)
 {
+}
+
+inline const Vector3Dd&
+SpotLight::getPointsAt() const
+{
+    return pointsAt;
+}
+
+inline void
+SpotLight::setPointsAt(const Vector3Dd &pointsAt)
+{
+    this->pointsAt = pointsAt;
+}
+
+inline double
+SpotLight::getCoefficient() const
+{
+    return coefficient;
+}
+
+inline double
+SpotLight::getRadius() const
+{
+    return radius;
+}
+
+inline double
+SpotLight::getFalloff() const
+{
+    return falloff;
 }
 
 #endif
