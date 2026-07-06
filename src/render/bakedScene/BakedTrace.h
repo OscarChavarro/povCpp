@@ -29,46 +29,46 @@ class BakedTrace {
   private:
     static bool traceSimpleBodyAllCrossings(
         const BakedScene &scene,
-        const BakedScene::TraceableObject &baked,
+        const TraceableObject *baked,
         RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         RaySharedCache &cache);
 
     static bool traceSimpleBodyFirstHit(
         const BakedScene &scene,
-        const BakedScene::TraceableObject &baked,
+        const TraceableObject *baked,
         RayWithTracingState *ray,
         IntersectionCandidate &out,
         RaySharedCache &cache);
 
     static int simpleBodyContainmentTest(
         const BakedScene &scene,
-        const BakedScene::TraceableObject &baked,
+        const TraceableObject *baked,
         const Vector3Dd &point,
         double distanceTolerance);
 
     static bool finalizeSimpleBodyCandidate(
         const BakedScene &scene,
-        const BakedScene::TraceableObject &baked,
+        const TraceableObject *baked,
         RayWithTracingState *ray,
         IntersectionCandidate &candidate);
 
     static bool passesBoundingShapes(
         const BakedScene &scene,
-        const BakedScene::TraceableObject &baked,
+        const TraceableObject *baked,
         RayWithTracingState *objectRayPtr,
         RaySharedCache &cache);
 
     static bool traceCompositeAllCrossings(
         const BakedScene &scene,
-        const BakedScene::CompositeRecord &composite,
+        const CompositeRecord *composite,
         RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         RaySharedCache &cache);
 
     static bool traceCompositeAllCrossingsInCompositeSpace(
         const BakedScene &scene,
-        const BakedScene::CompositeRecord &composite,
+        const CompositeRecord *composite,
         RayWithTracingState *ray,
         RayWithTracingState *compositeRayPtr,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
@@ -76,14 +76,14 @@ class BakedTrace {
 
     static bool traceCompositeFirstHit(
         const BakedScene &scene,
-        const BakedScene::CompositeRecord &composite,
+        const CompositeRecord *composite,
         RayWithTracingState *ray,
         IntersectionCandidate &out,
         RaySharedCache &cache);
 
     static int compositeContainmentTest(
         const BakedScene &scene,
-        const BakedScene::CompositeRecord &composite,
+        const CompositeRecord *composite,
         const Vector3Dd &point,
         double distanceTolerance);
 

@@ -7,16 +7,16 @@
 
 int
 CsgMorganUnionTrace::traceMorganIntersection(
-    const BakedScene::CsgProgram &bakedCsg,
-    const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+    const CsgProgram *bakedCsg,
+    const java::ArrayList<CsgProgram *> &bakedCsgs,
     CsgScratchContext &scratch,
     RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
-    if (bakedCsg.planKind ==
+    if (bakedCsg->getPlanKind() ==
             BakedScene::CsgPlanKind::SingleCorePlaneIntersection &&
-        bakedCsg.specializationValid) {
+        bakedCsg->getSpecializationValid()) {
         return SingleCorePlaneCsgTrace::traceSingleCorePlaneIntersection(
             bakedCsg,
             bakedCsgs,
@@ -24,7 +24,7 @@ CsgMorganUnionTrace::traceMorganIntersection(
             ray,
             depthQueue,
             materialOverride,
-            bakedCsg.specializationCoreOperandIndex);
+            bakedCsg->getSpecializationCoreOperandIndex());
     }
 
     return traceMorganIntersectionGeneric(
@@ -33,22 +33,22 @@ CsgMorganUnionTrace::traceMorganIntersection(
 
 int
 CsgMorganUnionTrace::traceMorganCsg(
-    const BakedScene::CsgProgram &bakedCsg,
-    const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+    const CsgProgram *bakedCsg,
+    const java::ArrayList<CsgProgram *> &bakedCsgs,
     CsgScratchContext &scratch,
     RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
-    if (bakedCsg.geometryType == BooleanSetOperations::INTERSECTION) {
+    if (bakedCsg->getGeometryType() == BooleanSetOperations::INTERSECTION) {
         return traceMorganIntersection(
             bakedCsg, bakedCsgs, scratch, ray, depthQueue, materialOverride);
     }
 
-    if (bakedCsg.geometryType == BooleanSetOperations::UNION &&
-        bakedCsg.planKind == BakedScene::CsgPlanKind::GenericMorgan) {
-        if (bakedCsg.directPrimitiveCullBins != nullptr ||
-            bakedCsg.transformedPrimitiveCullBins != nullptr) {
+    if (bakedCsg->getGeometryType() == BooleanSetOperations::UNION &&
+        bakedCsg->getPlanKind() == BakedScene::CsgPlanKind::GenericMorgan) {
+        if (bakedCsg->getDirectPrimitiveCullBins() != nullptr ||
+            bakedCsg->getTransformedPrimitiveCullBins() != nullptr) {
             return traceGenericMorganUnionWithCullBins(
                 bakedCsg, bakedCsgs, scratch, ray, depthQueue, materialOverride);
         }
@@ -57,9 +57,9 @@ CsgMorganUnionTrace::traceMorganCsg(
     }
 
     bool intersectionFound = false;
-    for (long int i = bakedCsg.operands.size() - 1; i >= 0; i--) {
+    for (long int i = bakedCsg->getOperands().size() - 1; i >= 0; i--) {
         if (CsgOperandTrace::tracePlanOperandAllCrossings(
-                bakedCsg.operands[i],
+                bakedCsg->getOperands()[i],
                 bakedCsgs,
                 scratch,
                 ray,

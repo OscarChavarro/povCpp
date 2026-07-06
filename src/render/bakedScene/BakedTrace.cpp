@@ -59,28 +59,28 @@ BakedTrace::pointInsideAabb(const Vector3Dd &point, const AxisAlignedBoundingBox
 bool
 BakedTrace::finalizeSimpleBodyCandidate(
     const BakedScene &scene,
-    const BakedScene::TraceableObject &baked,
+    const TraceableObject *baked,
     RayWithTracingState *ray,
     IntersectionCandidate &candidate)
 {
-    if (baked.hasGeometryTransform) {
+    if (baked->getHasGeometryTransform()) {
         candidate.getIntersection().point =
-            baked.geometryToObject.transformPoint(candidate.getIntersection().point);
+            baked->getGeometryToObject().transformPoint(candidate.getIntersection().point);
     }
 
     // Clipping shapes live in the object's outer frame (they only ever receive
     // object/composite-level transform deltas, never ones internal to a CSG
     // block), so containment must be tested after the object transform.
     Vector3Dd clipTestPoint = candidate.getIntersection().point;
-    if (baked.hasObjectTransform) {
-        clipTestPoint = baked.objectToWorld.transformPoint(clipTestPoint);
+    if (baked->getHasObjectTransform()) {
+        clipTestPoint = baked->getObjectToWorld().transformPoint(clipTestPoint);
     }
 
-    if (baked.hasClippingShapes) {
-        for (long int i = baked.clippingObjectIndices.size() - 1; i >= 0; i--) {
+    if (baked->getHasClippingShapes()) {
+        for (long int i = baked->getClippingObjectIndices().size() - 1; i >= 0; i--) {
             if (BakedTrace::containmentTest(
                     scene,
-                    baked.clippingObjectIndices[i],
+                    baked->getClippingObjectIndices()[i],
                     clipTestPoint,
                     GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
                 return false;
@@ -88,13 +88,13 @@ BakedTrace::finalizeSimpleBodyCandidate(
         }
     }
 
-    candidate.getAttributes().setObjectTexture(baked.objectTexture);
-    candidate.getAttributes().setObjectColor(baked.objectColor);
-    candidate.getAttributes().setNoShadowFlag(baked.noShadowFlag);
-    candidate.getAttributes().setHitBody(baked.object);
-    if (baked.hasObjectTransform) {
+    candidate.getAttributes().setObjectTexture(baked->getObjectTexture());
+    candidate.getAttributes().setObjectColor(baked->getObjectColor());
+    candidate.getAttributes().setNoShadowFlag(baked->getNoShadowFlag());
+    candidate.getAttributes().setHitBody(baked->getObject());
+    if (baked->getHasObjectTransform()) {
         candidate.getIntersection().point =
-            baked.objectToWorld.transformPoint(candidate.getIntersection().point);
+            baked->getObjectToWorld().transformPoint(candidate.getIntersection().point);
     }
 
     const Vector3Dd rayDir = ray->getDirection();
@@ -107,14 +107,14 @@ BakedTrace::finalizeSimpleBodyCandidate(
 bool
 BakedTrace::passesBoundingShapes(
     const BakedScene &scene,
-    const BakedScene::TraceableObject &baked,
+    const TraceableObject *baked,
     RayWithTracingState *objectRayPtr,
     RaySharedCache &cache)
 {
-    for (long int i = baked.boundingObjectIndices.size() - 1; i >= 0; i--) {
+    for (long int i = baked->getBoundingObjectIndices().size() - 1; i >= 0; i--) {
         IntersectionCandidate boundingHit;
         const Vector3Dd objectRayOrigin = objectRayPtr->getOrigin();
-        const int boundingIndex = baked.boundingObjectIndices[i];
+        const int boundingIndex = baked->getBoundingObjectIndices()[i];
         if (!BakedTrace::traceFirstHit(scene, boundingIndex, objectRayPtr, boundingHit, cache) &&
             BakedTrace::containmentTest(
                 scene,
@@ -130,37 +130,37 @@ BakedTrace::passesBoundingShapes(
 bool
 BakedTrace::traceSimpleBodyAllCrossings(
     const BakedScene &scene,
-    const BakedScene::TraceableObject &baked,
+    const TraceableObject *baked,
     RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     RaySharedCache &cache)
 {
-    if (baked.geometry == nullptr) {
+    if (baked->getGeometry() == nullptr) {
         return false;
     }
 
     // Fast path: direct quadric simple body with no bounding/clipping shapes
     // and no CSG - ported verbatim from BakedSimpleBodyTracing::traceAllCrossings.
-    if (!baked.hasBoundingShapes && !baked.hasClippingShapes &&
-        baked.csgProgramIndex < 0 && baked.quadricGeometry != nullptr) {
+    if (!baked->getHasBoundingShapes() && !baked->getHasClippingShapes() &&
+        baked->getCsgProgramIndex() < 0 && baked->getQuadricGeometry() != nullptr) {
         const Vector3Dd worldOrigin = ray->getOrigin();
         const Vector3Dd worldDir = ray->getDirection();
-        const Vector3Dd localOrigin = baked.hasObjectTransform ?
-            baked.worldToObject.transformPoint(worldOrigin) : worldOrigin;
-        const Vector3Dd localDir = baked.hasObjectTransform ?
-            baked.worldToObject.transformDirection(worldDir) : worldDir;
-        const Vector3Dd geomOrigin = baked.hasGeometryTransform ?
-            baked.objectToGeometry.transformPoint(localOrigin) : localOrigin;
-        const Vector3Dd geomDir = baked.hasGeometryTransform ?
-            baked.objectToGeometry.transformDirection(localDir) : localDir;
+        const Vector3Dd localOrigin = baked->getHasObjectTransform() ?
+            baked->getWorldToObject().transformPoint(worldOrigin) : worldOrigin;
+        const Vector3Dd localDir = baked->getHasObjectTransform() ?
+            baked->getWorldToObject().transformDirection(worldDir) : worldDir;
+        const Vector3Dd geomOrigin = baked->getHasGeometryTransform() ?
+            baked->getObjectToGeometry().transformPoint(localOrigin) : localOrigin;
+        const Vector3Dd geomDir = baked->getHasGeometryTransform() ?
+            baked->getObjectToGeometry().transformDirection(localDir) : localDir;
         const bool sharesRaySpace =
-            !baked.hasObjectTransform && !baked.hasGeometryTransform;
+            !baked->getHasObjectTransform() && !baked->getHasGeometryTransform();
 
         double depth1;
         double depth2;
         if (!BakedQuadricIntersector::intersectBakedQuadric(
-                *baked.quadricGeometry, ray, geomOrigin, geomDir,
-                sharesRaySpace, cache, baked.quadricViewpointSlot,
+                *baked->getQuadricGeometry(), ray, geomOrigin, geomDir,
+                sharesRaySpace, cache, baked->getQuadricViewpointSlot(),
                 &depth1, &depth2)) {
             return false;
         }
@@ -168,19 +168,19 @@ BakedTrace::traceSimpleBodyAllCrossings(
         const auto offerQuadricCandidate = [&](double depth) {
             IntersectionCandidate candidate;
             candidate.getIntersection().point = geomOrigin.add(geomDir.multiply(depth));
-            candidate.getAttributes().setHitGeometry(baked.quadricGeometry);
-            candidate.getAttributes().setMaterial(baked.geometryMaterial);
-            if (baked.hasGeometryTransform) {
+            candidate.getAttributes().setHitGeometry(baked->getQuadricGeometry());
+            candidate.getAttributes().setMaterial(baked->getGeometryMaterial());
+            if (baked->getHasGeometryTransform()) {
                 candidate.getIntersection().point =
-                    baked.geometryToObject.transformPoint(candidate.getIntersection().point);
+                    baked->getGeometryToObject().transformPoint(candidate.getIntersection().point);
             }
-            candidate.getAttributes().setObjectTexture(baked.objectTexture);
-            candidate.getAttributes().setObjectColor(baked.objectColor);
-            candidate.getAttributes().setNoShadowFlag(baked.noShadowFlag);
-            candidate.getAttributes().setHitBody(baked.object);
-            if (baked.hasObjectTransform) {
+            candidate.getAttributes().setObjectTexture(baked->getObjectTexture());
+            candidate.getAttributes().setObjectColor(baked->getObjectColor());
+            candidate.getAttributes().setNoShadowFlag(baked->getNoShadowFlag());
+            candidate.getAttributes().setHitBody(baked->getObject());
+            if (baked->getHasObjectTransform()) {
                 candidate.getIntersection().point =
-                    baked.objectToWorld.transformPoint(candidate.getIntersection().point);
+                    baked->getObjectToWorld().transformPoint(candidate.getIntersection().point);
             }
             candidate.getIntersection().t =
                 candidate.getIntersection().point
@@ -205,17 +205,17 @@ BakedTrace::traceSimpleBodyAllCrossings(
     auto traceInGeometrySpace = [&](RayWithTracingState *geometryRayPtr) -> bool {
         java::PriorityQueue<IntersectionCandidate> * const localDepthQueue =
             ray->getIntersectionQueuePool()->pop(128);
-        const bool foundAny = baked.csgProgramIndex >= 0 ?
+        const bool foundAny = baked->getCsgProgramIndex() >= 0 ?
             (CsgOperandTrace::traceAllCrossings(
-                 scene.csgPrograms[baked.csgProgramIndex],
+                 scene.csgPrograms[baked->getCsgProgramIndex()],
                  scene.csgPrograms,
                  geometryRayPtr,
                  localDepthQueue,
                  cache,
-                 baked.geometryMaterial) &&
+                 baked->getGeometryMaterial()) &&
              localDepthQueue->size() > 0) :
-            (baked.geometry->doIntersectionForAllRayCrossings(
-                 geometryRayPtr, localDepthQueue, baked.geometryMaterial) &&
+            (baked->getGeometry()->doIntersectionForAllRayCrossings(
+                 geometryRayPtr, localDepthQueue, baked->getGeometryMaterial()) &&
              localDepthQueue->size() > 0);
         if (!foundAny) {
             ray->getIntersectionQueuePool()->push(localDepthQueue);
@@ -235,22 +235,22 @@ BakedTrace::traceSimpleBodyAllCrossings(
         return accepted;
     };
 
-    if (baked.hasGeometryTransform) {
+    if (baked->getHasGeometryTransform()) {
         RayWithTracingState geometryRay = RayWithTracingState::localIntersectionClone(*objectRayPtr);
         geometryRay.setOrigin(
-            baked.objectToGeometry.transformPoint(objectRayPtr->getOrigin()));
+            baked->getObjectToGeometry().transformPoint(objectRayPtr->getOrigin()));
         geometryRay.setDirection(
-            baked.objectToGeometry.transformDirection(objectRayPtr->getDirection()));
+            baked->getObjectToGeometry().transformDirection(objectRayPtr->getDirection()));
         geometryRay.setQuadricConstantsCached(false);
         return traceInGeometrySpace(&geometryRay);
     }
     return traceInGeometrySpace(objectRayPtr);
     };
 
-    if (baked.hasObjectTransform) {
+    if (baked->getHasObjectTransform()) {
         RayWithTracingState objectRay = RayWithTracingState::localIntersectionClone(*ray);
-        objectRay.setOrigin(baked.worldToObject.transformPoint(ray->getOrigin()));
-        objectRay.setDirection(baked.worldToObject.transformDirection(ray->getDirection()));
+        objectRay.setOrigin(baked->getWorldToObject().transformPoint(ray->getOrigin()));
+        objectRay.setDirection(baked->getWorldToObject().transformDirection(ray->getDirection()));
         objectRay.setQuadricConstantsCached(false);
         return traceInObjectSpace(&objectRay);
     }
@@ -260,17 +260,17 @@ BakedTrace::traceSimpleBodyAllCrossings(
 bool
 BakedTrace::traceSimpleBodyFirstHit(
     const BakedScene &scene,
-    const BakedScene::TraceableObject &baked,
+    const TraceableObject *baked,
     RayWithTracingState *ray,
     IntersectionCandidate &out,
     RaySharedCache &cache)
 {
-    if (baked.geometry == nullptr) {
+    if (baked->getGeometry() == nullptr) {
         return false;
     }
 
     const bool canUseGeometryFirstHit =
-        baked.csgProgramIndex < 0 && !baked.hasBoundingShapes && !baked.hasClippingShapes;
+        baked->getCsgProgramIndex() < 0 && !baked->getHasBoundingShapes() && !baked->getHasClippingShapes();
 
     auto traceInObjectSpace = [&](RayWithTracingState *objectRayPtr) -> bool {
 
@@ -281,8 +281,8 @@ BakedTrace::traceSimpleBodyFirstHit(
     auto traceInGeometrySpace = [&](RayWithTracingState *geometryRayPtr) -> bool {
     if (canUseGeometryFirstHit) {
         IntersectionCandidate candidate;
-        if (baked.geometry->doIntersectionFirstHit(
-                geometryRayPtr, candidate, baked.geometryMaterial)) {
+        if (baked->getGeometry()->doIntersectionFirstHit(
+                geometryRayPtr, candidate, baked->getGeometryMaterial())) {
             if (!finalizeSimpleBodyCandidate(scene, baked, ray, candidate)) {
                 return false;
             }
@@ -291,15 +291,15 @@ BakedTrace::traceSimpleBodyFirstHit(
         }
     }
 
-    if (baked.csgProgramIndex >= 0) {
+    if (baked->getCsgProgramIndex() >= 0) {
         IntersectionCandidate candidate;
         if (!CsgFirstHitTrace::traceFirstHit(
-                scene.csgPrograms[baked.csgProgramIndex],
+                scene.csgPrograms[baked->getCsgProgramIndex()],
                 scene.csgPrograms,
                 geometryRayPtr,
                 candidate,
                 cache,
-                baked.geometryMaterial)) {
+                baked->getGeometryMaterial())) {
             return false;
         }
         if (!finalizeSimpleBodyCandidate(scene, baked, ray, candidate)) {
@@ -311,15 +311,15 @@ BakedTrace::traceSimpleBodyFirstHit(
 
     java::PriorityQueue<IntersectionCandidate> * const depthQueue =
         ray->getIntersectionQueuePool()->pop(128);
-    const bool hasHit = baked.geometry->doIntersectionForAllRayCrossings(
-        geometryRayPtr, depthQueue, baked.geometryMaterial) && depthQueue->size() > 0;
+    const bool hasHit = baked->getGeometry()->doIntersectionForAllRayCrossings(
+        geometryRayPtr, depthQueue, baked->getGeometryMaterial()) && depthQueue->size() > 0;
     if (!hasHit) {
         ray->getIntersectionQueuePool()->push(depthQueue);
         return false;
     }
 
     bool found = false;
-    if (!baked.hasClippingShapes) {
+    if (!baked->getHasClippingShapes()) {
         IntersectionCandidate nearest = depthQueue->peek();
         if (finalizeSimpleBodyCandidate(scene, baked, ray, nearest)) {
             out = nearest;
@@ -341,22 +341,22 @@ BakedTrace::traceSimpleBodyFirstHit(
     return found;
     };
 
-    if (baked.hasGeometryTransform) {
+    if (baked->getHasGeometryTransform()) {
         RayWithTracingState geometryRay = RayWithTracingState::localIntersectionClone(*objectRayPtr);
         geometryRay.setOrigin(
-            baked.objectToGeometry.transformPoint(objectRayPtr->getOrigin()));
+            baked->getObjectToGeometry().transformPoint(objectRayPtr->getOrigin()));
         geometryRay.setDirection(
-            baked.objectToGeometry.transformDirection(objectRayPtr->getDirection()));
+            baked->getObjectToGeometry().transformDirection(objectRayPtr->getDirection()));
         geometryRay.setQuadricConstantsCached(false);
         return traceInGeometrySpace(&geometryRay);
     }
     return traceInGeometrySpace(objectRayPtr);
     };
 
-    if (baked.hasObjectTransform) {
+    if (baked->getHasObjectTransform()) {
         RayWithTracingState objectRay = RayWithTracingState::localIntersectionClone(*ray);
-        objectRay.setOrigin(baked.worldToObject.transformPoint(ray->getOrigin()));
-        objectRay.setDirection(baked.worldToObject.transformDirection(ray->getDirection()));
+        objectRay.setOrigin(baked->getWorldToObject().transformPoint(ray->getOrigin()));
+        objectRay.setDirection(baked->getWorldToObject().transformDirection(ray->getDirection()));
         objectRay.setQuadricConstantsCached(false);
         return traceInObjectSpace(&objectRay);
     }
@@ -366,48 +366,48 @@ BakedTrace::traceSimpleBodyFirstHit(
 int
 BakedTrace::simpleBodyContainmentTest(
     const BakedScene &scene,
-    const BakedScene::TraceableObject &baked,
+    const TraceableObject *baked,
     const Vector3Dd &point,
     double distanceTolerance)
 {
     Vector3Dd localPoint = point;
-    if (baked.hasObjectTransform) {
-        localPoint = baked.worldToObject.transformPoint(point);
+    if (baked->getHasObjectTransform()) {
+        localPoint = baked->getWorldToObject().transformPoint(point);
     }
 
     // Bounding/clipping shapes live in this object's outer frame (the same
     // frame `point` arrives in), not in its own local/geometry frame.
-    for (long int i = baked.boundingObjectIndices.size() - 1; i >= 0; i--) {
+    for (long int i = baked->getBoundingObjectIndices().size() - 1; i >= 0; i--) {
         if (BakedTrace::containmentTest(
-                scene, baked.boundingObjectIndices[i], point, distanceTolerance) ==
+                scene, baked->getBoundingObjectIndices()[i], point, distanceTolerance) ==
             Geometry::OUTSIDE) {
             return Geometry::OUTSIDE;
         }
     }
 
-    for (long int i = baked.clippingObjectIndices.size() - 1; i >= 0; i--) {
+    for (long int i = baked->getClippingObjectIndices().size() - 1; i >= 0; i--) {
         if (BakedTrace::containmentTest(
-                scene, baked.clippingObjectIndices[i], point, distanceTolerance) ==
+                scene, baked->getClippingObjectIndices()[i], point, distanceTolerance) ==
             Geometry::OUTSIDE) {
             return Geometry::OUTSIDE;
         }
     }
 
-    if (baked.geometry == nullptr) {
+    if (baked->getGeometry() == nullptr) {
         return Geometry::OUTSIDE;
     }
 
     Vector3Dd geometryPoint = localPoint;
-    if (baked.hasGeometryTransform) {
-        geometryPoint = baked.objectToGeometry.transformPoint(localPoint);
+    if (baked->getHasGeometryTransform()) {
+        geometryPoint = baked->getObjectToGeometry().transformPoint(localPoint);
     }
-    const int containment = baked.csgProgramIndex >= 0 ?
+    const int containment = baked->getCsgProgramIndex() >= 0 ?
         CsgContainmentTest::containmentTest(
-            scene.csgPrograms[baked.csgProgramIndex],
+            scene.csgPrograms[baked->getCsgProgramIndex()],
             scene.csgPrograms,
             geometryPoint,
             distanceTolerance) :
-        baked.geometry->doContainmentTest(geometryPoint, distanceTolerance);
+        baked->getGeometry()->doContainmentTest(geometryPoint, distanceTolerance);
     if (containment != Geometry::OUTSIDE) {
         return Geometry::INSIDE;
     }
@@ -417,16 +417,16 @@ BakedTrace::simpleBodyContainmentTest(
 bool
 BakedTrace::traceCompositeAllCrossingsInCompositeSpace(
     const BakedScene &scene,
-    const BakedScene::CompositeRecord &composite,
+    const CompositeRecord *composite,
     RayWithTracingState *ray,
     RayWithTracingState *compositeRayPtr,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     RaySharedCache &cache)
 {
-    for (long int i = composite.boundingObjectIndices.size() - 1; i >= 0; i--) {
+    for (long int i = composite->getBoundingObjectIndices().size() - 1; i >= 0; i--) {
         IntersectionCandidate boundingHit;
         const Vector3Dd compositeRayOrigin = compositeRayPtr->getOrigin();
-        const int boundingIndex = composite.boundingObjectIndices[i];
+        const int boundingIndex = composite->getBoundingObjectIndices()[i];
         if (!BakedTrace::traceFirstHit(scene, boundingIndex, compositeRayPtr, boundingHit, cache) &&
             BakedTrace::containmentTest(
                 scene,
@@ -442,13 +442,13 @@ BakedTrace::traceCompositeAllCrossingsInCompositeSpace(
     bool accepted = false;
     // Preserve Composite::doIntersectionForAllRayCrossings child traversal
     // order exactly; changing equal-depth ordering changes some legacy scenes.
-    const java::ArrayList<int> &children = composite.childObjectIndices;
+    const java::ArrayList<int> &children = composite->getChildObjectIndices();
     for (long int i = children.size() - 1; i >= 0; i--) {
         const int childIndex = children[i];
-        const BakedScene::TraceableObject &child = scene.traceableObjects[childIndex];
-        if (!composite.hasObjectTransform &&
-            child.bounded &&
-            !rayIntersectsAabbForward(*compositeRayPtr, child.worldBounds)) {
+        const TraceableObject *child = scene.traceableObjects[childIndex];
+        if (!composite->getHasObjectTransform() &&
+            child->getBounded() &&
+            !rayIntersectsAabbForward(*compositeRayPtr, child->getWorldBounds())) {
             continue;
         }
         BakedTrace::traceAllCrossings(scene, childIndex, compositeRayPtr, localDepthQueue, cache);
@@ -457,19 +457,19 @@ BakedTrace::traceCompositeAllCrossingsInCompositeSpace(
     for (IntersectionCandidate &candidate : *localDepthQueue) {
         candidate.getAttributes().pushDetailOwner(
             candidate.getAttributes().getHitBody());
-        candidate.getAttributes().setHitBody(composite.object);
-        if (composite.hasObjectTransform) {
+        candidate.getAttributes().setHitBody(composite->getObject());
+        if (composite->getHasObjectTransform()) {
             candidate.getIntersection().point =
-                composite.objectToWorld.transformPoint(candidate.getIntersection().point);
+                composite->getObjectToWorld().transformPoint(candidate.getIntersection().point);
         }
 
         // The composite's own clipping shapes live in its outer frame, so
         // containment must be tested after the composite's object transform.
         bool intersectionFound = true;
-        for (long int i = composite.clippingObjectIndices.size() - 1; i >= 0; i--) {
+        for (long int i = composite->getClippingObjectIndices().size() - 1; i >= 0; i--) {
             if (BakedTrace::containmentTest(
                     scene,
-                    composite.clippingObjectIndices[i],
+                    composite->getClippingObjectIndices()[i],
                     candidate.getIntersection().point,
                     GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
                 intersectionFound = false;
@@ -494,20 +494,20 @@ BakedTrace::traceCompositeAllCrossingsInCompositeSpace(
 bool
 BakedTrace::traceCompositeAllCrossings(
     const BakedScene &scene,
-    const BakedScene::CompositeRecord &composite,
+    const CompositeRecord *composite,
     RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     RaySharedCache &cache)
 {
-    if (composite.object == nullptr) {
+    if (composite->getObject() == nullptr) {
         return false;
     }
 
     RayWithTracingState *compositeRayPtr = ray;
-    if (composite.hasObjectTransform) {
+    if (composite->getHasObjectTransform()) {
         RayWithTracingState compositeRay = RayWithTracingState::localIntersectionClone(*ray);
-        compositeRay.setOrigin(composite.worldToObject.transformPoint(ray->getOrigin()));
-        compositeRay.setDirection(composite.worldToObject.transformDirection(ray->getDirection()));
+        compositeRay.setOrigin(composite->getWorldToObject().transformPoint(ray->getOrigin()));
+        compositeRay.setDirection(composite->getWorldToObject().transformDirection(ray->getDirection()));
         compositeRay.setQuadricConstantsCached(false);
         compositeRayPtr = &compositeRay;
 
@@ -522,7 +522,7 @@ BakedTrace::traceCompositeAllCrossings(
 bool
 BakedTrace::traceCompositeFirstHit(
     const BakedScene &scene,
-    const BakedScene::CompositeRecord &composite,
+    const CompositeRecord *composite,
     RayWithTracingState *ray,
     IntersectionCandidate &out,
     RaySharedCache &cache)
@@ -542,42 +542,42 @@ BakedTrace::traceCompositeFirstHit(
 int
 BakedTrace::compositeContainmentTest(
     const BakedScene &scene,
-    const BakedScene::CompositeRecord &composite,
+    const CompositeRecord *composite,
     const Vector3Dd &point,
     double distanceTolerance)
 {
     Vector3Dd localPoint = point;
-    if (composite.hasObjectTransform) {
-        localPoint = composite.worldToObject.transformPoint(point);
+    if (composite->getHasObjectTransform()) {
+        localPoint = composite->getWorldToObject().transformPoint(point);
     }
 
     // The composite's own bounding/clipping shapes live in its outer frame
     // (the frame `point` arrives in), not in the composite-local frame used
     // by its children below.
-    for (long int i = composite.boundingObjectIndices.size() - 1; i >= 0; i--) {
+    for (long int i = composite->getBoundingObjectIndices().size() - 1; i >= 0; i--) {
         if (BakedTrace::containmentTest(
                 scene,
-                composite.boundingObjectIndices[i],
+                composite->getBoundingObjectIndices()[i],
                 point,
                 distanceTolerance) == Geometry::OUTSIDE) {
             return Geometry::OUTSIDE;
         }
     }
 
-    for (long int i = composite.clippingObjectIndices.size() - 1; i >= 0; i--) {
+    for (long int i = composite->getClippingObjectIndices().size() - 1; i >= 0; i--) {
         if (BakedTrace::containmentTest(
                 scene,
-                composite.clippingObjectIndices[i],
+                composite->getClippingObjectIndices()[i],
                 point,
                 distanceTolerance) == Geometry::OUTSIDE) {
             return Geometry::OUTSIDE;
         }
     }
 
-    for (long int i = composite.childObjectIndices.size() - 1; i >= 0; i--) {
-        const int childIndex = composite.childObjectIndices[i];
-        const BakedScene::TraceableObject &child = scene.traceableObjects[childIndex];
-        if (child.bounded && !pointInsideAabb(localPoint, child.worldBounds, distanceTolerance)) {
+    for (long int i = composite->getChildObjectIndices().size() - 1; i >= 0; i--) {
+        const int childIndex = composite->getChildObjectIndices()[i];
+        const TraceableObject *child = scene.traceableObjects[childIndex];
+        if (child->getBounded() && !pointInsideAabb(localPoint, child->getWorldBounds(), distanceTolerance)) {
             continue;
         }
         if (BakedTrace::containmentTest(scene, childIndex, localPoint, distanceTolerance) !=
@@ -597,13 +597,13 @@ BakedTrace::traceFirstHit(
     IntersectionCandidate &out,
     RaySharedCache &cache)
 {
-    const BakedScene::TraceableObject &baked = scene.traceableObjects[objectIndex];
-    switch (baked.kind) {
+    const TraceableObject *baked = scene.traceableObjects[objectIndex];
+    switch (baked->getKind()) {
     case BakedScene::TraceKind::Empty:
         return false;
     case BakedScene::TraceKind::Composite:
         return traceCompositeFirstHit(
-            scene, scene.composites[baked.compositeIndex], ray, out, cache);
+            scene, scene.composites[baked->getCompositeIndex()], ray, out, cache);
     case BakedScene::TraceKind::Csg:
     case BakedScene::TraceKind::DirectPrimitive:
     case BakedScene::TraceKind::BoundedGeneric:
@@ -621,13 +621,13 @@ BakedTrace::traceAllCrossings(
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     RaySharedCache &cache)
 {
-    const BakedScene::TraceableObject &baked = scene.traceableObjects[objectIndex];
-    switch (baked.kind) {
+    const TraceableObject *baked = scene.traceableObjects[objectIndex];
+    switch (baked->getKind()) {
     case BakedScene::TraceKind::Empty:
         return false;
     case BakedScene::TraceKind::Composite:
         return traceCompositeAllCrossings(
-            scene, scene.composites[baked.compositeIndex], ray, depthQueue, cache);
+            scene, scene.composites[baked->getCompositeIndex()], ray, depthQueue, cache);
     case BakedScene::TraceKind::Csg:
     case BakedScene::TraceKind::DirectPrimitive:
     case BakedScene::TraceKind::BoundedGeneric:
@@ -644,13 +644,13 @@ BakedTrace::containmentTest(
     const Vector3Dd &point,
     double distanceTolerance)
 {
-    const BakedScene::TraceableObject &baked = scene.traceableObjects[objectIndex];
-    switch (baked.kind) {
+    const TraceableObject *baked = scene.traceableObjects[objectIndex];
+    switch (baked->getKind()) {
     case BakedScene::TraceKind::Empty:
         return Geometry::OUTSIDE;
     case BakedScene::TraceKind::Composite:
         return compositeContainmentTest(
-            scene, scene.composites[baked.compositeIndex], point, distanceTolerance);
+            scene, scene.composites[baked->getCompositeIndex()], point, distanceTolerance);
     case BakedScene::TraceKind::Csg:
     case BakedScene::TraceKind::DirectPrimitive:
     case BakedScene::TraceKind::BoundedGeneric:

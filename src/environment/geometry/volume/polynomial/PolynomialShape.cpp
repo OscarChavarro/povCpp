@@ -239,10 +239,10 @@ PolynomialShape::doIntersectionForAllRayCrossingsAnnotated(
         localElement.getIntersection().t = len;
         localElement.getIntersection().point = intersectionPoint;
         localElement.getAttributes().setHitGeometry(shape);
-        localElement.getAttributes().setMaterial(context.materialOverride);
-        localElement.getAttributes().pushDetailOwner(context.detailOwner);
+        localElement.getAttributes().setMaterial(context.getMaterialOverride());
+        localElement.getAttributes().pushDetailOwner(context.getDetailOwner());
         localElement.getAttributes().setMaterialUsesObjectLocalPoint(
-            context.materialUsesObjectLocalPoint);
+            context.getMaterialUsesObjectLocalPoint());
         depthQueue->offer(localElement);
         intersectionFound = true;
     l0:;

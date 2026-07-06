@@ -18,31 +18,31 @@
 class CsgOperandTrace {
 public:
     static bool traceAllCrossings(
-        const BakedScene::CsgProgram &bakedCsg,
-        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        const CsgProgram *bakedCsg,
+        const java::ArrayList<CsgProgram *> &bakedCsgs,
         RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         RaySharedCache &cache,
         Material *materialOverride = nullptr);
 
     static bool traceAllCrossingsWithScratch(
-        const BakedScene::CsgProgram &bakedCsg,
-        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        const CsgProgram *bakedCsg,
+        const java::ArrayList<CsgProgram *> &bakedCsgs,
         CsgScratchContext &scratch,
         RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride);
 
     static bool tracePlanOperandAllCrossings(
-        const BakedScene::CsgOperandRecord &operand,
-        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        const CsgOperandRecord *operand,
+        const java::ArrayList<CsgProgram *> &bakedCsgs,
         CsgScratchContext &scratch,
         RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride);
 
     static void offerTransformedPrimitiveCandidate(
-        const BakedScene::CsgOperandRecord &operand,
+        const CsgOperandRecord *operand,
         RayWithTracingState *ray,
         Material *effectiveMaterial,
         const Vector3Dd &localOrigin,
@@ -53,12 +53,12 @@ public:
         IntersectionCandidate candidate;
         candidate.getIntersection().point =
             localOrigin.add(localDirection.multiply(depth));
-        candidate.getAttributes().setHitGeometry(operand.geometry);
+        candidate.getAttributes().setHitGeometry(operand->getGeometry());
         candidate.getAttributes().setMaterial(effectiveMaterial);
-        candidate.getAttributes().pushDetailOwner(operand.operand);
+        candidate.getAttributes().pushDetailOwner(operand->getOperand());
         candidate.getAttributes().setMaterialUsesObjectLocalPoint(true);
         candidate.getIntersection().point =
-            operand.objectToLocal.transformPoint(candidate.getIntersection().point);
+            operand->getObjectToLocal().transformPoint(candidate.getIntersection().point);
         const Vector3Dd rayOrigin = ray->getOrigin();
         const Vector3Dd rayDir = ray->getDirection();
         candidate.getIntersection().t =
@@ -69,7 +69,7 @@ public:
 
     static bool annotateDirectCandidates(
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
-        const BakedScene::CsgOperandRecord &operand)
+        const CsgOperandRecord *operand)
     {
         bool annotated = false;
         // The direct-to-destination fast path is only used for non-transformed,
@@ -82,7 +82,7 @@ public:
                 attributes.getMaterialUsesObjectLocalPoint()) {
                 continue;
             }
-            attributes.pushDetailOwner(operand.operand);
+            attributes.pushDetailOwner(operand->getOperand());
             attributes.setMaterialUsesObjectLocalPoint(true);
             annotated = true;
         }
@@ -90,37 +90,35 @@ public:
     }
 
     static inline bool traceOperandAllCrossings(
-        const BakedScene::CsgOperandRecord &operand,
-        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        const CsgOperandRecord *operand,
+        const java::ArrayList<CsgProgram *> &bakedCsgs,
         CsgScratchContext &scratch,
         RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride)
     {
-        if (operand.geometry == nullptr) {
+        if (operand->getGeometry() == nullptr) {
             return false;
         }
-        if (operand.bounded && operand.cullSafe &&
-            !AabbCullingSupport::rayIntersectsAabbForward(*ray, operand.bakedBounds)) {
+        if (operand->getBounded() && operand->getCullSafe() &&
+            !AabbCullingSupport::rayIntersectsAabbForward(*ray, operand->getBakedBounds())) {
             return false;
         }
 
         Material *effectiveMaterial =
-            operand.material != nullptr ? operand.material : materialOverride;
-        switch (operand.kind) {
+            operand->getMaterial() != nullptr ? operand->getMaterial() : materialOverride;
+        switch (operand->getKind()) {
         case BakedScene::CsgOperandKind::DirectAnnotatedPrimitive:
         {
-            GeometryIntersectionEmissionContext context;
-            context.materialOverride = effectiveMaterial;
-            context.detailOwner = operand.operand;
-            context.materialUsesObjectLocalPoint = true;
-            return operand.geometry->doIntersectionForAllRayCrossingsAnnotated(
+            GeometryIntersectionEmissionContext context(
+                effectiveMaterial, operand->getOperand(), true);
+            return operand->getGeometry()->doIntersectionForAllRayCrossingsAnnotated(
                 ray, depthQueue, context);
         }
 
         case BakedScene::CsgOperandKind::DirectPrimitive: {
             const int initialSize = depthQueue->size();
-            const bool found = operand.geometry->doIntersectionForAllRayCrossings(
+            const bool found = operand->getGeometry()->doIntersectionForAllRayCrossings(
                 ray, depthQueue, effectiveMaterial);
             if (!found || depthQueue->size() == initialSize) {
                 return false;
@@ -133,22 +131,22 @@ public:
         }
 
         RayWithTracingState *localRayPtr = ray;
-        if (operand.kind ==
+        if (operand->getKind() ==
                 BakedScene::CsgOperandKind::TransformedPlane ||
-            operand.kind ==
+            operand->getKind() ==
                 BakedScene::CsgOperandKind::TransformedQuadric ||
-            operand.kind ==
+            operand->getKind() ==
                 BakedScene::CsgOperandKind::TransformedSphere ||
-            operand.kind ==
+            operand->getKind() ==
                 BakedScene::CsgOperandKind::TransformedPrimitive ||
-            operand.kind ==
+            operand->getKind() ==
                 BakedScene::CsgOperandKind::TransformedNestedCsg) {
-            if (operand.kind ==
+            if (operand->getKind() ==
                 BakedScene::CsgOperandKind::TransformedPlane) {
                 const Vector3Dd localOrigin =
-                    operand.localToObject.transformPoint(ray->getOrigin());
+                    operand->getLocalToObject().transformPoint(ray->getOrigin());
                 const Vector3Dd localDirection =
-                    operand.localToObject.transformDirection(ray->getDirection());
+                    operand->getLocalToObject().transformDirection(ray->getDirection());
 
                 double depth;
                 if (!BakedPlaneIntersector::intersectBakedPlane(
@@ -165,12 +163,12 @@ public:
                 IntersectionCandidate candidate;
                 candidate.getIntersection().point =
                     localOrigin.add(localDirection.multiply(depth));
-                candidate.getAttributes().setHitGeometry(operand.geometry);
+                candidate.getAttributes().setHitGeometry(operand->getGeometry());
                 candidate.getAttributes().setMaterial(effectiveMaterial);
-                candidate.getAttributes().pushDetailOwner(operand.operand);
+                candidate.getAttributes().pushDetailOwner(operand->getOperand());
                 candidate.getAttributes().setMaterialUsesObjectLocalPoint(true);
                 candidate.getIntersection().point =
-                    operand.objectToLocal.transformPoint(candidate.getIntersection().point);
+                    operand->getObjectToLocal().transformPoint(candidate.getIntersection().point);
                 const Vector3Dd rayOrigin = ray->getOrigin();
                 const Vector3Dd rayDir = ray->getDirection();
                 candidate.getIntersection().t =
@@ -181,26 +179,26 @@ public:
                 return true;
             }
 
-            if (operand.kind ==
+            if (operand->getKind() ==
                 BakedScene::CsgOperandKind::TransformedQuadric) {
                 const Vector3Dd localOrigin =
-                    operand.localToObject.transformPoint(ray->getOrigin());
+                    operand->getLocalToObject().transformPoint(ray->getOrigin());
                 const Vector3Dd localDirection =
-                    operand.localToObject.transformDirection(ray->getDirection());
+                    operand->getLocalToObject().transformDirection(ray->getDirection());
 
                 double depth1;
                 double depth2;
-                if (operand.quadricGeometry == nullptr) {
+                if (operand->getQuadricGeometry() == nullptr) {
                     return false;
                 }
                 if (!BakedQuadricIntersector::intersectBakedQuadric(
-                        *operand.quadricGeometry,
+                        *operand->getQuadricGeometry(),
                         ray,
                         localOrigin,
                         localDirection,
                         false,
                         scratch.getCache(),
-                        operand.quadricViewpointSlot,
+                        operand->getQuadricViewpointSlot(),
                         &depth1,
                         &depth2)) {
                     return false;
@@ -227,18 +225,18 @@ public:
                 return true;
             }
 
-            if (operand.kind ==
+            if (operand->getKind() ==
                 BakedScene::CsgOperandKind::TransformedSphere) {
                 const Vector3Dd localOrigin =
-                    operand.localToObject.transformPoint(ray->getOrigin());
+                    operand->getLocalToObject().transformPoint(ray->getOrigin());
                 const Vector3Dd localDirection =
-                    operand.localToObject.transformDirection(ray->getDirection());
+                    operand->getLocalToObject().transformDirection(ray->getDirection());
 
                 double depth1;
                 double depth2;
                 if (!Sphere::intersectSphereLocalSpace(
                         localOrigin, localDirection, ray->getGeometryStatistics(),
-                        static_cast<Sphere *>(operand.geometry)->getRadius(),
+                        static_cast<Sphere *>(operand->getGeometry())->getRadius(),
                         &depth1, &depth2)) {
                     return false;
                 }
@@ -255,8 +253,8 @@ public:
             }
 
             RayWithTracingState localRay = RayWithTracingState::localIntersectionClone(*ray);
-            localRay.setOrigin(operand.localToObject.transformPoint(ray->getOrigin()));
-            localRay.setDirection(operand.localToObject.transformDirection(ray->getDirection()));
+            localRay.setOrigin(operand->getLocalToObject().transformPoint(ray->getOrigin()));
+            localRay.setDirection(operand->getLocalToObject().transformDirection(ray->getDirection()));
             localRay.setQuadricConstantsCached(false);
             localRayPtr = &localRay;
 
@@ -264,17 +262,17 @@ public:
                 scratch.borrowQueue();
 
             bool found = false;
-            if (operand.kind ==
+            if (operand->getKind() ==
                 BakedScene::CsgOperandKind::TransformedNestedCsg) {
                 found = traceAllCrossingsWithScratch(
-                    bakedCsgs[operand.nestedCsgProgramIndex],
+                    bakedCsgs[operand->getNestedCsgProgramIndex()],
                     bakedCsgs,
                     scratch,
                     localRayPtr,
                     localDepthQueue,
                     effectiveMaterial);
             } else {
-                found = operand.geometry->doIntersectionForAllRayCrossings(
+                found = operand->getGeometry()->doIntersectionForAllRayCrossings(
                     localRayPtr, localDepthQueue, effectiveMaterial);
             }
 
@@ -282,10 +280,10 @@ public:
             const Vector3Dd rayDir = ray->getDirection();
             const double dirLenSq = rayDir.dotProduct(rayDir);
             for (IntersectionCandidate &candidate : *localDepthQueue) {
-                candidate.getAttributes().pushDetailOwner(operand.operand);
+                candidate.getAttributes().pushDetailOwner(operand->getOperand());
                 candidate.getAttributes().setMaterialUsesObjectLocalPoint(true);
                 candidate.getIntersection().point =
-                    operand.objectToLocal.transformPoint(candidate.getIntersection().point);
+                    operand->getObjectToLocal().transformPoint(candidate.getIntersection().point);
                 candidate.getIntersection().t =
                     candidate.getIntersection().point
                         .subtract(rayOrigin).dotProduct(rayDir) / dirLenSq;
@@ -296,7 +294,7 @@ public:
             return found;
         }
 
-        if (operand.kind == BakedScene::CsgOperandKind::DirectPlane) {
+        if (operand->getKind() == BakedScene::CsgOperandKind::DirectPlane) {
             double depth;
             if (!BakedPlaneIntersector::intersectBakedPlane(
                     operand,
@@ -312,9 +310,9 @@ public:
             IntersectionCandidate candidate;
             candidate.getIntersection().point =
                 ray->getOrigin().add(ray->getDirection().multiply(depth));
-            candidate.getAttributes().setHitGeometry(operand.geometry);
+            candidate.getAttributes().setHitGeometry(operand->getGeometry());
             candidate.getAttributes().setMaterial(effectiveMaterial);
-            candidate.getAttributes().pushDetailOwner(operand.operand);
+            candidate.getAttributes().pushDetailOwner(operand->getOperand());
             candidate.getAttributes().setMaterialUsesObjectLocalPoint(true);
             candidate.getIntersection().t = depth;
             depthQueue->offer(candidate);
@@ -327,20 +325,20 @@ public:
         java::PriorityQueue<IntersectionCandidate> *localDepthQueue =
             scratch.borrowQueue();
         bool found = false;
-        if (operand.kind == BakedScene::CsgOperandKind::NestedCsg) {
+        if (operand->getKind() == BakedScene::CsgOperandKind::NestedCsg) {
             found = traceAllCrossingsWithScratch(
-                bakedCsgs[operand.nestedCsgProgramIndex],
+                bakedCsgs[operand->getNestedCsgProgramIndex()],
                 bakedCsgs,
                 scratch,
                 ray,
                 localDepthQueue,
                 effectiveMaterial);
         } else {
-            found = operand.geometry->doIntersectionForAllRayCrossings(
+            found = operand->getGeometry()->doIntersectionForAllRayCrossings(
                 ray, localDepthQueue, effectiveMaterial);
         }
         for (IntersectionCandidate &candidate : *localDepthQueue) {
-            candidate.getAttributes().pushDetailOwner(operand.operand);
+            candidate.getAttributes().pushDetailOwner(operand->getOperand());
             candidate.getAttributes().setMaterialUsesObjectLocalPoint(true);
             candidate.getIntersection().t =
                 candidate.getIntersection().point

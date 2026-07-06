@@ -355,10 +355,10 @@ TriangleMesh::doIntersectionForAllRayCrossingsAnnotated(
             ray->getDirection().multiply(depth).add(ray->getOrigin());
         localElement.getIntersection().normal = triangles[i].getNormal();
         localElement.getAttributes().setHitGeometry(this);
-        localElement.getAttributes().setMaterial(context.materialOverride);
-        localElement.getAttributes().pushDetailOwner(context.detailOwner);
+        localElement.getAttributes().setMaterial(context.getMaterialOverride());
+        localElement.getAttributes().pushDetailOwner(context.getDetailOwner());
         localElement.getAttributes().setMaterialUsesObjectLocalPoint(
-            context.materialUsesObjectLocalPoint);
+            context.getMaterialUsesObjectLocalPoint());
         depthQueue->offer(localElement);
         foundAny = 1;
     }

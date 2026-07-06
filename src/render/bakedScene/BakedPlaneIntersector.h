@@ -10,7 +10,7 @@
 class BakedPlaneIntersector {
 public:
     static bool intersectBakedPlane(
-        const BakedScene::CsgOperandRecord &operand,
+        const CsgOperandRecord *operand,
         RayWithTracingState *ray,
         const Vector3Dd &origin,
         const Vector3Dd &direction,
@@ -18,19 +18,19 @@ public:
         double *depth);
 
     static int planeContainmentTest(
-        const BakedScene::CsgOperandRecord &operand,
+        const CsgOperandRecord *operand,
         const Vector3Dd &point,
         double distanceTolerance);
 
     static bool tracePlaneOperandCandidate(
-        const BakedScene::CsgOperandRecord &operand,
+        const CsgOperandRecord *operand,
         RayWithTracingState *ray,
         RaySharedCache &cache,
         Material *materialOverride,
         IntersectionCandidate &candidate);
 
     static bool tracePlaneOperandCandidateInRaySpace(
-        const BakedScene::CsgOperandRecord &operand,
+        const CsgOperandRecord *operand,
         RayWithTracingState *statsRay,
         const Vector3Dd &rayOrigin,
         const Vector3Dd &rayDirection,

@@ -52,8 +52,8 @@ DirectLightShader::rayIntersectsAabbBefore(
 bool
 DirectLightShader::canUseCsgFirstHitForShadow(const BakedScene &bakedScene, int objectIndex)
 {
-    const BakedScene::TraceableObject &object = bakedScene.traceableObjects[objectIndex];
-    return object.kind != BakedScene::TraceKind::Composite && object.csgProgramIndex >= 0;
+    const TraceableObject *object = bakedScene.traceableObjects[objectIndex];
+    return object->getKind() != BakedScene::TraceKind::Composite && object->getCsgProgramIndex() >= 0;
 }
 
 bool
@@ -140,8 +140,8 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
     }
 
     traceService->getRaySharedCache().ensureCapacity(
-        (int)bakedScene.statistics.quadricViewpointSlotCount,
-        (int)bakedScene.statistics.planeViewpointSlotCount);
+        (int)bakedScene.statistics->getQuadricViewpointSlotCount(),
+        (int)bakedScene.statistics->getPlaneViewpointSlotCount());
 
     localDepthQueue = eye->getIntersectionQueuePool()->pop(128);
     lightSourceRay.setShadowRay(true);
@@ -170,11 +170,11 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
                 bakedScene.unboundedShadowCastingObjectIndices;
             for (long int i = boundedShadowObjects.size() - 1; i >= 0; i--) {
                 const int objectIndex = boundedShadowObjects[i];
-                const BakedScene::TraceableObject &entry = bakedScene.traceableObjects[objectIndex];
-                if (entry.bounded &&
+                const TraceableObject *entry = bakedScene.traceableObjects[objectIndex];
+                if (entry->getBounded() &&
                     !rayIntersectsAabbBefore(
                         lightSourceRay,
-                        entry.worldBounds,
+                        entry->getWorldBounds(),
                         lightSourceDepth - GeometryConfig::SMALL_TOLERANCE)) {
                     continue;
                 }

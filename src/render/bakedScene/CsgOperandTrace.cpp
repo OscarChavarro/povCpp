@@ -6,22 +6,22 @@
 
 bool
 CsgOperandTrace::tracePlanOperandAllCrossings(
-    const BakedScene::CsgOperandRecord &operand,
-    const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+    const CsgOperandRecord *operand,
+    const java::ArrayList<CsgProgram *> &bakedCsgs,
     CsgScratchContext &scratch,
     RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
-    if (operand.compiledTransformedNestedCorePlane &&
-        operand.nestedCsgProgramIndex >= 0 &&
-        operand.nestedCsgProgramIndex < bakedCsgs.size() &&
+    if (operand->getCompiledTransformedNestedCorePlane() &&
+        operand->getNestedCsgProgramIndex() >= 0 &&
+        operand->getNestedCsgProgramIndex() < bakedCsgs.size() &&
         !ray->isPrimaryRayEnabled()) {
         Material *effectiveMaterial =
-            operand.material != nullptr ? operand.material : materialOverride;
+            operand->getMaterial() != nullptr ? operand->getMaterial() : materialOverride;
         return SingleCorePlaneCsgTrace::traceTransformedNestedSingleCorePlaneOperandAllCrossings(
             operand,
-            bakedCsgs[operand.nestedCsgProgramIndex],
+            bakedCsgs[operand->getNestedCsgProgramIndex()],
             bakedCsgs,
             ray,
             depthQueue,
@@ -40,14 +40,14 @@ CsgOperandTrace::tracePlanOperandAllCrossings(
 
 bool
 CsgOperandTrace::traceAllCrossingsWithScratch(
-    const BakedScene::CsgProgram &bakedCsg,
-    const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+    const CsgProgram *bakedCsg,
+    const java::ArrayList<CsgProgram *> &bakedCsgs,
     CsgScratchContext &scratch,
     RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
-    if (bakedCsg.algorithm == BakedScene::CsgAlgorithm::RaySegments) {
+    if (bakedCsg->getAlgorithm() == BakedScene::CsgAlgorithm::RaySegments) {
         return RaySegmentCsgCombiner::traceRaySegmentCsg(
             bakedCsg, bakedCsgs, scratch, ray, depthQueue, materialOverride);
     }
@@ -57,8 +57,8 @@ CsgOperandTrace::traceAllCrossingsWithScratch(
 
 bool
 CsgOperandTrace::traceAllCrossings(
-    const BakedScene::CsgProgram &bakedCsg,
-    const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+    const CsgProgram *bakedCsg,
+    const java::ArrayList<CsgProgram *> &bakedCsgs,
     RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     RaySharedCache &cache,

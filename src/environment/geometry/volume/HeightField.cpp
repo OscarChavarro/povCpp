@@ -854,9 +854,9 @@ HeightField::traceCrossings(
     stats.incrementRayHtFieldTests();
     localElement.getAttributes().setMaterial(materialOverride);
     if (context != nullptr) {
-        localElement.getAttributes().pushDetailOwner(context->detailOwner);
+        localElement.getAttributes().pushDetailOwner(context->getDetailOwner());
         localElement.getAttributes().setMaterialUsesObjectLocalPoint(
-            context->materialUsesObjectLocalPoint);
+            context->getMaterialUsesObjectLocalPoint());
     }
 
     tempRay.setOriginAndDirection(
@@ -936,7 +936,7 @@ HeightField::doIntersectionForAllRayCrossingsAnnotated(
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     const GeometryIntersectionEmissionContext &context)
 {
-    return traceCrossings(ray, depthQueue, context.materialOverride, &context);
+    return traceCrossings(ray, depthQueue, context.getMaterialOverride(), &context);
 }
 
 int

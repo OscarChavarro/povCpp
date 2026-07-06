@@ -8,7 +8,7 @@
 
 bool
 BakedPlaneIntersector::intersectBakedPlane(
-    const BakedScene::CsgOperandRecord &operand,
+    const CsgOperandRecord *operand,
     RayWithTracingState *ray,
     const Vector3Dd &origin,
     const Vector3Dd &direction,
@@ -20,20 +20,20 @@ BakedPlaneIntersector::intersectBakedPlane(
 
     double normalDotOrigin;
     if (ray->isPrimaryRayEnabled()) {
-        if (!cache.getPlaneViewpointConstant(operand.planeViewpointSlot, normalDotOrigin)) {
-            normalDotOrigin = operand.planeNormal.dotProduct(origin);
-            normalDotOrigin += operand.planeDistance;
+        if (!cache.getPlaneViewpointConstant(operand->getPlaneViewpointSlot(), normalDotOrigin)) {
+            normalDotOrigin = operand->getPlaneNormal().dotProduct(origin);
+            normalDotOrigin += operand->getPlaneDistance();
             normalDotOrigin *= -1.0;
-            cache.setPlaneViewpointConstant(operand.planeViewpointSlot, normalDotOrigin);
+            cache.setPlaneViewpointConstant(operand->getPlaneViewpointSlot(), normalDotOrigin);
         }
     } else {
-        normalDotOrigin = operand.planeNormal.dotProduct(origin);
-        normalDotOrigin += operand.planeDistance;
+        normalDotOrigin = operand->getPlaneNormal().dotProduct(origin);
+        normalDotOrigin += operand->getPlaneDistance();
         normalDotOrigin *= -1.0;
     }
 
     const double normalDotDirection =
-        operand.planeNormal.dotProduct(direction);
+        operand->getPlaneNormal().dotProduct(direction);
     if (normalDotDirection < GeometryConfig::SMALL_TOLERANCE &&
         normalDotDirection > -GeometryConfig::SMALL_TOLERANCE) {
         return false;
@@ -50,35 +50,35 @@ BakedPlaneIntersector::intersectBakedPlane(
 
 int
 BakedPlaneIntersector::planeContainmentTest(
-    const BakedScene::CsgOperandRecord &operand,
+    const CsgOperandRecord *operand,
     const Vector3Dd &point,
     double distanceTolerance)
 {
     const double signedDistance =
-        point.dotProduct(operand.planeNormal) + operand.planeDistance;
+        point.dotProduct(operand->getPlaneNormal()) + operand->getPlaneDistance();
     return signedDistance <= distanceTolerance ? Geometry::INSIDE : Geometry::OUTSIDE;
 }
 
 bool
 BakedPlaneIntersector::tracePlaneOperandCandidate(
-    const BakedScene::CsgOperandRecord &operand,
+    const CsgOperandRecord *operand,
     RayWithTracingState *ray,
     RaySharedCache &cache,
     Material *materialOverride,
     IntersectionCandidate &candidate)
 {
-    if (!operand.isInfinitePlane || operand.nestedCsgProgramIndex >= 0 ||
-        operand.geometry == nullptr) {
+    if (!operand->getIsInfinitePlane() || operand->getNestedCsgProgramIndex() >= 0 ||
+        operand->getGeometry() == nullptr) {
         return false;
     }
 
     Material *effectiveMaterial =
-        operand.material != nullptr ? operand.material : materialOverride;
-    if (operand.hasTransform) {
+        operand->getMaterial() != nullptr ? operand->getMaterial() : materialOverride;
+    if (operand->getHasTransform()) {
         const Vector3Dd localOrigin =
-            operand.localToObject.transformPoint(ray->getOrigin());
+            operand->getLocalToObject().transformPoint(ray->getOrigin());
         const Vector3Dd localDirection =
-            operand.localToObject.transformDirection(ray->getDirection());
+            operand->getLocalToObject().transformDirection(ray->getDirection());
 
         double depth;
         if (!intersectBakedPlane(
@@ -95,12 +95,12 @@ BakedPlaneIntersector::tracePlaneOperandCandidate(
         candidate = IntersectionCandidate();
         candidate.getIntersection().point =
             localOrigin.add(localDirection.multiply(depth));
-        candidate.getAttributes().setHitGeometry(operand.geometry);
+        candidate.getAttributes().setHitGeometry(operand->getGeometry());
         candidate.getAttributes().setMaterial(effectiveMaterial);
-        candidate.getAttributes().pushDetailOwner(operand.operand);
+        candidate.getAttributes().pushDetailOwner(operand->getOperand());
         candidate.getAttributes().setMaterialUsesObjectLocalPoint(true);
         candidate.getIntersection().point =
-            operand.objectToLocal.transformPoint(candidate.getIntersection().point);
+            operand->getObjectToLocal().transformPoint(candidate.getIntersection().point);
         const Vector3Dd rayOrigin = ray->getOrigin();
         const Vector3Dd rayDir = ray->getDirection();
         candidate.getIntersection().t =
@@ -125,9 +125,9 @@ BakedPlaneIntersector::tracePlaneOperandCandidate(
     candidate = IntersectionCandidate();
     candidate.getIntersection().point =
         ray->getOrigin().add(ray->getDirection().multiply(depth));
-    candidate.getAttributes().setHitGeometry(operand.geometry);
+    candidate.getAttributes().setHitGeometry(operand->getGeometry());
     candidate.getAttributes().setMaterial(effectiveMaterial);
-    candidate.getAttributes().pushDetailOwner(operand.operand);
+    candidate.getAttributes().pushDetailOwner(operand->getOperand());
     candidate.getAttributes().setMaterialUsesObjectLocalPoint(true);
     candidate.getIntersection().t = depth;
     return true;
@@ -135,7 +135,7 @@ BakedPlaneIntersector::tracePlaneOperandCandidate(
 
 bool
 BakedPlaneIntersector::tracePlaneOperandCandidateInRaySpace(
-    const BakedScene::CsgOperandRecord &operand,
+    const CsgOperandRecord *operand,
     RayWithTracingState *statsRay,
     const Vector3Dd &rayOrigin,
     const Vector3Dd &rayDirection,
@@ -143,18 +143,18 @@ BakedPlaneIntersector::tracePlaneOperandCandidateInRaySpace(
     Material *materialOverride,
     IntersectionCandidate &candidate)
 {
-    if (!operand.isInfinitePlane || operand.nestedCsgProgramIndex >= 0 ||
-        operand.geometry == nullptr) {
+    if (!operand->getIsInfinitePlane() || operand->getNestedCsgProgramIndex() >= 0 ||
+        operand->getGeometry() == nullptr) {
         return false;
     }
 
     Material *effectiveMaterial =
-        operand.material != nullptr ? operand.material : materialOverride;
+        operand->getMaterial() != nullptr ? operand->getMaterial() : materialOverride;
     Vector3Dd localOrigin = rayOrigin;
     Vector3Dd localDirection = rayDirection;
-    if (operand.hasTransform) {
-        localOrigin = operand.localToObject.transformPoint(rayOrigin);
-        localDirection = operand.localToObject.transformDirection(rayDirection);
+    if (operand->getHasTransform()) {
+        localOrigin = operand->getLocalToObject().transformPoint(rayOrigin);
+        localDirection = operand->getLocalToObject().transformDirection(rayDirection);
     }
 
     double depth;
@@ -172,13 +172,13 @@ BakedPlaneIntersector::tracePlaneOperandCandidateInRaySpace(
     candidate = IntersectionCandidate();
     candidate.getIntersection().point =
         localOrigin.add(localDirection.multiply(depth));
-    candidate.getAttributes().setHitGeometry(operand.geometry);
+    candidate.getAttributes().setHitGeometry(operand->getGeometry());
     candidate.getAttributes().setMaterial(effectiveMaterial);
-    candidate.getAttributes().pushDetailOwner(operand.operand);
+    candidate.getAttributes().pushDetailOwner(operand->getOperand());
     candidate.getAttributes().setMaterialUsesObjectLocalPoint(true);
-    if (operand.hasTransform) {
+    if (operand->getHasTransform()) {
         candidate.getIntersection().point =
-            operand.objectToLocal.transformPoint(candidate.getIntersection().point);
+            operand->getObjectToLocal().transformPoint(candidate.getIntersection().point);
     }
     candidate.getIntersection().t =
         candidate.getIntersection().point.subtract(rayOrigin).dotProduct(rayDirection) /

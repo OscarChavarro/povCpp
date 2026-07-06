@@ -4,16 +4,11 @@
 #include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/geometry/element/AxisAlignedBoundingBox.h"
 #include "environment/geometry/element/RayOperationOwner.h"
+#include "environment/geometry/element/GeometryIntersectionEmissionContext.h"
 #include "vsdk/toolkit/processing/Containment.h"
 
 class IntersectionCandidate;
 class PovRayHit;
-
-struct GeometryIntersectionEmissionContext {
-    Material *materialOverride = nullptr;
-    RayOperationOwner *detailOwner = nullptr;
-    bool materialUsesObjectLocalPoint = false;
-};
 
 class Geometry {
   public:

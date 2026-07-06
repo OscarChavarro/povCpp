@@ -10,26 +10,26 @@
 class CsgContainmentTest {
 public:
     static int containmentTest(
-        const BakedScene::CsgProgram &bakedCsg,
-        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        const CsgProgram *bakedCsg,
+        const java::ArrayList<CsgProgram *> &bakedCsgs,
         const Vector3Dd &point,
         double distanceTolerance);
 
     static int containmentTestOperand(
-        const BakedScene::CsgOperandRecord &operand,
-        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        const CsgOperandRecord *operand,
+        const java::ArrayList<CsgProgram *> &bakedCsgs,
         const Vector3Dd &point,
         double distanceTolerance);
 
     static bool candidateInsideAllOtherOperands(
-        const BakedScene::CsgProgram &bakedCsg,
-        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        const CsgProgram *bakedCsg,
+        const java::ArrayList<CsgProgram *> &bakedCsgs,
         const Vector3Dd &point,
         long int skipIndex);
 
     static bool candidateInsideOperandsCoreFirst(
-        const BakedScene::CsgProgram &bakedCsg,
-        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        const CsgProgram *bakedCsg,
+        const java::ArrayList<CsgProgram *> &bakedCsgs,
         const Vector3Dd &point,
         long int skipIndex,
         long int coreIndex);

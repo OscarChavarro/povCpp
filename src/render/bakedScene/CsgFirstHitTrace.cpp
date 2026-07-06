@@ -9,8 +9,8 @@
 
 bool
 CsgFirstHitTrace::traceFirstHitByIntersectionMembership(
-    const BakedScene::CsgProgram &bakedCsg,
-    const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+    const CsgProgram *bakedCsg,
+    const java::ArrayList<CsgProgram *> &bakedCsgs,
     CsgScratchContext &scratch,
     RayWithTracingState *ray,
     IntersectionCandidate &out,
@@ -21,10 +21,10 @@ CsgFirstHitTrace::traceFirstHitByIntersectionMembership(
     bool found = false;
     double bestT = GeometryConfig::MAX_DISTANCE;
 
-    for (long int i = bakedCsg.operands.size() - 1; i >= 0; i--) {
+    for (long int i = bakedCsg->getOperands().size() - 1; i >= 0; i--) {
         localDepthQueue->clear();
         CsgOperandTrace::tracePlanOperandAllCrossings(
-            bakedCsg.operands[i],
+            bakedCsg->getOperands()[i],
             bakedCsgs,
             scratch,
             ray,
@@ -55,21 +55,21 @@ CsgFirstHitTrace::traceFirstHitByIntersectionMembership(
 
 bool
 CsgFirstHitTrace::traceFirstHitWithScratch(
-    const BakedScene::CsgProgram &bakedCsg,
-    const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+    const CsgProgram *bakedCsg,
+    const java::ArrayList<CsgProgram *> &bakedCsgs,
     CsgScratchContext &scratch,
     RayWithTracingState *ray,
     IntersectionCandidate &out,
     Material *materialOverride)
 {
-    if (bakedCsg.operands.size() == 0) {
+    if (bakedCsg->getOperands().size() == 0) {
         return false;
     }
 
-    if (bakedCsg.geometryType == BooleanSetOperations::INTERSECTION) {
-        if (bakedCsg.planKind ==
+    if (bakedCsg->getGeometryType() == BooleanSetOperations::INTERSECTION) {
+        if (bakedCsg->getPlanKind() ==
                 BakedScene::CsgPlanKind::SingleCorePlaneIntersection &&
-            bakedCsg.specializationValid) {
+            bakedCsg->getSpecializationValid()) {
             return SingleCorePlaneCsgTrace::traceFirstHitCompiledSingleCorePlane(
                 bakedCsg,
                 bakedCsgs,
@@ -101,8 +101,8 @@ CsgFirstHitTrace::traceFirstHitWithScratch(
 
 bool
 CsgFirstHitTrace::traceFirstHit(
-    const BakedScene::CsgProgram &bakedCsg,
-    const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+    const CsgProgram *bakedCsg,
+    const java::ArrayList<CsgProgram *> &bakedCsgs,
     RayWithTracingState *ray,
     IntersectionCandidate &out,
     RaySharedCache &cache,

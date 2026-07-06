@@ -9,8 +9,8 @@
 
 RaySegments
 RaySegmentCsgCombiner::buildRaySegments(
-    const BakedScene::CsgOperandRecord &operand,
-    const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+    const CsgOperandRecord *operand,
+    const java::ArrayList<CsgProgram *> &bakedCsgs,
     CsgScratchContext &scratch,
     RayWithTracingState *ray,
     Material *materialOverride)
@@ -121,25 +121,25 @@ RaySegmentCsgCombiner::mergeByMembership(
 
 int
 RaySegmentCsgCombiner::traceRaySegmentCsg(
-    const BakedScene::CsgProgram &bakedCsg,
-    const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+    const CsgProgram *bakedCsg,
+    const java::ArrayList<CsgProgram *> &bakedCsgs,
     CsgScratchContext &scratch,
     RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
-    if (bakedCsg.operands.size() == 0) {
+    if (bakedCsg->getOperands().size() == 0) {
         return false;
     }
 
-    if (bakedCsg.planKind ==
+    if (bakedCsg->getPlanKind() ==
             BakedScene::CsgPlanKind::TopLevelPlaneUnion ||
-        bakedCsg.planKind ==
+        bakedCsg->getPlanKind() ==
             BakedScene::CsgPlanKind::DisjointBoundedUnion) {
         bool anyFound = false;
-        for (long int i = 0; i < bakedCsg.operands.size(); i++) {
+        for (long int i = 0; i < bakedCsg->getOperands().size(); i++) {
             if (CsgOperandTrace::tracePlanOperandAllCrossings(
-                    bakedCsg.operands[i],
+                    bakedCsg->getOperands()[i],
                     bakedCsgs,
                     scratch,
                     ray,
@@ -151,9 +151,9 @@ RaySegmentCsgCombiner::traceRaySegmentCsg(
         return anyFound;
     }
 
-    if (bakedCsg.planKind ==
+    if (bakedCsg->getPlanKind() ==
             BakedScene::CsgPlanKind::SingleCorePlaneIntersection &&
-        bakedCsg.specializationValid) {
+        bakedCsg->getSpecializationValid()) {
         return SingleCorePlaneCsgTrace::traceSingleCorePlaneIntersection(
             bakedCsg,
             bakedCsgs,
@@ -161,16 +161,16 @@ RaySegmentCsgCombiner::traceRaySegmentCsg(
             ray,
             depthQueue,
             materialOverride,
-            bakedCsg.specializationCoreOperandIndex);
+            bakedCsg->getSpecializationCoreOperandIndex());
     }
 
     RaySegments result = buildRaySegments(
-        bakedCsg.operands[0], bakedCsgs, scratch, ray, materialOverride);
-    for (long int i = 1; i < bakedCsg.operands.size(); i++) {
+        bakedCsg->getOperands()[0], bakedCsgs, scratch, ray, materialOverride);
+    for (long int i = 1; i < bakedCsg->getOperands().size(); i++) {
         const RaySegments childSegments =
             buildRaySegments(
-                bakedCsg.operands[i], bakedCsgs, scratch, ray, materialOverride);
-        switch (bakedCsg.geometryType) {
+                bakedCsg->getOperands()[i], bakedCsgs, scratch, ray, materialOverride);
+        switch (bakedCsg->getGeometryType()) {
         case BooleanSetOperations::DIFFERENCE:
             result = mergeByMembership(result, childSegments, combineDifference);
             break;

@@ -14,8 +14,8 @@
 class RaySegmentCsgCombiner {
 public:
     static int traceRaySegmentCsg(
-        const BakedScene::CsgProgram &bakedCsg,
-        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        const CsgProgram *bakedCsg,
+        const java::ArrayList<CsgProgram *> &bakedCsgs,
         CsgScratchContext &scratch,
         RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
@@ -23,8 +23,8 @@ public:
 
 private:
     static RaySegments buildRaySegments(
-        const BakedScene::CsgOperandRecord &operand,
-        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        const CsgOperandRecord *operand,
+        const java::ArrayList<CsgProgram *> &bakedCsgs,
         CsgScratchContext &scratch,
         RayWithTracingState *ray,
         Material *materialOverride);

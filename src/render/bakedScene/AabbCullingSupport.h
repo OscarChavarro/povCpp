@@ -53,23 +53,23 @@ public:
     // (unsorted - caller must sort descending to match the plain scan's
     // iteration order before dispatching).
     static inline int gatherCullSurvivors(
-        const BakedScene::OperandCullBins &bins,
+        const OperandCullBins &bins,
         const java::ArrayList<int> &bucket,
-        const java::ArrayList<BakedScene::CsgOperandRecord> &operands,
+        const java::ArrayList<CsgOperandRecord *> &operands,
         RayWithTracingState &ray,
         int *outPositions,
         int capacity)
     {
         int count = 0;
-        for (long int b = 0; b < bins.binBounds.size(); b++) {
-            if (!rayIntersectsAabbForward(ray, bins.binBounds[b])) {
+        for (long int b = 0; b < bins.getBinBounds().size(); b++) {
+            if (!rayIntersectsAabbForward(ray, bins.getBinBounds()[b])) {
                 continue;
             }
-            const int start = bins.binMemberStart[b];
-            const int memberCount = bins.binMemberCount[b];
+            const int start = bins.getBinMemberStart()[b];
+            const int memberCount = bins.getBinMemberCount()[b];
             for (int m = start; m < start + memberCount; m++) {
-                const int pos = bins.binMembers[m];
-                if (!rayIntersectsAabbForward(ray, operands[bucket[pos]].bakedBounds)) {
+                const int pos = bins.getBinMembers()[m];
+                if (!rayIntersectsAabbForward(ray, operands[bucket[pos]]->getBakedBounds())) {
                     continue;
                 }
                 if (count >= capacity) {
@@ -78,11 +78,11 @@ public:
                 outPositions[count++] = pos;
             }
         }
-        for (long int i = 0; i < bins.alwaysTestedPositions.size(); i++) {
+        for (long int i = 0; i < bins.getAlwaysTestedPositions().size(); i++) {
             if (count >= capacity) {
                 return -1;
             }
-            outPositions[count++] = bins.alwaysTestedPositions[i];
+            outPositions[count++] = bins.getAlwaysTestedPositions()[i];
         }
         return count;
     }

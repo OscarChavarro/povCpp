@@ -47,9 +47,9 @@ ParametricBiCubicPatch::applyPatchAttributes(
             candidate.getAttributes().setMaterial(materialOverride);
         }
         if (context != nullptr) {
-            candidate.getAttributes().pushDetailOwner(context->detailOwner);
+            candidate.getAttributes().pushDetailOwner(context->getDetailOwner());
             candidate.getAttributes().setMaterialUsesObjectLocalPoint(
-                context->materialUsesObjectLocalPoint);
+                context->getMaterialUsesObjectLocalPoint());
         }
         if (++updated == newCount) {
             break;
@@ -1182,7 +1182,7 @@ ParametricBiCubicPatch::doIntersectionForAllRayCrossingsAnnotated(
         this, ray, depthQueue);
     applyPatchAttributes(
         this, depthQueue, depthQueue->size() - sizeBefore,
-        context.materialOverride, &context);
+        context.getMaterialOverride(), &context);
     return result;
 }
 

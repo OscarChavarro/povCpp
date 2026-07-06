@@ -7,16 +7,16 @@
 class CsgMorganUnionTrace {
 public:
     static int traceMorganCsg(
-        const BakedScene::CsgProgram &bakedCsg,
-        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        const CsgProgram *bakedCsg,
+        const java::ArrayList<CsgProgram *> &bakedCsgs,
         CsgScratchContext &scratch,
         RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride);
 
     static int traceMorganIntersection(
-        const BakedScene::CsgProgram &bakedCsg,
-        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        const CsgProgram *bakedCsg,
+        const java::ArrayList<CsgProgram *> &bakedCsgs,
         CsgScratchContext &scratch,
         RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
@@ -25,14 +25,14 @@ public:
     static constexpr long int MAX_CACHED_QUADRIC_OPERANDS = 64;
 
     static inline int traceMorganIntersectionGeneric(
-        const BakedScene::CsgProgram &bakedCsg,
-        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        const CsgProgram *bakedCsg,
+        const java::ArrayList<CsgProgram *> &bakedCsgs,
         CsgScratchContext &scratch,
         RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride)
     {
-        const long int operandCount = bakedCsg.operands.size();
+        const long int operandCount = bakedCsg->getOperands().size();
         const bool canCache = operandCount <= MAX_CACHED_QUADRIC_OPERANDS;
         bool cachedValid[MAX_CACHED_QUADRIC_OPERANDS];
         bool cachedHit[MAX_CACHED_QUADRIC_OPERANDS];
@@ -47,21 +47,21 @@ public:
         }
 
         for (long int i = 0; i < operandCount; i++) {
-            const BakedScene::CsgOperandRecord &op = bakedCsg.operands[i];
-            if (op.kind != BakedScene::CsgOperandKind::TransformedQuadric ||
-                op.quadricGeometry == nullptr) {
+            const CsgOperandRecord *op = bakedCsg->getOperands()[i];
+            if (op->getKind() != BakedScene::CsgOperandKind::TransformedQuadric ||
+                op->getQuadricGeometry() == nullptr) {
                 continue;
             }
             const Vector3Dd localOrigin =
-                op.localToObject.transformPoint(ray->getOrigin());
+                op->getLocalToObject().transformPoint(ray->getOrigin());
             const Vector3Dd localDirection =
-                op.localToObject.transformDirection(ray->getDirection());
+                op->getLocalToObject().transformDirection(ray->getDirection());
             double polyA = 0, polyB = 0, polyC = 0;
             bool trueMiss = false;
             double d1, d2;
             const bool hit = BakedQuadricIntersector::intersectBakedQuadricWithCoeffs(
-                *op.quadricGeometry, ray, localOrigin, localDirection,
-                false, scratch.getCache(), op.quadricViewpointSlot,
+                *op->getQuadricGeometry(), ray, localOrigin, localDirection,
+                false, scratch.getCache(), op->getQuadricViewpointSlot(),
                 &d1, &d2, polyA, polyB, polyC, trueMiss);
             if (trueMiss && polyA > 0.0) {
                 return false;
@@ -80,8 +80,8 @@ public:
             scratch.borrowQueue();
         bool anyIntersectionFound = false;
 
-        for (long int i = bakedCsg.operands.size() - 1; i >= 0; i--) {
-            const BakedScene::CsgOperandRecord &localShape = bakedCsg.operands[i];
+        for (long int i = bakedCsg->getOperands().size() - 1; i >= 0; i--) {
+            const CsgOperandRecord *localShape = bakedCsg->getOperands()[i];
             if (canCache && cachedValid[i]) {
                 // Reuse the prescan's transform + quadric solve verbatim -
                 // this mirrors CsgOperandTrace::traceOperandAllCrossings's
@@ -90,7 +90,7 @@ public:
                 // fed from the cache instead of recomputing.
                 if (cachedHit[i]) {
                     Material *effectiveMaterial =
-                        localShape.material != nullptr ? localShape.material : materialOverride;
+                        localShape->getMaterial() != nullptr ? localShape->getMaterial() : materialOverride;
                     CsgOperandTrace::offerTransformedPrimitiveCandidate(
                         localShape, ray, effectiveMaterial,
                         cachedLocalOrigin[i], cachedLocalDirection[i],
@@ -125,29 +125,27 @@ public:
     }
 
     static inline void dispatchDirectPrimitiveOperand(
-        const BakedScene::CsgOperandRecord &operand,
+        const CsgOperandRecord *operand,
         RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride,
         bool &anyFound)
     {
-        if (operand.geometry == nullptr) {
+        if (operand->getGeometry() == nullptr) {
             return;
         }
         Material *effectiveMaterial =
-            operand.material != nullptr ? operand.material : materialOverride;
-        if (operand.kind == BakedScene::CsgOperandKind::DirectAnnotatedPrimitive) {
-            GeometryIntersectionEmissionContext context;
-            context.materialOverride = effectiveMaterial;
-            context.detailOwner = operand.operand;
-            context.materialUsesObjectLocalPoint = true;
-            if (operand.geometry->doIntersectionForAllRayCrossingsAnnotated(
+            operand->getMaterial() != nullptr ? operand->getMaterial() : materialOverride;
+        if (operand->getKind() == BakedScene::CsgOperandKind::DirectAnnotatedPrimitive) {
+            GeometryIntersectionEmissionContext context(
+                effectiveMaterial, operand->getOperand(), true);
+            if (operand->getGeometry()->doIntersectionForAllRayCrossingsAnnotated(
                     ray, depthQueue, context)) {
                 anyFound = true;
             }
         } else {
             const int initialSize = depthQueue->size();
-            if (operand.geometry->doIntersectionForAllRayCrossings(
+            if (operand->getGeometry()->doIntersectionForAllRayCrossings(
                     ray, depthQueue, effectiveMaterial) &&
                 depthQueue->size() > initialSize) {
                 if (CsgOperandTrace::annotateDirectCandidates(depthQueue, operand)) {
@@ -158,29 +156,29 @@ public:
     }
 
     static inline void dispatchTransformedPrimitiveOperand(
-        const BakedScene::CsgOperandRecord &operand,
-        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        const CsgOperandRecord *operand,
+        const java::ArrayList<CsgProgram *> &bakedCsgs,
         CsgScratchContext &scratch,
         RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride,
         bool &anyFound)
     {
-        if (operand.kind == BakedScene::CsgOperandKind::TransformedQuadric) {
-            if (operand.geometry == nullptr || operand.quadricGeometry == nullptr) {
+        if (operand->getKind() == BakedScene::CsgOperandKind::TransformedQuadric) {
+            if (operand->getGeometry() == nullptr || operand->getQuadricGeometry() == nullptr) {
                 return;
             }
             Material *effectiveMaterial =
-                operand.material != nullptr ? operand.material : materialOverride;
+                operand->getMaterial() != nullptr ? operand->getMaterial() : materialOverride;
             const Vector3Dd localOrigin =
-                operand.localToObject.transformPoint(ray->getOrigin());
+                operand->getLocalToObject().transformPoint(ray->getOrigin());
             const Vector3Dd localDirection =
-                operand.localToObject.transformDirection(ray->getDirection());
+                operand->getLocalToObject().transformDirection(ray->getDirection());
             double depth1;
             double depth2;
             if (!BakedQuadricIntersector::intersectBakedQuadric(
-                    *operand.quadricGeometry, ray, localOrigin, localDirection,
-                    false, scratch.getCache(), operand.quadricViewpointSlot,
+                    *operand->getQuadricGeometry(), ray, localOrigin, localDirection,
+                    false, scratch.getCache(), operand->getQuadricViewpointSlot(),
                     &depth1, &depth2)) {
                 return;
             }
@@ -202,8 +200,8 @@ public:
     }
 
     static inline bool traceGenericMorganUnion(
-        const BakedScene::CsgProgram &bakedCsg,
-        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        const CsgProgram *bakedCsg,
+        const java::ArrayList<CsgProgram *> &bakedCsgs,
         CsgScratchContext &scratch,
         RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
@@ -212,10 +210,10 @@ public:
         bool anyFound = false;
 
         // Direct planes: inline emission, no dispatcher overhead.
-        for (long int p = bakedCsg.planeOperandIndices.size() - 1;
+        for (long int p = bakedCsg->getPlaneOperandIndices().size() - 1;
              p >= 0; p--) {
-            const BakedScene::CsgOperandRecord &operand =
-                bakedCsg.operands[bakedCsg.planeOperandIndices[p]];
+            const CsgOperandRecord *operand =
+                bakedCsg->getOperands()[bakedCsg->getPlaneOperandIndices()[p]];
             IntersectionCandidate candidate;
             if (BakedPlaneIntersector::tracePlaneOperandCandidate(
                     operand, ray, scratch.getCache(), materialOverride, candidate)) {
@@ -225,32 +223,30 @@ public:
         }
 
         // Direct primitives: bounds check then direct geometry call.
-        for (long int d = bakedCsg.directPrimitiveOperandIndices.size() - 1;
+        for (long int d = bakedCsg->getDirectPrimitiveOperandIndices().size() - 1;
              d >= 0; d--) {
-            const BakedScene::CsgOperandRecord &operand =
-                bakedCsg.operands[bakedCsg.directPrimitiveOperandIndices[d]];
-            if (operand.geometry == nullptr) {
+            const CsgOperandRecord *operand =
+                bakedCsg->getOperands()[bakedCsg->getDirectPrimitiveOperandIndices()[d]];
+            if (operand->getGeometry() == nullptr) {
                 continue;
             }
-            if (operand.bounded && operand.cullSafe &&
-                !AabbCullingSupport::rayIntersectsAabbForward(*ray, operand.bakedBounds)) {
+            if (operand->getBounded() && operand->getCullSafe() &&
+                !AabbCullingSupport::rayIntersectsAabbForward(*ray, operand->getBakedBounds())) {
                 continue;
             }
             Material *effectiveMaterial =
-                operand.material != nullptr ? operand.material : materialOverride;
-            if (operand.kind ==
+                operand->getMaterial() != nullptr ? operand->getMaterial() : materialOverride;
+            if (operand->getKind() ==
                 BakedScene::CsgOperandKind::DirectAnnotatedPrimitive) {
-                GeometryIntersectionEmissionContext context;
-                context.materialOverride = effectiveMaterial;
-                context.detailOwner = operand.operand;
-                context.materialUsesObjectLocalPoint = true;
-                if (operand.geometry->doIntersectionForAllRayCrossingsAnnotated(
+                GeometryIntersectionEmissionContext context(
+                    effectiveMaterial, operand->getOperand(), true);
+                if (operand->getGeometry()->doIntersectionForAllRayCrossingsAnnotated(
                         ray, depthQueue, context)) {
                     anyFound = true;
                 }
             } else {
                 const int initialSize = depthQueue->size();
-                if (operand.geometry->doIntersectionForAllRayCrossings(
+                if (operand->getGeometry()->doIntersectionForAllRayCrossings(
                         ray, depthQueue, effectiveMaterial) &&
                     depthQueue->size() > initialSize) {
                     if (CsgOperandTrace::annotateDirectCandidates(depthQueue, operand)) {
@@ -261,10 +257,10 @@ public:
         }
 
         // Nested CSGs: use compiled dispatch (handles compiled vs. generic per ray kind).
-        for (long int n = bakedCsg.nestedOperandIndices.size() - 1;
+        for (long int n = bakedCsg->getNestedOperandIndices().size() - 1;
              n >= 0; n--) {
             if (CsgOperandTrace::tracePlanOperandAllCrossings(
-                    bakedCsg.operands[bakedCsg.nestedOperandIndices[n]],
+                    bakedCsg->getOperands()[bakedCsg->getNestedOperandIndices()[n]],
                     bakedCsgs,
                     scratch,
                     ray,
@@ -274,29 +270,29 @@ public:
             }
         }
 
-        for (long int t = bakedCsg.transformedPrimitiveOperandIndices.size() - 1;
+        for (long int t = bakedCsg->getTransformedPrimitiveOperandIndices().size() - 1;
              t >= 0; t--) {
-            const BakedScene::CsgOperandRecord &operand =
-                bakedCsg.operands[bakedCsg.transformedPrimitiveOperandIndices[t]];
-            if (operand.kind == BakedScene::CsgOperandKind::TransformedQuadric) {
-                if (operand.geometry == nullptr || operand.quadricGeometry == nullptr) {
+            const CsgOperandRecord *operand =
+                bakedCsg->getOperands()[bakedCsg->getTransformedPrimitiveOperandIndices()[t]];
+            if (operand->getKind() == BakedScene::CsgOperandKind::TransformedQuadric) {
+                if (operand->getGeometry() == nullptr || operand->getQuadricGeometry() == nullptr) {
                     continue;
                 }
-                if (operand.bounded && operand.cullSafe &&
-                    !AabbCullingSupport::rayIntersectsAabbForward(*ray, operand.bakedBounds)) {
+                if (operand->getBounded() && operand->getCullSafe() &&
+                    !AabbCullingSupport::rayIntersectsAabbForward(*ray, operand->getBakedBounds())) {
                     continue;
                 }
                 Material *effectiveMaterial =
-                    operand.material != nullptr ? operand.material : materialOverride;
+                    operand->getMaterial() != nullptr ? operand->getMaterial() : materialOverride;
                 const Vector3Dd localOrigin =
-                    operand.localToObject.transformPoint(ray->getOrigin());
+                    operand->getLocalToObject().transformPoint(ray->getOrigin());
                 const Vector3Dd localDirection =
-                    operand.localToObject.transformDirection(ray->getDirection());
+                    operand->getLocalToObject().transformDirection(ray->getDirection());
                 double depth1;
                 double depth2;
                 if (!BakedQuadricIntersector::intersectBakedQuadric(
-                        *operand.quadricGeometry, ray, localOrigin, localDirection,
-                        false, scratch.getCache(), operand.quadricViewpointSlot,
+                        *operand->getQuadricGeometry(), ray, localOrigin, localDirection,
+                        false, scratch.getCache(), operand->getQuadricViewpointSlot(),
                         &depth1, &depth2)) {
                     continue;
                 }
@@ -326,8 +322,8 @@ public:
     }
 
     static inline bool traceGenericMorganUnionWithCullBins(
-        const BakedScene::CsgProgram &bakedCsg,
-        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        const CsgProgram *bakedCsg,
+        const java::ArrayList<CsgProgram *> &bakedCsgs,
         CsgScratchContext &scratch,
         RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
@@ -335,10 +331,10 @@ public:
     {
         bool anyFound = false;
 
-        for (long int p = bakedCsg.planeOperandIndices.size() - 1;
+        for (long int p = bakedCsg->getPlaneOperandIndices().size() - 1;
              p >= 0; p--) {
-            const BakedScene::CsgOperandRecord &operand =
-                bakedCsg.operands[bakedCsg.planeOperandIndices[p]];
+            const CsgOperandRecord *operand =
+                bakedCsg->getOperands()[bakedCsg->getPlaneOperandIndices()[p]];
             IntersectionCandidate candidate;
             if (BakedPlaneIntersector::tracePlaneOperandCandidate(
                     operand, ray, scratch.getCache(), materialOverride, candidate)) {
@@ -350,11 +346,11 @@ public:
         thread_local int directPositionsStorage[AabbCullingSupport::OPERAND_CULL_SCRATCH_CAPACITY];
         int *directPositions = directPositionsStorage;
         int directCount = -1;
-        if (bakedCsg.directPrimitiveCullBins != nullptr) {
+        if (bakedCsg->getDirectPrimitiveCullBins() != nullptr) {
             directCount = AabbCullingSupport::gatherCullSurvivors(
-                *bakedCsg.directPrimitiveCullBins,
-                bakedCsg.directPrimitiveOperandIndices,
-                bakedCsg.operands,
+                *bakedCsg->getDirectPrimitiveCullBins(),
+                bakedCsg->getDirectPrimitiveOperandIndices(),
+                bakedCsg->getOperands(),
                 *ray, directPositions, AabbCullingSupport::OPERAND_CULL_SCRATCH_CAPACITY);
             if (directCount >= 0) {
                 AabbCullingSupport::sortPositionsDescending(directPositions, directCount);
@@ -364,16 +360,16 @@ public:
             for (int idx = 0; idx < directCount; idx++) {
                 const long int d = directPositions[idx];
                 dispatchDirectPrimitiveOperand(
-                    bakedCsg.operands[bakedCsg.directPrimitiveOperandIndices[d]],
+                    bakedCsg->getOperands()[bakedCsg->getDirectPrimitiveOperandIndices()[d]],
                     ray, depthQueue, materialOverride, anyFound);
             }
         } else {
-            for (long int d = bakedCsg.directPrimitiveOperandIndices.size() - 1;
+            for (long int d = bakedCsg->getDirectPrimitiveOperandIndices().size() - 1;
                  d >= 0; d--) {
-                const BakedScene::CsgOperandRecord &operand =
-                    bakedCsg.operands[bakedCsg.directPrimitiveOperandIndices[d]];
-                if (operand.bounded && operand.cullSafe &&
-                    !AabbCullingSupport::rayIntersectsAabbForward(*ray, operand.bakedBounds)) {
+                const CsgOperandRecord *operand =
+                    bakedCsg->getOperands()[bakedCsg->getDirectPrimitiveOperandIndices()[d]];
+                if (operand->getBounded() && operand->getCullSafe() &&
+                    !AabbCullingSupport::rayIntersectsAabbForward(*ray, operand->getBakedBounds())) {
                     continue;
                 }
                 dispatchDirectPrimitiveOperand(
@@ -381,10 +377,10 @@ public:
             }
         }
 
-        for (long int n = bakedCsg.nestedOperandIndices.size() - 1;
+        for (long int n = bakedCsg->getNestedOperandIndices().size() - 1;
              n >= 0; n--) {
             if (CsgOperandTrace::tracePlanOperandAllCrossings(
-                    bakedCsg.operands[bakedCsg.nestedOperandIndices[n]],
+                    bakedCsg->getOperands()[bakedCsg->getNestedOperandIndices()[n]],
                     bakedCsgs,
                     scratch,
                     ray,
@@ -397,11 +393,11 @@ public:
         thread_local int transformedPositionsStorage[AabbCullingSupport::OPERAND_CULL_SCRATCH_CAPACITY];
         int *transformedPositions = transformedPositionsStorage;
         int transformedCount = -1;
-        if (bakedCsg.transformedPrimitiveCullBins != nullptr) {
+        if (bakedCsg->getTransformedPrimitiveCullBins() != nullptr) {
             transformedCount = AabbCullingSupport::gatherCullSurvivors(
-                *bakedCsg.transformedPrimitiveCullBins,
-                bakedCsg.transformedPrimitiveOperandIndices,
-                bakedCsg.operands,
+                *bakedCsg->getTransformedPrimitiveCullBins(),
+                bakedCsg->getTransformedPrimitiveOperandIndices(),
+                bakedCsg->getOperands(),
                 *ray, transformedPositions, AabbCullingSupport::OPERAND_CULL_SCRATCH_CAPACITY);
             if (transformedCount >= 0) {
                 AabbCullingSupport::sortPositionsDescending(transformedPositions, transformedCount);
@@ -411,17 +407,17 @@ public:
             for (int idx = 0; idx < transformedCount; idx++) {
                 const long int t = transformedPositions[idx];
                 dispatchTransformedPrimitiveOperand(
-                    bakedCsg.operands[bakedCsg.transformedPrimitiveOperandIndices[t]],
+                    bakedCsg->getOperands()[bakedCsg->getTransformedPrimitiveOperandIndices()[t]],
                     bakedCsgs, scratch, ray, depthQueue, materialOverride, anyFound);
             }
         } else {
-            for (long int t = bakedCsg.transformedPrimitiveOperandIndices.size() - 1;
+            for (long int t = bakedCsg->getTransformedPrimitiveOperandIndices().size() - 1;
                  t >= 0; t--) {
-                const BakedScene::CsgOperandRecord &operand =
-                    bakedCsg.operands[bakedCsg.transformedPrimitiveOperandIndices[t]];
-                if (operand.kind == BakedScene::CsgOperandKind::TransformedQuadric &&
-                    operand.bounded && operand.cullSafe &&
-                    !AabbCullingSupport::rayIntersectsAabbForward(*ray, operand.bakedBounds)) {
+                const CsgOperandRecord *operand =
+                    bakedCsg->getOperands()[bakedCsg->getTransformedPrimitiveOperandIndices()[t]];
+                if (operand->getKind() == BakedScene::CsgOperandKind::TransformedQuadric &&
+                    operand->getBounded() && operand->getCullSafe() &&
+                    !AabbCullingSupport::rayIntersectsAabbForward(*ray, operand->getBakedBounds())) {
                     continue;
                 }
                 dispatchTransformedPrimitiveOperand(
