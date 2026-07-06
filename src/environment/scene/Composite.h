@@ -17,12 +17,15 @@ class Composite : public SimpleBody {
         Matrix4x4d *transformation = nullptr,
         Matrix4x4d *transformationInverse = nullptr,
         Matrix4x4d *geometryTransformation = nullptr,
-        Matrix4x4d *geometryTransformationInverse = nullptr) :
+        Matrix4x4d *geometryTransformationInverse = nullptr,
+        SimpleBody::MaterialReleaser objectTextureReleaser = nullptr) :
         SimpleBody(
             geometry, geometryMaterial, objectTexture, objectColor,
             noShadowFlag, boundingShapes, clippingShapes,
             transformation, transformationInverse,
-            geometryTransformation, geometryTransformationInverse),
+            geometryTransformation, geometryTransformationInverse,
+            java::ArrayList<TransformStep>(), java::ArrayList<TransformStep>(),
+            objectTextureReleaser),
         simpleBodies(simpleBodies)
     {
     }

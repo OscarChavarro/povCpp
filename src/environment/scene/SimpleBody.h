@@ -8,6 +8,13 @@
 #include "environment/geometry/element/TransformStep.h"
 
 class SimpleBody : public RayOperationOwner {
+  public:
+    // Callers that hand SimpleBody an objectTexture whose destruction needs
+    // more than a plain `delete` (e.g. POV-Ray's shared default-texture
+    // aliasing) supply the release logic themselves at construction time, so
+    // the scene layer never needs to know the concrete Material subtype.
+    using MaterialReleaser = void (*)(Material *);
+
   protected:
     java::ArrayList<SimpleBody*> boundingShapes{4};
     java::ArrayList<SimpleBody*> clippingShapes{4};
@@ -20,6 +27,7 @@ class SimpleBody : public RayOperationOwner {
     bool noShadowFlag;
     ColorRgba *objectColor;
     Material *objectTexture;
+    MaterialReleaser objectTextureReleaser = nullptr;
     java::ArrayList<TransformStep> bodySteps{4};
     java::ArrayList<TransformStep> geometrySteps{4};
     bool bakedTransformFolded = false;
@@ -38,7 +46,8 @@ class SimpleBody : public RayOperationOwner {
         Matrix4x4d *geometryTransformation = nullptr,
         Matrix4x4d *geometryTransformationInverse = nullptr,
         const java::ArrayList<TransformStep> &bodyStepsInit = java::ArrayList<TransformStep>(),
-        const java::ArrayList<TransformStep> &geometryStepsInit = java::ArrayList<TransformStep>()) :
+        const java::ArrayList<TransformStep> &geometryStepsInit = java::ArrayList<TransformStep>(),
+        MaterialReleaser objectTextureReleaser = nullptr) :
         boundingShapes(boundingShapes),
         clippingShapes(clippingShapes),
         geometry(geometry),
@@ -50,6 +59,7 @@ class SimpleBody : public RayOperationOwner {
         noShadowFlag(noShadowFlag),
         objectColor(objectColor),
         objectTexture(objectTexture),
+        objectTextureReleaser(objectTextureReleaser),
         bodySteps(bodyStepsInit),
         geometrySteps(geometryStepsInit)
     {

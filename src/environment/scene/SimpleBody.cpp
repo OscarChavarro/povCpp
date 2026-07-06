@@ -1,6 +1,5 @@
 #include "environment/geometry/element/GeometryConfig.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
-#include "environment/material/povray/PovRayMaterial.h"
 #include "environment/scene/SimpleBody.h"
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
@@ -279,11 +278,18 @@ SimpleBody::~SimpleBody()
     delete geometryTransformation;
     delete geometryTransformationInverse;
     delete objectColor;
-    // objectTexture may be a private clone (delete it) or an alias to a shared
-    // constant such as the scene's default texture (do not delete, just close
-    // out its alias bookkeeping). releaseFromOwner() encapsulates that decision.
+    // objectTexture may be a private clone (plain delete is correct) or an
+    // alias to a shared constant such as the scene's default texture (which
+    // needs its own release bookkeeping instead of being deleted outright).
+    // That decision depends on the concrete Material subtype, which the scene
+    // layer has no business knowing about; whoever constructed this body
+    // supplies objectTextureReleaser to make the right call.
     if (objectTexture != nullptr) {
-        static_cast<PovRayMaterial *>(objectTexture)->releaseFromOwner();
+        if (objectTextureReleaser != nullptr) {
+            objectTextureReleaser(objectTexture);
+        } else {
+            delete objectTexture;
+        }
     }
     for (long int i = 0; i < boundingShapes.size(); i++) {
         delete boundingShapes[i];
