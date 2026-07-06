@@ -457,11 +457,11 @@ Blob::traceCrossings(
                     localElement.getIntersection().point = intersectionPoint;
                     localElement.getAttributes().setHitGeometry(blob);
                     localElement.getAttributes().setMaterial(
-                        context != nullptr ? context->materialOverride : materialOverride);
+                        context != nullptr ? context->getMaterialOverride() : materialOverride);
                     if (context != nullptr) {
-                        localElement.getAttributes().pushDetailOwner(context->detailOwner);
+                        localElement.getAttributes().pushDetailOwner(context->getDetailOwner());
                         localElement.getAttributes().setMaterialUsesObjectLocalPoint(
-                            context->materialUsesObjectLocalPoint);
+                            context->getMaterialUsesObjectLocalPoint());
                     }
                     depthQueue->offer(localElement);
                     intersectionFound = true;
@@ -490,7 +490,7 @@ Blob::doIntersectionForAllRayCrossingsAnnotated(
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     const GeometryIntersectionEmissionContext &context)
 {
-    return traceCrossings(ray, depthQueue, context.materialOverride, &context);
+    return traceCrossings(ray, depthQueue, context.getMaterialOverride(), &context);
 }
 
 /**

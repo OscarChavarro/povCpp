@@ -9,12 +9,12 @@
 
 int
 CsgContainmentTest::containmentTestOperand(
-    const BakedScene::CsgOperandRecord &operand,
-    const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+    const CsgOperandRecord *operand,
+    const java::ArrayList<CsgProgram *> &bakedCsgs,
     const Vector3Dd &point,
     double distanceTolerance)
 {
-    switch (operand.kind) {
+    switch (operand->getKind()) {
     case BakedScene::CsgOperandKind::Empty:
         return Geometry::OUTSIDE;
 
@@ -24,35 +24,35 @@ CsgContainmentTest::containmentTestOperand(
     case BakedScene::CsgOperandKind::TransformedPlane:
         return BakedPlaneIntersector::planeContainmentTest(
             operand,
-            operand.localToObject.transformPoint(point),
+            operand->getLocalToObject().transformPoint(point),
             distanceTolerance);
 
     case BakedScene::CsgOperandKind::NestedCsg:
         return containmentTest(
-            bakedCsgs[operand.nestedCsgProgramIndex],
+            bakedCsgs[operand->getNestedCsgProgramIndex()],
             bakedCsgs,
             point,
             distanceTolerance);
 
     case BakedScene::CsgOperandKind::TransformedNestedCsg:
         return containmentTest(
-            bakedCsgs[operand.nestedCsgProgramIndex],
+            bakedCsgs[operand->getNestedCsgProgramIndex()],
             bakedCsgs,
-            operand.localToObject.transformPoint(point),
+            operand->getLocalToObject().transformPoint(point),
             distanceTolerance);
 
     case BakedScene::CsgOperandKind::TransformedQuadric:
     case BakedScene::CsgOperandKind::TransformedSphere:
     case BakedScene::CsgOperandKind::TransformedPrimitive:
-        return operand.geometry->doContainmentTest(
-            operand.localToObject.transformPoint(point),
+        return operand->getGeometry()->doContainmentTest(
+            operand->getLocalToObject().transformPoint(point),
             distanceTolerance);
 
     case BakedScene::CsgOperandKind::DirectAnnotatedPrimitive:
     case BakedScene::CsgOperandKind::DirectPrimitive:
     case BakedScene::CsgOperandKind::GenericFallback:
-        return operand.geometry != nullptr ?
-            operand.geometry->doContainmentTest(point, distanceTolerance) :
+        return operand->getGeometry() != nullptr ?
+            operand->getGeometry()->doContainmentTest(point, distanceTolerance) :
             Geometry::OUTSIDE;
     }
     return Geometry::OUTSIDE;
@@ -60,17 +60,17 @@ CsgContainmentTest::containmentTestOperand(
 
 bool
 CsgContainmentTest::candidateInsideAllOtherOperands(
-    const BakedScene::CsgProgram &bakedCsg,
-    const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+    const CsgProgram *bakedCsg,
+    const java::ArrayList<CsgProgram *> &bakedCsgs,
     const Vector3Dd &point,
     long int skipIndex)
 {
-    for (long int j = bakedCsg.operands.size() - 1; j >= 0; j--) {
+    for (long int j = bakedCsg->getOperands().size() - 1; j >= 0; j--) {
         if (j == skipIndex) {
             continue;
         }
         if (containmentTestOperand(
-                bakedCsg.operands[j],
+                bakedCsg->getOperands()[j],
                 bakedCsgs,
                 point,
                 GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
@@ -82,15 +82,15 @@ CsgContainmentTest::candidateInsideAllOtherOperands(
 
 bool
 CsgContainmentTest::candidateInsideOperandsCoreFirst(
-    const BakedScene::CsgProgram &bakedCsg,
-    const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+    const CsgProgram *bakedCsg,
+    const java::ArrayList<CsgProgram *> &bakedCsgs,
     const Vector3Dd &point,
     long int skipIndex,
     long int coreIndex)
 {
     if (coreIndex >= 0 && coreIndex != skipIndex) {
         if (containmentTestOperand(
-                bakedCsg.operands[coreIndex],
+                bakedCsg->getOperands()[coreIndex],
                 bakedCsgs,
                 point,
                 GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
@@ -98,12 +98,12 @@ CsgContainmentTest::candidateInsideOperandsCoreFirst(
         }
     }
 
-    for (long int j = bakedCsg.operands.size() - 1; j >= 0; j--) {
+    for (long int j = bakedCsg->getOperands().size() - 1; j >= 0; j--) {
         if (j == skipIndex || j == coreIndex) {
             continue;
         }
         if (containmentTestOperand(
-                bakedCsg.operands[j],
+                bakedCsg->getOperands()[j],
                 bakedCsgs,
                 point,
                 GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
@@ -115,20 +115,20 @@ CsgContainmentTest::candidateInsideOperandsCoreFirst(
 
 int
 CsgContainmentTest::containmentTest(
-    const BakedScene::CsgProgram &bakedCsg,
-    const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+    const CsgProgram *bakedCsg,
+    const java::ArrayList<CsgProgram *> &bakedCsgs,
     const Vector3Dd &point,
     double distanceTolerance)
 {
-    if (bakedCsg.operands.size() == 0) {
+    if (bakedCsg->getOperands().size() == 0) {
         return Geometry::OUTSIDE;
     }
 
-    if (bakedCsg.planKind ==
+    if (bakedCsg->getPlanKind() ==
         BakedScene::CsgPlanKind::DisjointBoundedUnion) {
-        for (long int i = 0; i < bakedCsg.operands.size(); i++) {
-            const BakedScene::CsgOperandRecord &operand = bakedCsg.operands[i];
-            if (!AabbCullingSupport::pointInsideAabb(point, operand.bakedBounds, distanceTolerance)) {
+        for (long int i = 0; i < bakedCsg->getOperands().size(); i++) {
+            const CsgOperandRecord *operand = bakedCsg->getOperands()[i];
+            if (!AabbCullingSupport::pointInsideAabb(point, operand->getBakedBounds(), distanceTolerance)) {
                 continue;
             }
             if (containmentTestOperand(
@@ -143,14 +143,14 @@ CsgContainmentTest::containmentTest(
     }
 
     bool isInside;
-    switch (bakedCsg.geometryType) {
+    switch (bakedCsg->getGeometryType()) {
     case BooleanSetOperations::DIFFERENCE:
         isInside =
             containmentTestOperand(
-                bakedCsg.operands[0], bakedCsgs, point, distanceTolerance) != Geometry::OUTSIDE;
-        for (long int i = 1; isInside && (i < bakedCsg.operands.size()); i++) {
+                bakedCsg->getOperands()[0], bakedCsgs, point, distanceTolerance) != Geometry::OUTSIDE;
+        for (long int i = 1; isInside && (i < bakedCsg->getOperands().size()); i++) {
             if (containmentTestOperand(
-                    bakedCsg.operands[i],
+                    bakedCsg->getOperands()[i],
                     bakedCsgs,
                     point,
                     distanceTolerance) != Geometry::OUTSIDE) {
@@ -161,9 +161,9 @@ CsgContainmentTest::containmentTest(
 
     case BooleanSetOperations::INTERSECTION:
         isInside = true;
-        for (long int i = 0; isInside && (i < bakedCsg.operands.size()); i++) {
+        for (long int i = 0; isInside && (i < bakedCsg->getOperands().size()); i++) {
             if (containmentTestOperand(
-                    bakedCsg.operands[i],
+                    bakedCsg->getOperands()[i],
                     bakedCsgs,
                     point,
                     distanceTolerance) == Geometry::OUTSIDE) {
@@ -174,9 +174,9 @@ CsgContainmentTest::containmentTest(
 
     default:
         isInside = false;
-        for (long int i = 0; !isInside && (i < bakedCsg.operands.size()); i++) {
+        for (long int i = 0; !isInside && (i < bakedCsg->getOperands().size()); i++) {
             if (containmentTestOperand(
-                    bakedCsg.operands[i],
+                    bakedCsg->getOperands()[i],
                     bakedCsgs,
                     point,
                     distanceTolerance) != Geometry::OUTSIDE) {

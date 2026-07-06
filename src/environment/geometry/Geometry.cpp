@@ -7,8 +7,8 @@ Geometry::applyAnnotatedEmissionContext(
     const GeometryIntersectionEmissionContext &context)
 {
     IntersectionAttributes &attributes = candidate.getAttributes();
-    attributes.pushDetailOwner(context.detailOwner);
-    attributes.setMaterialUsesObjectLocalPoint(context.materialUsesObjectLocalPoint);
+    attributes.pushDetailOwner(context.getDetailOwner());
+    attributes.setMaterialUsesObjectLocalPoint(context.getMaterialUsesObjectLocalPoint());
 }
 
 int
@@ -19,7 +19,7 @@ Geometry::doIntersectionForAllRayCrossingsAnnotated(
 {
     if (depthQueue->size() == 0) {
         const int found =
-            doIntersectionForAllRayCrossings(ray, depthQueue, context.materialOverride);
+            doIntersectionForAllRayCrossings(ray, depthQueue, context.getMaterialOverride());
         if (!found || depthQueue->size() == 0) {
             return found;
         }
@@ -32,7 +32,7 @@ Geometry::doIntersectionForAllRayCrossingsAnnotated(
     java::PriorityQueue<IntersectionCandidate> * const freshQueue =
         ray->getIntersectionQueuePool()->pop(128);
     const int found =
-        doIntersectionForAllRayCrossings(ray, freshQueue, context.materialOverride);
+        doIntersectionForAllRayCrossings(ray, freshQueue, context.getMaterialOverride());
     if (found && freshQueue->size() > 0) {
         for (IntersectionCandidate &candidate : *freshQueue) {
             applyAnnotatedEmissionContext(candidate, context);

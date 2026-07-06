@@ -21,56 +21,61 @@ BakedSceneBuilder::copyOrIdentity(const Matrix4x4d *matrix)
     return matrix != nullptr ? Matrix4x4d(*matrix) : Matrix4x4d::identityMatrix();
 }
 
-BakedScene::TraceKind
+BakedSceneTraceKind
 BakedSceneBuilder::classifyTraceableObject(bool hasGeometry, bool boundedOrClipped, bool hasCsg)
 {
     if (!hasGeometry) {
-        return BakedScene::TraceKind::Empty;
+        return BakedSceneTraceKind::Empty;
     }
     if (boundedOrClipped) {
-        return BakedScene::TraceKind::BoundedGeneric;
+        return BakedSceneTraceKind::BoundedGeneric;
     }
-    return hasCsg ? BakedScene::TraceKind::Csg : BakedScene::TraceKind::DirectPrimitive;
+    return hasCsg ? BakedSceneTraceKind::Csg : BakedSceneTraceKind::DirectPrimitive;
 }
 
-BakedScene::CsgOperandKind
-BakedSceneBuilder::classifyOperandKind(const BakedScene::CsgOperandRecord &baked)
+BakedSceneCsgOperandKind
+BakedSceneBuilder::classifyOperandKind(
+    Geometry *geometry,
+    int nestedCsgProgramIndex,
+    bool hasTransform,
+    bool isInfinitePlane,
+    Quadric *quadricGeometry)
 {
-    if (baked.geometry == nullptr) {
-        return BakedScene::CsgOperandKind::Empty;
+    if (geometry == nullptr) {
+        return BakedSceneCsgOperandKind::Empty;
     }
-    if (baked.nestedCsgProgramIndex >= 0) {
-        return baked.hasTransform ?
-            BakedScene::CsgOperandKind::TransformedNestedCsg :
-            BakedScene::CsgOperandKind::NestedCsg;
+    if (nestedCsgProgramIndex >= 0) {
+        return hasTransform ?
+            BakedSceneCsgOperandKind::TransformedNestedCsg :
+            BakedSceneCsgOperandKind::NestedCsg;
     }
-    if (baked.isInfinitePlane) {
-        return baked.hasTransform ?
-            BakedScene::CsgOperandKind::TransformedPlane :
-            BakedScene::CsgOperandKind::DirectPlane;
+    if (isInfinitePlane) {
+        return hasTransform ?
+            BakedSceneCsgOperandKind::TransformedPlane :
+            BakedSceneCsgOperandKind::DirectPlane;
     }
-    if (baked.hasTransform) {
-        if (baked.quadricGeometry != nullptr) {
-            return BakedScene::CsgOperandKind::TransformedQuadric;
+    if (hasTransform) {
+        if (quadricGeometry != nullptr) {
+            return BakedSceneCsgOperandKind::TransformedQuadric;
         }
-        if (dynamic_cast<Sphere *>(baked.geometry) != nullptr) {
-            return BakedScene::CsgOperandKind::TransformedSphere;
+        if (dynamic_cast<Sphere *>(geometry) != nullptr) {
+            return BakedSceneCsgOperandKind::TransformedSphere;
         }
-        return BakedScene::CsgOperandKind::TransformedPrimitive;
+        return BakedSceneCsgOperandKind::TransformedPrimitive;
     }
-    return baked.geometry->hasNativeAnnotatedCrossings() ?
-        BakedScene::CsgOperandKind::DirectAnnotatedPrimitive :
-        BakedScene::CsgOperandKind::DirectPrimitive;
+    return geometry->hasNativeAnnotatedCrossings() ?
+        BakedSceneCsgOperandKind::DirectAnnotatedPrimitive :
+        BakedSceneCsgOperandKind::DirectPrimitive;
 }
 
 bool
-BakedSceneBuilder::hasFiniteInteriorBounds(const BakedScene::CsgOperandRecord &operand)
+BakedSceneBuilder::hasFiniteInteriorBounds(const CsgOperandRecord *operand)
 {
-    if (!operand.bounded || !operand.cullSafe || operand.nestedCsgProgramIndex >= 0) {
+    if (!operand->getBounded() || !operand->getCullSafe() || operand->getNestedCsgProgramIndex() >= 0) {
         return false;
     }
 
-    const Geometry *geometry = operand.geometry;
+    const Geometry *geometry = operand->getGeometry();
     if (const Sphere *sphere = dynamic_cast<const Sphere *>(geometry)) {
         return !sphere->isInverted();
     }
@@ -91,7 +96,7 @@ BakedSceneBuilder::areSeparated(const AxisAlignedBoundingBox &left, const AxisAl
 
 bool
 BakedSceneBuilder::hasPairwiseDisjointFiniteOperands(
-    const java::ArrayList<BakedScene::CsgOperandRecord> &operands)
+    const java::ArrayList<CsgOperandRecord *> &operands)
 {
     if (operands.size() == 0) {
         return false;
@@ -103,7 +108,7 @@ BakedSceneBuilder::hasPairwiseDisjointFiniteOperands(
     }
     for (long int i = 0; i < operands.size(); i++) {
         for (long int j = i + 1; j < operands.size(); j++) {
-            if (!areSeparated(operands[i].bakedBounds, operands[j].bakedBounds)) {
+            if (!areSeparated(operands[i]->getBakedBounds(), operands[j]->getBakedBounds())) {
                 return false;
             }
         }
@@ -112,37 +117,42 @@ BakedSceneBuilder::hasPairwiseDisjointFiniteOperands(
 }
 
 void
-BakedSceneBuilder::classifyCsgProgramSpecialization(BakedScene::CsgProgram &baked)
+BakedSceneBuilder::classifyCsgProgramSpecialization(
+    BooleanSetOperations geometryType,
+    bool topLevel,
+    const java::ArrayList<CsgOperandRecord *> &operands,
+    BakedSceneCsgPlanKind &planKind,
+    bool &specializationValid,
+    int &specializationCoreOperandIndex)
 {
-    if (baked.geometryType != BooleanSetOperations::DIFFERENCE &&
-        baked.geometryType != BooleanSetOperations::INTERSECTION) {
-        bool allPlanes = baked.operands.size() > 0;
-        for (long int i = 0; i < baked.operands.size(); i++) {
-            if (!baked.operands[i].isInfinitePlane) {
+    if (geometryType != BooleanSetOperations::DIFFERENCE &&
+        geometryType != BooleanSetOperations::INTERSECTION) {
+        bool allPlanes = operands.size() > 0;
+        for (long int i = 0; i < operands.size(); i++) {
+            if (!operands[i]->getIsInfinitePlane()) {
                 allPlanes = false;
             }
         }
-        if (baked.topLevel && allPlanes) {
-            baked.planKind = BakedScene::CsgPlanKind::TopLevelPlaneUnion;
-            baked.specializationValid = true;
+        if (topLevel && allPlanes) {
+            planKind = BakedSceneCsgPlanKind::TopLevelPlaneUnion;
+            specializationValid = true;
             return;
         }
-        if (hasPairwiseDisjointFiniteOperands(baked.operands)) {
-            baked.planKind = BakedScene::CsgPlanKind::DisjointBoundedUnion;
-            baked.specializationValid = true;
+        if (hasPairwiseDisjointFiniteOperands(operands)) {
+            planKind = BakedSceneCsgPlanKind::DisjointBoundedUnion;
+            specializationValid = true;
         }
         return;
     }
 
-    if (baked.geometryType != BooleanSetOperations::INTERSECTION ||
-        baked.operands.size() < 2) {
+    if (geometryType != BooleanSetOperations::INTERSECTION || operands.size() < 2) {
         return;
     }
 
     int coreIndex = -1;
-    for (long int i = 0; i < baked.operands.size(); i++) {
-        const BakedScene::CsgOperandRecord &operand = baked.operands[i];
-        if (operand.isInfinitePlane && operand.nestedCsgProgramIndex < 0) {
+    for (long int i = 0; i < operands.size(); i++) {
+        const CsgOperandRecord *operand = operands[i];
+        if (operand->getIsInfinitePlane() && operand->getNestedCsgProgramIndex() < 0) {
             continue;
         }
         if (coreIndex >= 0) {
@@ -151,110 +161,234 @@ BakedSceneBuilder::classifyCsgProgramSpecialization(BakedScene::CsgProgram &bake
         coreIndex = i;
     }
     if (coreIndex >= 0) {
-        baked.planKind = BakedScene::CsgPlanKind::SingleCorePlaneIntersection;
-        baked.specializationCoreOperandIndex = coreIndex;
-        baked.specializationValid = true;
+        planKind = BakedSceneCsgPlanKind::SingleCorePlaneIntersection;
+        specializationCoreOperandIndex = coreIndex;
+        specializationValid = true;
     }
 }
 
 // `out` is read here (for already-compiled nested CsgPrograms only - a
 // nested operand's underlying CSG is always compiled before this function
 // runs for the outer CSG, see bakeCsgOperand/bakeConstructiveSolidGeometry
-// below), never written except through `baked` itself.
+// below), never written except through `operands` itself.
 void
-BakedSceneBuilder::buildCsgExecutionPlan(BakedScene::CsgProgram &baked, const BakedScene &out)
+BakedSceneBuilder::buildCsgExecutionPlan(
+    BakedSceneCsgAlgorithm algorithm,
+    bool specializationValid,
+    BakedSceneCsgPlanKind &planKind,
+    java::ArrayList<CsgOperandRecord *> &operands,
+    const BakedScene &out,
+    java::ArrayList<int> &planeOperandIndices,
+    java::ArrayList<int> &nestedOperandIndices,
+    java::ArrayList<int> &transformedPrimitiveOperandIndices,
+    java::ArrayList<int> &directPrimitiveOperandIndices)
 {
-    baked.planeOperandIndices.clear();
-    baked.nestedOperandIndices.clear();
-    baked.transformedPrimitiveOperandIndices.clear();
-    baked.directPrimitiveOperandIndices.clear();
+    planeOperandIndices.clear();
+    nestedOperandIndices.clear();
+    transformedPrimitiveOperandIndices.clear();
+    directPrimitiveOperandIndices.clear();
 
-    for (long int i = 0; i < baked.operands.size(); i++) {
-        BakedScene::CsgOperandRecord &operand = baked.operands[i];
-        operand.compiledTransformedNestedCorePlane = false;
-        operand.compiledNestedCoreOperandIndex = -1;
-        operand.compiledNestedCoreDirectQuadric = false;
-        operand.compiledNestedCoreTransformedQuadric = false;
-        operand.compiledNestedPlaneOperandIndices.clear();
-        operand.compiledNestedContainmentOperandIndices.clear();
-        switch (operand.kind) {
-        case BakedScene::CsgOperandKind::DirectPlane:
-        case BakedScene::CsgOperandKind::TransformedPlane:
-            baked.planeOperandIndices.add((int)i);
+    for (long int i = 0; i < operands.size(); i++) {
+        CsgOperandRecord *operand = operands[i];
+        bool compiledTransformedNestedCorePlane = false;
+        int compiledNestedCoreOperandIndex = -1;
+        bool compiledNestedCoreDirectQuadric = false;
+        bool compiledNestedCoreTransformedQuadric = false;
+        java::ArrayList<int> compiledNestedPlaneOperandIndices;
+        java::ArrayList<int> compiledNestedContainmentOperandIndices;
+
+        switch (operand->getKind()) {
+        case BakedSceneCsgOperandKind::DirectPlane:
+        case BakedSceneCsgOperandKind::TransformedPlane:
+            planeOperandIndices.add((int)i);
             break;
-        case BakedScene::CsgOperandKind::NestedCsg:
-        case BakedScene::CsgOperandKind::TransformedNestedCsg:
-            baked.nestedOperandIndices.add((int)i);
-            if ((operand.kind == BakedScene::CsgOperandKind::TransformedNestedCsg ||
-                 (operand.kind == BakedScene::CsgOperandKind::NestedCsg &&
-                  operand.pushdownFolded)) &&
-                operand.nestedCsgProgramIndex >= 0 &&
-                operand.nestedCsgProgramIndex < out.csgPrograms.size()) {
-                const BakedScene::CsgProgram &nestedCsg =
-                    out.csgPrograms[operand.nestedCsgProgramIndex];
-                const int coreIndex = nestedCsg.specializationCoreOperandIndex;
-                if (nestedCsg.planKind ==
-                        BakedScene::CsgPlanKind::SingleCorePlaneIntersection &&
-                    nestedCsg.specializationValid &&
+        case BakedSceneCsgOperandKind::NestedCsg:
+        case BakedSceneCsgOperandKind::TransformedNestedCsg:
+            nestedOperandIndices.add((int)i);
+            if ((operand->getKind() == BakedSceneCsgOperandKind::TransformedNestedCsg ||
+                 (operand->getKind() == BakedSceneCsgOperandKind::NestedCsg &&
+                  operand->getPushdownFolded())) &&
+                operand->getNestedCsgProgramIndex() >= 0 &&
+                operand->getNestedCsgProgramIndex() < out.csgPrograms.size()) {
+                const CsgProgram *nestedCsg = out.csgPrograms[operand->getNestedCsgProgramIndex()];
+                const int coreIndex = nestedCsg->getSpecializationCoreOperandIndex();
+                if (nestedCsg->getPlanKind() ==
+                        BakedSceneCsgPlanKind::SingleCorePlaneIntersection &&
+                    nestedCsg->getSpecializationValid() &&
                     coreIndex >= 0 &&
-                    coreIndex < nestedCsg.operands.size() &&
-                    nestedCsg.planeOperandIndices.size() + 1 ==
-                        nestedCsg.operands.size()) {
-                    const BakedScene::CsgOperandRecord &coreOperand =
-                        nestedCsg.operands[coreIndex];
+                    coreIndex < nestedCsg->getOperands().size() &&
+                    nestedCsg->getPlaneOperandIndices().size() + 1 ==
+                        nestedCsg->getOperands().size()) {
+                    const CsgOperandRecord *coreOperand = nestedCsg->getOperands()[coreIndex];
                     const bool directQuadric =
-                        coreOperand.kind ==
-                            BakedScene::CsgOperandKind::DirectAnnotatedPrimitive &&
-                        coreOperand.quadricGeometry != nullptr;
+                        coreOperand->getKind() ==
+                            BakedSceneCsgOperandKind::DirectAnnotatedPrimitive &&
+                        coreOperand->getQuadricGeometry() != nullptr;
                     const bool transformedQuadric =
-                        coreOperand.kind ==
-                            BakedScene::CsgOperandKind::TransformedQuadric &&
-                        coreOperand.quadricGeometry != nullptr;
+                        coreOperand->getKind() ==
+                            BakedSceneCsgOperandKind::TransformedQuadric &&
+                        coreOperand->getQuadricGeometry() != nullptr;
                     if (directQuadric || transformedQuadric) {
-                        operand.compiledTransformedNestedCorePlane = true;
-                        operand.compiledNestedCoreOperandIndex = coreIndex;
-                        operand.compiledNestedCoreDirectQuadric = directQuadric;
-                        operand.compiledNestedCoreTransformedQuadric = transformedQuadric;
-                        operand.compiledNestedPlaneOperandIndices.reserve(
-                            nestedCsg.planeOperandIndices.size());
-                        operand.compiledNestedContainmentOperandIndices.reserve(
-                            nestedCsg.planeOperandIndices.size() + 1);
-                        operand.compiledNestedContainmentOperandIndices.add(coreIndex);
+                        compiledTransformedNestedCorePlane = true;
+                        compiledNestedCoreOperandIndex = coreIndex;
+                        compiledNestedCoreDirectQuadric = directQuadric;
+                        compiledNestedCoreTransformedQuadric = transformedQuadric;
+                        compiledNestedPlaneOperandIndices.reserve(
+                            nestedCsg->getPlaneOperandIndices().size());
+                        compiledNestedContainmentOperandIndices.reserve(
+                            nestedCsg->getPlaneOperandIndices().size() + 1);
+                        compiledNestedContainmentOperandIndices.add(coreIndex);
                         for (long int p = 0;
-                             p < nestedCsg.planeOperandIndices.size();
+                             p < nestedCsg->getPlaneOperandIndices().size();
                              p++) {
                             const int planeOperandIndex =
-                                nestedCsg.planeOperandIndices[p];
-                            operand.compiledNestedPlaneOperandIndices.add(
-                                planeOperandIndex);
-                            operand.compiledNestedContainmentOperandIndices.add(
-                                planeOperandIndex);
+                                nestedCsg->getPlaneOperandIndices()[p];
+                            compiledNestedPlaneOperandIndices.add(planeOperandIndex);
+                            compiledNestedContainmentOperandIndices.add(planeOperandIndex);
                         }
                     }
                 }
             }
             break;
-        case BakedScene::CsgOperandKind::TransformedQuadric:
-        case BakedScene::CsgOperandKind::TransformedSphere:
-        case BakedScene::CsgOperandKind::TransformedPrimitive:
-            baked.transformedPrimitiveOperandIndices.add((int)i);
+        case BakedSceneCsgOperandKind::TransformedQuadric:
+        case BakedSceneCsgOperandKind::TransformedSphere:
+        case BakedSceneCsgOperandKind::TransformedPrimitive:
+            transformedPrimitiveOperandIndices.add((int)i);
             break;
-        case BakedScene::CsgOperandKind::DirectAnnotatedPrimitive:
-        case BakedScene::CsgOperandKind::DirectPrimitive:
-            baked.directPrimitiveOperandIndices.add((int)i);
+        case BakedSceneCsgOperandKind::DirectAnnotatedPrimitive:
+        case BakedSceneCsgOperandKind::DirectPrimitive:
+            directPrimitiveOperandIndices.add((int)i);
             break;
-        case BakedScene::CsgOperandKind::Empty:
-        case BakedScene::CsgOperandKind::GenericFallback:
+        case BakedSceneCsgOperandKind::Empty:
+        case BakedSceneCsgOperandKind::GenericFallback:
             break;
         }
+
+        operands[i] = cloneOperandWithCompiledPlan(
+            operand,
+            compiledTransformedNestedCorePlane,
+            compiledNestedCoreOperandIndex,
+            compiledNestedCoreDirectQuadric,
+            compiledNestedCoreTransformedQuadric,
+            compiledNestedPlaneOperandIndices,
+            compiledNestedContainmentOperandIndices);
+        delete operand;
     }
 
-    if (!baked.specializationValid) {
-        baked.planKind =
-            baked.algorithm == BakedScene::CsgAlgorithm::RaySegments ?
-                BakedScene::CsgPlanKind::GenericRaySegments :
-                BakedScene::CsgPlanKind::GenericMorgan;
+    if (!specializationValid) {
+        planKind =
+            algorithm == BakedSceneCsgAlgorithm::RaySegments ?
+                BakedSceneCsgPlanKind::GenericRaySegments :
+                BakedSceneCsgPlanKind::GenericMorgan;
     }
+}
+
+CsgOperandRecord *
+BakedSceneBuilder::cloneOperandWithCompiledPlan(
+    const CsgOperandRecord *base,
+    bool compiledTransformedNestedCorePlane,
+    int compiledNestedCoreOperandIndex,
+    bool compiledNestedCoreDirectQuadric,
+    bool compiledNestedCoreTransformedQuadric,
+    const java::ArrayList<int> &compiledNestedPlaneOperandIndices,
+    const java::ArrayList<int> &compiledNestedContainmentOperandIndices)
+{
+    return new CsgOperandRecord(
+        base->getKind(), base->getOperand(), base->getOriginalGeometry(),
+        base->getOriginalQuadricGeometry(), base->getMaterial(), base->getNestedCsgProgramIndex(),
+        base->getBakedBounds(), base->getObjectToLocal(), base->getLocalToObject(),
+        base->getHasTransform(), base->getBounded(), base->getCullSafe(), base->getIsInfinitePlane(),
+        base->getPlaneNormal(), base->getPlaneDistance(), base->getQuadricViewpointSlot(),
+        base->getPlaneViewpointSlot(), base->getBakedQuadricStorage(), base->getHasBakedQuadric(),
+        base->getBakedPlaneStorage(), base->getHasBakedPlane(),
+        compiledTransformedNestedCorePlane, compiledNestedCoreOperandIndex,
+        compiledNestedCoreDirectQuadric, compiledNestedCoreTransformedQuadric,
+        compiledNestedPlaneOperandIndices, compiledNestedContainmentOperandIndices,
+        base->getPushdownAccumulatedSteps(), base->getPushdownFolded());
+}
+
+CsgOperandRecord *
+BakedSceneBuilder::cloneOperandWithViewpointSlots(
+    const CsgOperandRecord *base, int quadricViewpointSlot, int planeViewpointSlot)
+{
+    return new CsgOperandRecord(
+        base->getKind(), base->getOperand(), base->getOriginalGeometry(),
+        base->getOriginalQuadricGeometry(), base->getMaterial(), base->getNestedCsgProgramIndex(),
+        base->getBakedBounds(), base->getObjectToLocal(), base->getLocalToObject(),
+        base->getHasTransform(), base->getBounded(), base->getCullSafe(), base->getIsInfinitePlane(),
+        base->getPlaneNormal(), base->getPlaneDistance(), quadricViewpointSlot, planeViewpointSlot,
+        base->getBakedQuadricStorage(), base->getHasBakedQuadric(), base->getBakedPlaneStorage(),
+        base->getHasBakedPlane(), base->getCompiledTransformedNestedCorePlane(),
+        base->getCompiledNestedCoreOperandIndex(), base->getCompiledNestedCoreDirectQuadric(),
+        base->getCompiledNestedCoreTransformedQuadric(), base->getCompiledNestedPlaneOperandIndices(),
+        base->getCompiledNestedContainmentOperandIndices(), base->getPushdownAccumulatedSteps(),
+        base->getPushdownFolded());
+}
+
+CsgOperandRecord *
+BakedSceneBuilder::cloneOperandWithPushdownBake(
+    const CsgOperandRecord *base,
+    const AxisAlignedBoundingBox &bakedBounds,
+    bool bounded,
+    BakedSceneCsgOperandKind kind,
+    bool hasTransform,
+    const Matrix4x4d &objectToLocal,
+    const Matrix4x4d &localToObject,
+    bool pushdownFolded,
+    const Quadric &bakedQuadricStorage,
+    bool hasBakedQuadric,
+    const InfinitePlane &bakedPlaneStorage,
+    bool hasBakedPlane,
+    const Vector3Dd &planeNormal,
+    double planeDistance,
+    const java::ArrayList<TransformStep> &pushdownAccumulatedSteps)
+{
+    return new CsgOperandRecord(
+        kind, base->getOperand(), base->getOriginalGeometry(), base->getOriginalQuadricGeometry(),
+        base->getMaterial(), base->getNestedCsgProgramIndex(), bakedBounds, objectToLocal, localToObject,
+        hasTransform, bounded, base->getCullSafe(), base->getIsInfinitePlane(), planeNormal, planeDistance,
+        base->getQuadricViewpointSlot(), base->getPlaneViewpointSlot(), bakedQuadricStorage, hasBakedQuadric,
+        bakedPlaneStorage, hasBakedPlane,
+        base->getCompiledTransformedNestedCorePlane(), base->getCompiledNestedCoreOperandIndex(),
+        base->getCompiledNestedCoreDirectQuadric(), base->getCompiledNestedCoreTransformedQuadric(),
+        base->getCompiledNestedPlaneOperandIndices(), base->getCompiledNestedContainmentOperandIndices(),
+        pushdownAccumulatedSteps, pushdownFolded);
+}
+
+TraceableObject *
+BakedSceneBuilder::cloneObjectWithViewpointSlot(const TraceableObject *base, int quadricViewpointSlot)
+{
+    return new TraceableObject(
+        base->getKind(), base->getObject(), base->getOriginalGeometry(),
+        base->getOriginalQuadricGeometry(), base->getGeometryMaterial(), base->getObjectTexture(),
+        base->getObjectColor(), base->getWorldBounds(), base->getBounded(), base->getCastsShadow(),
+        base->getNoShadowFlag(), base->getCsgProgramIndex(), base->getCompositeIndex(),
+        base->getObjectToWorld(), base->getWorldToObject(), base->getGeometryToObject(),
+        base->getObjectToGeometry(), base->getGeometryToWorld(), base->getWorldToGeometry(),
+        base->getHasObjectTransform(), base->getHasGeometryTransform(), base->getHasBoundingShapes(),
+        base->getHasClippingShapes(), base->getBoundingObjectIndices(), base->getClippingObjectIndices(),
+        base->getBakedQuadricStorage(), base->getHasBakedQuadric(), base->getBakedPlaneStorage(),
+        base->getHasBakedPlane(), quadricViewpointSlot);
+}
+
+CsgProgram *
+BakedSceneBuilder::cloneProgramWithReclassification(
+    const CsgProgram *base,
+    BakedSceneCsgPlanKind planKind,
+    bool specializationValid,
+    int specializationCoreOperandIndex,
+    const java::ArrayList<int> &planeOperandIndices,
+    const java::ArrayList<int> &nestedOperandIndices,
+    const java::ArrayList<int> &transformedPrimitiveOperandIndices,
+    const java::ArrayList<int> &directPrimitiveOperandIndices,
+    const java::ArrayList<CsgOperandRecord *> &operands)
+{
+    return new CsgProgram(
+        base->getAlgorithm(), planKind, base->getGeometryType(), base->getTopLevel(),
+        specializationValid, specializationCoreOperandIndex,
+        planeOperandIndices, nestedOperandIndices, transformedPrimitiveOperandIndices,
+        directPrimitiveOperandIndices, operands,
+        base->getDirectPrimitiveCullBins(), base->getTransformedPrimitiveCullBins());
 }
 
 void
@@ -273,36 +407,37 @@ BakedSceneBuilder::compileTracingObjects(
     }
 }
 
-BakedScene::TraceableObject
+TraceableObject *
 BakedSceneBuilder::bakeSimpleBody(SimpleBody *object, BakedScene &out)
 {
-    BakedScene::TraceableObject baked;
-    baked.object = object;
-    baked.geometry = object->getGeometry();
-    baked.quadricGeometry = dynamic_cast<Quadric *>(baked.geometry);
-    baked.geometryMaterial = object->getGeometryMaterial();
-    baked.objectTexture = object->getObjectTexture();
-    baked.objectColor = object->getObjectColor();
-    baked.worldBounds = object->getAABB();
-    baked.bounded = !baked.worldBounds.isUnbounded();
-    baked.noShadowFlag = object->getNoShadowFlag();
-    baked.castsShadow = !baked.noShadowFlag;
-    baked.hasObjectTransform = object->getTransformation() != nullptr;
-    baked.hasGeometryTransform = object->getGeometryTransformation() != nullptr;
-    baked.hasBoundingShapes = object->getBoundingShapes().size() > 0;
-    baked.hasClippingShapes = object->getClippingShapes().size() > 0;
-    baked.objectToWorld = copyOrIdentity(object->getTransformation());
-    baked.worldToObject = copyOrIdentity(object->getTransformationInverse());
+    Geometry *originalGeometry = object->getGeometry();
+    Quadric *originalQuadricGeometry = dynamic_cast<Quadric *>(originalGeometry);
+    Material *geometryMaterial = object->getGeometryMaterial();
+    Material *objectTexture = object->getObjectTexture();
+    ColorRgba *objectColor = object->getObjectColor();
+    AxisAlignedBoundingBox worldBounds = object->getAABB();
+    bool bounded = !worldBounds.isUnbounded();
+    bool noShadowFlag = object->getNoShadowFlag();
+    bool castsShadow = !noShadowFlag;
+    bool hasObjectTransform = object->getTransformation() != nullptr;
+    bool hasGeometryTransform = object->getGeometryTransformation() != nullptr;
+    bool hasBoundingShapes = object->getBoundingShapes().size() > 0;
+    bool hasClippingShapes = object->getClippingShapes().size() > 0;
+    Matrix4x4d objectToWorld = copyOrIdentity(object->getTransformation());
+    Matrix4x4d worldToObject = copyOrIdentity(object->getTransformationInverse());
 
-    baked.geometryToObject =
-        copyOrIdentity(object->getGeometryTransformation());
-    baked.objectToGeometry =
-        copyOrIdentity(object->getGeometryTransformationInverse());
-    baked.geometryToWorld = baked.objectToWorld.multiply(baked.geometryToObject);
-    baked.worldToGeometry = baked.objectToGeometry.multiply(baked.worldToObject);
+    Matrix4x4d geometryToObject = copyOrIdentity(object->getGeometryTransformation());
+    Matrix4x4d objectToGeometry = copyOrIdentity(object->getGeometryTransformationInverse());
+    Matrix4x4d geometryToWorld = objectToWorld.multiply(geometryToObject);
+    Matrix4x4d worldToGeometry = objectToGeometry.multiply(worldToObject);
 
-    if (!baked.hasBoundingShapes && !baked.hasClippingShapes &&
-        (baked.hasObjectTransform || baked.hasGeometryTransform)) {
+    Quadric bakedQuadricStorage;
+    bool hasBakedQuadric = false;
+    InfinitePlane bakedPlaneStorage;
+    bool hasBakedPlane = false;
+
+    if (!hasBoundingShapes && !hasClippingShapes &&
+        (hasObjectTransform || hasGeometryTransform)) {
         java::ArrayList<TransformStep> combinedSteps(
             object->getGeometrySteps().size() + object->getBodySteps().size());
         for (long int i = 0; i < object->getGeometrySteps().size(); i++) {
@@ -312,37 +447,50 @@ BakedSceneBuilder::bakeSimpleBody(SimpleBody *object, BakedScene &out)
             combinedSteps.add(object->getBodySteps()[i]);
         }
         if (combinedSteps.size() > 0) {
-            if (baked.quadricGeometry != nullptr) {
-                baked.bakedQuadricStorage =
-                    BakedGeometryBaker::bakeQuadric(*baked.quadricGeometry, combinedSteps);
-                baked.hasBakedQuadric = true;
-                baked.hasObjectTransform = false;
-                baked.hasGeometryTransform = false;
+            if (originalQuadricGeometry != nullptr) {
+                bakedQuadricStorage =
+                    BakedGeometryBaker::bakeQuadric(*originalQuadricGeometry, combinedSteps);
+                hasBakedQuadric = true;
+                hasObjectTransform = false;
+                hasGeometryTransform = false;
                 object->setBakedTransformFolded(true);
-            } else if (InfinitePlane *plane = dynamic_cast<InfinitePlane *>(baked.geometry)) {
-                baked.bakedPlaneStorage = BakedGeometryBaker::bakePlane(*plane, combinedSteps);
-                baked.hasBakedPlane = true;
-                baked.hasObjectTransform = false;
-                baked.hasGeometryTransform = false;
+            } else if (InfinitePlane *plane = dynamic_cast<InfinitePlane *>(originalGeometry)) {
+                bakedPlaneStorage = BakedGeometryBaker::bakePlane(*plane, combinedSteps);
+                hasBakedPlane = true;
+                hasObjectTransform = false;
+                hasGeometryTransform = false;
                 object->setBakedTransformFolded(true);
             }
         }
     }
 
+    int csgProgramIndex = -1;
     if (ConstructiveSolidGeometry *csg =
-            dynamic_cast<ConstructiveSolidGeometry *>(baked.geometry)) {
-        baked.csgProgramIndex = compileConstructiveSolidGeometry(csg, out);
-    } else {
-        baked.csgProgramIndex = -1;
+            dynamic_cast<ConstructiveSolidGeometry *>(originalGeometry)) {
+        csgProgramIndex = compileConstructiveSolidGeometry(csg, out);
     }
 
-    return baked;
+    java::ArrayList<int> boundingObjectIndices;
+    java::ArrayList<int> clippingObjectIndices;
+    compileTracingObjects(object->getBoundingShapes(), out, boundingObjectIndices);
+    compileTracingObjects(object->getClippingShapes(), out, clippingObjectIndices);
+
+    BakedSceneTraceKind kind = classifyTraceableObject(
+        originalGeometry != nullptr, hasBoundingShapes || hasClippingShapes, csgProgramIndex >= 0);
+
+    return new TraceableObject(
+        kind, object, originalGeometry, originalQuadricGeometry, geometryMaterial, objectTexture,
+        objectColor, worldBounds, bounded, castsShadow, noShadowFlag, csgProgramIndex, -1,
+        objectToWorld, worldToObject, geometryToObject, objectToGeometry, geometryToWorld,
+        worldToGeometry, hasObjectTransform, hasGeometryTransform, hasBoundingShapes,
+        hasClippingShapes, boundingObjectIndices, clippingObjectIndices, bakedQuadricStorage,
+        hasBakedQuadric, bakedPlaneStorage, hasBakedPlane, -1);
 }
 
 bool
-BakedSceneBuilder::isPushdownCandidateOperand(const BakedScene::CsgOperandRecord &operand)
+BakedSceneBuilder::isPushdownCandidateOperand(const CsgOperandRecord *operand)
 {
-    return operand.quadricGeometry != nullptr || operand.isInfinitePlane;
+    return operand->getOriginalQuadricGeometry() != nullptr || operand->getIsInfinitePlane();
 }
 
 bool
@@ -351,14 +499,14 @@ BakedSceneBuilder::nestedProgramFullyBakeable(const BakedScene &scene, int progr
     if (programIndex < 0 || programIndex >= scene.csgPrograms.size() || depthGuard <= 0) {
         return false;
     }
-    const BakedScene::CsgProgram &program = scene.csgPrograms[programIndex];
-    for (long int i = 0; i < program.operands.size(); i++) {
-        const BakedScene::CsgOperandRecord &operand = program.operands[i];
+    const CsgProgram *program = scene.csgPrograms[programIndex];
+    for (long int i = 0; i < program->getOperands().size(); i++) {
+        const CsgOperandRecord *operand = program->getOperands()[i];
         if (isPushdownCandidateOperand(operand)) {
             continue;
         }
-        if (operand.kind == BakedScene::CsgOperandKind::NestedCsg &&
-            nestedProgramFullyBakeable(scene, operand.nestedCsgProgramIndex, depthGuard - 1)) {
+        if (operand->getKind() == BakedSceneCsgOperandKind::NestedCsg &&
+            nestedProgramFullyBakeable(scene, operand->getNestedCsgProgramIndex(), depthGuard - 1)) {
             continue;
         }
         return false;
@@ -371,35 +519,55 @@ BakedSceneBuilder::pushDownStepsIntoProgram(
     BakedScene &out, int programIndex, const java::ArrayList<TransformStep> &parentSteps,
     const Matrix4x4d &parentForwardTransform)
 {
-    BakedScene::CsgProgram &program = out.csgPrograms[programIndex];
-    for (long int i = 0; i < program.operands.size(); i++) {
-        BakedScene::CsgOperandRecord &operand = program.operands[i];
-        if (!operand.bakedBounds.isUnbounded()) {
-            operand.bakedBounds = AxisAlignedBoundingBox::fromTransformedCorners(
-                operand.bakedBounds.min, operand.bakedBounds.max, &parentForwardTransform);
-            operand.bounded = !operand.bakedBounds.isUnbounded();
+    CsgProgram *program = out.csgPrograms[programIndex];
+    java::ArrayList<CsgOperandRecord *> newOperands;
+    newOperands.reserve(program->getOperands().size());
+
+    for (long int i = 0; i < program->getOperands().size(); i++) {
+        CsgOperandRecord *operand = program->getOperands()[i];
+
+        AxisAlignedBoundingBox bakedBounds = operand->getBakedBounds();
+        bool bounded = operand->getBounded();
+        if (!bakedBounds.isUnbounded()) {
+            bakedBounds = AxisAlignedBoundingBox::fromTransformedCorners(
+                bakedBounds.min, bakedBounds.max, &parentForwardTransform);
+            bounded = !bakedBounds.isUnbounded();
         }
-        if (operand.kind == BakedScene::CsgOperandKind::NestedCsg) {
+
+        if (operand->getKind() == BakedSceneCsgOperandKind::NestedCsg) {
             pushDownStepsIntoProgram(
-                out, operand.nestedCsgProgramIndex, parentSteps, parentForwardTransform);
+                out, operand->getNestedCsgProgramIndex(), parentSteps, parentForwardTransform);
             // Whether this inner wrapper was itself folded earlier (matrices
             // already identity) or was never transformed (identity by
             // construction), its program is now world-space - mark it so
             // buildCsgExecutionPlan keeps it on the compiled kernel.
-            operand.pushdownFolded = true;
+            newOperands.add(cloneOperandWithPushdownBake(
+                operand, bakedBounds, bounded, operand->getKind(), operand->getHasTransform(),
+                operand->getObjectToLocal(), operand->getLocalToObject(), true,
+                operand->getBakedQuadricStorage(), operand->getHasBakedQuadric(),
+                operand->getBakedPlaneStorage(), operand->getHasBakedPlane(),
+                operand->getPlaneNormal(), operand->getPlaneDistance(),
+                operand->getPushdownAccumulatedSteps()));
             continue;
         }
-        if (operand.quadricGeometry == nullptr && !operand.isInfinitePlane) {
+        if (operand->getOriginalQuadricGeometry() == nullptr && !operand->getIsInfinitePlane()) {
             // nestedProgramFullyBakeable should have ruled this out already;
             // leave untouched rather than mis-collapse an unbakeable kind.
+            newOperands.add(cloneOperandWithPushdownBake(
+                operand, bakedBounds, bounded, operand->getKind(), operand->getHasTransform(),
+                operand->getObjectToLocal(), operand->getLocalToObject(), operand->getPushdownFolded(),
+                operand->getBakedQuadricStorage(), operand->getHasBakedQuadric(),
+                operand->getBakedPlaneStorage(), operand->getHasBakedPlane(),
+                operand->getPlaneNormal(), operand->getPlaneDistance(),
+                operand->getPushdownAccumulatedSteps()));
             continue;
         }
 
         const java::ArrayList<TransformStep> &baseSteps =
-            (operand.hasBakedQuadric || operand.hasBakedPlane) ?
-                operand.pushdownAccumulatedSteps :
-                (operand.operand != nullptr ?
-                    operand.operand->getSteps() : operand.pushdownAccumulatedSteps);
+            (operand->getHasBakedQuadric() || operand->getHasBakedPlane()) ?
+                operand->getPushdownAccumulatedSteps() :
+                (operand->getOperand() != nullptr ?
+                    operand->getOperand()->getSteps() : operand->getPushdownAccumulatedSteps());
         java::ArrayList<TransformStep> combinedSteps(baseSteps.size() + parentSteps.size());
         for (long int s = 0; s < baseSteps.size(); s++) {
             combinedSteps.add(baseSteps[s]);
@@ -408,106 +576,166 @@ BakedSceneBuilder::pushDownStepsIntoProgram(
             combinedSteps.add(parentSteps[s]);
         }
 
-        if (operand.quadricGeometry != nullptr) {
-            operand.bakedQuadricStorage =
-                BakedGeometryBaker::bakeQuadric(*operand.quadricGeometry, combinedSteps);
-            operand.hasBakedQuadric = true;
+        Quadric bakedQuadricStorage = operand->getBakedQuadricStorage();
+        bool hasBakedQuadric = operand->getHasBakedQuadric();
+        InfinitePlane bakedPlaneStorage = operand->getBakedPlaneStorage();
+        bool hasBakedPlane = operand->getHasBakedPlane();
+        Vector3Dd planeNormal = operand->getPlaneNormal();
+        double planeDistance = operand->getPlaneDistance();
+
+        if (operand->getOriginalQuadricGeometry() != nullptr) {
+            bakedQuadricStorage = BakedGeometryBaker::bakeQuadric(
+                *operand->getOriginalQuadricGeometry(), combinedSteps);
+            hasBakedQuadric = true;
         } else {
-            InfinitePlane *plane = static_cast<InfinitePlane *>(operand.geometry);
-            operand.bakedPlaneStorage = BakedGeometryBaker::bakePlane(*plane, combinedSteps);
-            operand.hasBakedPlane = true;
-            operand.planeNormal = operand.bakedPlaneStorage.getNormalVector();
-            operand.planeDistance = operand.bakedPlaneStorage.getDistance();
+            InfinitePlane *plane = static_cast<InfinitePlane *>(operand->getOriginalGeometry());
+            bakedPlaneStorage = BakedGeometryBaker::bakePlane(*plane, combinedSteps);
+            hasBakedPlane = true;
+            planeNormal = bakedPlaneStorage.getNormalVector();
+            planeDistance = bakedPlaneStorage.getDistance();
         }
-        operand.pushdownAccumulatedSteps = combinedSteps;
-        operand.hasTransform = false;
-        if (operand.operand != nullptr) {
-            operand.operand->setBakedTransformFolded(true);
+        if (operand->getOperand() != nullptr) {
+            operand->getOperand()->setBakedTransformFolded(true);
         }
-        operand.kind = classifyOperandKind(operand);
+
+        Geometry *effectiveGeometry =
+            hasBakedQuadric ? static_cast<Geometry *>(&bakedQuadricStorage) :
+                (hasBakedPlane ? static_cast<Geometry *>(&bakedPlaneStorage) : operand->getOriginalGeometry());
+        Quadric *effectiveQuadricGeometry =
+            hasBakedQuadric ? &bakedQuadricStorage : operand->getOriginalQuadricGeometry();
+        BakedSceneCsgOperandKind newKind = classifyOperandKind(
+            effectiveGeometry, operand->getNestedCsgProgramIndex(), false,
+            operand->getIsInfinitePlane(), effectiveQuadricGeometry);
+
+        newOperands.add(cloneOperandWithPushdownBake(
+            operand, bakedBounds, bounded, newKind, false,
+            operand->getObjectToLocal(), operand->getLocalToObject(), operand->getPushdownFolded(),
+            bakedQuadricStorage, hasBakedQuadric, bakedPlaneStorage, hasBakedPlane,
+            planeNormal, planeDistance, combinedSteps));
     }
+
     // Re-classify from scratch: classifyCsgProgramSpecialization only ever
     // SETS specializationValid/planKind, it never clears them, so a
     // specialization whose precondition no longer holds after the bounds
     // moved into parent space (e.g. DisjointBoundedUnion boxes that now
     // overlap after corner-transformation) would silently stay latched.
-    program.specializationValid = false;
-    program.specializationCoreOperandIndex = -1;
-    classifyCsgProgramSpecialization(program);
-    buildCsgExecutionPlan(program, out);
+    BakedSceneCsgPlanKind planKind = BakedSceneCsgPlanKind::Fallback;
+    bool specializationValid = false;
+    int specializationCoreOperandIndex = -1;
+    classifyCsgProgramSpecialization(
+        program->getGeometryType(), program->getTopLevel(), newOperands,
+        planKind, specializationValid, specializationCoreOperandIndex);
+
+    java::ArrayList<int> planeOperandIndices;
+    java::ArrayList<int> nestedOperandIndices;
+    java::ArrayList<int> transformedPrimitiveOperandIndices;
+    java::ArrayList<int> directPrimitiveOperandIndices;
+    buildCsgExecutionPlan(
+        program->getAlgorithm(), specializationValid, planKind, newOperands, out,
+        planeOperandIndices, nestedOperandIndices, transformedPrimitiveOperandIndices,
+        directPrimitiveOperandIndices);
+
+    CsgProgram *replacement = cloneProgramWithReclassification(
+        program, planKind, specializationValid, specializationCoreOperandIndex,
+        planeOperandIndices, nestedOperandIndices, transformedPrimitiveOperandIndices,
+        directPrimitiveOperandIndices, newOperands);
+    out.csgPrograms[programIndex] = replacement;
+    // `program`'s own (now orphaned) operand pointers are freed by its own
+    // destructor; `newOperands` are all fresh clones, never aliasing them.
+    delete program;
 }
 
-BakedScene::CsgOperandRecord
+CsgOperandRecord *
 BakedSceneBuilder::bakeCsgOperand(CsgOperand *operand, BakedScene &out)
 {
-    BakedScene::CsgOperandRecord baked;
-    baked.operand = operand;
-    baked.geometry = operand->getGeometry();
-    baked.material = operand->getMaterial();
-    baked.hasTransform = operand->getTransformation() != nullptr;
-    baked.objectToLocal = copyOrIdentity(operand->getTransformation());
-    baked.localToObject = copyOrIdentity(operand->getTransformationInverse());
-    baked.bakedBounds = operand->getBakedBounds();
-    baked.bounded = operand->hasBoundedBakedBounds();
-    baked.isInfinitePlane = dynamic_cast<InfinitePlane *>(baked.geometry) != nullptr;
-    baked.quadricGeometry = dynamic_cast<Quadric *>(baked.geometry);
-    if (InfinitePlane *plane = dynamic_cast<InfinitePlane *>(baked.geometry)) {
-        baked.planeNormal = plane->getNormalVector();
-        baked.planeDistance = plane->getDistance();
+    Geometry *originalGeometry = operand->getGeometry();
+    Material *material = operand->getMaterial();
+    bool hasTransform = operand->getTransformation() != nullptr;
+    Matrix4x4d objectToLocal = copyOrIdentity(operand->getTransformation());
+    Matrix4x4d localToObject = copyOrIdentity(operand->getTransformationInverse());
+    AxisAlignedBoundingBox bakedBounds = operand->getBakedBounds();
+    bool bounded = operand->hasBoundedBakedBounds();
+    bool isInfinitePlane = dynamic_cast<InfinitePlane *>(originalGeometry) != nullptr;
+    Quadric *originalQuadricGeometry = dynamic_cast<Quadric *>(originalGeometry);
+    Vector3Dd planeNormal(0.0, 1.0, 0.0);
+    double planeDistance = 0.0;
+    if (InfinitePlane *plane = dynamic_cast<InfinitePlane *>(originalGeometry)) {
+        planeNormal = plane->getNormalVector();
+        planeDistance = plane->getDistance();
     }
+
+    Quadric bakedQuadricStorage;
+    bool hasBakedQuadric = false;
+    InfinitePlane bakedPlaneStorage;
+    bool hasBakedPlane = false;
+    java::ArrayList<TransformStep> pushdownAccumulatedSteps;
 
     constexpr bool kEnableCoefficientCollapse = true;
     if (kEnableCoefficientCollapse &&
-        baked.hasTransform && operand->getSteps().size() > 0) {
-        if (baked.quadricGeometry != nullptr) {
-            baked.bakedQuadricStorage =
-                BakedGeometryBaker::bakeQuadric(*baked.quadricGeometry, operand->getSteps());
-            baked.hasBakedQuadric = true;
-            baked.hasTransform = false;
-            baked.pushdownAccumulatedSteps = operand->getSteps();
+        hasTransform && operand->getSteps().size() > 0) {
+        if (originalQuadricGeometry != nullptr) {
+            bakedQuadricStorage =
+                BakedGeometryBaker::bakeQuadric(*originalQuadricGeometry, operand->getSteps());
+            hasBakedQuadric = true;
+            hasTransform = false;
+            pushdownAccumulatedSteps = operand->getSteps();
             operand->setBakedTransformFolded(true);
-        } else if (baked.isInfinitePlane) {
-            InfinitePlane *plane = static_cast<InfinitePlane *>(baked.geometry);
-            baked.bakedPlaneStorage = BakedGeometryBaker::bakePlane(*plane, operand->getSteps());
-            baked.hasBakedPlane = true;
-            baked.hasTransform = false;
-            baked.planeNormal = baked.bakedPlaneStorage.getNormalVector();
-            baked.planeDistance = baked.bakedPlaneStorage.getDistance();
-            baked.pushdownAccumulatedSteps = operand->getSteps();
+        } else if (isInfinitePlane) {
+            InfinitePlane *plane = static_cast<InfinitePlane *>(originalGeometry);
+            bakedPlaneStorage = BakedGeometryBaker::bakePlane(*plane, operand->getSteps());
+            hasBakedPlane = true;
+            hasTransform = false;
+            planeNormal = bakedPlaneStorage.getNormalVector();
+            planeDistance = bakedPlaneStorage.getDistance();
+            pushdownAccumulatedSteps = operand->getSteps();
             operand->setBakedTransformFolded(true);
         }
     }
 
-    baked.cullSafe =
-        baked.bounded &&
-        (dynamic_cast<Sphere *>(baked.geometry) != nullptr ||
-         dynamic_cast<Box *>(baked.geometry) != nullptr ||
-         dynamic_cast<Blob *>(baked.geometry) != nullptr ||
-         dynamic_cast<Quadric *>(baked.geometry) != nullptr ||
-         dynamic_cast<HeightField *>(baked.geometry) != nullptr);
+    bool cullSafe =
+        bounded &&
+        (dynamic_cast<Sphere *>(originalGeometry) != nullptr ||
+         dynamic_cast<Box *>(originalGeometry) != nullptr ||
+         dynamic_cast<Blob *>(originalGeometry) != nullptr ||
+         dynamic_cast<Quadric *>(originalGeometry) != nullptr ||
+         dynamic_cast<HeightField *>(originalGeometry) != nullptr);
 
+    int nestedCsgProgramIndex = -1;
+    bool pushdownFolded = false;
     if (ConstructiveSolidGeometry *nestedCsg =
-            dynamic_cast<ConstructiveSolidGeometry *>(baked.geometry)) {
-        baked.nestedCsgProgramIndex = compileConstructiveSolidGeometry(nestedCsg, out);
-        baked.cullSafe = false;
-        baked.isInfinitePlane = false;
+            dynamic_cast<ConstructiveSolidGeometry *>(originalGeometry)) {
+        nestedCsgProgramIndex = compileConstructiveSolidGeometry(nestedCsg, out);
+        cullSafe = false;
+        isInfinitePlane = false;
 
         constexpr bool kEnableNestedTransformPushdown = true;
         constexpr int kPushdownDepthGuard = 16;
         if (kEnableNestedTransformPushdown &&
-            baked.hasTransform && operand->getSteps().size() > 0 &&
-            nestedProgramFullyBakeable(out, baked.nestedCsgProgramIndex, kPushdownDepthGuard)) {
+            hasTransform && operand->getSteps().size() > 0 &&
+            nestedProgramFullyBakeable(out, nestedCsgProgramIndex, kPushdownDepthGuard)) {
             pushDownStepsIntoProgram(
-                out, baked.nestedCsgProgramIndex, operand->getSteps(), baked.objectToLocal);
-            baked.hasTransform = false;
-            baked.objectToLocal = Matrix4x4d::identityMatrix();
-            baked.localToObject = Matrix4x4d::identityMatrix();
-            baked.pushdownFolded = true;
+                out, nestedCsgProgramIndex, operand->getSteps(), objectToLocal);
+            hasTransform = false;
+            objectToLocal = Matrix4x4d::identityMatrix();
+            localToObject = Matrix4x4d::identityMatrix();
+            pushdownFolded = true;
             operand->setBakedTransformFolded(true);
         }
     }
-    baked.kind = classifyOperandKind(baked);
-    return baked;
+
+    Geometry *effectiveGeometry =
+        hasBakedQuadric ? static_cast<Geometry *>(&bakedQuadricStorage) :
+            (hasBakedPlane ? static_cast<Geometry *>(&bakedPlaneStorage) : originalGeometry);
+    Quadric *effectiveQuadricGeometry = hasBakedQuadric ? &bakedQuadricStorage : originalQuadricGeometry;
+    BakedSceneCsgOperandKind kind = classifyOperandKind(
+        effectiveGeometry, nestedCsgProgramIndex, hasTransform, isInfinitePlane, effectiveQuadricGeometry);
+
+    return new CsgOperandRecord(
+        kind, operand, originalGeometry, originalQuadricGeometry, material, nestedCsgProgramIndex,
+        bakedBounds, objectToLocal, localToObject, hasTransform, bounded, cullSafe, isInfinitePlane,
+        planeNormal, planeDistance, -1, -1, bakedQuadricStorage, hasBakedQuadric, bakedPlaneStorage,
+        hasBakedPlane, false, -1, false, false,
+        java::ArrayList<int>(), java::ArrayList<int>(), pushdownAccumulatedSteps, pushdownFolded);
 }
 
 void
@@ -524,47 +752,36 @@ BakedSceneBuilder::sortCullSafeEntriesByKey(java::ArrayList<CullSafeEntry> &entr
     }
 }
 
-// Bake-time only. Stores bucket *positions* (see BakedScene::OperandCullBins),
-// never operand pointers or global indices, so nothing dangles across later
-// ArrayList relocations.
-void
+OperandCullBins *
 BakedSceneBuilder::buildOperandCullBinsForBucket(
     const java::ArrayList<int> &bucket,
-    const java::ArrayList<BakedScene::CsgOperandRecord> &operands,
-    BakedScene::OperandCullBins &out)
+    const java::ArrayList<CsgOperandRecord *> &operands)
 {
-    out.built = false;
-    out.binBounds.clear();
-    out.binMemberStart.clear();
-    out.binMemberCount.clear();
-    out.binMembers.clear();
-    out.alwaysTestedPositions.clear();
-
     const long int bucketSize = bucket.size();
     if (!kEnableOperandCullBins || bucketSize < kOperandCullBinThreshold) {
-        return;
+        return nullptr;
     }
 
+    java::ArrayList<int> alwaysTestedPositions;
     java::ArrayList<CullSafeEntry> cullSafeByAxis{bucketSize};
     Vector3Dd lo(1e30, 1e30, 1e30);
     Vector3Dd hi(-1e30, -1e30, -1e30);
     for (long int p = 0; p < bucketSize; p++) {
-        const BakedScene::CsgOperandRecord &operand = operands[bucket[p]];
-        if (operand.bounded && operand.cullSafe) {
-            const Vector3Dd c = operand.bakedBounds.centroid();
+        const CsgOperandRecord *operand = operands[bucket[p]];
+        if (operand->getBounded() && operand->getCullSafe()) {
+            const Vector3Dd c = operand->getBakedBounds().centroid();
             cullSafeByAxis.add(CullSafeEntry{0.0, (int)p});
             lo = Vector3Dd(
                 std::fmin(lo.x(), c.x()), std::fmin(lo.y(), c.y()), std::fmin(lo.z(), c.z()));
             hi = Vector3Dd(
                 std::fmax(hi.x(), c.x()), std::fmax(hi.y(), c.y()), std::fmax(hi.z(), c.z()));
         } else {
-            out.alwaysTestedPositions.add((int)p);
+            alwaysTestedPositions.add((int)p);
         }
     }
 
     if (cullSafeByAxis.size() < kOperandCullBinThreshold) {
-        out.alwaysTestedPositions.clear();
-        return;
+        return nullptr;
     }
 
     const double spreadX = hi.x() - lo.x();
@@ -579,7 +796,7 @@ BakedSceneBuilder::buildOperandCullBinsForBucket(
 
     for (long int i = 0; i < cullSafeByAxis.size(); i++) {
         CullSafeEntry &entry = cullSafeByAxis[i];
-        const Vector3Dd c = operands[bucket[entry.position]].bakedBounds.centroid();
+        const Vector3Dd c = operands[bucket[entry.position]]->getBakedBounds().centroid();
         entry.key = axis == 0 ? c.x() : (axis == 1 ? c.y() : c.z());
     }
     sortCullSafeEntriesByKey(cullSafeByAxis);
@@ -595,120 +812,138 @@ BakedSceneBuilder::buildOperandCullBinsForBucket(
     const int base = total / numBins;
     const int remainder = total % numBins;
 
-    out.binMembers.reserve(total);
+    java::ArrayList<AxisAlignedBoundingBox> binBounds;
+    java::ArrayList<int> binMemberStart;
+    java::ArrayList<int> binMemberCount;
+    java::ArrayList<int> binMembers;
+    binMembers.reserve(total);
     int cursor = 0;
     for (int b = 0; b < numBins; b++) {
         const int count = base + (b < remainder ? 1 : 0);
         AxisAlignedBoundingBox aggregate = AxisAlignedBoundingBox::empty();
-        const int start = (int)out.binMembers.size();
+        const int start = (int)binMembers.size();
         for (int k = 0; k < count; k++) {
             const int pos = cullSafeByAxis[cursor].position;
-            out.binMembers.add(pos);
-            aggregate = aggregate.enclosing(operands[bucket[pos]].bakedBounds);
+            binMembers.add(pos);
+            aggregate = aggregate.enclosing(operands[bucket[pos]]->getBakedBounds());
             cursor++;
         }
-        out.binBounds.add(aggregate);
-        out.binMemberStart.add(start);
-        out.binMemberCount.add(count);
+        binBounds.add(aggregate);
+        binMemberStart.add(start);
+        binMemberCount.add(count);
     }
-    out.built = true;
+    return new OperandCullBins(
+        true, binBounds, binMemberStart, binMemberCount, binMembers, alwaysTestedPositions);
 }
 
-BakedScene::CsgProgram
+CsgProgram *
 BakedSceneBuilder::bakeConstructiveSolidGeometry(ConstructiveSolidGeometry *geometry, BakedScene &out)
 {
-    BakedScene::CsgProgram baked;
-    baked.geometryType = geometry->getGeometryType();
+    BooleanSetOperations geometryType = geometry->getGeometryType();
+    BakedSceneCsgAlgorithm algorithm;
+    bool topLevel;
     if (ConstructiveSolidGeometryByRaySegment *raySegment =
             dynamic_cast<ConstructiveSolidGeometryByRaySegment *>(geometry)) {
-        baked.algorithm = BakedScene::CsgAlgorithm::RaySegments;
-        baked.topLevel = raySegment->isTopLevel();
+        algorithm = BakedSceneCsgAlgorithm::RaySegments;
+        topLevel = raySegment->isTopLevel();
     } else {
-        baked.algorithm = BakedScene::CsgAlgorithm::MorganRules;
-        baked.topLevel = false;
+        algorithm = BakedSceneCsgAlgorithm::MorganRules;
+        topLevel = false;
     }
 
-    const java::ArrayList<CsgOperand*> &operands = geometry->getOperands();
-    baked.operands.reserve(operands.size());
-    for (long int i = 0; i < operands.size(); i++) {
-        if (operands[i] == nullptr) {
+    const java::ArrayList<CsgOperand*> &sourceOperands = geometry->getOperands();
+    java::ArrayList<CsgOperandRecord *> operands;
+    operands.reserve(sourceOperands.size());
+    for (long int i = 0; i < sourceOperands.size(); i++) {
+        if (sourceOperands[i] == nullptr) {
             continue;
         }
-        baked.operands.add(bakeCsgOperand(operands[i], out));
+        operands.add(bakeCsgOperand(sourceOperands[i], out));
     }
-    classifyCsgProgramSpecialization(baked);
-    buildCsgExecutionPlan(baked, out);
-    if (baked.geometryType == BooleanSetOperations::UNION) {
-        BakedScene::OperandCullBins directBins;
-        buildOperandCullBinsForBucket(
-            baked.directPrimitiveOperandIndices, baked.operands, directBins);
-        if (directBins.built) {
-            BakedScene::OperandCullBins *directBinsStorage =
-                new BakedScene::OperandCullBins(directBins);
-            out.operandCullBinsStorage.add(directBinsStorage);
-            baked.directPrimitiveCullBins = directBinsStorage;
+
+    BakedSceneCsgPlanKind planKind = BakedSceneCsgPlanKind::Fallback;
+    bool specializationValid = false;
+    int specializationCoreOperandIndex = -1;
+    classifyCsgProgramSpecialization(
+        geometryType, topLevel, operands, planKind, specializationValid, specializationCoreOperandIndex);
+
+    java::ArrayList<int> planeOperandIndices;
+    java::ArrayList<int> nestedOperandIndices;
+    java::ArrayList<int> transformedPrimitiveOperandIndices;
+    java::ArrayList<int> directPrimitiveOperandIndices;
+    buildCsgExecutionPlan(
+        algorithm, specializationValid, planKind, operands, out,
+        planeOperandIndices, nestedOperandIndices, transformedPrimitiveOperandIndices,
+        directPrimitiveOperandIndices);
+
+    const OperandCullBins *directPrimitiveCullBins = nullptr;
+    const OperandCullBins *transformedPrimitiveCullBins = nullptr;
+    if (geometryType == BooleanSetOperations::UNION) {
+        OperandCullBins *directBins = buildOperandCullBinsForBucket(directPrimitiveOperandIndices, operands);
+        if (directBins != nullptr) {
+            out.operandCullBinsStorage.add(directBins);
+            directPrimitiveCullBins = directBins;
         }
-        BakedScene::OperandCullBins transformedBins;
-        buildOperandCullBinsForBucket(
-            baked.transformedPrimitiveOperandIndices, baked.operands, transformedBins);
-        if (transformedBins.built) {
-            BakedScene::OperandCullBins *transformedBinsStorage =
-                new BakedScene::OperandCullBins(transformedBins);
-            out.operandCullBinsStorage.add(transformedBinsStorage);
-            baked.transformedPrimitiveCullBins = transformedBinsStorage;
+        OperandCullBins *transformedBins =
+            buildOperandCullBinsForBucket(transformedPrimitiveOperandIndices, operands);
+        if (transformedBins != nullptr) {
+            out.operandCullBinsStorage.add(transformedBins);
+            transformedPrimitiveCullBins = transformedBins;
         }
     }
-    return baked;
+    return new CsgProgram(
+        algorithm, planKind, geometryType, topLevel, specializationValid, specializationCoreOperandIndex,
+        planeOperandIndices, nestedOperandIndices, transformedPrimitiveOperandIndices,
+        directPrimitiveOperandIndices, operands, directPrimitiveCullBins, transformedPrimitiveCullBins);
 }
 
 int
 BakedSceneBuilder::compileConstructiveSolidGeometry(ConstructiveSolidGeometry *geometry, BakedScene &out)
 {
     const int index = out.csgPrograms.size();
-    out.csgPrograms.add(BakedScene::CsgProgram());
+    out.csgPrograms.add(nullptr);
     out.csgPrograms.set(index, bakeConstructiveSolidGeometry(geometry, out));
     return index;
 }
 
-BakedScene::CompositeRecord
+CompositeRecord *
 BakedSceneBuilder::bakeComposite(Composite *object, BakedScene &out)
 {
-    BakedScene::CompositeRecord baked;
-    baked.object = object;
-    baked.worldBounds = object->getAABB();
-    baked.bounded = !baked.worldBounds.isUnbounded();
-    baked.noShadowFlag = object->getNoShadowFlag();
-    baked.hasObjectTransform = object->getTransformation() != nullptr;
-    baked.hasBoundingShapes = object->getBoundingShapes().size() > 0;
-    baked.hasClippingShapes = object->getClippingShapes().size() > 0;
-    baked.objectToWorld = copyOrIdentity(object->getTransformation());
-    baked.worldToObject = copyOrIdentity(object->getTransformationInverse());
+    AxisAlignedBoundingBox worldBounds = object->getAABB();
+    bool bounded = !worldBounds.isUnbounded();
+    bool noShadowFlag = object->getNoShadowFlag();
+    bool hasObjectTransform = object->getTransformation() != nullptr;
+    bool hasBoundingShapes = object->getBoundingShapes().size() > 0;
+    bool hasClippingShapes = object->getClippingShapes().size() > 0;
+    Matrix4x4d objectToWorld = copyOrIdentity(object->getTransformation());
+    Matrix4x4d worldToObject = copyOrIdentity(object->getTransformationInverse());
 
-    compileTracingObjects(object->getBoundingShapes(), out, baked.boundingObjectIndices);
-    compileTracingObjects(object->getClippingShapes(), out, baked.clippingObjectIndices);
+    java::ArrayList<int> boundingObjectIndices;
+    java::ArrayList<int> clippingObjectIndices;
+    compileTracingObjects(object->getBoundingShapes(), out, boundingObjectIndices);
+    compileTracingObjects(object->getClippingShapes(), out, clippingObjectIndices);
 
     const java::ArrayList<SimpleBody*> &children = object->getSimpleBodies();
-    baked.childObjectIndices.reserve(children.size());
+    java::ArrayList<int> childObjectIndices;
+    childObjectIndices.reserve(children.size());
     for (long int i = 0; i < children.size(); i++) {
-        baked.childObjectIndices.add(compileTracingObject(children[i], out));
+        childObjectIndices.add(compileTracingObject(children[i], out));
     }
-    return baked;
+
+    return new CompositeRecord(
+        object, worldBounds, objectToWorld, worldToObject, bounded, noShadowFlag, hasObjectTransform,
+        hasBoundingShapes, hasClippingShapes, boundingObjectIndices, clippingObjectIndices,
+        childObjectIndices);
 }
 
 int
 BakedSceneBuilder::compileTracingObject(SimpleBody *object, BakedScene &out)
 {
     const int index = out.traceableObjects.size();
-    out.traceableObjects.add(BakedScene::TraceableObject());
+    out.traceableObjects.add(nullptr);
 
     if (isBakeableSimpleBody(object)) {
-        BakedScene::TraceableObject baked = bakeSimpleBody(object, out);
-        compileTracingObjects(object->getBoundingShapes(), out, baked.boundingObjectIndices);
-        compileTracingObjects(object->getClippingShapes(), out, baked.clippingObjectIndices);
-        baked.kind = classifyTraceableObject(
-            baked.geometry != nullptr,
-            baked.hasBoundingShapes || baked.hasClippingShapes,
-            baked.csgProgramIndex >= 0);
+        TraceableObject *baked = bakeSimpleBody(object, out);
         out.traceableObjects.set(index, baked);
         return index;
     }
@@ -718,26 +953,21 @@ BakedSceneBuilder::compileTracingObject(SimpleBody *object, BakedScene &out)
         const int compositeIndex = out.composites.size();
         // Reserve the parent slot before compiling children: nested
         // composites may append their own baked nodes during bakeComposite().
-        out.composites.add(BakedScene::CompositeRecord());
-        BakedScene::CompositeRecord bakedComposite = bakeComposite(composite, out);
+        out.composites.add(nullptr);
+        CompositeRecord *bakedComposite = bakeComposite(composite, out);
         out.composites.set(compositeIndex, bakedComposite);
 
-        BakedScene::TraceableObject entry;
-        entry.kind = BakedScene::TraceKind::Composite;
-        entry.object = composite;
-        entry.geometry = nullptr;
-        entry.worldBounds = bakedComposite.worldBounds;
-        entry.bounded = bakedComposite.bounded;
-        entry.noShadowFlag = bakedComposite.noShadowFlag;
-        entry.castsShadow = !bakedComposite.noShadowFlag;
-        entry.csgProgramIndex = -1;
-        entry.compositeIndex = compositeIndex;
-        entry.objectToWorld = bakedComposite.objectToWorld;
-        entry.worldToObject = bakedComposite.worldToObject;
-        entry.hasObjectTransform = bakedComposite.hasObjectTransform;
-        entry.hasGeometryTransform = false;
-        entry.hasBoundingShapes = bakedComposite.hasBoundingShapes;
-        entry.hasClippingShapes = bakedComposite.hasClippingShapes;
+        TraceableObject *entry = new TraceableObject(
+            BakedSceneTraceKind::Composite, composite, nullptr, nullptr, nullptr, nullptr, nullptr,
+            bakedComposite->getWorldBounds(), bakedComposite->getBounded(),
+            !bakedComposite->getNoShadowFlag(), bakedComposite->getNoShadowFlag(), -1, compositeIndex,
+            bakedComposite->getObjectToWorld(), bakedComposite->getWorldToObject(),
+            Matrix4x4d::identityMatrix(), Matrix4x4d::identityMatrix(),
+            Matrix4x4d::identityMatrix(), Matrix4x4d::identityMatrix(),
+            bakedComposite->getHasObjectTransform(), false,
+            bakedComposite->getHasBoundingShapes(), bakedComposite->getHasClippingShapes(),
+            java::ArrayList<int>(), java::ArrayList<int>(),
+            Quadric(), false, InfinitePlane(), false, -1);
         out.traceableObjects.set(index, entry);
         return index;
     }
@@ -746,50 +976,68 @@ BakedSceneBuilder::compileTracingObject(SimpleBody *object, BakedScene &out)
 }
 
 void
-BakedSceneBuilder::accumulateStatistics(BakedScene &scene)
+BakedSceneBuilder::accumulateStatistics(BakedScene &scene, long quadricViewpointSlotCount, long planeViewpointSlotCount)
 {
-    BakedScene::Statistics &stats = scene.statistics;
+    long countByKind[6] = {0, 0, 0, 0, 0, 0};
     for (long int i = 0; i < scene.traceableObjects.size(); i++) {
-        const int kindIndex = (int)scene.traceableObjects[i].kind;
+        const int kindIndex = (int)scene.traceableObjects[i]->getKind();
         if (kindIndex >= 0 && kindIndex < 6) {
-            stats.countByKind[kindIndex]++;
+            countByKind[kindIndex]++;
         }
     }
 
-    stats.topLevelObjectCount = scene.topLevelObjectIndices.size();
+    const long topLevelObjectCount = scene.topLevelObjectIndices.size();
+    long topLevelObjectCullSafeCount = 0;
     for (long int i = 0; i < scene.topLevelObjectIndices.size(); i++) {
         const int objectIndex = scene.topLevelObjectIndices[i];
-        const BakedScene::TraceableObject &object = scene.traceableObjects[objectIndex];
-        if (object.bounded) {
-            stats.topLevelObjectCullSafeCount++;
+        const TraceableObject *object = scene.traceableObjects[objectIndex];
+        if (object->getBounded()) {
+            topLevelObjectCullSafeCount++;
         }
     }
 
-    stats.csgProgramCount = scene.csgPrograms.size();
+    const long csgProgramCount = scene.csgPrograms.size();
+    long csgPlanTopLevelPlaneUnion = 0;
+    long csgPlanDisjointBoundedUnion = 0;
+    long csgPlanSingleCorePlaneIntersection = 0;
+    long csgPlanGenericMorgan = 0;
+    long csgPlanGenericRaySegments = 0;
+    long csgPlanFallback = 0;
+    long residualBakedQuadricOperands = 0;
+    long residualBakedPlaneOperands = 0;
+    long residualTransformedOperands = 0;
+    long residualCategory1NestedCsg = 0;
+    long residualCategory1PushdownEligible = 0;
+    long residualCategory2EmptySteps = 0;
+    long residualCategory3Unbakeable = 0;
+    long unionProgramOperandHistogram[4] = {0, 0, 0, 0};
+    long unionProgramOperandCullSafeCount = 0;
+    long unionProgramOperandTotalCount = 0;
+
     for (long int i = 0; i < scene.csgPrograms.size(); i++) {
-        const BakedScene::CsgProgram &program = scene.csgPrograms[i];
-        switch (program.planKind) {
-        case BakedScene::CsgPlanKind::TopLevelPlaneUnion:
-            stats.csgPlanTopLevelPlaneUnion++;
+        const CsgProgram *program = scene.csgPrograms[i];
+        switch (program->getPlanKind()) {
+        case BakedSceneCsgPlanKind::TopLevelPlaneUnion:
+            csgPlanTopLevelPlaneUnion++;
             break;
-        case BakedScene::CsgPlanKind::DisjointBoundedUnion:
-            stats.csgPlanDisjointBoundedUnion++;
+        case BakedSceneCsgPlanKind::DisjointBoundedUnion:
+            csgPlanDisjointBoundedUnion++;
             break;
-        case BakedScene::CsgPlanKind::SingleCorePlaneIntersection:
-            stats.csgPlanSingleCorePlaneIntersection++;
+        case BakedSceneCsgPlanKind::SingleCorePlaneIntersection:
+            csgPlanSingleCorePlaneIntersection++;
             break;
-        case BakedScene::CsgPlanKind::GenericMorgan:
-            stats.csgPlanGenericMorgan++;
+        case BakedSceneCsgPlanKind::GenericMorgan:
+            csgPlanGenericMorgan++;
             break;
-        case BakedScene::CsgPlanKind::GenericRaySegments:
-            stats.csgPlanGenericRaySegments++;
+        case BakedSceneCsgPlanKind::GenericRaySegments:
+            csgPlanGenericRaySegments++;
             break;
-        case BakedScene::CsgPlanKind::Fallback:
-            stats.csgPlanFallback++;
+        case BakedSceneCsgPlanKind::Fallback:
+            csgPlanFallback++;
             break;
         }
-        if (program.geometryType == BooleanSetOperations::UNION) {
-            const long int operandCount = program.operands.size();
+        if (program->getGeometryType() == BooleanSetOperations::UNION) {
+            const long int operandCount = program->getOperands().size();
             int bucket;
             if (operandCount <= 4) {
                 bucket = 0;
@@ -800,41 +1048,42 @@ BakedSceneBuilder::accumulateStatistics(BakedScene &scene)
             } else {
                 bucket = 3;
             }
-            stats.unionProgramOperandHistogram[bucket]++;
+            unionProgramOperandHistogram[bucket]++;
         }
-        for (long int j = 0; j < program.operands.size(); j++) {
-            const BakedScene::CsgOperandRecord &operand = program.operands[j];
-            if (program.geometryType == BooleanSetOperations::UNION) {
-                stats.unionProgramOperandTotalCount++;
-                if (operand.bounded && operand.cullSafe) {
-                    stats.unionProgramOperandCullSafeCount++;
+        for (long int j = 0; j < program->getOperands().size(); j++) {
+            const CsgOperandRecord *operand = program->getOperands()[j];
+            if (program->getGeometryType() == BooleanSetOperations::UNION) {
+                unionProgramOperandTotalCount++;
+                if (operand->getBounded() && operand->getCullSafe()) {
+                    unionProgramOperandCullSafeCount++;
                 }
             }
-            if (operand.hasBakedQuadric) {
-                stats.residualBakedQuadricOperands++;
+            if (operand->getHasBakedQuadric()) {
+                residualBakedQuadricOperands++;
             }
-            if (operand.hasBakedPlane) {
-                stats.residualBakedPlaneOperands++;
+            if (operand->getHasBakedPlane()) {
+                residualBakedPlaneOperands++;
             }
-            if (operand.hasTransform) {
-                stats.residualTransformedOperands++;
+            if (operand->getHasTransform()) {
+                residualTransformedOperands++;
 
-                switch (operand.kind) {
-                case BakedScene::CsgOperandKind::TransformedNestedCsg:
-                    stats.residualCategory1NestedCsg++;
-                    if (nestedProgramFullyBakeable(scene, operand.nestedCsgProgramIndex, 16)) {
-                        stats.residualCategory1PushdownEligible++;
+                switch (operand->getKind()) {
+                case BakedSceneCsgOperandKind::TransformedNestedCsg:
+                    residualCategory1NestedCsg++;
+                    if (nestedProgramFullyBakeable(scene, operand->getNestedCsgProgramIndex(), 16)) {
+                        residualCategory1PushdownEligible++;
                     }
                     break;
-                case BakedScene::CsgOperandKind::TransformedQuadric:
-                case BakedScene::CsgOperandKind::TransformedPlane:
-                    if (operand.operand != nullptr && operand.operand->getSteps().size() == 0) {
-                        stats.residualCategory2EmptySteps++;
+                case BakedSceneCsgOperandKind::TransformedQuadric:
+                case BakedSceneCsgOperandKind::TransformedPlane:
+                    if (operand->getOperand() != nullptr &&
+                        operand->getOperand()->getSteps().size() == 0) {
+                        residualCategory2EmptySteps++;
                     }
                     break;
-                case BakedScene::CsgOperandKind::TransformedSphere:
-                case BakedScene::CsgOperandKind::TransformedPrimitive:
-                    stats.residualCategory3Unbakeable++;
+                case BakedSceneCsgOperandKind::TransformedSphere:
+                case BakedSceneCsgOperandKind::TransformedPrimitive:
+                    residualCategory3Unbakeable++;
                     break;
                 default:
                     break;
@@ -842,31 +1091,30 @@ BakedSceneBuilder::accumulateStatistics(BakedScene &scene)
             }
         }
     }
+
+    delete scene.statistics;
+    scene.statistics = new BakedSceneStatistics(
+        countByKind, csgProgramCount, csgPlanTopLevelPlaneUnion, csgPlanDisjointBoundedUnion,
+        csgPlanSingleCorePlaneIntersection, csgPlanGenericMorgan, csgPlanGenericRaySegments,
+        csgPlanFallback, residualBakedQuadricOperands, residualBakedPlaneOperands,
+        residualTransformedOperands, quadricViewpointSlotCount, planeViewpointSlotCount,
+        residualCategory1NestedCsg, residualCategory1PushdownEligible, residualCategory2EmptySteps,
+        residualCategory3Unbakeable, unionProgramOperandHistogram, unionProgramOperandCullSafeCount,
+        unionProgramOperandTotalCount, topLevelObjectCount, topLevelObjectCullSafeCount);
 }
 
 void
 BakedSceneBuilder::build(const java::ArrayList<SimpleBody*> &objects, BakedScene &out)
 {
-    out.traceableObjects.clear();
-    out.csgPrograms.clear();
-    // Rebuilding reassigns every CsgProgram::*CullBins pointer from scratch,
-    // so any previously heap-allocated OperandCullBins from an earlier
-    // build() on this same BakedScene must be freed here before the owning
-    // list itself is cleared - otherwise this leaks on rebuild (see
-    // BakedScene::~BakedScene, which only runs once at BakedScene's own
-    // end of life).
-    for (long int i = 0; i < out.operandCullBinsStorage.size(); i++) {
-        delete out.operandCullBinsStorage[i];
-    }
-    out.operandCullBinsStorage.clear();
-    out.composites.clear();
+    out.clearOwnedContents();
+    delete out.statistics;
+    out.statistics = nullptr;
     out.topLevelObjectIndices.clear();
     out.boundedObjectIndices.clear();
     out.unboundedObjectIndices.clear();
     out.shadowCastingObjectIndices.clear();
     out.boundedShadowCastingObjectIndices.clear();
     out.unboundedShadowCastingObjectIndices.clear();
-    out.statistics = BakedScene::Statistics();
 
     out.traceableObjects.reserve(objects.size());
     out.csgPrograms.reserve(objects.size());
@@ -887,15 +1135,15 @@ BakedSceneBuilder::build(const java::ArrayList<SimpleBody*> &objects, BakedScene
         const int index = compileTracingObject(object, out);
         out.topLevelObjectIndices.add(index);
 
-        const BakedScene::TraceableObject &entry = out.traceableObjects[index];
-        if (entry.bounded) {
+        const TraceableObject *entry = out.traceableObjects[index];
+        if (entry->getBounded()) {
             out.boundedObjectIndices.add(index);
         } else {
             out.unboundedObjectIndices.add(index);
         }
-        if (entry.castsShadow) {
+        if (entry->getCastsShadow()) {
             out.shadowCastingObjectIndices.add(index);
-            if (entry.bounded) {
+            if (entry->getBounded()) {
                 out.boundedShadowCastingObjectIndices.add(index);
             } else {
                 out.unboundedShadowCastingObjectIndices.add(index);
@@ -903,60 +1151,46 @@ BakedSceneBuilder::build(const java::ArrayList<SimpleBody*> &objects, BakedScene
         }
     }
 
-    // One-time fix-up of `geometry`/`quadricGeometry` for operands/objects
-    // collapsed to a baked (world-space) Quadric/InfinitePlane copy. MUST
-    // run after every add()/set() above has finished: the bake pipeline
-    // copies/reallocates these arrays several times on the way here
-    // (ArrayList growth and .set() both copy-assign, per ArrayList.txx), so
-    // a self-pointer set any earlier would dangle. From this point on
-    // `out.csgPrograms`/`out.traceableObjects` never grow or reallocate
-    // again until the next build() call, so `&operand.bakedQuadricStorage`/
-    // `&obj.bakedPlaneStorage` are stable for the rest of the render.
-    for (long int i = 0; i < out.csgPrograms.size(); i++) {
-        BakedScene::CsgProgram &program = out.csgPrograms[i];
-        for (long int j = 0; j < program.operands.size(); j++) {
-            BakedScene::CsgOperandRecord &operand = program.operands[j];
-            if (operand.hasBakedQuadric) {
-                operand.geometry = &operand.bakedQuadricStorage;
-                operand.quadricGeometry = &operand.bakedQuadricStorage;
-            } else if (operand.hasBakedPlane) {
-                operand.geometry = &operand.bakedPlaneStorage;
-            }
-        }
-    }
-    for (long int i = 0; i < out.traceableObjects.size(); i++) {
-        BakedScene::TraceableObject &obj = out.traceableObjects[i];
-        if (obj.hasBakedQuadric) {
-            obj.geometry = &obj.bakedQuadricStorage;
-            obj.quadricGeometry = &obj.bakedQuadricStorage;
-        } else if (obj.hasBakedPlane) {
-            obj.geometry = &obj.bakedPlaneStorage;
-        }
-    }
-
+    // Sequential viewpoint-slot assignment across every CsgProgram's
+    // operands (program order, then operand order) and then every
+    // traceableObject - same global order as before. Each record is
+    // immutable, so "assigning" a slot means constructing a fresh record
+    // with the slot filled in and replacing the owning pointer.
     int nextQuadricSlot = 0;
     int nextPlaneSlot = 0;
     for (long int i = 0; i < out.csgPrograms.size(); i++) {
-        BakedScene::CsgProgram &program = out.csgPrograms[i];
-        for (long int j = 0; j < program.operands.size(); j++) {
-            BakedScene::CsgOperandRecord &operand = program.operands[j];
-            if (operand.quadricGeometry != nullptr) {
-                operand.quadricViewpointSlot = nextQuadricSlot++;
+        CsgProgram *program = out.csgPrograms[i];
+        java::ArrayList<CsgOperandRecord *> updatedOperands;
+        updatedOperands.reserve(program->getOperands().size());
+        for (long int j = 0; j < program->getOperands().size(); j++) {
+            CsgOperandRecord *operand = program->getOperands()[j];
+            int quadricSlot = operand->getQuadricViewpointSlot();
+            int planeSlot = operand->getPlaneViewpointSlot();
+            if (operand->getQuadricGeometry() != nullptr) {
+                quadricSlot = nextQuadricSlot++;
             }
-            if (operand.kind == BakedScene::CsgOperandKind::DirectPlane ||
-                operand.kind == BakedScene::CsgOperandKind::TransformedPlane) {
-                operand.planeViewpointSlot = nextPlaneSlot++;
+            if (operand->getKind() == BakedSceneCsgOperandKind::DirectPlane ||
+                operand->getKind() == BakedSceneCsgOperandKind::TransformedPlane) {
+                planeSlot = nextPlaneSlot++;
             }
+            updatedOperands.add(cloneOperandWithViewpointSlots(operand, quadricSlot, planeSlot));
         }
+        CsgProgram *replacement = cloneProgramWithReclassification(
+            program, program->getPlanKind(), program->getSpecializationValid(),
+            program->getSpecializationCoreOperandIndex(), program->getPlaneOperandIndices(),
+            program->getNestedOperandIndices(), program->getTransformedPrimitiveOperandIndices(),
+            program->getDirectPrimitiveOperandIndices(), updatedOperands);
+        out.csgPrograms[i] = replacement;
+        delete program;
     }
     for (long int i = 0; i < out.traceableObjects.size(); i++) {
-        BakedScene::TraceableObject &obj = out.traceableObjects[i];
-        if (obj.quadricGeometry != nullptr) {
-            obj.quadricViewpointSlot = nextQuadricSlot++;
+        TraceableObject *object = out.traceableObjects[i];
+        if (object->getQuadricGeometry() != nullptr) {
+            TraceableObject *replacement = cloneObjectWithViewpointSlot(object, nextQuadricSlot++);
+            out.traceableObjects[i] = replacement;
+            delete object;
         }
     }
-    out.statistics.quadricViewpointSlotCount = nextQuadricSlot;
-    out.statistics.planeViewpointSlotCount = nextPlaneSlot;
 
-    accumulateStatistics(out);
+    accumulateStatistics(out, nextQuadricSlot, nextPlaneSlot);
 }

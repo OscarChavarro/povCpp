@@ -442,8 +442,8 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithTracingState *localRay, Co
     const BakedScene &bakedScene = this->bakedScene;
     RaySharedCache &raySharedCache = localWorker.getRaySharedCache();
     raySharedCache.ensureCapacity(
-        (int)bakedScene.statistics.quadricViewpointSlotCount,
-        (int)bakedScene.statistics.planeViewpointSlotCount);
+        (int)bakedScene.statistics->getQuadricViewpointSlotCount(),
+        (int)bakedScene.statistics->getPlaneViewpointSlotCount());
     const java::ArrayList<int> &boundedObjects = bakedScene.boundedObjectIndices;
     const java::ArrayList<int> &unboundedObjects = bakedScene.unboundedObjectIndices;
     for (long int i = boundedObjects.size() - 1; i >= 0; i--) {
@@ -452,7 +452,7 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithTracingState *localRay, Co
             (intersectionFound && localIntersection.getIntersection().t > 0.0) ?
                 localIntersection.getIntersection().t : 1e30;
         if (!rayIntersectsAabbBefore(
-                *localRay, bakedScene.traceableObjects[objectIndex].worldBounds, currentBestT)) {
+                *localRay, bakedScene.traceableObjects[objectIndex]->getWorldBounds(), currentBestT)) {
             continue;
         }
         const bool hit = BakedTrace::traceFirstHit(

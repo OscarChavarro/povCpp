@@ -13,16 +13,16 @@
 class CsgFirstHitTrace {
 public:
     static bool traceFirstHit(
-        const BakedScene::CsgProgram &bakedCsg,
-        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        const CsgProgram *bakedCsg,
+        const java::ArrayList<CsgProgram *> &bakedCsgs,
         RayWithTracingState *ray,
         IntersectionCandidate &out,
         RaySharedCache &cache,
         Material *materialOverride = nullptr);
 
     static bool traceFirstHitWithScratch(
-        const BakedScene::CsgProgram &bakedCsg,
-        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        const CsgProgram *bakedCsg,
+        const java::ArrayList<CsgProgram *> &bakedCsgs,
         CsgScratchContext &scratch,
         RayWithTracingState *ray,
         IntersectionCandidate &out,
@@ -30,8 +30,8 @@ public:
 
 private:
     static bool traceFirstHitByIntersectionMembership(
-        const BakedScene::CsgProgram &bakedCsg,
-        const java::ArrayList<BakedScene::CsgProgram> &bakedCsgs,
+        const CsgProgram *bakedCsg,
+        const java::ArrayList<CsgProgram *> &bakedCsgs,
         CsgScratchContext &scratch,
         RayWithTracingState *ray,
         IntersectionCandidate &out,
