@@ -77,6 +77,17 @@ releaseSimpleBodyRegion(SimpleBodyBuilder *body)
         releasedTransformation, releasedTransformationInverse);
 }
 
+// objectTexture is always a PovRayMaterial in this parser; releaseFromOwner()
+// already tells private clones (delete this) apart from shared-default
+// aliases (untrack, delete only once retired and unreferenced). SimpleBody's
+// destructor calls this through a plain function pointer so the scene layer
+// never needs to know about PovRayMaterial.
+static void
+releasePovRayObjectTexture(Material *objectTexture)
+{
+    static_cast<PovRayMaterial *>(objectTexture)->releaseFromOwner();
+}
+
 Material *
 ObjectParser::ensurePrivateTexture(Material *objectTexture)
 {
@@ -114,7 +125,7 @@ ObjectParser::buildObject(
         boundingShapes, clippingShapes,
         transformation, transformationInverse,
         geometryTransformation, geometryTransformationInverse,
-        bodySteps, geometrySteps);
+        bodySteps, geometrySteps, releasePovRayObjectTexture);
 }
 
 Composite *
@@ -136,7 +147,8 @@ ObjectParser::buildComposite(
         geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
         boundingShapes, clippingShapes, simpleBodies,
         transformation, transformationInverse,
-        geometryTransformation, geometryTransformationInverse);
+        geometryTransformation, geometryTransformationInverse,
+        releasePovRayObjectTexture);
 }
 
 void
