@@ -92,11 +92,15 @@ SimpleBody::doIntersectionForAllRayCrossings(
                 geometryTransformation->transformPoint(
                     localIntersection.getIntersection().point);
         }
-        const Vector3Dd objectLocalPoint = localIntersection.getIntersection().point;
         if (transformation != nullptr) {
             localIntersection.getIntersection().point =
                 transformation->transformPoint(localIntersection.getIntersection().point);
         }
+        // Clipping shapes live in this body's outer frame (they only ever
+        // receive object-level transform deltas via propagateOwned*, never
+        // ones internal to a CSG block), so containment is tested against
+        // the point after `transformation`, not before.
+        const Vector3Dd clipTestPoint = localIntersection.getIntersection().point;
         // Re-express the (now world-space) crossing as a signed ray parameter
         // along the original ray, not a bare distance: length() would force
         // every crossing positive, so any crossing behind the ray origin -
@@ -118,7 +122,7 @@ SimpleBody::doIntersectionForAllRayCrossings(
 
             stats.incrementClippingRegionTests();
             if (clippingShape->doContainmentTest(
-                    objectLocalPoint,
+                    clipTestPoint,
                     GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
                 intersectionFound = false;
                 break;
@@ -153,11 +157,13 @@ SimpleBody::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
     SimpleBody *clippingShape;
     const Vector3Dd localPoint = worldPointToLocal(point);
 
+    // Bounding/clipping shapes live in this body's outer frame (the frame
+    // `point` arrives in), not in its local/geometry frame.
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
 
         if (boundingShape->doContainmentTest(
-                localPoint, distanceTolerance) == Geometry::OUTSIDE) {
+                point, distanceTolerance) == Geometry::OUTSIDE) {
             return Geometry::OUTSIDE;
         }
     }
@@ -166,7 +172,7 @@ SimpleBody::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
         clippingShape = this->getClippingShapes()[i];
 
         if (clippingShape->doContainmentTest(
-                localPoint, distanceTolerance) == Geometry::OUTSIDE) {
+                point, distanceTolerance) == Geometry::OUTSIDE) {
             return Geometry::OUTSIDE;
         }
     }
@@ -544,8 +550,12 @@ SimpleBody::translate(Vector3Dd *vector)
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         this->getBoundingShapes()[i]->propagateOwnedTranslation(vector);
     }
+    // Clipping shapes are specified in the frame current at their definition
+    // point, and object-level transforms parsed after clipped_by must carry
+    // them along (POV 1.0 semantics); containment is later tested against the
+    // point after this body's transform, so the clip geometry must follow it.
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
-        this->getClippingShapes()[i]->propagateOwnedTranslation(vector);
+        this->getClippingShapes()[i]->translate(vector);
     }
     applyOwnedTranslation(vector);
 }
@@ -583,8 +593,9 @@ SimpleBody::rotate(Vector3Dd *vector)
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         this->getBoundingShapes()[i]->propagateOwnedRotation(vector);
     }
+    // Clip geometry must follow object-level transforms; see translate().
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
-        this->getClippingShapes()[i]->propagateOwnedRotation(vector);
+        this->getClippingShapes()[i]->rotate(vector);
     }
     applyOwnedRotation(vector);
 }
@@ -622,8 +633,9 @@ SimpleBody::scale(Vector3Dd *vector)
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         this->getBoundingShapes()[i]->propagateOwnedScale(vector);
     }
+    // Clip geometry must follow object-level transforms; see translate().
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
-        this->getClippingShapes()[i]->propagateOwnedScale(vector);
+        this->getClippingShapes()[i]->scale(vector);
     }
     applyOwnedScale(vector);
 }

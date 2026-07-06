@@ -65,11 +65,15 @@ Composite::doIntersectionForAllRayCrossings(
 
         intersectionFound = true;
 
+        // The composite's own clipping shapes live in its outer frame, so
+        // containment is tested against the point after this composite's
+        // transform (already applied above), not converted back to the
+        // composite-local frame.
         for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
             clippingShape = this->getClippingShapes()[i];
             stats.incrementClippingRegionTests();
             if (clippingShape->doContainmentTest(
-                    worldPointToLocal(localIntersection.getIntersection().point),
+                    localIntersection.getIntersection().point,
                     GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
                 intersectionFound = false;
                 break;
@@ -105,10 +109,13 @@ Composite::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
     SimpleBody *localObject;
     const Vector3Dd localPoint = worldPointToLocal(point);
 
+    // The composite's own bounding/clipping shapes live in its outer frame
+    // (the frame `point` arrives in), not in the composite-local frame used
+    // below for child objects.
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
 
-        if (boundingShape->doContainmentTest(localPoint, distanceTolerance) == Geometry::OUTSIDE) {
+        if (boundingShape->doContainmentTest(point, distanceTolerance) == Geometry::OUTSIDE) {
             return Geometry::OUTSIDE;
         }
     }
@@ -116,7 +123,7 @@ Composite::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         clippingShape = this->getClippingShapes()[i];
 
-        if (clippingShape->doContainmentTest(localPoint, distanceTolerance) == Geometry::OUTSIDE) {
+        if (clippingShape->doContainmentTest(point, distanceTolerance) == Geometry::OUTSIDE) {
             return Geometry::OUTSIDE;
         }
     }
