@@ -5,21 +5,13 @@
 
 class PointLight : public Light {
   public:
-    PointLight(const ColorRgba &color, const Vector3Dd &position);
+    PointLight(const Vector3Dd &position, const ColorRgb &emission);
     PointLight(const PointLight &other);
+
+    void getDirectionAndDistance(const Vector3Dd &surfacePoint,
+        Vector3Dd *directionOut, double *maxShadowDistanceOut) const override;
     double evaluateLightResponseFactor(const Ray *lightSourceRay) const override;
+    Light *copy() const override;
 };
-
-inline
-PointLight::PointLight(const ColorRgba &color, const Vector3Dd &position) :
-    Light(color, position)
-{
-}
-
-inline
-PointLight::PointLight(const PointLight &other) :
-    Light(other)
-{
-}
 
 #endif

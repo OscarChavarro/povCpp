@@ -1,5 +1,6 @@
 #include "java/lang/Math.h"
 
+#include "vsdk/toolkit/common/color/ColorRgb.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/environment/light/PointLight.h"
 #include "vsdk/toolkit/environment/light/SpotLight.h"
@@ -78,7 +79,11 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                         // DeclarationParser re-declaring this same identifier
                         // later in the file) while this Light is still being
                         // built.
-                        localColor = new ColorRgba(constantLight->getColor());
+                        localColor = new ColorRgba(
+                            constantLight->getEmission().r(),
+                            constantLight->getEmission().g(),
+                            constantLight->getEmission().b(),
+                            0.0);
                         ownsLocalColor = true;
                         // pointsAt/coefficient/radius/falloff live only on
                         // SpotLight now; a cloned PointLight constant has no
@@ -182,10 +187,11 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
         }
     }
 
+    const ColorRgb emission(localColor->getR(), localColor->getG(), localColor->getB());
     Light * const result = spotlight ?
         static_cast<Light *>(new SpotLight(
-            *localColor, center, pointsAt, coefficient, radius, falloff)) :
-        static_cast<Light *>(new PointLight(*localColor, center));
+            center, pointsAt, emission, coefficient, radius, falloff)) :
+        static_cast<Light *>(new PointLight(center, emission));
     if (ownsLocalColor) {
         delete localColor;
     }
