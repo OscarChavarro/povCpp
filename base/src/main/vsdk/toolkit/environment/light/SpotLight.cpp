@@ -1,5 +1,5 @@
 #include "java/lang/Math.h"
-#include "environment/light/SpotLight.h"
+#include "vsdk/toolkit/environment/light/SpotLight.h"
 
 double
 SpotLight::cubicSpline(double low, double high, double pos)
@@ -42,10 +42,4 @@ SpotLight::evaluateLightResponseFactor(const Ray *lightSourceRay) const
         attenuation = 0.0;
     }
     return attenuation;
-}
-
-SpotLight *
-SpotLight::copy()
-{
-    return new SpotLight(*this);
 }

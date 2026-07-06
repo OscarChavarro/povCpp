@@ -1,19 +1,18 @@
 #ifndef __POINT_LIGHT__
 #define __POINT_LIGHT__
 
-#include "environment/light/Light.h"
+#include "vsdk/toolkit/environment/light/Light.h"
 
 class PointLight : public Light {
   public:
-    PointLight(const ColorRgba &shapeColor, const Vector3Dd &position);
+    PointLight(const ColorRgba &color, const Vector3Dd &position);
     PointLight(const PointLight &other);
     double evaluateLightResponseFactor(const Ray *lightSourceRay) const override;
-    PointLight *copy() override;
 };
 
 inline
-PointLight::PointLight(const ColorRgba &shapeColor, const Vector3Dd &position) :
-    Light(shapeColor, position)
+PointLight::PointLight(const ColorRgba &color, const Vector3Dd &position) :
+    Light(color, position)
 {
 }
 

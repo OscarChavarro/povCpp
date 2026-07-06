@@ -2,7 +2,7 @@
 #define __SCENE__
 
 #include "vsdk/toolkit/environment/camera/CameraSnapshot.h"
-#include "environment/light/Light.h"
+#include "vsdk/toolkit/environment/light/Light.h"
 #include "environment/scene/SimpleBody.h"
 
 class Scene {

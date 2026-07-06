@@ -8,7 +8,7 @@ LightSamplerShader::sample(const Light *lightSource, double *lightSourceDepth,
     double attenuation = 1.0;
 
     // Get the light source color
-    *lightColor = lightSource->getShapeColor();
+    *lightColor = lightSource->getColor();
 
     lightSourceRay->setOrigin(*intersectionPoint);
     lightSourceRay->setQuadricConstantsCached(false);

@@ -2,15 +2,12 @@
 #define __LIGHT_GEOMETRY_ADAPTER__
 
 #include "environment/geometry/Geometry.h"
-#include "environment/light/Light.h"
+#include "vsdk/toolkit/environment/light/Light.h"
 
 class LightGeometryAdapter : public Geometry {
   public:
     explicit LightGeometryAdapter(Light *lightSource) : light(lightSource) {}
-    LightGeometryAdapter(const LightGeometryAdapter &other) :
-        light(other.light != nullptr ? other.light->copy() : nullptr)
-    {
-    }
+    LightGeometryAdapter(const LightGeometryAdapter &other);
     ~LightGeometryAdapter() override { delete light; }
 
     Light *getLight() const { return light; }
@@ -30,6 +27,8 @@ class LightGeometryAdapter : public Geometry {
     void *copy() override;
 
   private:
+    static Light *cloneLight(const Light *light);
+
     Light *light;
 };
 
