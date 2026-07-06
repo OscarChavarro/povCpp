@@ -8,13 +8,14 @@ This module implements the code for Bezier bicubic patch shapes
 #include "java/util/HashMap.h"
 #include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
+#include "environment/geometry/surface/parametric/PatchScratch.h"
 #include "java/util/PriorityQueue.txx"
 
 static constexpr double EPSILON_PARAMETRIC_PATCH = 1.0e-10;
 
 int ParametricBiCubicPatch::maxDepthReached = 0;
 
-ParametricBiCubicPatch::PatchScratch &
+PatchScratch &
 ParametricBiCubicPatch::patchScratchFor(const ParametricBiCubicPatch *patch)
 {
     thread_local java::HashMap<const ParametricBiCubicPatch *, PatchScratch> scratchByPatch;
@@ -60,31 +61,31 @@ ParametricBiCubicPatch::applyPatchAttributes(
 int
 ParametricBiCubicPatch::getIntersectionCount() const
 {
-    return patchScratchFor(this).intersectionCount;
+    return patchScratchFor(this).getIntersectionCount();
 }
 
 void
 ParametricBiCubicPatch::setIntersectionCount(int count)
 {
-    patchScratchFor(this).intersectionCount = count;
+    patchScratchFor(this).setIntersectionCount(count);
 }
 
 void
 ParametricBiCubicPatch::incrementIntersectionCount()
 {
-    patchScratchFor(this).intersectionCount++;
+    patchScratchFor(this).incrementIntersectionCount();
 }
 
 Vector3Dd &
 ParametricBiCubicPatch::getNormalVectorAt(int index)
 {
-    return patchScratchFor(this).normalVector[index];
+    return patchScratchFor(this).getNormalVectorAt(index);
 }
 
 Vector3Dd &
 ParametricBiCubicPatch::getIntersectionPointAt(int index)
 {
-    return patchScratchFor(this).intersectionPoint[index];
+    return patchScratchFor(this).getIntersectionPointAt(index);
 }
 
 ParametricBiCubicPatch::ParametricBiCubicPatch() :

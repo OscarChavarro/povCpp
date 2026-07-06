@@ -52,12 +52,12 @@ BakedGeometryBaker::bakeQuadric(
     Quadric baked(original);
     for (long int i = 0; i < steps.size(); i++) {
         const TransformStep &step = steps[i];
-        switch (step.kind) {
+        switch (step.getKind()) {
         case TransformStep::Kind::Translate:
         {
             Matrix4x4d transformationInverse = Matrix4x4d().translation(
-                0.0 - step.vector.x(), 0.0 - step.vector.y(),
-                0.0 - step.vector.z()).transpose();
+                0.0 - step.getVector().x(), 0.0 - step.getVector().y(),
+                0.0 - step.getVector().z()).transpose();
             baked = transformQuadric(baked, transformationInverse);
             break;
         }
@@ -65,7 +65,7 @@ BakedGeometryBaker::bakeQuadric(
         {
             Matrix4x4d transformation;
             Matrix4x4d transformationInverse;
-            Vector3Dd vector = step.vector;
+            Vector3Dd vector = step.getVector();
             transformation.axisRotationRodrigues(&transformationInverse, &vector);
             baked = transformQuadric(baked, transformationInverse);
             break;
@@ -73,7 +73,7 @@ BakedGeometryBaker::bakeQuadric(
         case TransformStep::Kind::Scale:
         {
             Matrix4x4d transformationInverse = Matrix4x4d().scale(
-                1.0 / step.vector.x(), 1.0 / step.vector.y(), 1.0 / step.vector.z());
+                1.0 / step.getVector().x(), 1.0 / step.getVector().y(), 1.0 / step.getVector().z());
             baked = transformQuadric(baked, transformationInverse);
             break;
         }
@@ -91,10 +91,10 @@ BakedGeometryBaker::bakePlane(
     InfinitePlane baked(original);
     for (long int i = 0; i < steps.size(); i++) {
         const TransformStep &step = steps[i];
-        switch (step.kind) {
+        switch (step.getKind()) {
         case TransformStep::Kind::Translate:
         {
-            Vector3Dd translation = baked.getNormalVector().multiply(step.vector);
+            Vector3Dd translation = baked.getNormalVector().multiply(step.getVector());
             baked.setDistance(
                 baked.getDistance() - (translation.x() + translation.y() + translation.z()));
             break;
@@ -103,7 +103,7 @@ BakedGeometryBaker::bakePlane(
         {
             Matrix4x4d transformation;
             Matrix4x4d transformationInverse;
-            Vector3Dd vector = step.vector;
+            Vector3Dd vector = step.getVector();
             transformation.axisRotationRodrigues(&transformationInverse, &vector);
             baked.getNormalVector() =
                 transformation.transpose().multiply(baked.getNormalVector());
@@ -112,8 +112,8 @@ BakedGeometryBaker::bakePlane(
         case TransformStep::Kind::Scale:
         {
             Vector3Dd &n = baked.getNormalVector();
-            n = Vector3Dd(n.x() / step.vector.x(), n.y() / step.vector.y(),
-                n.z() / step.vector.z());
+            n = Vector3Dd(n.x() / step.getVector().x(), n.y() / step.getVector().y(),
+                n.z() / step.getVector().z());
             const double length = n.length();
             n = n.multiply(1.0 / length);
             baked.setDistance(baked.getDistance() / length);

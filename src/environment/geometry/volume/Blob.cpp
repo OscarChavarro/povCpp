@@ -619,5 +619,5 @@ Blob::getMinMax() const
         local = local.expandedBy(Vector3Dd(c.x() - r, c.y() - r, c.z() - r));
         local = local.expandedBy(Vector3Dd(c.x() + r, c.y() + r, c.z() + r));
     }
-    return AxisAlignedBoundingBox::fromTransformedCorners(local.min, local.max, transformation);
+    return AxisAlignedBoundingBox::fromTransformedCorners(local.getMin(), local.getMax(), transformation);
 }

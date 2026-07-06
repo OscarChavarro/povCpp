@@ -89,9 +89,9 @@ bool
 BakedSceneBuilder::areSeparated(const AxisAlignedBoundingBox &left, const AxisAlignedBoundingBox &right)
 {
     return
-        left.max.x() < right.min.x() || right.max.x() < left.min.x() ||
-        left.max.y() < right.min.y() || right.max.y() < left.min.y() ||
-        left.max.z() < right.min.z() || right.max.z() < left.min.z();
+        left.getMax().x() < right.getMin().x() || right.getMax().x() < left.getMin().x() ||
+        left.getMax().y() < right.getMin().y() || right.getMax().y() < left.getMin().y() ||
+        left.getMax().z() < right.getMin().z() || right.getMax().z() < left.getMin().z();
 }
 
 bool
@@ -530,7 +530,7 @@ BakedSceneBuilder::pushDownStepsIntoProgram(
         bool bounded = operand->getBounded();
         if (!bakedBounds.isUnbounded()) {
             bakedBounds = AxisAlignedBoundingBox::fromTransformedCorners(
-                bakedBounds.min, bakedBounds.max, &parentForwardTransform);
+                bakedBounds.getMin(), bakedBounds.getMax(), &parentForwardTransform);
             bounded = !bakedBounds.isUnbounded();
         }
 
@@ -744,7 +744,7 @@ BakedSceneBuilder::sortCullSafeEntriesByKey(java::ArrayList<CullSafeEntry> &entr
     for (long int i = 1; i < entries.size(); i++) {
         const CullSafeEntry pivot = entries[i];
         long int j = i - 1;
-        while (j >= 0 && entries[j].key > pivot.key) {
+        while (j >= 0 && entries[j].getKey() > pivot.getKey()) {
             entries[j + 1] = entries[j];
             j--;
         }
@@ -795,9 +795,10 @@ BakedSceneBuilder::buildOperandCullBinsForBucket(
     }
 
     for (long int i = 0; i < cullSafeByAxis.size(); i++) {
-        CullSafeEntry &entry = cullSafeByAxis[i];
-        const Vector3Dd c = operands[bucket[entry.position]]->getBakedBounds().centroid();
-        entry.key = axis == 0 ? c.x() : (axis == 1 ? c.y() : c.z());
+        const CullSafeEntry &entry = cullSafeByAxis[i];
+        const Vector3Dd c = operands[bucket[entry.getPosition()]]->getBakedBounds().centroid();
+        const double key = axis == 0 ? c.x() : (axis == 1 ? c.y() : c.z());
+        cullSafeByAxis[i] = CullSafeEntry(key, entry.getPosition());
     }
     sortCullSafeEntriesByKey(cullSafeByAxis);
 
@@ -823,7 +824,7 @@ BakedSceneBuilder::buildOperandCullBinsForBucket(
         AxisAlignedBoundingBox aggregate = AxisAlignedBoundingBox::empty();
         const int start = (int)binMembers.size();
         for (int k = 0; k < count; k++) {
-            const int pos = cullSafeByAxis[cursor].position;
+            const int pos = cullSafeByAxis[cursor].getPosition();
             binMembers.add(pos);
             aggregate = aggregate.enclosing(operands[bucket[pos]]->getBakedBounds());
             cursor++;

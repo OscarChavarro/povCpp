@@ -38,9 +38,9 @@ public:
         };
 
         return
-            updateAxis(origin.x(), invDirX, degenerateX, box.min.x(), box.max.x()) &&
-            updateAxis(origin.y(), invDirY, degenerateY, box.min.y(), box.max.y()) &&
-            updateAxis(origin.z(), invDirZ, degenerateZ, box.min.z(), box.max.z()) &&
+            updateAxis(origin.x(), invDirX, degenerateX, box.getMin().x(), box.getMax().x()) &&
+            updateAxis(origin.y(), invDirY, degenerateY, box.getMin().y(), box.getMax().y()) &&
+            updateAxis(origin.z(), invDirZ, degenerateZ, box.getMin().z(), box.getMax().z()) &&
             tMax >= 0.0;
     }
 

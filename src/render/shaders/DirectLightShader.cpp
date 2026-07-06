@@ -43,9 +43,9 @@ DirectLightShader::rayIntersectsAabbBefore(
     };
 
     return
-        updateAxis(origin.x(), direction.x(), box.min.x(), box.max.x()) &&
-        updateAxis(origin.y(), direction.y(), box.min.y(), box.max.y()) &&
-        updateAxis(origin.z(), direction.z(), box.min.z(), box.max.z()) &&
+        updateAxis(origin.x(), direction.x(), box.getMin().x(), box.getMax().x()) &&
+        updateAxis(origin.y(), direction.y(), box.getMin().y(), box.getMax().y()) &&
+        updateAxis(origin.z(), direction.z(), box.getMin().z(), box.getMax().z()) &&
         tMax >= 0.0;
 }
 

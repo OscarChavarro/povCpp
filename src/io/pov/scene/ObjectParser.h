@@ -3,6 +3,7 @@
 
 #include "environment/scene/Composite.h"
 #include "io/pov/geometry/SimpleBodyBuilder.h"
+#include "io/pov/scene/ParsedTransformOp.h"
 
 class ObjectParser {
   public:
@@ -14,20 +15,6 @@ class ObjectParser {
     static SimpleBody *parseComposite(ParserContext &ctx);
 
   private:
-    // Records one translate/rotate/scale token parsed for an object body,
-    // in encounter order, so parseObject can replay it against the released
-    // bodySteps/geometrySteps lists.
-    enum ParsedTransformKind {
-        PARSED_TRANSLATE,
-        PARSED_ROTATE,
-        PARSED_SCALE
-    };
-
-    struct ParsedTransformOp {
-        ParsedTransformKind kind;
-        Vector3Dd vector;
-    };
-
     // An untextured object/composite starts out wearing the scene's shared
     // default texture directly (see objectTexture initialization in
     // parseObject/parseComposite). Transforming it in place would mutate

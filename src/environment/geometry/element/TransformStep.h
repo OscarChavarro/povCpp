@@ -3,14 +3,15 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
-struct TransformStep {
+class TransformStep {
+public:
     enum class Kind { Translate, Rotate, Scale, Invert };
-
-    Kind kind;
-    Vector3Dd vector;  // unused for Invert
 
     TransformStep() : kind(Kind::Invert), vector(0.0, 0.0, 0.0) {}
     TransformStep(Kind kind, const Vector3Dd &vector) : kind(kind), vector(vector) {}
+
+    Kind getKind() const { return kind; }
+    const Vector3Dd &getVector() const { return vector; }
 
     bool operator==(const TransformStep &other) const
     {
@@ -19,6 +20,10 @@ struct TransformStep {
             vector.y() == other.vector.y() &&
             vector.z() == other.vector.z();
     }
+
+private:
+    Kind kind;
+    Vector3Dd vector;  // unused for Invert
 };
 
 #endif

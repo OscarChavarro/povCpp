@@ -1,7 +1,3 @@
-/**
-This module implements the code pertaining to rays.
-*/
-
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/geometry/element/RayWithTracingState.h"
 #include "java/util/ArrayList.txx"
