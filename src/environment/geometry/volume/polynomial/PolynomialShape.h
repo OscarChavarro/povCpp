@@ -1,6 +1,7 @@
 #ifndef __POLYNOMIAL_SHAPE__
 #define __POLYNOMIAL_SHAPE__
 
+#include "environment/geometry/Geometry.h"
 
 class PolynomialShape : public Geometry {
   public:

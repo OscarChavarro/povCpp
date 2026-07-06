@@ -2,13 +2,13 @@
 #define __GEOMETRYINTERSECTIONEMISSIONCONTEXT__
 
 class Material;
-class RayOperationOwner;
+class RayCastingHitElement;
 
 class GeometryIntersectionEmissionContext {
   public:
     GeometryIntersectionEmissionContext(
         Material *materialOverride,
-        RayOperationOwner *detailOwner,
+        RayCastingHitElement *detailOwner,
         bool materialUsesObjectLocalPoint) :
         materialOverride(materialOverride),
         detailOwner(detailOwner),
@@ -16,12 +16,12 @@ class GeometryIntersectionEmissionContext {
     {}
 
     Material *getMaterialOverride() const { return materialOverride; }
-    RayOperationOwner *getDetailOwner() const { return detailOwner; }
+    RayCastingHitElement *getDetailOwner() const { return detailOwner; }
     bool getMaterialUsesObjectLocalPoint() const { return materialUsesObjectLocalPoint; }
 
   private:
     Material * const materialOverride;
-    RayOperationOwner * const detailOwner;
+    RayCastingHitElement * const detailOwner;
     const bool materialUsesObjectLocalPoint;
 };
 

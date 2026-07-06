@@ -3,14 +3,14 @@
 
 #include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/geometry/element/AxisAlignedBoundingBox.h"
-#include "environment/geometry/element/RayOperationOwner.h"
+#include "environment/geometry/element/RayCastingHitElement.h"
 #include "environment/geometry/element/GeometryIntersectionEmissionContext.h"
 #include "vsdk/toolkit/processing/Containment.h"
 
 class IntersectionCandidate;
 class PovRayHit;
 
-class Geometry {
+class Geometry : public RayCastingHitElement {
   public:
     static constexpr int INSIDE = static_cast<int>(Containment::INSIDE);
     static constexpr int LIMIT = static_cast<int>(Containment::LIMIT);
@@ -36,7 +36,7 @@ class Geometry {
         return false;
     }
     virtual int doContainmentTest(const Vector3Dd &point, double distanceTolerance) { (void)point; (void)distanceTolerance; return OUTSIDE; }
-    virtual void doExtraInformation(const RayWithTracingState &ray, double t, PovRayHit *hit);
+    virtual void doExtraInformation(const RayWithTracingState &ray, double t, PovRayHit *hit) override;
     virtual AxisAlignedBoundingBox getMinMax() const { return AxisAlignedBoundingBox::unbounded(); }
     virtual void *copy() = 0;
     virtual ~Geometry() {}

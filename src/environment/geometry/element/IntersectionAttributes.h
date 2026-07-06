@@ -2,20 +2,29 @@
 #define __INTERSECTION_ATTRIBUTES__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "environment/geometry/Geometry.h"
+#include "vsdk/toolkit/environment/material/Material.h"
+#include "environment/geometry/element/RayCastingHitElement.h"
 
 // Per-candidate attribution gathered while a ray is matched against the scene
 // (which geometry/material produced the hit, and the shading overrides a
 // containing scene object applies) - kept apart from the candidate's own
 // geometric data (Intersection: t/point/normal) so that class can stay a
 // plain geometric record.
+//
+// hitGeometry and hitBody are both RayCastingHitElement* - Geometry implements
+// that interface precisely so a bare shape (no wrapping body) can travel
+// through the same pointer type as a CSG body, without this class (or
+// anything in element/) needing to know the concrete Geometry class. They
+// are NOT interchangeable: a body's doExtraInformation may consult hitGeometry
+// on its own account (e.g. a baked/quadric override), so both must be kept as
+// distinct fields even though their type is now the same.
 class IntersectionAttributes {
   private:
     static constexpr int MAX_DETAIL_OWNERS = 8;
 
-    Geometry *hitGeometry = nullptr;
-    RayOperationOwner *hitBody = nullptr;
-    RayOperationOwner *detailOwners[MAX_DETAIL_OWNERS] = {};
+    RayCastingHitElement *hitGeometry = nullptr;
+    RayCastingHitElement *hitBody = nullptr;
+    RayCastingHitElement *detailOwners[MAX_DETAIL_OWNERS] = {};
     int detailOwnerCount = 0;
     Material *material = nullptr;
     Material *objectTexture = nullptr;
@@ -24,13 +33,13 @@ class IntersectionAttributes {
     bool materialUsesObjectLocalPoint = false;
 
   public:
-    Geometry *getHitGeometry() const;
-    void setHitGeometry(Geometry *value);
-    RayOperationOwner *getHitBody() const;
-    void setHitBody(RayOperationOwner *value);
+    RayCastingHitElement *getHitGeometry() const;
+    void setHitGeometry(RayCastingHitElement *value);
+    RayCastingHitElement *getHitBody() const;
+    void setHitBody(RayCastingHitElement *value);
     int getDetailOwnerCount() const;
-    RayOperationOwner *getDetailOwnerAt(int index) const;
-    void pushDetailOwner(RayOperationOwner *value);
+    RayCastingHitElement *getDetailOwnerAt(int index) const;
+    void pushDetailOwner(RayCastingHitElement *value);
     Material *getMaterial() const;
     void setMaterial(Material *value);
     Material *getObjectTexture() const;
@@ -43,26 +52,26 @@ class IntersectionAttributes {
     void setNoShadowFlag(bool value);
 };
 
-inline Geometry *
+inline RayCastingHitElement *
 IntersectionAttributes::getHitGeometry() const
 {
     return hitGeometry;
 }
 
 inline void
-IntersectionAttributes::setHitGeometry(Geometry *value)
+IntersectionAttributes::setHitGeometry(RayCastingHitElement *value)
 {
     hitGeometry = value;
 }
 
-inline RayOperationOwner *
+inline RayCastingHitElement *
 IntersectionAttributes::getHitBody() const
 {
     return hitBody;
 }
 
 inline void
-IntersectionAttributes::setHitBody(RayOperationOwner *value)
+IntersectionAttributes::setHitBody(RayCastingHitElement *value)
 {
     hitBody = value;
 }
@@ -73,7 +82,7 @@ IntersectionAttributes::getDetailOwnerCount() const
     return detailOwnerCount;
 }
 
-inline RayOperationOwner *
+inline RayCastingHitElement *
 IntersectionAttributes::getDetailOwnerAt(int index) const
 {
     if (index < 0 || index >= detailOwnerCount) {
@@ -83,7 +92,7 @@ IntersectionAttributes::getDetailOwnerAt(int index) const
 }
 
 inline void
-IntersectionAttributes::pushDetailOwner(RayOperationOwner *value)
+IntersectionAttributes::pushDetailOwner(RayCastingHitElement *value)
 {
     if (value == nullptr || detailOwnerCount >= MAX_DETAIL_OWNERS) {
         return;

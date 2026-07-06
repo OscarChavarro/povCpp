@@ -503,8 +503,8 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithTracingState *localRay, Co
             winningHit.requiredDetailMask = localRay->getRequiredDetailMask();
             winningHit.p = localIntersection.getIntersection().point;
             winningHit.n = localIntersection.getIntersection().normal;
-            RayOperationOwner *hitBody = localIntersection.getAttributes().getHitBody();
-            Geometry *hitGeometry = localIntersection.getAttributes().getHitGeometry();
+            RayCastingHitElement *hitBody = localIntersection.getAttributes().getHitBody();
+            RayCastingHitElement *hitGeometry = localIntersection.getAttributes().getHitGeometry();
             winningHit.hitGeometry = hitGeometry;
             winningHit.detailOwnerCount =
                 localIntersection.getAttributes().getDetailOwnerCount();
