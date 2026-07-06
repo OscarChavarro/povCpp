@@ -1,5 +1,7 @@
 #include "render/shaders/LightSamplerShader.h"
 
+#include "vsdk/toolkit/common/color/ColorRgb.h"
+
 void
 LightSamplerShader::sample(const Light *lightSource, double *lightSourceDepth,
     RayWithTracingState *lightSourceRay, const Vector3Dd *intersectionPoint,
@@ -8,7 +10,8 @@ LightSamplerShader::sample(const Light *lightSource, double *lightSourceDepth,
     double attenuation = 1.0;
 
     // Get the light source color
-    *lightColor = lightSource->getColor();
+    const ColorRgb &emission = lightSource->getEmission();
+    *lightColor = ColorRgba(emission.r(), emission.g(), emission.b(), 0.0);
 
     lightSourceRay->setOrigin(*intersectionPoint);
     lightSourceRay->setQuadricConstantsCached(false);
