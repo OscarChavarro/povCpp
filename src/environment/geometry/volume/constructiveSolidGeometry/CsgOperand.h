@@ -2,7 +2,7 @@
 #define __CSG_OPERAND__
 
 #include "environment/geometry/element/PovRayHit.h"
-#include "environment/geometry/element/RayOperationOwner.h"
+#include "environment/geometry/element/RayCastingHitElement.h"
 #include "vsdk/toolkit/environment/material/Material.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/geometry/volume/HeightField.h"
@@ -10,7 +10,7 @@
 #include "environment/geometry/volume/Sphere.h"
 #include "environment/geometry/element/TransformStep.h"
 
-class CsgOperand : public RayOperationOwner {
+class CsgOperand : public RayCastingHitElement {
   private:
     Geometry *geometry = nullptr;
     Material *material = nullptr;
@@ -283,11 +283,11 @@ class CsgOperand : public RayOperationOwner {
             hit->p = transformationInverse->transformPoint(parentPoint);
         }
 
-        RayOperationOwner *next = hit->popDetailOwnerBack();
+        RayCastingHitElement *next = hit->popDetailOwnerBack();
         if (next != nullptr) {
             next->doExtraInformation(localRay, t, hit);
         } else {
-            Geometry *effectiveGeometry = bakedTransformFolded ? hit->hitGeometry : geometry;
+            RayCastingHitElement *effectiveGeometry = bakedTransformFolded ? hit->hitGeometry : geometry;
             if (effectiveGeometry != nullptr) {
                 effectiveGeometry->doExtraInformation(localRay, t, hit);
             }

@@ -3,11 +3,11 @@
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/geometry/Geometry.h"
-#include "environment/geometry/element/RayOperationOwner.h"
+#include "environment/geometry/element/RayCastingHitElement.h"
 #include "vsdk/toolkit/environment/material/Material.h"
 #include "environment/geometry/element/TransformStep.h"
 
-class SimpleBody : public RayOperationOwner {
+class SimpleBody : public RayCastingHitElement {
   public:
     // Callers that hand SimpleBody an objectTexture whose destruction needs
     // more than a plain `delete` (e.g. POV-Ray's shared default-texture

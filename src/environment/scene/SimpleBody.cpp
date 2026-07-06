@@ -187,7 +187,7 @@ SimpleBody::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 void
 SimpleBody::doExtraInformation(const RayWithTracingState &ray, double t, PovRayHit *hit)
 {
-    Geometry *detailGeometry = hit->hitGeometry != nullptr ? hit->hitGeometry : geometry;
+    RayCastingHitElement *detailGeometry = hit->hitGeometry != nullptr ? hit->hitGeometry : geometry;
     const bool bakedLeaf = bakedTransformFolded;
     // Consume the detail-owner chain outermost-first (popDetailOwnerBack): the
     // owners were pushed innermost-first while collecting the hit, so for a
@@ -198,7 +198,7 @@ SimpleBody::doExtraInformation(const RayWithTracingState &ray, double t, PovRayH
     // primitive normal; unwinding re-applies each operand transform to the
     // normal from innermost to outermost. Popping only the first (innermost)
     // owner here would drop every outer operand's transform.
-    RayOperationOwner *detailOwner = hit->popDetailOwnerBack();
+    RayCastingHitElement *detailOwner = hit->popDetailOwnerBack();
     if (detailGeometry != nullptr) {
         RayWithTracingState localRay = RayWithTracingState::localIntersectionClone(ray);
         const Vector3Dd worldPoint = hit->p;

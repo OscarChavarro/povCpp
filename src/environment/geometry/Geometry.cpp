@@ -1,3 +1,4 @@
+#include "environment/geometry/Geometry.h"
 #include "environment/geometry/element/PovRayHit.h"
 #include "java/util/PriorityQueue.txx"
 
