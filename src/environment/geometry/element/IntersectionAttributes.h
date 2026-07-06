@@ -30,9 +30,7 @@ class IntersectionAttributes {
     void setHitBody(RayOperationOwner *value);
     int getDetailOwnerCount() const;
     RayOperationOwner *getDetailOwnerAt(int index) const;
-    void clearDetailOwners();
     void pushDetailOwner(RayOperationOwner *value);
-    void prependDetailOwner(RayOperationOwner *value);
     Material *getMaterial() const;
     void setMaterial(Material *value);
     Material *getObjectTexture() const;
@@ -75,12 +73,6 @@ IntersectionAttributes::getDetailOwnerCount() const
     return detailOwnerCount;
 }
 
-inline void
-IntersectionAttributes::clearDetailOwners()
-{
-    detailOwnerCount = 0;
-}
-
 inline RayOperationOwner *
 IntersectionAttributes::getDetailOwnerAt(int index) const
 {
@@ -97,19 +89,6 @@ IntersectionAttributes::pushDetailOwner(RayOperationOwner *value)
         return;
     }
     detailOwners[detailOwnerCount++] = value;
-}
-
-inline void
-IntersectionAttributes::prependDetailOwner(RayOperationOwner *value)
-{
-    if (value == nullptr || detailOwnerCount >= MAX_DETAIL_OWNERS) {
-        return;
-    }
-    for (int i = detailOwnerCount; i > 0; --i) {
-        detailOwners[i] = detailOwners[i - 1];
-    }
-    detailOwners[0] = value;
-    detailOwnerCount++;
 }
 
 inline Material *

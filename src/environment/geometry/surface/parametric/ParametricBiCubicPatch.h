@@ -5,6 +5,8 @@
 #include "environment/geometry/surface/parametric/ParametricControlPoints.h"
 #include "environment/geometry/surface/parametric/ParametricPatchChild.h"
 
+class PatchScratch;
+
 class ParametricBiCubicPatch : public Geometry {
   public:
     static constexpr int MAX_BICUBIC_INTERSECTIONS = 32;
@@ -88,11 +90,6 @@ class ParametricBiCubicPatch : public Geometry {
     // time), so this only needs to stop *different threads* from sharing
     // the same backing storage - it does not change the single-threaded
     // behaviour at all.
-    struct PatchScratch {
-        int intersectionCount = 0;
-        Vector3Dd intersectionPoint[MAX_BICUBIC_INTERSECTIONS];
-        Vector3Dd normalVector[MAX_BICUBIC_INTERSECTIONS];
-    };
     static PatchScratch &patchScratchFor(const ParametricBiCubicPatch *patch);
     static void applyPatchAttributes(
         ParametricBiCubicPatch *patch,

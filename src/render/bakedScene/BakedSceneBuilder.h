@@ -2,6 +2,7 @@
 #define __BAKED_SCENE_BUILDER__
 
 #include "render/bakedScene/BakedScene.h"
+#include "render/bakedScene/CullSafeEntry.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 
 class BakedSceneBuilder {
@@ -100,13 +101,6 @@ class BakedSceneBuilder {
 
     static constexpr long int kOperandCullBinThreshold = 17;
     static constexpr bool kEnableOperandCullBins = true;
-
-    // Sort key (chosen axis centroid coordinate) paired with the entry's
-    // position in the bucket - private replacement for std::pair<double, int>.
-    struct CullSafeEntry {
-        double key;
-        int position;
-    };
 
     // Ascending insertion sort by key. Bake-time only, called once per wide
     // union bucket (never on the per-ray path) - same complexity trade-off

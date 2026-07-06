@@ -54,12 +54,12 @@ class CsgOperand : public RayOperationOwner {
         bakedBounds = geometry->getMinMax();
         if (transformation != nullptr && !bakedBounds.isUnbounded()) {
             bakedBounds = AxisAlignedBoundingBox::fromTransformedCorners(
-                bakedBounds.min, bakedBounds.max, transformation);
+                bakedBounds.getMin(), bakedBounds.getMax(), transformation);
         }
         if (!bakedBounds.isUnbounded()) {
             const Vector3Dd padding(1e-6, 1e-6, 1e-6);
-            bakedBounds.min = bakedBounds.min.subtract(padding);
-            bakedBounds.max = bakedBounds.max.add(padding);
+            bakedBounds = AxisAlignedBoundingBox(
+                bakedBounds.getMin().subtract(padding), bakedBounds.getMax().add(padding));
         }
         bakedBoundsBounded = !bakedBounds.isUnbounded();
         bakedBoundsCullSafe =
@@ -102,9 +102,9 @@ class CsgOperand : public RayOperationOwner {
         };
 
         return
-            updateAxis(origin.x(), invDirX, degenerateX, box.min.x(), box.max.x()) &&
-            updateAxis(origin.y(), invDirY, degenerateY, box.min.y(), box.max.y()) &&
-            updateAxis(origin.z(), invDirZ, degenerateZ, box.min.z(), box.max.z()) &&
+            updateAxis(origin.x(), invDirX, degenerateX, box.getMin().x(), box.getMax().x()) &&
+            updateAxis(origin.y(), invDirY, degenerateY, box.getMin().y(), box.getMax().y()) &&
+            updateAxis(origin.z(), invDirZ, degenerateZ, box.getMin().z(), box.getMax().z()) &&
             tMax >= 0.0;
     }
 

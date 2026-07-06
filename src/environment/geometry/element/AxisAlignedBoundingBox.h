@@ -3,9 +3,13 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 
-struct AxisAlignedBoundingBox {
-    Vector3Dd min;
-    Vector3Dd max;
+class AxisAlignedBoundingBox {
+public:
+    AxisAlignedBoundingBox() : min(0.0, 0.0, 0.0), max(0.0, 0.0, 0.0) {}
+    AxisAlignedBoundingBox(const Vector3Dd &min, const Vector3Dd &max) : min(min), max(max) {}
+
+    const Vector3Dd &getMin() const { return min; }
+    const Vector3Dd &getMax() const { return max; }
 
     static AxisAlignedBoundingBox unbounded() {
         constexpr double INF = 1e30;
@@ -98,6 +102,10 @@ struct AxisAlignedBoundingBox {
         }
         return result;
     }
+
+private:
+    Vector3Dd min;
+    Vector3Dd max;
 };
 
 #endif

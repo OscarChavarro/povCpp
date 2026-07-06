@@ -17,12 +17,14 @@ WORD
 GifDecoder::initExp(int iSize, GifDecoderState &state)
 {
     WORD size = (WORD)iSize;
-    state.currSize = size + 1;
-    state.topSlot = 1 << state.currSize;
-    state.clear = 1 << size;
-    state.ending = state.clear + 1;
-    state.slot = state.newcodes = state.ending + 1;
-    state.navailBytes = state.nbitsLeft = 0;
+    state.setCurrSize(size + 1);
+    state.setTopSlot(1 << state.getCurrSize());
+    state.setClear(1 << size);
+    state.setEnding(state.getClear() + 1);
+    state.setNewcodes(state.getEnding() + 1);
+    state.setSlot(state.getNewcodes());
+    state.setNavailBytes(0);
+    state.setNbitsLeft(0);
     return (0);
 }
 
@@ -36,53 +38,57 @@ GifDecoder::getNextCode(GifInputContext &input, GifDecoderState &state)
     WORD x;
     ULONG ret;
 
-    if (state.nbitsLeft == 0) {
-        if (state.navailBytes <= 0) {
+    if (state.getNbitsLeft() == 0) {
+        if (state.getNavailBytes() <= 0) {
 
             // Out of bytes in current block, so read next block
-            state.pbytes = state.byteBuff;
-            if ((state.navailBytes = input.getByte(input.context)) < 0) {
-                return (state.navailBytes);
+            state.setPbytes(state.getByteBuffArray());
+            WORD navailBytes = (WORD)input.getByteReader()(input.getContext());
+            state.setNavailBytes(navailBytes);
+            if (navailBytes < 0) {
+                return (navailBytes);
             }
-            if (state.navailBytes) {
-                for (i = 0; i < state.navailBytes; ++i) {
-                    if ((x = input.getByte(input.context)) < 0) {
+            if (state.getNavailBytes()) {
+                for (i = 0; i < state.getNavailBytes(); ++i) {
+                    if ((x = input.getByteReader()(input.getContext())) < 0) {
                         return (x);
                     }
-                    state.byteBuff[i] = (UTINY)x;
+                    state.setByteBuff(i, (UTINY)x);
                 }
             }
         }
-        state.b1 = *state.pbytes++;
-        state.nbitsLeft = 8;
-        --state.navailBytes;
+        state.setB1(*state.advancePbytes());
+        state.setNbitsLeft(8);
+        state.decrementNavailBytes();
     }
 
-    ret = state.b1 >> (8 - state.nbitsLeft);
-    while (state.currSize > state.nbitsLeft) {
-        if (state.navailBytes <= 0) {
+    ret = state.getB1() >> (8 - state.getNbitsLeft());
+    while (state.getCurrSize() > state.getNbitsLeft()) {
+        if (state.getNavailBytes() <= 0) {
 
             // Out of bytes in current block, so read next block
-            state.pbytes = state.byteBuff;
-            if ((state.navailBytes = input.getByte(input.context)) < 0) {
-                return (state.navailBytes);
+            state.setPbytes(state.getByteBuffArray());
+            WORD navailBytes = (WORD)input.getByteReader()(input.getContext());
+            state.setNavailBytes(navailBytes);
+            if (navailBytes < 0) {
+                return (navailBytes);
             }
-            if (state.navailBytes) {
-                for (i = 0; i < state.navailBytes; ++i) {
-                    if ((x = input.getByte(input.context)) < 0) {
+            if (state.getNavailBytes()) {
+                for (i = 0; i < state.getNavailBytes(); ++i) {
+                    if ((x = input.getByteReader()(input.getContext())) < 0) {
                         return (x);
                     }
-                    state.byteBuff[i] = (UTINY)x;
+                    state.setByteBuff(i, (UTINY)x);
                 }
             }
         }
-        state.b1 = *state.pbytes++;
-        ret |= state.b1 << state.nbitsLeft;
-        state.nbitsLeft += 8;
-        --state.navailBytes;
+        state.setB1(*state.advancePbytes());
+        ret |= state.getB1() << state.getNbitsLeft();
+        state.setNbitsLeft(state.getNbitsLeft() + 8);
+        state.decrementNavailBytes();
     }
-    state.nbitsLeft -= state.currSize;
-    ret &= state.codeMask[state.currSize];
+    state.setNbitsLeft(state.getNbitsLeft() - state.getCurrSize());
+    ret &= state.getCodeMask(state.getCurrSize());
     return ((WORD)(ret));
 }
 
@@ -115,9 +121,9 @@ GifDecoder::getNextCode(GifInputContext &input, GifDecoderState &state)
 void
 GifDecoder::cleanupGifDecoder(GifDecoderState &state)
 {
-    delete[] state.dstack;
-    delete[] state.suffix;
-    delete[] state.prefix;
+    delete[] state.getDstack();
+    delete[] state.getSuffix();
+    delete[] state.getPrefix();
 }
 
 WORD
@@ -138,7 +144,7 @@ GifDecoder::decoder(int iLinewidth, GifInputContext &input, GifDecoderState &sta
     linewidth = (WORD)iLinewidth;
 
     // Initialize for decoding a new image...
-    if ((size = input.getByte(input.context)) < 0) {
+    if ((size = input.getByteReader()(input.getContext())) < 0) {
         return (size);
     }
     if (size < 2 || 9 < size) {
@@ -146,20 +152,20 @@ GifDecoder::decoder(int iLinewidth, GifInputContext &input, GifDecoderState &sta
     }
     GifDecoder::initExp((int)size, state); // changed param to int
 
-    state.dstack = new UTINY[MAX_CODES + 1];
-    state.suffix = new UTINY[MAX_CODES + 1];
-    state.prefix = new UWORD[MAX_CODES + 1];
+    state.setDstack(new UTINY[MAX_CODES + 1]);
+    state.setSuffix(new UTINY[MAX_CODES + 1]);
+    state.setPrefix(new UWORD[MAX_CODES + 1]);
 
     // Initialize in case they forgot to put in a clear code.
     // (This shouldn't happen, but we'll try and decode it anyway...)
     oc = fc = 0;
 
-    buf = state.decoderline;
+    buf = state.getDecoderline();
 
-    state.badCodeCount = 0;
+    state.setBadCodeCount(0);
 
     // Set up the stack pointer and decode buffer pointer
-    sp = state.dstack;
+    sp = state.getDstack();
     bufptr = buf;
     bufcnt = linewidth;
 
@@ -170,7 +176,7 @@ GifDecoder::decoder(int iLinewidth, GifInputContext &input, GifDecoderState &sta
     // character for output in the correct order.  Special handling is
     // included for the clear code, and the whole thing ends when we get
     // an ending code.
-    while ((c = GifDecoder::getNextCode(input, state)) != state.ending) {
+    while ((c = GifDecoder::getNextCode(input, state)) != state.getEnding()) {
 
         // If we had a file error, return without completing the decode
         if (c < 0) {
@@ -179,20 +185,20 @@ GifDecoder::decoder(int iLinewidth, GifInputContext &input, GifDecoderState &sta
         }
 
         // If the code is a clear code, reinitialize all necessary items.
-        if (c == state.clear) {
-            state.currSize = size + 1;
-            state.slot = state.newcodes;
-            state.topSlot = 1 << state.currSize;
+        if (c == state.getClear()) {
+            state.setCurrSize(size + 1);
+            state.setSlot(state.getNewcodes());
+            state.setTopSlot(1 << state.getCurrSize());
 
             // Continue reading codes until we get a non-clear code
             // (Another unlikely, but possible case...)
-            while ((c = GifDecoder::getNextCode(input, state)) == state.clear) {
+            while ((c = GifDecoder::getNextCode(input, state)) == state.getClear()) {
                 ;
             }
 
             // If we get an ending code immediately after a clear code
             // (Yet another unlikely case), then break out of the loop.
-            if (c == state.ending) {
+            if (c == state.getEnding()) {
                 break;
             }
 
@@ -200,7 +206,7 @@ GifDecoder::decoder(int iLinewidth, GifInputContext &input, GifDecoderState &sta
             // (This one had better NOT happen...  I have no idea what will
             // result from this, but I doubt it will look good...) then set it
             // to color zero.
-            if (c >= state.slot) {
+            if (c >= state.getSlot()) {
                 c = 0;
             }
 
@@ -212,7 +218,7 @@ GifDecoder::decoder(int iLinewidth, GifInputContext &input, GifDecoderState &sta
             // GifFormat::outLine() routine...
             *bufptr++ = (UTINY)c;
             if (--bufcnt == 0) {
-                if ((ret = input.outLine(input.context, buf, linewidth)) < 0) {
+                if ((ret = input.getLineWriter()(input.getContext(), buf, linewidth)) < 0) {
                     GifDecoder::cleanupGifDecoder(state);
                     return (ret);
                 }
@@ -232,9 +238,9 @@ GifDecoder::decoder(int iLinewidth, GifInputContext &input, GifDecoderState &sta
             // set up (Another thing which had better NOT happen...) we trick
             // the decoder into thinking it actually got the last code read.
             // (Hmmn... I'm not sure why this works...  But it does...)
-            if (code >= state.slot) {
-                if (code > state.slot) {
-                    ++state.badCodeCount;
+            if (code >= state.getSlot()) {
+                if (code > state.getSlot()) {
+                    state.incrementBadCodeCount();
                 }
                 code = oc;
                 *sp++ = (UTINY)fc;
@@ -242,9 +248,9 @@ GifDecoder::decoder(int iLinewidth, GifInputContext &input, GifDecoderState &sta
 
             // Here we scan back along the linked list of prefixes, pushing
             // helpless characters (ie. suffixes) onto the stack as we do so.
-            while (code >= state.newcodes) {
-                *sp++ = state.suffix[code];
-                code = state.prefix[code];
+            while (code >= state.getNewcodes()) {
+                *sp++ = state.getSuffix()[code];
+                code = state.getPrefix()[code];
             }
 
             // Push the last character on the stack, and set up the new
@@ -254,16 +260,17 @@ GifDecoder::decoder(int iLinewidth, GifInputContext &input, GifDecoderState &sta
             // suffix and prefix...  I'm not certain if this is correct...
             // it might be more proper to overwrite the last code...
             *sp++ = (UTINY)code;
-            if (state.slot < state.topSlot) {
+            if (state.getSlot() < state.getTopSlot()) {
                 fc = code;
-                state.suffix[state.slot] = (UTINY)fc;
-                state.prefix[state.slot++] = oc;
+                state.getSuffix()[state.getSlot()] = (UTINY)fc;
+                state.getPrefix()[state.getSlot()] = oc;
+                state.incrementSlot();
                 oc = c;
             }
-            if (state.slot >= state.topSlot) {
-                if (state.currSize < 12) {
-                    state.topSlot <<= 1;
-                    ++state.currSize;
+            if (state.getSlot() >= state.getTopSlot()) {
+                if (state.getCurrSize() < 12) {
+                    state.setTopSlot(state.getTopSlot() << 1);
+                    state.incrementCurrSize();
                 }
             }
 
@@ -271,10 +278,10 @@ GifDecoder::decoder(int iLinewidth, GifInputContext &input, GifDecoderState &sta
             // onto the stack, lets pop it off and put it into our decode
             // buffer...  And when the decode buffer is full, write another
             // line...
-            while (sp > state.dstack) {
+            while (sp > state.getDstack()) {
                 *bufptr++ = *(--sp);
                 if (--bufcnt == 0) {
-                    if ((ret = input.outLine(input.context, buf, linewidth)) < 0) {
+                    if ((ret = input.getLineWriter()(input.getContext(), buf, linewidth)) < 0) {
                         GifDecoder::cleanupGifDecoder(state);
                         return (ret);
                     }
@@ -286,7 +293,7 @@ GifDecoder::decoder(int iLinewidth, GifInputContext &input, GifDecoderState &sta
     }
     ret = 0;
     if (bufcnt != linewidth) {
-        ret = input.outLine(input.context, buf, (linewidth - bufcnt));
+        ret = input.getLineWriter()(input.getContext(), buf, (linewidth - bufcnt));
     }
 
     GifDecoder::cleanupGifDecoder(state);

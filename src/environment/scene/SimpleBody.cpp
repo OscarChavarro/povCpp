@@ -706,7 +706,7 @@ SimpleBody::getAABB() const
         }
         if (transformation != nullptr && !result.isUnbounded()) {
             return AxisAlignedBoundingBox::fromTransformedCorners(
-                result.min, result.max, transformation);
+                result.getMin(), result.getMax(), transformation);
         }
         return result;
     }
@@ -714,11 +714,11 @@ SimpleBody::getAABB() const
         AxisAlignedBoundingBox box = geometry->getMinMax();
         if (geometryTransformation != nullptr && !box.isUnbounded()) {
             box = AxisAlignedBoundingBox::fromTransformedCorners(
-                box.min, box.max, geometryTransformation);
+                box.getMin(), box.getMax(), geometryTransformation);
         }
         if (transformation != nullptr && !box.isUnbounded()) {
             return AxisAlignedBoundingBox::fromTransformedCorners(
-                box.min, box.max, transformation);
+                box.getMin(), box.getMax(), transformation);
         }
         return box;
     }
