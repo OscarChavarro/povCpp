@@ -48,8 +48,14 @@ Scene::Scene() :
 
 Scene::~Scene()
 {
-    // lightSources holds non-owning pointers into the LightGeometryAdapter
-    // tree already owned by Objects; the Light objects are freed via Objects.
+    // Scene owns lightSources: ScenePostProcessor::linkLights transfers each
+    // Light out of its parse-time LightGeometryAdapter (see
+    // LightGeometryAdapter::releaseLight) once the object tree traversal has
+    // resolved its final world transform, matching VITRAL's
+    // SimpleScene::addLight ownership model.
+    for (long int i = 0; i < lightSources.size(); i++) {
+        delete lightSources[i];
+    }
     for (long int i = 0; i < Objects.size(); i++) {
         delete Objects[i];
     }
@@ -60,6 +66,9 @@ void
 Scene::resetForSceneParse(double antialiasThreshold)
 {
     viewPoint = defaultViewPoint();
+    for (long int i = 0; i < lightSources.size(); i++) {
+        delete lightSources[i];
+    }
     lightSources.clear();
     Objects.clear();
     atmosphereIor = 1.0;

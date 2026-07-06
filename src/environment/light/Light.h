@@ -2,52 +2,37 @@
 #define __LIGHT__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 
 class Light {
   private:
-    ColorRgba *const shapeColor = nullptr;
-    Vector3Dd center;
-    Vector3Dd pointsAt;
-    bool inverted;
-    const double coefficient;
-    const double radius;
-    const double falloff;
+    ColorRgba shapeColor;
+    Vector3Dd position;
 
   public:
-    Light();
-    Light(const ColorRgba *shapeColor, const Vector3Dd &center,
-        const Vector3Dd &pointsAt, bool inverted, double coefficient,
-        double radius, double falloff);
-    Light(const Vector3Dd &center, const Vector3Dd &pointsAt, bool inverted,
-        double coefficient, double radius, double falloff);
+    Light(const ColorRgba &shapeColor, const Vector3Dd &position);
+    Light(const Light &other);
 
-    ColorRgba *getShapeColor() const;
-    Vector3Dd& getCenter() { return center; }
-    const Vector3Dd& getCenter() const { return center; }
-    Vector3Dd& getPointsAt() { return pointsAt; }
-    const Vector3Dd& getPointsAt() const { return pointsAt; }
-    bool isInverted() const { return inverted; }
-    double getCoefficient() const { return coefficient; }
-    double getRadius() const { return radius; }
-    double getFalloff() const { return falloff; }
-
+    const ColorRgba &getShapeColor() const { return shapeColor; }
+    Vector3Dd& getPosition() { return position; }
+    const Vector3Dd& getPosition() const { return position; }
     virtual double evaluateLightResponseFactor(const Ray *lightSourceRay) const = 0;
-
     virtual Light *copy() = 0;
-    void applyLinearTransformation(const Matrix4x4d &transformation);
-    void translate(Vector3Dd *vector);
-    void rotate(Vector3Dd *vector);
-    void scale(Vector3Dd *vector);
-    void invert();
-    virtual ~Light();
+    virtual ~Light() = default;
 };
 
-inline ColorRgba *
-Light::getShapeColor() const
+inline
+Light::Light(const ColorRgba &shapeColor, const Vector3Dd &position) :
+    shapeColor(shapeColor),
+    position(position)
 {
-    return shapeColor;
+}
+
+inline
+Light::Light(const Light &other) :
+    shapeColor(other.shapeColor),
+    position(other.position)
+{
 }
 
 #endif

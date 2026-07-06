@@ -1,5 +1,6 @@
 
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+#include "environment/light/SpotLight.h"
 #include "environment/scene/Composite.h"
 #include "io/pov/light/LightGeometryAdapter.h"
 #include "io/pov/scene/ScenePostProcessor.h"
@@ -21,18 +22,24 @@ ScenePostProcessor::applyTransformsToLight(
         return;
     }
 
-    Vector3Dd center = light->getCenter();
-    Vector3Dd pointsAt = light->getPointsAt();
+    SpotLight *spotLight = dynamic_cast<SpotLight *>(light);
+
+    Vector3Dd position = light->getPosition();
+    Vector3Dd pointsAt = spotLight != nullptr ? spotLight->getPointsAt() : Vector3Dd();
     for (long int i = transforms.size() - 1; i >= 0; i--) {
         const Matrix4x4d *transform = transforms[i];
         if (transform == nullptr) {
             continue;
         }
-        center = transform->transpose().multiply(center);
-        pointsAt = transform->transpose().multiply(pointsAt);
+        position = transform->transpose().multiply(position);
+        if (spotLight != nullptr) {
+            pointsAt = transform->transpose().multiply(pointsAt);
+        }
     }
-    light->getCenter() = center;
-    light->getPointsAt() = pointsAt;
+    light->getPosition() = position;
+    if (spotLight != nullptr) {
+        spotLight->getPointsAt() = pointsAt;
+    }
 }
 
 void
@@ -93,6 +100,6 @@ ScenePostProcessor::linkLightsInShape(
     } else if (LightGeometryAdapter *lightAdapter =
                    dynamic_cast<LightGeometryAdapter *>(shape)) {
         ScenePostProcessor::applyTransformsToLight(lightAdapter->getLight(), transforms);
-        lights.add(lightAdapter->getLight());
+        lights.add(lightAdapter->releaseLight());
     }
 }

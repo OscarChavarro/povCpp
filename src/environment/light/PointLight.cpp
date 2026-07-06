@@ -1,12 +1,5 @@
 #include "environment/light/PointLight.h"
 
-PointLight::PointLight(const ColorRgba *shapeColor, const Vector3Dd &center,
-    const Vector3Dd &pointsAt, bool inverted, double coefficient,
-    double radius, double falloff) :
-    Light(shapeColor, center, pointsAt, inverted, coefficient, radius, falloff)
-{
-}
-
 double
 PointLight::evaluateLightResponseFactor(const Ray *lightSourceRay) const
 {
@@ -17,6 +10,5 @@ PointLight::evaluateLightResponseFactor(const Ray *lightSourceRay) const
 PointLight *
 PointLight::copy()
 {
-    return new PointLight(getShapeColor(), getCenter(), getPointsAt(),
-        isInverted(), getCoefficient(), getRadius(), getFalloff());
+    return new PointLight(*this);
 }
