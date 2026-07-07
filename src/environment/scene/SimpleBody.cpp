@@ -1,5 +1,6 @@
 #include "environment/geometry/element/GeometryConfig.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+#include "environment/material/povray/PovRayMaterial.h"
 #include "environment/scene/SimpleBody.h"
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
@@ -242,7 +243,7 @@ SimpleBody::SimpleBody(const SimpleBody &other) :
     geometry(other.getGeometry() != nullptr ?
         (Geometry *)other.getGeometry()->copy() : nullptr),
     geometryMaterial(other.getGeometryMaterial() != nullptr ?
-        other.getGeometryMaterial()->copy() : nullptr),
+        new PovRayMaterial(*static_cast<PovRayMaterial *>(other.getGeometryMaterial())) : nullptr),
     transformation(other.getTransformation() != nullptr ?
         new Matrix4x4d(*other.getTransformation()) : nullptr),
     transformationInverse(other.getTransformationInverse() != nullptr ?
@@ -255,7 +256,7 @@ SimpleBody::SimpleBody(const SimpleBody &other) :
     objectColor(other.getObjectColor() != nullptr ?
         new ColorRgba(*other.getObjectColor()) : nullptr),
     objectTexture(other.getObjectTexture() != nullptr ?
-        other.getObjectTexture()->copy() : nullptr),
+        new PovRayMaterial(*static_cast<PovRayMaterial *>(other.getObjectTexture())) : nullptr),
     bodySteps(other.getBodySteps()),
     geometrySteps(other.getGeometrySteps())
 {
