@@ -116,6 +116,7 @@ class PovRayMaterial : public Material, public ICheckerTextureSlot {
     // building fresh instances (copyTexture). Used at scene-parse time only.
     static void prependTextureLayers(
         PovRayMaterial *newHead, PovRayMaterial *&existingHead);
+    Material *copy() const override;
     Material *rotate(Vector3Dd *vector) override;
     static void rotateTexture(PovRayMaterial **texturePtr, Vector3Dd *vector);
     Material *scale(Vector3Dd *vector) override;

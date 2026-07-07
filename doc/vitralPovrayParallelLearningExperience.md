@@ -51,7 +51,9 @@ Structures/classes already unified through `base/` include:
 4. The polynomial-solver layer (`base/src/main/vsdk/toolkit/numericalAnalysis`).
 
 `base/src/main/vsdk/toolkit/environment/geometry` currently only carries
-`element/Ray.h`, `element/Ray.cpp` and `element/Intersection.h` — the ray and
+`element/Ray.h`, `element/Ray.cpp`, `element/Intersection.h` and
+`element/Triangle.h`/`.cpp` (a data-only triangle record; the intersectable
+`Geometry` built on it is povCpp's `surface/TriangleMesh`) — the ray and
 geometric-hit primitives already shared with VITRAL. VITRAL's own
 `environment/geometry` package additionally has `curve`, `geometricProcessing`,
 `surface` and `volume` subpackages that are **not yet** mirrored into

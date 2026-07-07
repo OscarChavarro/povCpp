@@ -7,7 +7,7 @@ The focus is the required alignment surface between both codebases: rays,
 intersection results, traversal primitives, transforms, scene bodies, detail
 selection, renderer configuration, bounding information and camera snapshots.
 
-Re-verified against both trees on 2026-07-05.
+Re-verified against both trees on 2026-07-07.
 
 ---
 
@@ -37,7 +37,8 @@ builders (`withOrigin`, `withDirection`, `withT`) plus setters.
   `containingIndex`.
 - Ray classification: `isShadowRay`, `isPrimaryRay`.
 - Per-ray detail mask using VITRAL-compatible `DETAIL_*` constants.
-- Runtime pointers: `GeometryStatistics`, `PovRayRendererConfiguration`,
+- Runtime pointers: `GeometryStatistics`, the generic VITRAL
+  `RendererConfiguration` (const), and
   `PriorityQueuePool<IntersectionCandidate>`. The ray only carries the
   per-primitive `GeometryStatistics` counters; the render-level
   `PovRayRenderStatistics` counters that are not tied to a single ray
@@ -79,9 +80,11 @@ IntersectionCandidate = Intersection + IntersectionAttributes
 
 `IntersectionAttributes` stores POV attribution:
 
-- `hitGeometry` and `hitBody` (the owning `RayOperationOwner`)
-- the detail-owner chain (up to `MAX_DETAIL_OWNERS = 8` `RayOperationOwner*`
-  entries, pushed innermost-first by nested CSG/composite wrappers)
+- `hitGeometry` and `hitBody` (both typed `RayCastingHitElement*`, the
+  interface whose single contract is `doExtraInformation`)
+- the detail-owner chain (up to `MAX_DETAIL_OWNERS = 8`
+  `RayCastingHitElement*` entries, pushed innermost-first by nested
+  CSG/composite wrappers)
 - `material`
 - `objectTexture`
 - `objectColor`
@@ -119,10 +122,10 @@ computed only when requested.
 `povCpp` `Geometry` declares:
 
 ```cpp
-struct GeometryIntersectionEmissionContext {
-    Material *materialOverride = nullptr;
-    RayOperationOwner *detailOwner = nullptr;
-    bool materialUsesObjectLocalPoint = false;
+class GeometryIntersectionEmissionContext {   // immutable, getter-based
+    Material * const materialOverride;
+    RayCastingHitElement * const detailOwner;
+    const bool materialUsesObjectLocalPoint;
 };
 
 virtual int doIntersectionForAllRayCrossings(
@@ -134,18 +137,20 @@ virtual int doIntersectionForAllRayCrossingsAnnotated(
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     const GeometryIntersectionEmissionContext &context);
 virtual bool hasNativeAnnotatedCrossings() const;
-virtual Geometry *getWrappedGeometry() const;
-bool doIntersectionFirstHitViaCrossings(RayWithTracingState *ray, IntersectionCandidate &out);
 virtual bool doIntersectionFirstHit(
     RayWithTracingState *ray,
     IntersectionCandidate &out,
     Material *materialOverride = nullptr);
 virtual int doContainmentTest(const Vector3Dd &point, double distanceTolerance);
-virtual void doExtraInformation(const RayWithTracingState &ray, double t, PovRayHit *hit);
+virtual void doExtraInformation(const RayWithTracingState &ray, double t, PovRayHit *hit) override;
 virtual AxisAlignedBoundingBox getMinMax() const;
 virtual void *copy() = 0;
 virtual void invertGeometry();
 ```
+
+`Geometry` itself derives from `RayCastingHitElement`, the one-method
+interface (`doExtraInformation`) that lets the element layer reference either
+a bare geometry or a wrapping scene body through the same pointer type.
 
 `doIntersectionForAllRayCrossings` is the primary povCpp operation. Shapes push
 every ray crossing into a priority queue ordered by `Intersection::t`.
@@ -160,12 +165,13 @@ target queue is not empty).
 `doIntersectionFirstHit` is the virtual *direct* nearest-hit primitive — the
 same name and role VITRAL uses. Most shapes get a default (non-overridden)
 implementation that always misses; shapes with a cheap closed-form first hit
-(e.g. `Sphere`) override it directly. Shapes without one still support
-nearest-hit through `Geometry::doIntersectionFirstHitViaCrossings`, a
-non-virtual adapter that derives it from all-crossings:
+(`Sphere`, `Box`, `Quadric`, `InfinitePlane`) override it directly. The
+queue-deriving adapter no longer lives on `Geometry`: it is
+`SimpleBody::doIntersectionFirstHitViaCrossings` (virtual, at the scene-body
+level), which derives nearest-hit from all-crossings:
 
 ```cpp
-bool Geometry::doIntersectionFirstHitViaCrossings(RayWithTracingState *ray, IntersectionCandidate &out)
+bool SimpleBody::doIntersectionFirstHitViaCrossings(RayWithTracingState *ray, IntersectionCandidate &out)
 {
     java::PriorityQueue<IntersectionCandidate> * const depthQueue =
         ray->getIntersectionQueuePool()->pop(128);
@@ -180,8 +186,10 @@ bool Geometry::doIntersectionFirstHitViaCrossings(RayWithTracingState *ray, Inte
 ```
 
 Alignment status: both projects expose `doIntersectionFirstHit` as the direct
-nearest-hit virtual, with the same meaning. The queue-deriving adapter has its
-own, non-colliding name (`doIntersectionFirstHitViaCrossings`).
+nearest-hit virtual on `Geometry`, with the same meaning. The queue-deriving
+adapter has its own, non-colliding name
+(`doIntersectionFirstHitViaCrossings`) and lives at the `SimpleBody` level,
+keeping `Geometry` free of queue-pool plumbing.
 
 ### 2.3. Required all-crossings alignment
 
@@ -254,7 +262,7 @@ scene-level bodies as transform owners.
 (`Sphere`, `Box`, `Quadric`, `TriangleMesh`, `InfinitePlane`, `Blob`,
 `HeightField`, `ParametricBiCubicPatch`, `PolynomialShape`,
 `ConstructiveSolidGeometry`). Placement is owned by the two wrapper types
-that also own detail production (`RayOperationOwner` implementors):
+that also own detail production (`RayCastingHitElement` implementors):
 
 - `SimpleBody` holds **two** lazily-allocated matrix layers: an object-level
   pair (`transformation`/`transformationInverse`) and an inner geometry-level
@@ -307,11 +315,11 @@ VITRAL `SimpleBody` is the render-time scene object:
 ### 5.2. povCpp `SimpleBody`
 
 `povCpp` `SimpleBody` is **not** a `Geometry` subclass: it implements
-`RayOperationOwner` (the povCpp-only interface whose single contract is
+`RayCastingHitElement` (the povCpp-only interface whose single contract is
 `doExtraInformation`) and is the scene object stored in `Scene::Objects`:
 
 ```cpp
-class SimpleBody : public RayOperationOwner {
+class SimpleBody : public RayCastingHitElement {
   protected:
     java::ArrayList<SimpleBody*> boundingShapes;
     java::ArrayList<SimpleBody*> clippingShapes;
@@ -324,6 +332,7 @@ class SimpleBody : public RayOperationOwner {
     bool noShadowFlag;
     ColorRgba *objectColor;
     Material *objectTexture;
+    MaterialReleaser objectTextureReleaser = nullptr;
     java::ArrayList<TransformStep> bodySteps;
     java::ArrayList<TransformStep> geometrySteps;
     bool bakedTransformFolded = false;
@@ -341,7 +350,8 @@ It handles:
   and propagation into bounding shapes, clipping shapes, material and object
   texture (virtual, so nested `Composite` children receive outer transforms).
 - `getAABB()` from bounding regions or the wrapped geometry's `getMinMax()`.
-- `doIntersectionFirstHit` (virtual here, unlike the `Geometry` adapter) and
+- `doIntersectionFirstHitViaCrossings` (the virtual queue-deriving
+  nearest-hit adapter, owned at this level, §2.2) and
   `doIntersectionForAllRayCrossings` traversal entry points.
 
 `Composite` extends `SimpleBody` and contains nested `SimpleBody*` children.
@@ -364,7 +374,7 @@ when geometry migration starts.
 
 `ConstructiveSolidGeometry` is an abstract `Geometry` holding a
 `BooleanSetOperations` type (`UNION`, `INTERSECTION`, `DIFFERENCE`) and an
-`ArrayList<CsgOperand*>`. Each `CsgOperand` (a `RayOperationOwner`, like
+`ArrayList<CsgOperand*>`. Each `CsgOperand` (a `RayCastingHitElement`, like
 `SimpleBody`) owns one child `Geometry*`, an optional per-operand material
 override, its own `transformation`/`transformationInverse` pair with
 `TransformStep` log (§4.2), and a cached transformed AABB used to cull union
@@ -649,10 +659,10 @@ statistics layer needs a common event taxonomy against VITRAL's
 | Geometric hit core | VITRAL `Intersection` | `Intersection` | shared class |
 | Full hit record | `IntersectionCandidate` + `PovRayHit` projection | `RayHit` | conceptually mapped, storage differs |
 | Primary intersection primitive | all crossings | nearest hit | divergent, all-crossings required for POV |
-| Nearest-hit name | `doIntersectionFirstHit` = direct virtual; queue adapter is `doIntersectionFirstHitViaCrossings` | `doIntersectionFirstHit` = pure virtual direct primitive | name and meaning aligned |
+| Nearest-hit name | `doIntersectionFirstHit` = direct virtual on `Geometry`; queue adapter is `SimpleBody::doIntersectionFirstHitViaCrossings` | `doIntersectionFirstHit` = pure virtual direct primitive | name and meaning aligned |
 | Containment | `int`, same constants | `int`, enum-backed constants | signature/value aligned |
 | Geometry transform | none on `Geometry`; matrix layers on `SimpleBody`/`CsgOperand` | none on `Geometry`; transform on `SimpleBody` | owner aligned (scene level); representation differs |
-| Scene body | `SimpleBody : RayOperationOwner`, owns geometry + transforms + regions | `SimpleBody`, wraps geometry and transform | concept and transform ownership aligned; attribution differs |
+| Scene body | `SimpleBody : RayCastingHitElement`, owns geometry + transforms + regions | `SimpleBody`, wraps geometry and transform | concept and transform ownership aligned; attribution differs |
 | CSG | supported through all crossings | no all-crossings CSG path | divergent |
 | Detail mask | `RayWithTracingState::DETAIL_*`, normal gate in render engine | `RayHit::DETAIL_*`, per-detail lazy fill | constants aligned, granularity differs |
 | Renderer config | derives from VITRAL base plus POV flags | base display/render vocabulary | partially aligned |

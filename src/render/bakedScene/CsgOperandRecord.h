@@ -6,8 +6,7 @@
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/geometry/element/TransformStep.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
-
-class Material;
+#include "vsdk/toolkit/environment/material/Material.h"
 
 // Bake-time record for one CSG operand, stored **by value** in a contiguous
 // java::ArrayList<CsgOperandRecord> (CsgProgram::operands) rather than behind

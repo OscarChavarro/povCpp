@@ -1,8 +1,8 @@
 #ifndef __GEOMETRYINTERSECTIONEMISSIONCONTEXT__
 #define __GEOMETRYINTERSECTIONEMISSIONCONTEXT__
 
-class Material;
-class RayCastingHitElement;
+#include "vsdk/toolkit/environment/material/Material.h"
+#include "environment/geometry/element/RayCastingHitElement.h"
 
 class GeometryIntersectionEmissionContext {
   public:

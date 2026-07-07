@@ -4,7 +4,6 @@
 #include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/element/RayCastingHitElement.h"
 #include "vsdk/toolkit/environment/material/Material.h"
-#include "environment/material/povray/PovRayMaterial.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/geometry/volume/HeightField.h"
 #include "environment/geometry/volume/Quadric.h"
@@ -145,7 +144,7 @@ class CsgOperand : public RayCastingHitElement {
         geometry(other.geometry != nullptr ?
             (Geometry *)other.geometry->copy() : nullptr),
         material(other.material != nullptr ?
-            new PovRayMaterial(*static_cast<PovRayMaterial *>(other.material)) : nullptr),
+            other.material->copy() : nullptr),
         transformation(other.transformation != nullptr ?
             new Matrix4x4d(*other.transformation) : nullptr),
         transformationInverse(other.transformationInverse != nullptr ?

@@ -39,7 +39,7 @@ class Scene {
 
     // The scene's default texture is aliased (not cloned) into every untextured
     // object's SimpleBody::objectTexture for the entire render (see
-    // ~SimpleBody()'s PovRayMaterialConstancy guard) - it can only be freed
+    // ~SimpleBody()'s objectTextureReleaser guard) - it can only be freed
     // once nothing will read it again, i.e. once Scene itself is destroyed.
     // SceneParser::parse() calls this once, after parsing finishes, with
     // whatever the final default texture turned out to be (it may have been

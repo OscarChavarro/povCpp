@@ -240,6 +240,12 @@ PovRayMaterial::prependTextureLayers(
 }
 
 Material *
+PovRayMaterial::copy() const
+{
+    return new PovRayMaterial(*this);
+}
+
+Material *
 PovRayMaterial::rotate(Vector3Dd *vector)
 {
     PovRayMaterial *self = this;

@@ -4,8 +4,7 @@
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/surface/parametric/ParametricControlPoints.h"
 #include "environment/geometry/surface/parametric/ParametricPatchChild.h"
-
-class PatchScratch;
+#include "environment/geometry/surface/parametric/PatchScratch.h"
 
 class ParametricBiCubicPatch : public Geometry {
   public:
