@@ -1,5 +1,5 @@
-#ifndef JAVA_IO_PRINT_STREAM__
-#define JAVA_IO_PRINT_STREAM__
+#ifndef __PRINTSTREAM__
+#define __PRINTSTREAM__
 
 #include <cstdarg>
 

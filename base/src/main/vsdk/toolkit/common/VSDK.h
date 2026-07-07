@@ -1,5 +1,5 @@
-#ifndef __VSDK_TOOLKIT_COMMON_VSDK_H__
-#define __VSDK_TOOLKIT_COMMON_VSDK_H__
+#ifndef __VSDK__
+#define __VSDK__
 
 
 #include "java/lang/String.h"
@@ -12,4 +12,4 @@ public:
 };
 
 
-#endif // __VSDK_TOOLKIT_COMMON_VSDK_H__
+#endif

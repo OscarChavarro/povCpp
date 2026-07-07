@@ -1,5 +1,5 @@
-#ifndef __LOOK_UP_TABLE_SINE_H__
-#define __LOOK_UP_TABLE_SINE_H__
+#ifndef __LOOKUPTABLESINE__
+#define __LOOKUPTABLESINE__
 
 /**
 Precomputed sin() values over one full period [0, 2*pi), sampled at SIZE

@@ -1,5 +1,5 @@
-#ifndef Collections__
-#define Collections__
+#ifndef __COLLECTIONS__
+#define __COLLECTIONS__
 
 #include "java/util/ArrayList.h"
 namespace java {

@@ -1,5 +1,5 @@
-#ifndef JAVA_UTIL_CONCURRENT_CALLABLE_H
-#define JAVA_UTIL_CONCURRENT_CALLABLE_H
+#ifndef __CALLABLE__
+#define __CALLABLE__
 
 namespace java {
 

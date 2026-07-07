@@ -1,5 +1,5 @@
-#ifndef HashMapEntry__
-#define HashMapEntry__
+#ifndef __HASHMAPENTRY__
+#define __HASHMAPENTRY__
 
 namespace java {
 

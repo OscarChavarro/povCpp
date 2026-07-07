@@ -1,5 +1,5 @@
-#ifndef JAVA_UTIL_CONCURRENT_VOID_H
-#define JAVA_UTIL_CONCURRENT_VOID_H
+#ifndef __VOID__
+#define __VOID__
 
 namespace java {
 

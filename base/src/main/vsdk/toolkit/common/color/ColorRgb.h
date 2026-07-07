@@ -1,5 +1,5 @@
-#ifndef __VSDK_TOOLKIT_COMMON_COLOR_COLORRGB_H__
-#define __VSDK_TOOLKIT_COMMON_COLOR_COLORRGB_H__
+#ifndef __COLORRGB__
+#define __COLORRGB__
 
 class ColorRgb {
 private:

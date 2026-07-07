@@ -1,5 +1,5 @@
-#ifndef JAVA_MATH__
-#define JAVA_MATH__
+#ifndef __MATH__
+#define __MATH__
 
 #include <cmath>
 namespace java {

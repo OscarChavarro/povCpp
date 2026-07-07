@@ -1,5 +1,5 @@
-#ifndef __VSDK_TOOLKIT_MEDIA_RGBPIXEL_H__
-#define __VSDK_TOOLKIT_MEDIA_RGBPIXEL_H__
+#ifndef __RGBPIXEL__
+#define __RGBPIXEL__
 
 #include "java/lang/String.h"
 #include "vsdk/toolkit/media/MediaEntity.h"
@@ -51,4 +51,4 @@ public:
     java::String* toString() const;
 };
 
-#endif // __VSDK_TOOLKIT_MEDIA_RGBPIXEL_H__
+#endif

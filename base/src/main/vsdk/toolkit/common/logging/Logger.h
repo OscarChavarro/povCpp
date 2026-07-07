@@ -1,5 +1,5 @@
-#ifndef __VSDK_TOOLKIT_COMMON_LOGGING_LOGGER_H__
-#define __VSDK_TOOLKIT_COMMON_LOGGING_LOGGER_H__
+#ifndef __LOGGER__
+#define __LOGGER__
 
 
 #include "java/lang/String.h"
@@ -23,4 +23,4 @@ private:
 };
 
 
-#endif // __VSDK_TOOLKIT_COMMON_LOGGING_LOGGER_H__
+#endif

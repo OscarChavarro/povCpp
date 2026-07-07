@@ -1,5 +1,5 @@
-#ifndef __RGBA_IMAGE_HDR_UNCOMPRESSED_H__
-#define __RGBA_IMAGE_HDR_UNCOMPRESSED_H__
+#ifndef __RGBAIMAGEHDRUNCOMPRESSED__
+#define __RGBAIMAGEHDRUNCOMPRESSED__
 
 #include "vsdk/toolkit/media/RGBAPixelHDR.h"
 class RGBAImageHDRUncompressed {

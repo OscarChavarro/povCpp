@@ -1,5 +1,5 @@
-#ifndef __RASTER_TILE_GENERATOR__
-#define __RASTER_TILE_GENERATOR__
+#ifndef __RASTERTILEGENERATOR__
+#define __RASTERTILEGENERATOR__
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/render/raytracing/RasterTileGenerationStrategy.h"

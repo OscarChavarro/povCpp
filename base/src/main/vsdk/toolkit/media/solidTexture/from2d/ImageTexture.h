@@ -1,5 +1,5 @@
-#ifndef __IMAGE_TEXTURE_H__
-#define __IMAGE_TEXTURE_H__
+#ifndef __IMAGETEXTURE__
+#define __IMAGETEXTURE__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"

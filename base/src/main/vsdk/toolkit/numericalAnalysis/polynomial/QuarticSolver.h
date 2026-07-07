@@ -1,5 +1,5 @@
-#ifndef __QUARTIC_SOLVER__
-#define __QUARTIC_SOLVER__
+#ifndef __QUARTICSOLVER__
+#define __QUARTICSOLVER__
 
 class QuarticSolver {
   private:

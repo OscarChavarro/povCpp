@@ -1,5 +1,5 @@
-#ifndef __VSDK_TOOLKIT_COMMON_LINEALALGEBRA_VECTOR4DD_H__
-#define __VSDK_TOOLKIT_COMMON_LINEALALGEBRA_VECTOR4DD_H__
+#ifndef __VECTOR4DD__
+#define __VECTOR4DD__
 
 
 #include <cmath>
@@ -58,4 +58,4 @@ public:
 };
 
 
-#endif // __VSDK_TOOLKIT_COMMON_LINEALALGEBRA_VECTOR4DD_H__
+#endif

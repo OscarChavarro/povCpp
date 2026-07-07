@@ -1,5 +1,5 @@
-#ifndef __VSDK_TOOLKIT_COMMON_LINEALALGEBRA_QUATERNIOND_H__
-#define __VSDK_TOOLKIT_COMMON_LINEALALGEBRA_QUATERNIOND_H__
+#ifndef __QUATERNIOND__
+#define __QUATERNIOND__
 
 
 #include "java/lang/String.h"
@@ -33,4 +33,4 @@ public:
 };
 
 
-#endif // __VSDK_TOOLKIT_COMMON_LINEALALGEBRA_QUATERNIOND_H__
+#endif

@@ -1,5 +1,5 @@
-#ifndef __RGBA_COLOR_H__
-#define __RGBA_COLOR_H__
+#ifndef __COLORRGBA__
+#define __COLORRGBA__
 
 class ColorRgba {
   private:

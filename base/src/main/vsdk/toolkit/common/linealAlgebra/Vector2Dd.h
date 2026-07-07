@@ -1,5 +1,5 @@
-#ifndef __VSDK_TOOLKIT_COMMON_LINEALALGEBRA_VECTOR2DD_H__
-#define __VSDK_TOOLKIT_COMMON_LINEALALGEBRA_VECTOR2DD_H__
+#ifndef __VECTOR2DD__
+#define __VECTOR2DD__
 
 
 #include <cmath>
@@ -57,4 +57,4 @@ public:
 };
 
 
-#endif // __VSDK_TOOLKIT_COMMON_LINEALALGEBRA_VECTOR2DD_H__
+#endif

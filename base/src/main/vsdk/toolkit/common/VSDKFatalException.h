@@ -1,5 +1,5 @@
-#ifndef __VSDK_TOOLKIT_COMMON_VSDKFATALEXCEPTION_H__
-#define __VSDK_TOOLKIT_COMMON_VSDKFATALEXCEPTION_H__
+#ifndef __VSDKFATALEXCEPTION__
+#define __VSDKFATALEXCEPTION__
 
 
 #include "java/lang/String.h"
@@ -18,4 +18,4 @@ public:
 };
 
 
-#endif // __VSDK_TOOLKIT_COMMON_VSDKFATALEXCEPTION_H__
+#endif

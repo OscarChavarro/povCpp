@@ -1,5 +1,5 @@
-#ifndef __TEXTURE_IMAGE_H__
-#define __TEXTURE_IMAGE_H__
+#ifndef __CONTROLLEDRGBAIMAGEHDRUNCOMPRESSED__
+#define __CONTROLLEDRGBAIMAGEHDRUNCOMPRESSED__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
