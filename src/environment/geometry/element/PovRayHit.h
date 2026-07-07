@@ -3,7 +3,7 @@
 
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/DetailMask.h"
-#include "environment/geometry/element/RayCastingHitElement.h"
+#include "environment/geometry/element/PostRayHitElement.h"
 #include "vsdk/toolkit/environment/material/Material.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 
@@ -41,9 +41,9 @@ class PovRayHit {
     int requiredDetailMask = DETAIL_NONE;
 
     // --- POV-specific extensions (no equivalent in vsdk RayHit) ---
-    RayCastingHitElement *hitGeometry = nullptr;
-    RayCastingHitElement *hitBody = nullptr;
-    RayCastingHitElement *detailOwners[MAX_DETAIL_OWNERS] = {};
+    PostRayHitElement *hitGeometry = nullptr;
+    PostRayHitElement *hitBody = nullptr;
+    PostRayHitElement *detailOwners[MAX_DETAIL_OWNERS] = {};
     int detailOwnerCount = 0;
     Material *material = nullptr;
     Material *objectTexture = nullptr;
@@ -52,8 +52,8 @@ class PovRayHit {
     bool materialUsesObjectLocalPoint = false;
 
     static PovRayHit fromCandidate(const IntersectionCandidate &candidate, int requiredDetailMask);
-    RayCastingHitElement *popDetailOwner();
-    RayCastingHitElement *popDetailOwnerBack();
+    PostRayHitElement *popDetailOwner();
+    PostRayHitElement *popDetailOwnerBack();
     bool needsPoint() const { return (requiredDetailMask & DETAIL_POINT) != 0; }
     bool needsNormal() const { return (requiredDetailMask & DETAIL_NORMAL) != 0; }
     bool needsUv() const { return (requiredDetailMask & DETAIL_UV) != 0; }
@@ -87,13 +87,13 @@ PovRayHit::fromCandidate(const IntersectionCandidate &candidate, int requiredDet
     return hit;
 }
 
-inline RayCastingHitElement *
+inline PostRayHitElement *
 PovRayHit::popDetailOwner()
 {
     if (detailOwnerCount <= 0) {
         return nullptr;
     }
-    RayCastingHitElement *owner = detailOwners[0];
+    PostRayHitElement *owner = detailOwners[0];
     for (int i = 1; i < detailOwnerCount; i++) {
         detailOwners[i - 1] = detailOwners[i];
     }
@@ -101,13 +101,13 @@ PovRayHit::popDetailOwner()
     return owner;
 }
 
-inline RayCastingHitElement *
+inline PostRayHitElement *
 PovRayHit::popDetailOwnerBack()
 {
     if (detailOwnerCount <= 0) {
         return nullptr;
     }
-    RayCastingHitElement *owner = detailOwners[--detailOwnerCount];
+    PostRayHitElement *owner = detailOwners[--detailOwnerCount];
     detailOwners[detailOwnerCount] = nullptr;
     return owner;
 }

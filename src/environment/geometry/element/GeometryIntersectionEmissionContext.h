@@ -2,13 +2,13 @@
 #define __GEOMETRYINTERSECTIONEMISSIONCONTEXT__
 
 #include "vsdk/toolkit/environment/material/Material.h"
-#include "environment/geometry/element/RayCastingHitElement.h"
+#include "environment/geometry/element/PostRayHitElement.h"
 
 class GeometryIntersectionEmissionContext {
   public:
     GeometryIntersectionEmissionContext(
         Material *materialOverride,
-        RayCastingHitElement *detailOwner,
+        PostRayHitElement *detailOwner,
         bool materialUsesObjectLocalPoint) :
         materialOverride(materialOverride),
         detailOwner(detailOwner),
@@ -16,12 +16,12 @@ class GeometryIntersectionEmissionContext {
     {}
 
     Material *getMaterialOverride() const { return materialOverride; }
-    RayCastingHitElement *getDetailOwner() const { return detailOwner; }
+    PostRayHitElement *getDetailOwner() const { return detailOwner; }
     bool getMaterialUsesObjectLocalPoint() const { return materialUsesObjectLocalPoint; }
 
   private:
     Material * const materialOverride;
-    RayCastingHitElement * const detailOwner;
+    PostRayHitElement * const detailOwner;
     const bool materialUsesObjectLocalPoint;
 };
 

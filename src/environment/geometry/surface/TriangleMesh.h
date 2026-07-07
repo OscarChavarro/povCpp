@@ -14,7 +14,7 @@ class TriangleMesh : public Geometry {
     int appendFrom(const TriangleMesh &source, int sourceIndex);
     int getTriangleCount() const;
     bool isDegenerate(int index) const;
-    AxisAlignedBoundingBox getMinMax() const override;
+    BoundingVolumeHierarchy *createBoundingVolume() const override;
     int doIntersectionForAllRayCrossings(
         RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,

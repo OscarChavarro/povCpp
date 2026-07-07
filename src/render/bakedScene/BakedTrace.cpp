@@ -9,54 +9,6 @@
 #include "environment/geometry/element/PriorityQueuePool.txx"
 
 bool
-BakedTrace::rayIntersectsAabbForward(const RayWithTracingState &ray, const AxisAlignedBoundingBox &box)
-{
-    const Vector3Dd origin = ray.getOrigin();
-    double invDirX, invDirY, invDirZ;
-    bool degenerateX, degenerateY, degenerateZ;
-    ray.getAabbSlabReciprocals(
-        &invDirX, &invDirY, &invDirZ,
-        &degenerateX, &degenerateY, &degenerateZ);
-    double tMin = 0.0;
-    double tMax = 1e30;
-
-    auto updateAxis = [&](double originCoord, double invDir, bool degenerate,
-                          double minCoord, double maxCoord) -> bool {
-        if (degenerate) {
-            return originCoord >= minCoord && originCoord <= maxCoord;
-        }
-        double nearT = (minCoord - originCoord) * invDir;
-        double farT = (maxCoord - originCoord) * invDir;
-        if (nearT > farT) {
-            const double tmp = nearT;
-            nearT = farT;
-            farT = tmp;
-        }
-        tMin = nearT > tMin ? nearT : tMin;
-        tMax = farT < tMax ? farT : tMax;
-        return tMin <= tMax;
-    };
-
-    return
-        updateAxis(origin.x(), invDirX, degenerateX, box.getMin().x(), box.getMax().x()) &&
-        updateAxis(origin.y(), invDirY, degenerateY, box.getMin().y(), box.getMax().y()) &&
-        updateAxis(origin.z(), invDirZ, degenerateZ, box.getMin().z(), box.getMax().z()) &&
-        tMax >= 0.0;
-}
-
-bool
-BakedTrace::pointInsideAabb(const Vector3Dd &point, const AxisAlignedBoundingBox &box, double tolerance)
-{
-    return
-        point.x() >= box.getMin().x() - tolerance &&
-        point.x() <= box.getMax().x() + tolerance &&
-        point.y() >= box.getMin().y() - tolerance &&
-        point.y() <= box.getMax().y() + tolerance &&
-        point.z() >= box.getMin().z() - tolerance &&
-        point.z() <= box.getMax().z() + tolerance;
-}
-
-bool
 BakedTrace::finalizeSimpleBodyCandidate(
     const BakedScene &scene,
     const TraceableObject *baked,
@@ -448,7 +400,7 @@ BakedTrace::traceCompositeAllCrossingsInCompositeSpace(
         const TraceableObject *child = scene.traceableObjects[childIndex];
         if (!composite->getHasObjectTransform() &&
             child->getBounded() &&
-            !rayIntersectsAabbForward(*compositeRayPtr, child->getWorldBounds())) {
+            !child->getWorldBounds().intersectsRayForward(*compositeRayPtr)) {
             continue;
         }
         BakedTrace::traceAllCrossings(scene, childIndex, compositeRayPtr, localDepthQueue, cache);
@@ -577,7 +529,8 @@ BakedTrace::compositeContainmentTest(
     for (long int i = composite->getChildObjectIndices().size() - 1; i >= 0; i--) {
         const int childIndex = composite->getChildObjectIndices()[i];
         const TraceableObject *child = scene.traceableObjects[childIndex];
-        if (child->getBounded() && !pointInsideAabb(localPoint, child->getWorldBounds(), distanceTolerance)) {
+        if (child->getBounded() &&
+            !child->getWorldBounds().containsPointWithTolerance(localPoint, distanceTolerance)) {
             continue;
         }
         if (BakedTrace::containmentTest(scene, childIndex, localPoint, distanceTolerance) !=

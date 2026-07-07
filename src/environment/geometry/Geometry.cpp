@@ -1,4 +1,5 @@
 #include "environment/geometry/Geometry.h"
+#include "environment/geometry/boundingVolumeHierarchy/AabbBoundingVolume.h"
 #include "environment/geometry/element/PovRayHit.h"
 #include "java/util/PriorityQueue.txx"
 
@@ -51,4 +52,10 @@ Geometry::doExtraInformation(const RayWithTracingState &ray, double t, PovRayHit
     if (hit->needsNormal()) {
         computeSurfaceNormal(&hit->n, &hit->p, ray.getConfig());
     }
+}
+
+BoundingVolumeHierarchy *
+Geometry::createBoundingVolume() const
+{
+    return new AabbBoundingVolume(AxisAlignedBoundingBox::unbounded());
 }

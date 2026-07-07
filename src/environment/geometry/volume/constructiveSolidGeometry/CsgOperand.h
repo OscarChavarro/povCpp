@@ -2,7 +2,8 @@
 #define __CSG_OPERAND__
 
 #include "environment/geometry/element/PovRayHit.h"
-#include "environment/geometry/element/RayCastingHitElement.h"
+#include "environment/geometry/element/PostRayHitElement.h"
+#include "environment/geometry/boundingVolumeHierarchy/AabbBoundingVolume.h"
 #include "vsdk/toolkit/environment/material/Material.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/geometry/volume/HeightField.h"
@@ -10,7 +11,7 @@
 #include "environment/geometry/volume/Sphere.h"
 #include "environment/geometry/element/TransformStep.h"
 
-class CsgOperand : public RayCastingHitElement {
+class CsgOperand : public PostRayHitElement {
   private:
     Geometry *geometry = nullptr;
     Material *material = nullptr;
@@ -51,7 +52,9 @@ class CsgOperand : public RayCastingHitElement {
             return;
         }
 
-        bakedBounds = geometry->getMinMax();
+        BoundingVolumeHierarchy *bounds = geometry->createBoundingVolume();
+        bakedBounds = bounds->axisAlignedExtent();
+        delete bounds;
         if (transformation != nullptr && !bakedBounds.isUnbounded()) {
             bakedBounds = AxisAlignedBoundingBox::fromTransformedCorners(
                 bakedBounds.getMin(), bakedBounds.getMax(), transformation);
@@ -70,42 +73,6 @@ class CsgOperand : public RayCastingHitElement {
              dynamic_cast<Quadric *>(geometry) != nullptr ||
              dynamic_cast<HeightField *>(geometry) != nullptr);
         bakedBoundsValid = true;
-    }
-
-    static bool rayIntersectsAabbForward(
-        const RayWithTracingState &ray, const AxisAlignedBoundingBox &box)
-    {
-        const Vector3Dd origin = ray.getOrigin();
-        double invDirX, invDirY, invDirZ;
-        bool degenerateX, degenerateY, degenerateZ;
-        ray.getAabbSlabReciprocals(
-            &invDirX, &invDirY, &invDirZ,
-            &degenerateX, &degenerateY, &degenerateZ);
-        double tMin = 0.0;
-        double tMax = 1e30;
-
-        auto updateAxis = [&](double originCoord, double invDir, bool degenerate,
-                              double minCoord, double maxCoord) -> bool {
-            if (degenerate) {
-                return originCoord >= minCoord && originCoord <= maxCoord;
-            }
-            double nearT = (minCoord - originCoord) * invDir;
-            double farT = (maxCoord - originCoord) * invDir;
-            if (nearT > farT) {
-                const double tmp = nearT;
-                nearT = farT;
-                farT = tmp;
-            }
-            tMin = nearT > tMin ? nearT : tMin;
-            tMax = farT < tMax ? farT : tMax;
-            return tMin <= tMax;
-        };
-
-        return
-            updateAxis(origin.x(), invDirX, degenerateX, box.getMin().x(), box.getMax().x()) &&
-            updateAxis(origin.y(), invDirY, degenerateY, box.getMin().y(), box.getMax().y()) &&
-            updateAxis(origin.z(), invDirZ, degenerateZ, box.getMin().z(), box.getMax().z()) &&
-            tMax >= 0.0;
     }
 
   public:
@@ -195,7 +162,7 @@ class CsgOperand : public RayCastingHitElement {
         }
         ensureBakedBounds();
         if (bakedBoundsBounded && bakedBoundsCullSafe &&
-            !rayIntersectsAabbForward(*ray, bakedBounds)) {
+            !bakedBounds.intersectsRayForward(*ray)) {
             return false;
         }
 
@@ -256,9 +223,9 @@ class CsgOperand : public RayCastingHitElement {
         return geometry->doContainmentTest(localPoint, distanceTolerance);
     }
 
-    AxisAlignedBoundingBox getMinMax() const
+    BoundingVolumeHierarchy *createBoundingVolume() const
     {
-        return getBakedBounds();
+        return new AabbBoundingVolume(getBakedBounds());
     }
 
     void translate(Vector3Dd *vector);
@@ -284,11 +251,11 @@ class CsgOperand : public RayCastingHitElement {
             hit->p = transformationInverse->transformPoint(parentPoint);
         }
 
-        RayCastingHitElement *next = hit->popDetailOwnerBack();
+        PostRayHitElement *next = hit->popDetailOwnerBack();
         if (next != nullptr) {
             next->doExtraInformation(localRay, t, hit);
         } else {
-            RayCastingHitElement *effectiveGeometry = bakedTransformFolded ? hit->hitGeometry : geometry;
+            PostRayHitElement *effectiveGeometry = bakedTransformFolded ? hit->hitGeometry : geometry;
             if (effectiveGeometry != nullptr) {
                 effectiveGeometry->doExtraInformation(localRay, t, hit);
             }

@@ -1,7 +1,7 @@
 #ifndef __OPERAND_CULL_BINS__
 #define __OPERAND_CULL_BINS__
 
-#include "environment/geometry/element/AxisAlignedBoundingBox.h"
+#include "environment/geometry/boundingVolumeHierarchy/AxisAlignedBoundingBox.h"
 #include "java/util/ArrayList.h"
 
 // Bake-time only. Stores bucket *positions*, never operand pointers or

@@ -7,43 +7,6 @@ class AabbCullingSupport {
 public:
     static constexpr int OPERAND_CULL_SCRATCH_CAPACITY = 4096;
 
-    static inline bool rayIntersectsAabbForward(
-        const RayWithTracingState &ray,
-        const AxisAlignedBoundingBox &box)
-    {
-        const Vector3Dd origin = ray.getOrigin();
-        double invDirX, invDirY, invDirZ;
-        bool degenerateX, degenerateY, degenerateZ;
-        ray.getAabbSlabReciprocals(
-            &invDirX, &invDirY, &invDirZ,
-            &degenerateX, &degenerateY, &degenerateZ);
-        double tMin = 0.0;
-        double tMax = 1e30;
-
-        auto updateAxis = [&](double originCoord, double invDir, bool degenerate,
-                              double minCoord, double maxCoord) -> bool {
-            if (degenerate) {
-                return originCoord >= minCoord && originCoord <= maxCoord;
-            }
-            double nearT = (minCoord - originCoord) * invDir;
-            double farT = (maxCoord - originCoord) * invDir;
-            if (nearT > farT) {
-                const double tmp = nearT;
-                nearT = farT;
-                farT = tmp;
-            }
-            tMin = nearT > tMin ? nearT : tMin;
-            tMax = farT < tMax ? farT : tMax;
-            return tMin <= tMax;
-        };
-
-        return
-            updateAxis(origin.x(), invDirX, degenerateX, box.getMin().x(), box.getMax().x()) &&
-            updateAxis(origin.y(), invDirY, degenerateY, box.getMin().y(), box.getMax().y()) &&
-            updateAxis(origin.z(), invDirZ, degenerateZ, box.getMin().z(), box.getMax().z()) &&
-            tMax >= 0.0;
-    }
-
     // Traverses a bake-time OperandCullBins index, testing each surviving
     // bin's aggregate box then each member's own bakedBounds (the aggregate
     // box can pass while an individual member's tighter box does not), and
@@ -62,14 +25,14 @@ public:
     {
         int count = 0;
         for (long int b = 0; b < bins.getBinBounds().size(); b++) {
-            if (!rayIntersectsAabbForward(ray, bins.getBinBounds()[b])) {
+            if (!bins.getBinBounds()[b].intersectsRayForward(ray)) {
                 continue;
             }
             const int start = bins.getBinMemberStart()[b];
             const int memberCount = bins.getBinMemberCount()[b];
             for (int m = start; m < start + memberCount; m++) {
                 const int pos = bins.getBinMembers()[m];
-                if (!rayIntersectsAabbForward(ray, operands[bucket[pos]].getBakedBounds())) {
+                if (!operands[bucket[pos]].getBakedBounds().intersectsRayForward(ray)) {
                     continue;
                 }
                 if (count >= capacity) {
@@ -104,10 +67,6 @@ public:
         }
     }
 
-    static bool pointInsideAabb(
-        const Vector3Dd &point,
-        const AxisAlignedBoundingBox &box,
-        double tolerance);
 };
 
 #endif

@@ -1,4 +1,5 @@
 #include "java/lang/Math.h"
+#include "environment/geometry/boundingVolumeHierarchy/AabbBoundingVolume.h"
 #include "environment/geometry/element/GeometryConfig.h"
 #include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/surface/TriangleMesh.h"
@@ -401,8 +402,8 @@ TriangleMesh::invertGeometry()
     }
 }
 
-AxisAlignedBoundingBox
-TriangleMesh::getMinMax() const
+BoundingVolumeHierarchy *
+TriangleMesh::createBoundingVolume() const
 {
     AxisAlignedBoundingBox box = AxisAlignedBoundingBox::empty();
     for (long int i = 0; i < triangles.size(); i++) {
@@ -411,5 +412,5 @@ TriangleMesh::getMinMax() const
         box = box.expandedBy(vertices.get(triangle.getPoint1()));
         box = box.expandedBy(vertices.get(triangle.getPoint2()));
     }
-    return box;
+    return new AabbBoundingVolume(box);
 }

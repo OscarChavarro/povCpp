@@ -36,7 +36,7 @@ class ConstructiveSolidGeometry : public Geometry {
     void scale(Vector3Dd *vector);
     void invert();
 
-    AxisAlignedBoundingBox getMinMax() const override;
+    BoundingVolumeHierarchy *createBoundingVolume() const override;
 
     int doIntersectionForAllRayCrossings(
         RayWithTracingState *ray,

@@ -1,6 +1,7 @@
 #ifndef __AXIS_ALIGNED_BOUNDING_BOX__
 #define __AXIS_ALIGNED_BOUNDING_BOX__
 
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 
 class AxisAlignedBoundingBox {
@@ -106,6 +107,85 @@ class AxisAlignedBoundingBox {
         }
         return result;
     }
+
+    bool intersectsRayForward(const RayWithTracingState &ray) const
+    {
+        const Vector3Dd origin = ray.getOrigin();
+        double invDirX, invDirY, invDirZ;
+        bool degenerateX, degenerateY, degenerateZ;
+        ray.getAabbSlabReciprocals(
+            &invDirX, &invDirY, &invDirZ,
+            &degenerateX, &degenerateY, &degenerateZ);
+        double tMin = 0.0;
+        double tMax = 1e30;
+
+        auto updateAxis = [&](double originCoord, double invDir, bool degenerate,
+                              double minCoord, double maxCoord) -> bool {
+            if (degenerate) {
+                return originCoord >= minCoord && originCoord <= maxCoord;
+            }
+            double nearT = (minCoord - originCoord) * invDir;
+            double farT = (maxCoord - originCoord) * invDir;
+            if (nearT > farT) {
+                const double tmp = nearT;
+                nearT = farT;
+                farT = tmp;
+            }
+            tMin = nearT > tMin ? nearT : tMin;
+            tMax = farT < tMax ? farT : tMax;
+            return tMin <= tMax;
+        };
+
+        return
+            updateAxis(origin.x(), invDirX, degenerateX, min.x(), max.x()) &&
+            updateAxis(origin.y(), invDirY, degenerateY, min.y(), max.y()) &&
+            updateAxis(origin.z(), invDirZ, degenerateZ, min.z(), max.z()) &&
+            tMax >= 0.0;
+    }
+
+    bool intersectsRayBefore(const RayWithTracingState &ray, double maxT) const
+    {
+        const Vector3Dd origin = ray.getOrigin();
+        const Vector3Dd direction = ray.getDirection();
+        double tMin = 0.0;
+        double tMax = maxT;
+
+        auto updateAxis = [&](double originCoord, double directionCoord,
+                              double minCoord, double maxCoord) -> bool {
+            if (directionCoord > -1e-12 && directionCoord < 1e-12) {
+                return originCoord >= minCoord && originCoord <= maxCoord;
+            }
+            const double invDir = 1.0 / directionCoord;
+            double nearT = (minCoord - originCoord) * invDir;
+            double farT = (maxCoord - originCoord) * invDir;
+            if (nearT > farT) {
+                const double tmp = nearT;
+                nearT = farT;
+                farT = tmp;
+            }
+            tMin = nearT > tMin ? nearT : tMin;
+            tMax = farT < tMax ? farT : tMax;
+            return tMin <= tMax;
+        };
+
+        return
+            updateAxis(origin.x(), direction.x(), min.x(), max.x()) &&
+            updateAxis(origin.y(), direction.y(), min.y(), max.y()) &&
+            updateAxis(origin.z(), direction.z(), min.z(), max.z()) &&
+            tMax >= 0.0;
+    }
+
+    bool containsPointWithTolerance(const Vector3Dd &point, double tolerance) const
+    {
+        return
+            point.x() >= min.x() - tolerance &&
+            point.x() <= max.x() + tolerance &&
+            point.y() >= min.y() - tolerance &&
+            point.y() <= max.y() + tolerance &&
+            point.z() >= min.z() - tolerance &&
+            point.z() <= max.z() + tolerance;
+    }
+
 };
 
 #endif

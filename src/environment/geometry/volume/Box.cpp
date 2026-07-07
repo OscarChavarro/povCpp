@@ -1,4 +1,5 @@
 #include "java/lang/Math.h"
+#include "environment/geometry/boundingVolumeHierarchy/AabbBoundingVolume.h"
 #include "environment/geometry/element/GeometryConfig.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/Box.h"
@@ -328,8 +329,8 @@ Box::invertGeometry()
     this->inverted = !this->inverted;
 }
 
-AxisAlignedBoundingBox
-Box::getMinMax() const
+BoundingVolumeHierarchy *
+Box::createBoundingVolume() const
 {
-    return AxisAlignedBoundingBox{bounds[0], bounds[1]};
+    return new AabbBoundingVolume(bounds[0], bounds[1]);
 }

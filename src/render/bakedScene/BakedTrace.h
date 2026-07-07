@@ -87,11 +87,6 @@ class BakedTrace {
         const Vector3Dd &point,
         double distanceTolerance);
 
-    static bool rayIntersectsAabbForward(
-        const RayWithTracingState &ray, const AxisAlignedBoundingBox &box);
-
-    static bool pointInsideAabb(
-        const Vector3Dd &point, const AxisAlignedBoundingBox &box, double tolerance);
 };
 
 #endif

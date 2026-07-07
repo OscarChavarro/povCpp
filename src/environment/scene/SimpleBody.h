@@ -2,12 +2,13 @@
 #define __SIMPLE_BODY__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "environment/geometry/boundingVolumeHierarchy/AxisAlignedBoundingBox.h"
 #include "environment/geometry/Geometry.h"
-#include "environment/geometry/element/RayCastingHitElement.h"
+#include "environment/geometry/element/PostRayHitElement.h"
 #include "vsdk/toolkit/environment/material/Material.h"
 #include "environment/geometry/element/TransformStep.h"
 
-class SimpleBody : public RayCastingHitElement {
+class SimpleBody : public PostRayHitElement {
   public:
     // Callers that hand SimpleBody an objectTexture whose destruction needs
     // more than a plain `delete` (e.g. POV-Ray's shared default-texture

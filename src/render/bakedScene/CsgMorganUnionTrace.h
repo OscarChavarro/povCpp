@@ -231,7 +231,7 @@ public:
                 continue;
             }
             if (operand->getBounded() && operand->getCullSafe() &&
-                !AabbCullingSupport::rayIntersectsAabbForward(*ray, operand->getBakedBounds())) {
+                !operand->getBakedBounds().intersectsRayForward(*ray)) {
                 continue;
             }
             Material *effectiveMaterial =
@@ -279,7 +279,7 @@ public:
                     continue;
                 }
                 if (operand->getBounded() && operand->getCullSafe() &&
-                    !AabbCullingSupport::rayIntersectsAabbForward(*ray, operand->getBakedBounds())) {
+                    !operand->getBakedBounds().intersectsRayForward(*ray)) {
                     continue;
                 }
                 Material *effectiveMaterial =
@@ -369,7 +369,7 @@ public:
                 const CsgOperandRecord *operand =
                     &bakedCsg->getOperands()[bakedCsg->getDirectPrimitiveOperandIndices()[d]];
                 if (operand->getBounded() && operand->getCullSafe() &&
-                    !AabbCullingSupport::rayIntersectsAabbForward(*ray, operand->getBakedBounds())) {
+                    !operand->getBakedBounds().intersectsRayForward(*ray)) {
                     continue;
                 }
                 dispatchDirectPrimitiveOperand(
@@ -417,7 +417,7 @@ public:
                     &bakedCsg->getOperands()[bakedCsg->getTransformedPrimitiveOperandIndices()[t]];
                 if (operand->getKind() == BakedScene::CsgOperandKind::TransformedQuadric &&
                     operand->getBounded() && operand->getCullSafe() &&
-                    !AabbCullingSupport::rayIntersectsAabbForward(*ray, operand->getBakedBounds())) {
+                    !operand->getBakedBounds().intersectsRayForward(*ray)) {
                     continue;
                 }
                 dispatchTransformedPrimitiveOperand(

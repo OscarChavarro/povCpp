@@ -136,7 +136,7 @@ SingleCorePlaneCsgTrace::traceCompiledCoreOperandAllCrossings(
         return false;
     }
     if (operand->getBounded() && operand->getCullSafe() &&
-        !AabbCullingSupport::rayIntersectsAabbForward(*ray, operand->getBakedBounds())) {
+        !operand->getBakedBounds().intersectsRayForward(*ray)) {
         return false;
     }
 
@@ -312,7 +312,7 @@ SingleCorePlaneCsgTrace::traceTransformedQuadricCorePlaneIntersection(
         return false;
     }
     if (coreOperand->getBounded() && coreOperand->getCullSafe() &&
-        !AabbCullingSupport::rayIntersectsAabbForward(*ray, coreOperand->getBakedBounds())) {
+        !coreOperand->getBakedBounds().intersectsRayForward(*ray)) {
         return false;
     }
 
@@ -895,7 +895,7 @@ SingleCorePlaneCsgTrace::traceCompiledCoreFirstHitCandidates(
             return false;
         }
         if (coreOperand->getBounded() && coreOperand->getCullSafe() &&
-            !AabbCullingSupport::rayIntersectsAabbForward(*ray, coreOperand->getBakedBounds())) {
+            !coreOperand->getBakedBounds().intersectsRayForward(*ray)) {
             return false;
         }
 

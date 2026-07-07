@@ -1,13 +1,13 @@
-#ifndef __RAY_CASTING_HIT_ELEMENT__
-#define __RAY_CASTING_HIT_ELEMENT__
+#ifndef __POST_RAY_HIT_ELEMENT__
+#define __POST_RAY_HIT_ELEMENT__
 
 #include "environment/geometry/element/RayWithTracingState.h"
 
 class PovRayHit;
 
-class RayCastingHitElement {
+class PostRayHitElement {
   public:
-    virtual ~RayCastingHitElement() {};
+    virtual ~PostRayHitElement() {};
     virtual void doExtraInformation(
         const RayWithTracingState &ray, double t, PovRayHit *hit) = 0;
 };

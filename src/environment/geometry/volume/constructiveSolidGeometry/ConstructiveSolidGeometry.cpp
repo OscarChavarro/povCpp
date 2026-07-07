@@ -1,3 +1,4 @@
+#include "environment/geometry/boundingVolumeHierarchy/AabbBoundingVolume.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "java/util/ArrayList.txx"
 
@@ -43,12 +44,14 @@ ConstructiveSolidGeometry::invert()
     invertGeometry();
 }
 
-AxisAlignedBoundingBox
-ConstructiveSolidGeometry::getMinMax() const
+BoundingVolumeHierarchy *
+ConstructiveSolidGeometry::createBoundingVolume() const
 {
     AxisAlignedBoundingBox result = AxisAlignedBoundingBox::empty();
     for (long int i = 0; i < operands.size(); i++) {
-        result = result.enclosing(operands[i]->getMinMax());
+        BoundingVolumeHierarchy *operandBounds = operands[i]->createBoundingVolume();
+        result = result.enclosing(operandBounds->axisAlignedExtent());
+        delete operandBounds;
     }
-    return result;
+    return new AabbBoundingVolume(result);
 }
