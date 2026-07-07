@@ -4,7 +4,11 @@
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 
 class AxisAlignedBoundingBox {
-public:
+  private:
+    Vector3Dd min;
+    Vector3Dd max;
+
+  public:
     AxisAlignedBoundingBox() : min(0.0, 0.0, 0.0), max(0.0, 0.0, 0.0) {}
     AxisAlignedBoundingBox(const Vector3Dd &min, const Vector3Dd &max) : min(min), max(max) {}
 
@@ -102,10 +106,6 @@ public:
         }
         return result;
     }
-
-private:
-    Vector3Dd min;
-    Vector3Dd max;
 };
 
 #endif

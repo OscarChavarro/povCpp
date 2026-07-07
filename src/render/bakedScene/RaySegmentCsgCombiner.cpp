@@ -139,7 +139,7 @@ RaySegmentCsgCombiner::traceRaySegmentCsg(
         bool anyFound = false;
         for (long int i = 0; i < bakedCsg->getOperands().size(); i++) {
             if (CsgOperandTrace::tracePlanOperandAllCrossings(
-                    bakedCsg->getOperands()[i],
+                    &bakedCsg->getOperands()[i],
                     bakedCsgs,
                     scratch,
                     ray,
@@ -165,11 +165,11 @@ RaySegmentCsgCombiner::traceRaySegmentCsg(
     }
 
     RaySegments result = buildRaySegments(
-        bakedCsg->getOperands()[0], bakedCsgs, scratch, ray, materialOverride);
+        &bakedCsg->getOperands()[0], bakedCsgs, scratch, ray, materialOverride);
     for (long int i = 1; i < bakedCsg->getOperands().size(); i++) {
         const RaySegments childSegments =
             buildRaySegments(
-                bakedCsg->getOperands()[i], bakedCsgs, scratch, ray, materialOverride);
+                &bakedCsg->getOperands()[i], bakedCsgs, scratch, ray, materialOverride);
         switch (bakedCsg->getGeometryType()) {
         case BooleanSetOperations::DIFFERENCE:
             result = mergeByMembership(result, childSegments, combineDifference);

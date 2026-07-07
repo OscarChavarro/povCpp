@@ -11,10 +11,12 @@
 // iterate (planes, direct primitives, nested CSGs, transformed
 // primitives) instead of re-deriving them per ray.
 //
-// `operands` owns its CsgOperandRecord pointers. Recompiling this program
-// (transform pushdown, execution-plan rebuild) means constructing a fresh
-// CsgProgram and replacing the owning pointer in BakedScene::csgPrograms,
-// never mutating this object in place.
+// `operands` stores its CsgOperandRecord entries by value in one contiguous
+// array (not individually heap-allocated behind pointers - see
+// CsgOperandRecord.h for why that distinction matters on the per-ray hot
+// path). Recompiling this program (transform pushdown, execution-plan
+// rebuild) means constructing a fresh CsgProgram and replacing the owning
+// pointer in BakedScene::csgPrograms, never mutating this object in place.
 class CsgProgram {
   public:
     CsgProgram(
@@ -28,7 +30,7 @@ class CsgProgram {
         const java::ArrayList<int> &nestedOperandIndices,
         const java::ArrayList<int> &transformedPrimitiveOperandIndices,
         const java::ArrayList<int> &directPrimitiveOperandIndices,
-        const java::ArrayList<CsgOperandRecord *> &operands,
+        const java::ArrayList<CsgOperandRecord> &operands,
         const OperandCullBins *directPrimitiveCullBins,
         const OperandCullBins *transformedPrimitiveCullBins) :
         algorithm(algorithm),
@@ -46,12 +48,6 @@ class CsgProgram {
         transformedPrimitiveCullBins(transformedPrimitiveCullBins)
     {}
 
-    ~CsgProgram()
-    {
-        for (long int i = 0; i < operands.size(); i++) {
-            delete operands[i];
-        }
-    }
     CsgProgram(const CsgProgram &) = delete;
     CsgProgram &operator=(const CsgProgram &) = delete;
 
@@ -71,7 +67,7 @@ class CsgProgram {
     {
         return directPrimitiveOperandIndices;
     }
-    const java::ArrayList<CsgOperandRecord *> &getOperands() const { return operands; }
+    const java::ArrayList<CsgOperandRecord> &getOperands() const { return operands; }
     const OperandCullBins *getDirectPrimitiveCullBins() const { return directPrimitiveCullBins; }
     const OperandCullBins *getTransformedPrimitiveCullBins() const { return transformedPrimitiveCullBins; }
 
@@ -86,7 +82,7 @@ class CsgProgram {
     java::ArrayList<int> nestedOperandIndices;
     java::ArrayList<int> transformedPrimitiveOperandIndices;
     java::ArrayList<int> directPrimitiveOperandIndices;
-    java::ArrayList<CsgOperandRecord *> operands;
+    java::ArrayList<CsgOperandRecord> operands;
     const OperandCullBins *directPrimitiveCullBins;
     const OperandCullBins *transformedPrimitiveCullBins;
 };

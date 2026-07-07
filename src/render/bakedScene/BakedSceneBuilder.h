@@ -24,11 +24,11 @@ class BakedSceneBuilder {
     static bool areSeparated(
         const AxisAlignedBoundingBox &left, const AxisAlignedBoundingBox &right);
     static bool hasPairwiseDisjointFiniteOperands(
-        const java::ArrayList<CsgOperandRecord *> &operands);
+        const java::ArrayList<CsgOperandRecord> &operands);
     static void classifyCsgProgramSpecialization(
         BooleanSetOperations geometryType,
         bool topLevel,
-        const java::ArrayList<CsgOperandRecord *> &operands,
+        const java::ArrayList<CsgOperandRecord> &operands,
         BakedSceneCsgPlanKind &planKind,
         bool &specializationValid,
         int &specializationCoreOperandIndex);
@@ -36,7 +36,7 @@ class BakedSceneBuilder {
         BakedSceneCsgAlgorithm algorithm,
         bool specializationValid,
         BakedSceneCsgPlanKind &planKind,
-        java::ArrayList<CsgOperandRecord *> &operands,
+        java::ArrayList<CsgOperandRecord> &operands,
         const BakedScene &out,
         java::ArrayList<int> &planeOperandIndices,
         java::ArrayList<int> &nestedOperandIndices,
@@ -54,13 +54,15 @@ class BakedSceneBuilder {
         BakedScene &out, int programIndex,
         const java::ArrayList<TransformStep> &parentSteps,
         const Matrix4x4d &parentForwardTransform);
-    static CsgOperandRecord *bakeCsgOperand(CsgOperand *operand, BakedScene &out);
+    static CsgOperandRecord bakeCsgOperand(CsgOperand *operand, BakedScene &out);
 
-    // Immutable "reconstruct with N fields changed" helpers used by the
-    // multi-pass bake pipeline (execution-plan compilation, viewpoint-slot
-    // assignment, transform pushdown): build a fresh record from `base`'s
-    // getters plus the given overrides, never mutate `base` itself.
-    static CsgOperandRecord *cloneOperandWithCompiledPlan(
+    // "Reconstruct with N fields changed" helpers used by the multi-pass
+    // bake pipeline (execution-plan compilation, viewpoint-slot assignment,
+    // transform pushdown): build a fresh record value from `base`'s getters
+    // plus the given overrides, never mutate `base` itself. Returned by
+    // value; callers assign it into the operands array slot
+    // (`operands[i] = cloneOperandWithX(...)`), never manually delete it.
+    static CsgOperandRecord cloneOperandWithCompiledPlan(
         const CsgOperandRecord *base,
         bool compiledTransformedNestedCorePlane,
         int compiledNestedCoreOperandIndex,
@@ -68,9 +70,9 @@ class BakedSceneBuilder {
         bool compiledNestedCoreTransformedQuadric,
         const java::ArrayList<int> &compiledNestedPlaneOperandIndices,
         const java::ArrayList<int> &compiledNestedContainmentOperandIndices);
-    static CsgOperandRecord *cloneOperandWithViewpointSlots(
+    static CsgOperandRecord cloneOperandWithViewpointSlots(
         const CsgOperandRecord *base, int quadricViewpointSlot, int planeViewpointSlot);
-    static CsgOperandRecord *cloneOperandWithPushdownBake(
+    static CsgOperandRecord cloneOperandWithPushdownBake(
         const CsgOperandRecord *base,
         const AxisAlignedBoundingBox &bakedBounds,
         bool bounded,
@@ -97,7 +99,7 @@ class BakedSceneBuilder {
         const java::ArrayList<int> &nestedOperandIndices,
         const java::ArrayList<int> &transformedPrimitiveOperandIndices,
         const java::ArrayList<int> &directPrimitiveOperandIndices,
-        const java::ArrayList<CsgOperandRecord *> &operands);
+        const java::ArrayList<CsgOperandRecord> &operands);
 
     static constexpr long int kOperandCullBinThreshold = 17;
     static constexpr bool kEnableOperandCullBins = true;
@@ -114,7 +116,7 @@ class BakedSceneBuilder {
     // relocations).
     static OperandCullBins *buildOperandCullBinsForBucket(
         const java::ArrayList<int> &bucket,
-        const java::ArrayList<CsgOperandRecord *> &operands);
+        const java::ArrayList<CsgOperandRecord> &operands);
 
     static CsgProgram *bakeConstructiveSolidGeometry(
         ConstructiveSolidGeometry *geometry, BakedScene &out);

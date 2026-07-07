@@ -9,12 +9,47 @@
 
 class Material;
 
-// Immutable bake-time record for one CSG operand. Reclassifying/re-baking an
-// operand during a later pass (viewpoint slots, transform pushdown, execution
-// plan compilation) means constructing a fresh CsgOperandRecord and replacing
-// the owning pointer, never mutating this object in place.
+// Bake-time record for one CSG operand, stored **by value** in a contiguous
+// java::ArrayList<CsgOperandRecord> (CsgProgram::operands) rather than behind
+// individually heap-allocated pointers - the per-ray CSG trace kernels
+// (CsgMorganUnionTrace, SingleCorePlaneCsgTrace, CsgOperandTrace,
+// BakedPlaneIntersector, CsgContainmentTest, AabbCullingSupport) index that
+// array on every ray/shadow test, and a heap-scattered layout there costs a
+// dependent pointer-chase load per field access (measured: same instruction
+// and test counts, but +8% cycles and IPC 2.38->2.18 on drums.pov). A default
+// constructor is required so java::ArrayList<T>'s `new T[maxSize]` backing
+// store can allocate elements.
+//
+// Reclassifying/re-baking an operand during a later pass (viewpoint slots,
+// transform pushdown, execution plan compilation) means constructing a fresh
+// CsgOperandRecord value from the old one's getters and assigning it in place
+// (`operands[i] = cloneOperandWithX(...)`), never mutating fields of the
+// existing object directly.
 class CsgOperandRecord {
   public:
+    CsgOperandRecord() :
+        kind(BakedSceneCsgOperandKind::Empty),
+        operand(nullptr),
+        originalGeometry(nullptr),
+        originalQuadricGeometry(nullptr),
+        material(nullptr),
+        nestedCsgProgramIndex(-1),
+        hasTransform(false),
+        bounded(false),
+        cullSafe(false),
+        isInfinitePlane(false),
+        planeDistance(0.0),
+        quadricViewpointSlot(-1),
+        planeViewpointSlot(-1),
+        hasBakedQuadric(false),
+        hasBakedPlane(false),
+        compiledTransformedNestedCorePlane(false),
+        compiledNestedCoreOperandIndex(-1),
+        compiledNestedCoreDirectQuadric(false),
+        compiledNestedCoreTransformedQuadric(false),
+        pushdownFolded(false)
+    {}
+
     CsgOperandRecord(
         BakedSceneCsgOperandKind kind,
         CsgOperand *operand,

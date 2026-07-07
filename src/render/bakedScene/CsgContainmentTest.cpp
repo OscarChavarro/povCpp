@@ -70,7 +70,7 @@ CsgContainmentTest::candidateInsideAllOtherOperands(
             continue;
         }
         if (containmentTestOperand(
-                bakedCsg->getOperands()[j],
+                &bakedCsg->getOperands()[j],
                 bakedCsgs,
                 point,
                 GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
@@ -90,7 +90,7 @@ CsgContainmentTest::candidateInsideOperandsCoreFirst(
 {
     if (coreIndex >= 0 && coreIndex != skipIndex) {
         if (containmentTestOperand(
-                bakedCsg->getOperands()[coreIndex],
+                &bakedCsg->getOperands()[coreIndex],
                 bakedCsgs,
                 point,
                 GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
@@ -103,7 +103,7 @@ CsgContainmentTest::candidateInsideOperandsCoreFirst(
             continue;
         }
         if (containmentTestOperand(
-                bakedCsg->getOperands()[j],
+                &bakedCsg->getOperands()[j],
                 bakedCsgs,
                 point,
                 GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
@@ -127,7 +127,7 @@ CsgContainmentTest::containmentTest(
     if (bakedCsg->getPlanKind() ==
         BakedScene::CsgPlanKind::DisjointBoundedUnion) {
         for (long int i = 0; i < bakedCsg->getOperands().size(); i++) {
-            const CsgOperandRecord *operand = bakedCsg->getOperands()[i];
+            const CsgOperandRecord *operand = &bakedCsg->getOperands()[i];
             if (!AabbCullingSupport::pointInsideAabb(point, operand->getBakedBounds(), distanceTolerance)) {
                 continue;
             }
@@ -147,10 +147,10 @@ CsgContainmentTest::containmentTest(
     case BooleanSetOperations::DIFFERENCE:
         isInside =
             containmentTestOperand(
-                bakedCsg->getOperands()[0], bakedCsgs, point, distanceTolerance) != Geometry::OUTSIDE;
+                &bakedCsg->getOperands()[0], bakedCsgs, point, distanceTolerance) != Geometry::OUTSIDE;
         for (long int i = 1; isInside && (i < bakedCsg->getOperands().size()); i++) {
             if (containmentTestOperand(
-                    bakedCsg->getOperands()[i],
+                    &bakedCsg->getOperands()[i],
                     bakedCsgs,
                     point,
                     distanceTolerance) != Geometry::OUTSIDE) {
@@ -163,7 +163,7 @@ CsgContainmentTest::containmentTest(
         isInside = true;
         for (long int i = 0; isInside && (i < bakedCsg->getOperands().size()); i++) {
             if (containmentTestOperand(
-                    bakedCsg->getOperands()[i],
+                    &bakedCsg->getOperands()[i],
                     bakedCsgs,
                     point,
                     distanceTolerance) == Geometry::OUTSIDE) {
@@ -176,7 +176,7 @@ CsgContainmentTest::containmentTest(
         isInside = false;
         for (long int i = 0; !isInside && (i < bakedCsg->getOperands().size()); i++) {
             if (containmentTestOperand(
-                    bakedCsg->getOperands()[i],
+                    &bakedCsg->getOperands()[i],
                     bakedCsgs,
                     point,
                     distanceTolerance) != Geometry::OUTSIDE) {

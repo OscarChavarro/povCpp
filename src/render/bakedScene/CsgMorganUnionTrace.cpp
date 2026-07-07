@@ -59,7 +59,7 @@ CsgMorganUnionTrace::traceMorganCsg(
     bool intersectionFound = false;
     for (long int i = bakedCsg->getOperands().size() - 1; i >= 0; i--) {
         if (CsgOperandTrace::tracePlanOperandAllCrossings(
-                bakedCsg->getOperands()[i],
+                &bakedCsg->getOperands()[i],
                 bakedCsgs,
                 scratch,
                 ray,
