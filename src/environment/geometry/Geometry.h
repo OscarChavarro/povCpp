@@ -5,10 +5,9 @@
 #include "environment/geometry/element/AxisAlignedBoundingBox.h"
 #include "environment/geometry/element/RayCastingHitElement.h"
 #include "environment/geometry/element/GeometryIntersectionEmissionContext.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
+#include "environment/geometry/element/PovRayHit.h"
 #include "vsdk/toolkit/processing/Containment.h"
-
-class IntersectionCandidate;
-class PovRayHit;
 
 class Geometry : public RayCastingHitElement {
   public:
