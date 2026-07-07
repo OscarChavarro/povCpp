@@ -53,7 +53,7 @@ class Quadric : public Geometry {
         IntersectionCandidate &out,
         Material *materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
-    AxisAlignedBoundingBox getMinMax() const override;
+    BoundingVolumeHierarchy *createBoundingVolume() const override;
     void *copy() override;
     void invertGeometry() override;
 

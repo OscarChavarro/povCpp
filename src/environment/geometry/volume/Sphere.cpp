@@ -1,4 +1,5 @@
 #include "java/lang/Math.h"
+#include "environment/geometry/boundingVolumeHierarchy/AabbBoundingVolume.h"
 #include "environment/geometry/element/GeometryConfig.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/Sphere.h"
@@ -230,9 +231,9 @@ Sphere::invertGeometry()
     inverted = !inverted;
 }
 
-AxisAlignedBoundingBox
-Sphere::getMinMax() const
+BoundingVolumeHierarchy *
+Sphere::createBoundingVolume() const
 {
-    return AxisAlignedBoundingBox{
-        Vector3Dd(-radius, -radius, -radius), Vector3Dd(radius, radius, radius)};
+    return new AabbBoundingVolume(
+        Vector3Dd(-radius, -radius, -radius), Vector3Dd(radius, radius, radius));
 }

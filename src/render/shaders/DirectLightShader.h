@@ -14,8 +14,6 @@ public:
         const BakedScene &bakedScene);
 
 private:
-    static bool rayIntersectsAabbBefore(
-        const RayWithTracingState &ray, const AxisAlignedBoundingBox &box, double maxT);
     static bool canUseCsgFirstHitForShadow(const BakedScene &bakedScene, int objectIndex);
     static bool traceShadowObject(
         const BakedScene &bakedScene,

@@ -101,7 +101,7 @@ public:
             return false;
         }
         if (operand->getBounded() && operand->getCullSafe() &&
-            !AabbCullingSupport::rayIntersectsAabbForward(*ray, operand->getBakedBounds())) {
+            !operand->getBakedBounds().intersectsRayForward(*ray)) {
             return false;
         }
 

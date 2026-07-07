@@ -38,7 +38,7 @@ class Sphere : public Geometry {
     bool isInverted() const { return inverted; }
     void toggleInverted() { inverted ^= true; }
 
-    AxisAlignedBoundingBox getMinMax() const override;
+    BoundingVolumeHierarchy *createBoundingVolume() const override;
 
     int doIntersectionForAllRayCrossings(
         RayWithTracingState *ray,

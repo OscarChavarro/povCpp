@@ -138,6 +138,13 @@ interpreter depth on generic-morgan programs.
   is a correctness shortcut, not just an optimization: for an INTERSECTION,
   if any operand's containment check can never be satisfied along the ray,
   no crossing from any other operand can produce a valid candidate either.
+- The BVH package split uses the value-plus-wrapper option:
+  `AxisAlignedBoundingBox` stays a vptr-free value type for hot-path records,
+  and `AabbBoundingVolume` implements `BoundingVolumeHierarchy` for build-time
+  polymorphism. Direct inheritance measured as a real regression in the full
+  render gate (about 139 s vs the 123 s baseline), so it was replaced by the
+  wrapper. The post-wrapper correctness gate was byte-exact (`renderAll.sh`,
+  123 s total, followed by `testAgainstGoldenImages.sh`).
 - Measurement discipline: interleave runs within one session (absolute
   timings drift across sessions); `CMakeLists.txt` forces the runtime
   output dir to `build/`, so an instrumented (`-pg`) build silently

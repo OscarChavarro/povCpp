@@ -3,6 +3,7 @@ This module implements the code for Bezier bicubic patch shapes
 */
 
 
+#include "environment/geometry/boundingVolumeHierarchy/AabbBoundingVolume.h"
 #include "environment/geometry/element/GeometryConfig.h"
 #include "java/lang/Math.h"
 #include "java/util/HashMap.h"
@@ -1187,8 +1188,8 @@ ParametricBiCubicPatch::doIntersectionForAllRayCrossingsAnnotated(
     return result;
 }
 
-AxisAlignedBoundingBox
-ParametricBiCubicPatch::getMinMax() const
+BoundingVolumeHierarchy *
+ParametricBiCubicPatch::createBoundingVolume() const
 {
     AxisAlignedBoundingBox result = AxisAlignedBoundingBox::empty();
     for (int i = 0; i < 4; i++) {
@@ -1196,5 +1197,5 @@ ParametricBiCubicPatch::getMinMax() const
             result = result.expandedBy(controlPoints[i][j]);
         }
     }
-    return result;
+    return new AabbBoundingVolume(result);
 }

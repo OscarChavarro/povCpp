@@ -87,7 +87,6 @@ add_executable(povray
     src/render/bakedScene/BakedGeometryBaker.cpp
     src/render/bakedScene/BakedSceneBuilder.cpp
     src/render/bakedScene/BakedTrace.cpp
-    src/render/bakedScene/AabbCullingSupport.cpp
     src/render/bakedScene/BakedQuadricIntersector.cpp
     src/render/bakedScene/BakedPlaneIntersector.cpp
     src/render/bakedScene/CsgContainmentTest.cpp

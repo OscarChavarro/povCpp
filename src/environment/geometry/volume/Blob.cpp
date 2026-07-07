@@ -1,4 +1,5 @@
 #include "java/lang/Math.h"
+#include "environment/geometry/boundingVolumeHierarchy/AabbBoundingVolume.h"
 #include "vsdk/toolkit/numericalAnalysis/polynomial/PolynomialSolver.h"
 #include "vsdk/toolkit/numericalAnalysis/polynomial/QuadraticSolver.h"
 #include "vsdk/toolkit/numericalAnalysis/polynomial/QuarticSolver.h"
@@ -605,11 +606,11 @@ Blob::invertGeometry()
     this->inverted = !this->inverted;
 }
 
-AxisAlignedBoundingBox
-Blob::getMinMax() const
+BoundingVolumeHierarchy *
+Blob::createBoundingVolume() const
 {
     if (count == 0 || list == nullptr) {
-        return AxisAlignedBoundingBox::unbounded();
+        return new AabbBoundingVolume(AxisAlignedBoundingBox::unbounded());
     }
     // Build local-space AABB from all element centers +/- radius
     AxisAlignedBoundingBox local = AxisAlignedBoundingBox::empty();
@@ -619,5 +620,6 @@ Blob::getMinMax() const
         local = local.expandedBy(Vector3Dd(c.x() - r, c.y() - r, c.z() - r));
         local = local.expandedBy(Vector3Dd(c.x() + r, c.y() + r, c.z() + r));
     }
-    return AxisAlignedBoundingBox::fromTransformedCorners(local.getMin(), local.getMax(), transformation);
+    return new AabbBoundingVolume(
+        AxisAlignedBoundingBox::fromTransformedCorners(local.getMin(), local.getMax(), transformation));
 }

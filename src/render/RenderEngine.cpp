@@ -14,40 +14,6 @@
 #include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
 
-bool
-RenderEngine::rayIntersectsAabbBefore(
-    const RayWithTracingState &ray, const AxisAlignedBoundingBox &box, double maxT)
-{
-    const Vector3Dd origin = ray.getOrigin();
-    const Vector3Dd direction = ray.getDirection();
-    double tMin = 0.0;
-    double tMax = maxT;
-
-    auto updateAxis = [&](double originCoord, double directionCoord,
-                          double minCoord, double maxCoord) -> bool {
-        if (directionCoord > -1e-12 && directionCoord < 1e-12) {
-            return originCoord >= minCoord && originCoord <= maxCoord;
-        }
-        const double invDir = 1.0 / directionCoord;
-        double nearT = (minCoord - originCoord) * invDir;
-        double farT = (maxCoord - originCoord) * invDir;
-        if (nearT > farT) {
-            const double tmp = nearT;
-            nearT = farT;
-            farT = tmp;
-        }
-        tMin = nearT > tMin ? nearT : tMin;
-        tMax = farT < tMax ? farT : tMax;
-        return tMin <= tMax;
-    };
-
-    return
-        updateAxis(origin.x(), direction.x(), box.getMin().x(), box.getMax().x()) &&
-        updateAxis(origin.y(), direction.y(), box.getMin().y(), box.getMax().y()) &&
-        updateAxis(origin.z(), direction.z(), box.getMin().z(), box.getMax().z()) &&
-        tMax >= 0.0;
-}
-
 java::Void
 RenderTileCallable::call()
 {
@@ -451,8 +417,8 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithTracingState *localRay, Co
         const double currentBestT =
             (intersectionFound && localIntersection.getIntersection().t > 0.0) ?
                 localIntersection.getIntersection().t : 1e30;
-        if (!rayIntersectsAabbBefore(
-                *localRay, bakedScene.traceableObjects[objectIndex]->getWorldBounds(), currentBestT)) {
+        if (!bakedScene.traceableObjects[objectIndex]->getWorldBounds()
+                .intersectsRayBefore(*localRay, currentBestT)) {
             continue;
         }
         const bool hit = BakedTrace::traceFirstHit(
@@ -503,8 +469,8 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithTracingState *localRay, Co
             winningHit.requiredDetailMask = localRay->getRequiredDetailMask();
             winningHit.p = localIntersection.getIntersection().point;
             winningHit.n = localIntersection.getIntersection().normal;
-            RayCastingHitElement *hitBody = localIntersection.getAttributes().getHitBody();
-            RayCastingHitElement *hitGeometry = localIntersection.getAttributes().getHitGeometry();
+            PostRayHitElement *hitBody = localIntersection.getAttributes().getHitBody();
+            PostRayHitElement *hitGeometry = localIntersection.getAttributes().getHitGeometry();
             winningHit.hitGeometry = hitGeometry;
             winningHit.detailOwnerCount =
                 localIntersection.getAttributes().getDetailOwnerCount();

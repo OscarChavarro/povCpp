@@ -19,7 +19,7 @@ class Box : public Geometry {
     static int intersectBoxx(const RayWithTracingState *ray, const Box *box,
         double *depth1, double *depth2);
 
-    AxisAlignedBoundingBox getMinMax() const override;
+    BoundingVolumeHierarchy *createBoundingVolume() const override;
 
     int doIntersectionForAllRayCrossings(
         RayWithTracingState *ray,

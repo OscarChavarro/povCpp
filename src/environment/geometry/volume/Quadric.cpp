@@ -1,4 +1,5 @@
 #include "java/lang/Math.h"
+#include "environment/geometry/boundingVolumeHierarchy/AabbBoundingVolume.h"
 #include "environment/geometry/element/GeometryConfig.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/Quadric.h"
@@ -298,8 +299,8 @@ Quadric::copy()
     return new Quadric(*this);
 }
 
-AxisAlignedBoundingBox
-Quadric::getMinMax() const
+BoundingVolumeHierarchy *
+Quadric::createBoundingVolume() const
 {
     const double a11 = object2Terms.x();
     const double a22 = object2Terms.y();
@@ -315,7 +316,7 @@ Quadric::getMinMax() const
         a12 * (a12 * a33 - a23 * a13) +
         a13 * (a12 * a23 - a22 * a13);
     if (minor1 <= 1e-12 || minor2 <= 1e-12 || det <= 1e-12) {
-        return AxisAlignedBoundingBox::unbounded();
+        return new AabbBoundingVolume(AxisAlignedBoundingBox::unbounded());
     }
 
     const double invDet = 1.0 / det;
@@ -338,16 +339,16 @@ Quadric::getMinMax() const
     const double radiusSquared = center.dotProduct(aCenter) - objectConstant;
     if (radiusSquared <= 1e-12 ||
         inv11 <= 0.0 || inv22 <= 0.0 || inv33 <= 0.0) {
-        return AxisAlignedBoundingBox::unbounded();
+        return new AabbBoundingVolume(AxisAlignedBoundingBox::unbounded());
     }
 
     const Vector3Dd extent(
         java::Math::sqrt(radiusSquared * inv11),
         java::Math::sqrt(radiusSquared * inv22),
         java::Math::sqrt(radiusSquared * inv33));
-    return AxisAlignedBoundingBox{
+    return new AabbBoundingVolume(
         center.subtract(extent),
-        center.add(extent)};
+        center.add(extent));
 }
 
 void

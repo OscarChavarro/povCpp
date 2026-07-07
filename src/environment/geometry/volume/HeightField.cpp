@@ -10,18 +10,20 @@ each step.
 
 
 #include "java/lang/Math.h"
+#include "environment/geometry/boundingVolumeHierarchy/AabbBoundingVolume.h"
 #include "environment/geometry/element/GeometryConfig.h"
 #include "environment/geometry/volume/HeightField.h"
 #include "java/util/PriorityQueue.txx"
 
-AxisAlignedBoundingBox
-HeightField::getMinMax() const
+BoundingVolumeHierarchy *
+HeightField::createBoundingVolume() const
 {
     if (boundingBox == nullptr) {
-        return AxisAlignedBoundingBox::unbounded();
+        return new AabbBoundingVolume(AxisAlignedBoundingBox::unbounded());
     }
     const Vector3Dd *bb = boundingBox->getBounds();
-    return AxisAlignedBoundingBox::fromTransformedCorners(bb[0], bb[1], transformation);
+    return new AabbBoundingVolume(
+        AxisAlignedBoundingBox::fromTransformedCorners(bb[0], bb[1], transformation));
 }
 
 HeightField::HeightField() :

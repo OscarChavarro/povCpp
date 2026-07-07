@@ -80,10 +80,10 @@ IntersectionCandidate = Intersection + IntersectionAttributes
 
 `IntersectionAttributes` stores POV attribution:
 
-- `hitGeometry` and `hitBody` (both typed `RayCastingHitElement*`, the
+- `hitGeometry` and `hitBody` (both typed `PostRayHitElement*`, the
   interface whose single contract is `doExtraInformation`)
 - the detail-owner chain (up to `MAX_DETAIL_OWNERS = 8`
-  `RayCastingHitElement*` entries, pushed innermost-first by nested
+  `PostRayHitElement*` entries, pushed innermost-first by nested
   CSG/composite wrappers)
 - `material`
 - `objectTexture`
@@ -143,12 +143,12 @@ virtual bool doIntersectionFirstHit(
     Material *materialOverride = nullptr);
 virtual int doContainmentTest(const Vector3Dd &point, double distanceTolerance);
 virtual void doExtraInformation(const RayWithTracingState &ray, double t, PovRayHit *hit) override;
-virtual AxisAlignedBoundingBox getMinMax() const;
+virtual BoundingVolumeHierarchy *createBoundingVolume() const;
 virtual void *copy() = 0;
 virtual void invertGeometry();
 ```
 
-`Geometry` itself derives from `RayCastingHitElement`, the one-method
+`Geometry` itself derives from `PostRayHitElement`, the one-method
 interface (`doExtraInformation`) that lets the element layer reference either
 a bare geometry or a wrapping scene body through the same pointer type.
 
@@ -315,11 +315,11 @@ VITRAL `SimpleBody` is the render-time scene object:
 ### 5.2. povCpp `SimpleBody`
 
 `povCpp` `SimpleBody` is **not** a `Geometry` subclass: it implements
-`RayCastingHitElement` (the povCpp-only interface whose single contract is
+`PostRayHitElement` (the povCpp-only interface whose single contract is
 `doExtraInformation`) and is the scene object stored in `Scene::Objects`:
 
 ```cpp
-class SimpleBody : public RayCastingHitElement {
+class SimpleBody : public PostRayHitElement {
   protected:
     java::ArrayList<SimpleBody*> boundingShapes;
     java::ArrayList<SimpleBody*> clippingShapes;
@@ -349,7 +349,8 @@ It handles:
 - `translate`/`rotate`/`scale`/`invert` accumulation into its matrix layers
   and propagation into bounding shapes, clipping shapes, material and object
   texture (virtual, so nested `Composite` children receive outer transforms).
-- `getAABB()` from bounding regions or the wrapped geometry's `getMinMax()`.
+- `getAABB()` from bounding regions or the wrapped geometry's
+  `createBoundingVolume()->axisAlignedExtent()`.
 - `doIntersectionFirstHitViaCrossings` (the virtual queue-deriving
   nearest-hit adapter, owned at this level, §2.2) and
   `doIntersectionForAllRayCrossings` traversal entry points.
@@ -522,30 +523,31 @@ VITRAL requires every `Geometry` to implement:
 virtual double* getMinMax() = 0;
 ```
 
-povCpp `Geometry` now exposes the same-named method directly on the base, as
-a non-pure virtual with an unbounded default:
+povCpp `Geometry` now exposes a bounding-volume factory directly on the base,
+as a non-pure virtual with an unbounded default:
 
 ```cpp
-virtual AxisAlignedBoundingBox getMinMax() const
-{ return AxisAlignedBoundingBox::unbounded(); }
+virtual BoundingVolumeHierarchy *createBoundingVolume() const;
 ```
 
 Concrete povCpp geometries overriding it: `Sphere`, `Box`, `Blob`, `Quadric`,
 `HeightField`, `TriangleMesh`, `ParametricBiCubicPatch` and
-`ConstructiveSolidGeometry` (which unions its operands' transformed bounds).
+`ConstructiveSolidGeometry` (which unions its operands' transformed extents).
 `CsgOperand` caches the child's bounds transformed by its operand matrix for
 union culling; `SimpleBody::getAABB()` returns the intersection of
 bounding-shape AABBs when bounding regions exist, otherwise the wrapped
 geometry AABB.
 
-Alignment status: the **owner is now aligned** — both codebases put
-`getMinMax()` on `Geometry`. Only the return type diverges: VITRAL returns a
-raw `double*`, povCpp a value-type `AxisAlignedBoundingBox` with an explicit
-unbounded state.
+Alignment status: the **owner is no longer name-aligned** — VITRAL still
+exposes `getMinMax()` on `Geometry`, while povCpp now exposes
+`createBoundingVolume()` on `Geometry`. The povCpp return is stronger: a
+polymorphic `BoundingVolumeHierarchy`; its naive implementation is
+`AabbBoundingVolume`, which wraps a vptr-free `AxisAlignedBoundingBox` value
+with explicit unbounded semantics.
 
-Required alignment item: agree the return type. povCpp's
-`AxisAlignedBoundingBox` is the stronger API (no raw pointer, explicit
-unbounded semantics) and is the proposed winner.
+Required alignment item: agree the shared bounding contract. povCpp's
+`BoundingVolumeHierarchy`/`AabbBoundingVolume`/`AxisAlignedBoundingBox` split is
+the proposed winner.
 
 ---
 
@@ -662,11 +664,11 @@ statistics layer needs a common event taxonomy against VITRAL's
 | Nearest-hit name | `doIntersectionFirstHit` = direct virtual on `Geometry`; queue adapter is `SimpleBody::doIntersectionFirstHitViaCrossings` | `doIntersectionFirstHit` = pure virtual direct primitive | name and meaning aligned |
 | Containment | `int`, same constants | `int`, enum-backed constants | signature/value aligned |
 | Geometry transform | none on `Geometry`; matrix layers on `SimpleBody`/`CsgOperand` | none on `Geometry`; transform on `SimpleBody` | owner aligned (scene level); representation differs |
-| Scene body | `SimpleBody : RayCastingHitElement`, owns geometry + transforms + regions | `SimpleBody`, wraps geometry and transform | concept and transform ownership aligned; attribution differs |
+| Scene body | `SimpleBody : PostRayHitElement`, owns geometry + transforms + regions | `SimpleBody`, wraps geometry and transform | concept and transform ownership aligned; attribution differs |
 | CSG | supported through all crossings | no all-crossings CSG path | divergent |
 | Detail mask | `RayWithTracingState::DETAIL_*`, normal gate in render engine | `RayHit::DETAIL_*`, per-detail lazy fill | constants aligned, granularity differs |
 | Renderer config | derives from VITRAL base plus POV flags | base display/render vocabulary | partially aligned |
-| Bounding API | `AxisAlignedBoundingBox getMinMax()` on `Geometry` | `double* getMinMax()` on `Geometry` | owner aligned; return type divergent |
+| Bounding API | `BoundingVolumeHierarchy *createBoundingVolume()` on `Geometry` | `double* getMinMax()` on `Geometry` | owner aligned; contract/return type divergent |
 | Camera storage | VITRAL `CameraSnapshot` | `CameraSnapshot` | shared storage, generator semantics differ |
 | Statistics (render-level) | `PovRayRenderStatistics`, per-instance/per-task POV counters | static raytrace recorders | divergent |
 | Statistics (per-primitive) | `GeometryStatistics`, colocated in `base/` with `SolidTextureStatistics` | static raytrace recorders | positioned for sharing, not yet consumed by VITRAL-side code |
@@ -685,9 +687,11 @@ statistics layer needs a common event taxonomy against VITRAL's
    differs.
 3. Unify or bridge hit-detail masks so point, normal, UV and tangent laziness
    have the same owner and semantics.
-4. Define a shared bounding API. The owner is already aligned (`getMinMax()`
-   on `Geometry` in both trees, §10); what remains is adopting one return
-   type — povCpp's `AxisAlignedBoundingBox` is the proposed winner.
+4. Define a shared bounding API. The owner is aligned at `Geometry`, but the
+   contract is not: VITRAL still uses `getMinMax()`, while povCpp now uses
+   `createBoundingVolume()` (§10). The proposed winner is povCpp's
+   `BoundingVolumeHierarchy` contract with `AabbBoundingVolume` wrapping
+   `AxisAlignedBoundingBox` as the naive implementation.
 5. Keep `CameraSnapshot` as the shared render-time camera record and treat ray
    generation differences as intentional unless a visual-parity task requires
    alignment.

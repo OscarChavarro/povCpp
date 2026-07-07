@@ -187,7 +187,7 @@ SimpleBody::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 void
 SimpleBody::doExtraInformation(const RayWithTracingState &ray, double t, PovRayHit *hit)
 {
-    RayCastingHitElement *detailGeometry = hit->hitGeometry != nullptr ? hit->hitGeometry : geometry;
+    PostRayHitElement *detailGeometry = hit->hitGeometry != nullptr ? hit->hitGeometry : geometry;
     const bool bakedLeaf = bakedTransformFolded;
     // Consume the detail-owner chain outermost-first (popDetailOwnerBack): the
     // owners were pushed innermost-first while collecting the hit, so for a
@@ -198,7 +198,7 @@ SimpleBody::doExtraInformation(const RayWithTracingState &ray, double t, PovRayH
     // primitive normal; unwinding re-applies each operand transform to the
     // normal from innermost to outermost. Popping only the first (innermost)
     // owner here would drop every outer operand's transform.
-    RayCastingHitElement *detailOwner = hit->popDetailOwnerBack();
+    PostRayHitElement *detailOwner = hit->popDetailOwnerBack();
     if (detailGeometry != nullptr) {
         RayWithTracingState localRay = RayWithTracingState::localIntersectionClone(ray);
         const Vector3Dd worldPoint = hit->p;
@@ -711,7 +711,9 @@ SimpleBody::getAABB() const
         return result;
     }
     if (geometry != nullptr) {
-        AxisAlignedBoundingBox box = geometry->getMinMax();
+        BoundingVolumeHierarchy *bounds = geometry->createBoundingVolume();
+        AxisAlignedBoundingBox box = bounds->axisAlignedExtent();
+        delete bounds;
         if (geometryTransformation != nullptr && !box.isUnbounded()) {
             box = AxisAlignedBoundingBox::fromTransformedCorners(
                 box.getMin(), box.getMax(), geometryTransformation);

@@ -5,8 +5,8 @@
 template class java::ArrayList<Material *>;
 
 RayWithTracingState::RayWithTracingState() :
-    containingTextures(RayWithTracingState::MAX_CONTAINING_OBJECTS),
-    containingIORs(RayWithTracingState::MAX_CONTAINING_OBJECTS)
+    containingTextures(RayWithTracingState::INITIAL_CONTAINING_OBJECT_CAPACITY),
+    containingIORs(RayWithTracingState::INITIAL_CONTAINING_OBJECT_CAPACITY)
 {
     containingIndex = -1;
     quadricConstantsCached = false;

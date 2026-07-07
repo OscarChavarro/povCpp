@@ -16,40 +16,6 @@
 static constexpr double SHADOW_TOLERANCE = 0.05;
 
 bool
-DirectLightShader::rayIntersectsAabbBefore(
-    const RayWithTracingState &ray, const AxisAlignedBoundingBox &box, double maxT)
-{
-    const Vector3Dd origin = ray.getOrigin();
-    const Vector3Dd direction = ray.getDirection();
-    double tMin = 0.0;
-    double tMax = maxT;
-
-    auto updateAxis = [&](double originCoord, double directionCoord,
-                          double minCoord, double maxCoord) -> bool {
-        if (directionCoord > -1e-12 && directionCoord < 1e-12) {
-            return originCoord >= minCoord && originCoord <= maxCoord;
-        }
-        const double invDir = 1.0 / directionCoord;
-        double nearT = (minCoord - originCoord) * invDir;
-        double farT = (maxCoord - originCoord) * invDir;
-        if (nearT > farT) {
-            const double tmp = nearT;
-            nearT = farT;
-            farT = tmp;
-        }
-        tMin = nearT > tMin ? nearT : tMin;
-        tMax = farT < tMax ? farT : tMax;
-        return tMin <= tMax;
-    };
-
-    return
-        updateAxis(origin.x(), direction.x(), box.getMin().x(), box.getMax().x()) &&
-        updateAxis(origin.y(), direction.y(), box.getMin().y(), box.getMax().y()) &&
-        updateAxis(origin.z(), direction.z(), box.getMin().z(), box.getMax().z()) &&
-        tMax >= 0.0;
-}
-
-bool
 DirectLightShader::canUseCsgFirstHitForShadow(const BakedScene &bakedScene, int objectIndex)
 {
     const TraceableObject *object = bakedScene.traceableObjects[objectIndex];
@@ -172,9 +138,8 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
                 const int objectIndex = boundedShadowObjects[i];
                 const TraceableObject *entry = bakedScene.traceableObjects[objectIndex];
                 if (entry->getBounded() &&
-                    !rayIntersectsAabbBefore(
+                    !entry->getWorldBounds().intersectsRayBefore(
                         lightSourceRay,
-                        entry->getWorldBounds(),
                         lightSourceDepth - GeometryConfig::SMALL_TOLERANCE)) {
                     continue;
                 }

@@ -3,7 +3,7 @@
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/environment/material/Material.h"
-#include "environment/geometry/element/RayCastingHitElement.h"
+#include "environment/geometry/element/PostRayHitElement.h"
 
 // Per-candidate attribution gathered while a ray is matched against the scene
 // (which geometry/material produced the hit, and the shading overrides a
@@ -11,7 +11,7 @@
 // geometric data (Intersection: t/point/normal) so that class can stay a
 // plain geometric record.
 //
-// hitGeometry and hitBody are both RayCastingHitElement* - Geometry implements
+// hitGeometry and hitBody are both PostRayHitElement* - Geometry implements
 // that interface precisely so a bare shape (no wrapping body) can travel
 // through the same pointer type as a CSG body, without this class (or
 // anything in element/) needing to know the concrete Geometry class. They
@@ -22,9 +22,9 @@ class IntersectionAttributes {
   private:
     static constexpr int MAX_DETAIL_OWNERS = 8;
 
-    RayCastingHitElement *hitGeometry = nullptr;
-    RayCastingHitElement *hitBody = nullptr;
-    RayCastingHitElement *detailOwners[MAX_DETAIL_OWNERS] = {};
+    PostRayHitElement *hitGeometry = nullptr;
+    PostRayHitElement *hitBody = nullptr;
+    PostRayHitElement *detailOwners[MAX_DETAIL_OWNERS] = {};
     int detailOwnerCount = 0;
     Material *material = nullptr;
     Material *objectTexture = nullptr;
@@ -33,13 +33,13 @@ class IntersectionAttributes {
     bool materialUsesObjectLocalPoint = false;
 
   public:
-    RayCastingHitElement *getHitGeometry() const;
-    void setHitGeometry(RayCastingHitElement *value);
-    RayCastingHitElement *getHitBody() const;
-    void setHitBody(RayCastingHitElement *value);
+    PostRayHitElement *getHitGeometry() const;
+    void setHitGeometry(PostRayHitElement *value);
+    PostRayHitElement *getHitBody() const;
+    void setHitBody(PostRayHitElement *value);
     int getDetailOwnerCount() const;
-    RayCastingHitElement *getDetailOwnerAt(int index) const;
-    void pushDetailOwner(RayCastingHitElement *value);
+    PostRayHitElement *getDetailOwnerAt(int index) const;
+    void pushDetailOwner(PostRayHitElement *value);
     Material *getMaterial() const;
     void setMaterial(Material *value);
     Material *getObjectTexture() const;
@@ -52,26 +52,26 @@ class IntersectionAttributes {
     void setNoShadowFlag(bool value);
 };
 
-inline RayCastingHitElement *
+inline PostRayHitElement *
 IntersectionAttributes::getHitGeometry() const
 {
     return hitGeometry;
 }
 
 inline void
-IntersectionAttributes::setHitGeometry(RayCastingHitElement *value)
+IntersectionAttributes::setHitGeometry(PostRayHitElement *value)
 {
     hitGeometry = value;
 }
 
-inline RayCastingHitElement *
+inline PostRayHitElement *
 IntersectionAttributes::getHitBody() const
 {
     return hitBody;
 }
 
 inline void
-IntersectionAttributes::setHitBody(RayCastingHitElement *value)
+IntersectionAttributes::setHitBody(PostRayHitElement *value)
 {
     hitBody = value;
 }
@@ -82,7 +82,7 @@ IntersectionAttributes::getDetailOwnerCount() const
     return detailOwnerCount;
 }
 
-inline RayCastingHitElement *
+inline PostRayHitElement *
 IntersectionAttributes::getDetailOwnerAt(int index) const
 {
     if (index < 0 || index >= detailOwnerCount) {
@@ -92,7 +92,7 @@ IntersectionAttributes::getDetailOwnerAt(int index) const
 }
 
 inline void
-IntersectionAttributes::pushDetailOwner(RayCastingHitElement *value)
+IntersectionAttributes::pushDetailOwner(PostRayHitElement *value)
 {
     if (value == nullptr || detailOwnerCount >= MAX_DETAIL_OWNERS) {
         return;

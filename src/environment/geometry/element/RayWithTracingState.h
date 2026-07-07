@@ -2,17 +2,17 @@
 #define __RAY_WITH_TRACING_STATE__
 
 #include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
-#include "environment/geometry/element/DetailMask.h"
-#include "environment/geometry/element/PriorityQueuePool.h"
 #include "vsdk/toolkit/environment/material/RendererConfiguration.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 #include "vsdk/toolkit/environment/material/Material.h"
+#include "environment/geometry/element/DetailMask.h"
+#include "environment/geometry/element/PriorityQueuePool.h"
 
 class IntersectionCandidate;
 
 class RayWithTracingState : public Ray {
   private:
-    static constexpr int MAX_CONTAINING_OBJECTS = 10;
+    static constexpr int INITIAL_CONTAINING_OBJECT_CAPACITY = 10;
     Vector3Dd position2;               // Xo^2  Yo^2  Zo^2
     Vector3Dd direction2;              // Xv^2  Yv^2  Zv^2
     Vector3Dd positionDirection;       // XoXv  YoYv  ZoZv

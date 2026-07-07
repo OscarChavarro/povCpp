@@ -24,13 +24,17 @@ areas showed up unplanned, as by-products of decoupling/performance work rather
 than conceptual design, and will likely absorb most of the churn that follows:
 
 - **`geometry/element`** (`src/environment/geometry/element/`) — the
-  supporting types around a ray-geometry hit (`RayCastingHitElement`,
-  `AxisAlignedBoundingBox`, `DetailMask`, `GeometryConfig`,
+  supporting types around a ray-geometry hit (`PreRayHitElement`,
+  `PostRayHitElement`, `DetailMask`, `GeometryConfig`,
   `GeometryIntersectionEmissionContext`, `IntersectionAttributes`,
   `IntersectionCandidate`, `PovRayHit`, `RayWithTracingState`,
   `TransformStep`, `PriorityQueuePool`).
   This package grew ad hoc, driven by whatever the last performance or
   decoupling pass needed, without a governing concept.
+- **`geometry/boundingVolumeHierarchy`** (`src/environment/geometry/
+  boundingVolumeHierarchy/`) — the pre-hit bounding-volume contract
+  (`BoundingVolumeHierarchy`) and its naive concrete implementation
+  (`AxisAlignedBoundingBox`).
 - **`render/bakedScene`** and **`render/raySharedCache`** — the baked-CSG and
   per-ray-cache machinery built during the performance plans
   (`performanceNotes.md`). Also ad hoc, also likely to be touched by whatever
@@ -39,15 +43,15 @@ than conceptual design, and will likely absorb most of the churn that follows:
 Before migrating anything, we need more conceptual clarity in these two areas
 than we currently have. The rest of this document works through that.
 
-## 2. The core problem: `geometry/element` still mixes two concerns
+## 2. Pre-hit and post-hit concepts are now split
 
-`RayCastingHitElement` (`src/environment/geometry/element/RayCastingHitElement.h`)
-is a one-method interface:
+`PostRayHitElement` (`src/environment/geometry/element/PostRayHitElement.h`)
+is a one-method post-hit interface:
 
 ```cpp
-class RayCastingHitElement {
+class PostRayHitElement {
   public:
-    virtual ~RayCastingHitElement() {};
+    virtual ~PostRayHitElement() {};
     virtual void doExtraInformation(
         const RayWithTracingState &ray, double t, PovRayHit *hit) = 0;
 };
@@ -58,19 +62,11 @@ that a hit already happened at parameter `t`, what is the detailed information
 at that point* (surface normal, UV, material references, etc.)? That is a
 **post-hit** query.
 
-Separately, and not represented by any interface at all today, there is the
-**pre-hit** question: *what is the fastest possible bound I can test a ray
-against before doing exact geometry math?* Today that question is answered ad
-hoc by `AxisAlignedBoundingBox` (`src/environment/geometry/element/
-AxisAlignedBoundingBox.h`), a plain value class (no inheritance, `min`/`max`
-plus `enclosing`/`intersection`/`expandedBy`/`centroid`/`fromTransformedCorners`)
-returned by `Geometry::getMinMax()`. It lives in `element/` for no reason other
-than that's where it was convenient to put it when it was written, and every
-BVH-adjacent structure since then (`AabbCullingSupport`, `OperandCullBins` in
-`render/bakedScene/`) has been built directly against it, with no seam for a
-different bounding strategy.
-
-**Proposal.** Split `RayCastingHitElement` into two named concepts:
+The **pre-hit** question is now represented by `PreRayHitElement`
+(`src/environment/geometry/element/PreRayHitElement.h`): *what is the fastest
+possible bound I can test a ray against before doing exact geometry math?*
+Its contract is conservative: false positives are allowed, false negatives are
+not.
 
 - **`PreRayHitElement`** — the interface for anything that can *cheaply reject
   or bound* a ray before exact intersection math runs. `BoundingVolumeHierarchy`
@@ -78,11 +74,11 @@ different bounding strategy.
 - **`PostRayHitElement`** — renamed from `RayCastingHitElement`, keeps exactly
   `doExtraInformation`. `Geometry` implements this, unchanged in behavior.
 
-This buys two things: it says out loud that pre-hit acceleration and post-hit
+This split says out loud that pre-hit acceleration and post-hit
 detail queries are different lifecycle stages of the same ray/geometry
-interaction, and it gives `BoundingVolumeHierarchy` a legitimate interface to
-implement instead of being a bag of static helper functions
-(`AabbCullingSupport::rayIntersectsAabbForward`) called from wherever.
+interaction. It also gives `BoundingVolumeHierarchy` a legitimate interface to
+implement; the duplicated slab helpers previously scattered across render and
+baked CSG now live as concrete `AxisAlignedBoundingBox` methods.
 
 ## 3. `boundingVolumeHierarchy` as its own package, decoupled from `geometry`
 
@@ -93,11 +89,14 @@ class at all. So this is genuinely new code, not a port of something that
 already exists on the vitral side. That is an opportunity: we can place it
 correctly the first time instead of migrating a mistake.
 
-**Dependency direction is the whole point.** Today `AxisAlignedBoundingBox`
-sits in `geometry/element`, and every consumer of it — `Geometry::getMinMax()`,
-`render/bakedScene`'s `AabbCullingSupport`/`OperandCullBins` — depends
-downward on `geometry`. That is backwards for what a bounding volume actually
-is: a pre-hit accelerator that should know nothing about the shapes it bounds.
+**Dependency direction is the whole point.** `AxisAlignedBoundingBox` now lives
+in `geometry/boundingVolumeHierarchy`, not `geometry/element`, and remains a
+vptr-free value type for hot-path storage. `AabbBoundingVolume` is the naive
+`BoundingVolumeHierarchy` implementation that wraps an AABB for polymorphic
+build-time queries. `Geometry` exposes `createBoundingVolume()` instead of
+`getMinMax()`, so its contract no longer names the concrete AABB type. Callers
+that need the closed AABB algebra obtain `axisAlignedExtent()` from the returned
+interface object at build/bake time.
 
 Target layering:
 
@@ -112,20 +111,22 @@ boundingVolumeHierarchy    geometry
                                        other way around)
 ```
 
-Concretely:
+Current state:
 
-- Move `AxisAlignedBoundingBox` out of `geometry/element` into a new
-  `boundingVolumeHierarchy` package/directory.
-- Introduce a `BoundingVolumeHierarchy` interface (implementing
+- `AxisAlignedBoundingBox` has moved out of `geometry/element` into
+  `geometry/boundingVolumeHierarchy`.
+- `BoundingVolumeHierarchy` is an interface implementing
   `PreRayHitElement`) that `AxisAlignedBoundingBox` becomes one implementation
   of — explicitly the **naive** one. It is a single box, not a hierarchy, but
   it is the placeholder for the interface until real hierarchies exist.
 - `boundingVolumeHierarchy` depends only on `element` (for the
   `PreRayHitElement` interface and shared primitives like `Vector3Dd`), never
   on `geometry`.
-- `geometry` is free to depend on `boundingVolumeHierarchy` (e.g. `Geometry`
-  can hold/query a bounding volume for its own acceleration), but the
-  dependency never goes the other direction.
+- `geometry` depends on `boundingVolumeHierarchy` for constructing bounds, but
+  the dependency never goes the other direction.
+- The slab and point-in-box tests are methods on `AxisAlignedBoundingBox`
+  (`intersectsRayForward`, `intersectsRayBefore`,
+  `containsPointWithTolerance`).
 - Future implementations — BSP trees, k-d trees, voxel grids reusing vitral's
   existing `VoxelVolume`/`geometricProcessing` voxelizers — become siblings of
   `AxisAlignedBoundingBox` under the same interface, swappable per scene or
@@ -233,16 +234,14 @@ This is a discussion document, not a plan (see `performance_plan_docs_deleted.md
 precedent: no new plan-style docs). But for orientation, the natural dependency
 order among the above is:
 
-1. Rename `RayCastingHitElement` → `PostRayHitElement`; introduce
-   `PreRayHitElement` (§2). Pure rename + one new empty-ish interface, low
-   risk, unlocks the vocabulary for everything after it.
-2. Create the `boundingVolumeHierarchy` package; move
-   `AxisAlignedBoundingBox` into it as the naive `BoundingVolumeHierarchy`
-   implementation; fix the dependency direction so `element` doesn't depend on
-   it and `geometry` may (§3).
-3. Re-point `render/bakedScene`'s AABB-flavored helpers
-   (`AabbCullingSupport`, `OperandCullBins`) at the new package (§5).
-4. Only then start moving `geometry`'s actual intersection operations
+1. Done: `RayCastingHitElement` was renamed to `PostRayHitElement`, and
+   `PreRayHitElement` was introduced (§2).
+2. Done: the `boundingVolumeHierarchy` package exists; `AxisAlignedBoundingBox`
+   is the hot concrete value type, and `AabbBoundingVolume` is its naive
+   `BoundingVolumeHierarchy` wrapper (§3).
+3. Done: `render/bakedScene`'s AABB-flavored helpers now use the new package;
+   `AabbCullingSupport` only keeps candidate-bin traversal and sorting (§5).
+4. Remaining: move `geometry`'s actual intersection operations
    (`doIntersectionForAllRayCrossings` and family) into `vitral`, now that
    `element` doesn't carry POV-specific or bounding-volume baggage with it
    (§4, §6).

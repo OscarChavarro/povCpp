@@ -128,7 +128,7 @@ CsgContainmentTest::containmentTest(
         BakedScene::CsgPlanKind::DisjointBoundedUnion) {
         for (long int i = 0; i < bakedCsg->getOperands().size(); i++) {
             const CsgOperandRecord *operand = &bakedCsg->getOperands()[i];
-            if (!AabbCullingSupport::pointInsideAabb(point, operand->getBakedBounds(), distanceTolerance)) {
+            if (!operand->getBakedBounds().containsPointWithTolerance(point, distanceTolerance)) {
                 continue;
             }
             if (containmentTestOperand(
