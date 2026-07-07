@@ -33,7 +33,7 @@ SingleCorePlaneCsgTrace::candidateInsideCompiledSingleCorePlaneOperands(
 {
     if (coreIndex >= 0 && coreIndex != skipIndex) {
         if (CsgContainmentTest::containmentTestOperand(
-                bakedCsg->getOperands()[coreIndex],
+                &bakedCsg->getOperands()[coreIndex],
                 bakedCsgs,
                 point,
                 GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
@@ -48,7 +48,7 @@ SingleCorePlaneCsgTrace::candidateInsideCompiledSingleCorePlaneOperands(
             continue;
         }
         if (CsgContainmentTest::containmentTestOperand(
-                bakedCsg->getOperands()[operandIndex],
+                &bakedCsg->getOperands()[operandIndex],
                 bakedCsgs,
                 point,
                 GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
@@ -75,7 +75,7 @@ SingleCorePlaneCsgTrace::candidateInsideCompiledNestedContainmentSequence(
             continue;
         }
         if (CsgContainmentTest::containmentTestOperand(
-                nestedCsg->getOperands()[operandIndex],
+                &nestedCsg->getOperands()[operandIndex],
                 bakedCsgs,
                 point,
                 GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
@@ -103,7 +103,7 @@ SingleCorePlaneCsgTrace::candidateInsideDirectDescriptorOperands(
             continue;
         }
         if (BakedPlaneIntersector::planeContainmentTest(
-                nestedCsg->getOperands()[planeIdx],
+                &nestedCsg->getOperands()[planeIdx],
                 point,
                 GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
             return false;
@@ -113,7 +113,7 @@ SingleCorePlaneCsgTrace::candidateInsideDirectDescriptorOperands(
     // would be checked last in a reversed iteration).
     const long int coreIndex = parentOperand->getCompiledNestedCoreOperandIndex();
     if (skipIndex != coreIndex) {
-        Quadric *quadric = nestedCsg->getOperands()[coreIndex]->getQuadricGeometry();
+        Quadric *quadric = nestedCsg->getOperands()[coreIndex].getQuadricGeometry();
         if (quadric == nullptr ||
             quadric->doContainmentTest(point, GeometryConfig::SMALL_TOLERANCE) ==
                 Geometry::OUTSIDE) {
@@ -303,7 +303,7 @@ SingleCorePlaneCsgTrace::traceTransformedQuadricCorePlaneIntersection(
     bool &coreTrueMiss)
 {
     coreTrueMiss = false;
-    const CsgOperandRecord *coreOperand = bakedCsg->getOperands()[coreIndex];
+    const CsgOperandRecord *coreOperand = &bakedCsg->getOperands()[coreIndex];
     if (coreOperand->getKind() !=
         BakedScene::CsgOperandKind::TransformedQuadric) {
         return false;
@@ -459,7 +459,7 @@ SingleCorePlaneCsgTrace::traceTransformedNestedSingleCorePlaneOperandAllCrossing
     if (!canUseCompiledSingleCorePlanePlan(nestedCsg, coreIndex)) {
         return false;
     }
-    const CsgOperandRecord *coreOperand = nestedCsg->getOperands()[coreIndex];
+    const CsgOperandRecord *coreOperand = &nestedCsg->getOperands()[coreIndex];
     Quadric *directCoreQuadric =
         coreOperand->getKind() ==
             BakedScene::CsgOperandKind::DirectAnnotatedPrimitive ?
@@ -564,7 +564,7 @@ SingleCorePlaneCsgTrace::traceTransformedNestedSingleCorePlaneOperandAllCrossing
         for (long int p = parentOperand->getCompiledNestedPlaneOperandIndices().size() - 1;
              p >= 0; p--) {
             const int operandIndex = parentOperand->getCompiledNestedPlaneOperandIndices()[p];
-            const CsgOperandRecord *operand = nestedCsg->getOperands()[operandIndex];
+            const CsgOperandRecord *operand = &nestedCsg->getOperands()[operandIndex];
             IntersectionCandidate candidate;
             if (BakedPlaneIntersector::tracePlaneOperandCandidateInRaySpace(
                     operand, parentRay,
@@ -624,7 +624,7 @@ SingleCorePlaneCsgTrace::traceTransformedNestedSingleCorePlaneOperandAllCrossing
         for (long int p = parentOperand->getCompiledNestedPlaneOperandIndices().size() - 1;
              p >= 0; p--) {
             const int operandIndex = parentOperand->getCompiledNestedPlaneOperandIndices()[p];
-            const CsgOperandRecord *operand = nestedCsg->getOperands()[operandIndex];
+            const CsgOperandRecord *operand = &nestedCsg->getOperands()[operandIndex];
             IntersectionCandidate candidate;
             if (BakedPlaneIntersector::tracePlaneOperandCandidateInRaySpace(
                     operand, parentRay,
@@ -660,7 +660,7 @@ SingleCorePlaneCsgTrace::traceSingleCorePlaneIntersection(
 
     bool anyIntersectionFound = false;
     bool coreTrueMiss = false;
-    const CsgOperandRecord *coreOperand = bakedCsg->getOperands()[coreIndex];
+    const CsgOperandRecord *coreOperand = &bakedCsg->getOperands()[coreIndex];
 
     if (canUseCompiledSingleCorePlanePlan(bakedCsg, coreIndex)) {
         if (coreOperand->getKind() ==
@@ -712,7 +712,7 @@ SingleCorePlaneCsgTrace::traceSingleCorePlaneIntersection(
             for (long int p = bakedCsg->getPlaneOperandIndices().size() - 1;
                  p >= 0; p--) {
                 const int operandIndex = bakedCsg->getPlaneOperandIndices()[p];
-                const CsgOperandRecord *operand = bakedCsg->getOperands()[operandIndex];
+                const CsgOperandRecord *operand = &bakedCsg->getOperands()[operandIndex];
                 IntersectionCandidate candidate;
                 if (BakedPlaneIntersector::tracePlaneOperandCandidate(
                         operand,
@@ -739,7 +739,7 @@ SingleCorePlaneCsgTrace::traceSingleCorePlaneIntersection(
         scratch.borrowQueue();
 
     for (long int i = bakedCsg->getOperands().size() - 1; i >= 0; i--) {
-        const CsgOperandRecord *operand = bakedCsg->getOperands()[i];
+        const CsgOperandRecord *operand = &bakedCsg->getOperands()[i];
         if (i == coreIndex) {
             localDepthQueue->clear();
             CsgOperandTrace::tracePlanOperandAllCrossings(
@@ -885,7 +885,7 @@ SingleCorePlaneCsgTrace::traceCompiledCoreFirstHitCandidates(
 {
     coreTrueMiss = false;
     const long int coreIndex = bakedCsg->getSpecializationCoreOperandIndex();
-    const CsgOperandRecord *coreOperand = bakedCsg->getOperands()[coreIndex];
+    const CsgOperandRecord *coreOperand = &bakedCsg->getOperands()[coreIndex];
     Material *effectiveMaterial =
         coreOperand->getMaterial() != nullptr ? coreOperand->getMaterial() : materialOverride;
 
@@ -1027,7 +1027,7 @@ SingleCorePlaneCsgTrace::traceFirstHitCompiledSingleCorePlane(
         for (long int p = bakedCsg->getPlaneOperandIndices().size() - 1;
              p >= 0; p--) {
             const int operandIndex = bakedCsg->getPlaneOperandIndices()[p];
-            const CsgOperandRecord *operand = bakedCsg->getOperands()[operandIndex];
+            const CsgOperandRecord *operand = &bakedCsg->getOperands()[operandIndex];
             IntersectionCandidate candidate;
             if (BakedPlaneIntersector::tracePlaneOperandCandidate(
                     operand,

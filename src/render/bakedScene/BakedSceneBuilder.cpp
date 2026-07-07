@@ -96,19 +96,19 @@ BakedSceneBuilder::areSeparated(const AxisAlignedBoundingBox &left, const AxisAl
 
 bool
 BakedSceneBuilder::hasPairwiseDisjointFiniteOperands(
-    const java::ArrayList<CsgOperandRecord *> &operands)
+    const java::ArrayList<CsgOperandRecord> &operands)
 {
     if (operands.size() == 0) {
         return false;
     }
     for (long int i = 0; i < operands.size(); i++) {
-        if (!hasFiniteInteriorBounds(operands[i])) {
+        if (!hasFiniteInteriorBounds(&operands[i])) {
             return false;
         }
     }
     for (long int i = 0; i < operands.size(); i++) {
         for (long int j = i + 1; j < operands.size(); j++) {
-            if (!areSeparated(operands[i]->getBakedBounds(), operands[j]->getBakedBounds())) {
+            if (!areSeparated(operands[i].getBakedBounds(), operands[j].getBakedBounds())) {
                 return false;
             }
         }
@@ -120,7 +120,7 @@ void
 BakedSceneBuilder::classifyCsgProgramSpecialization(
     BooleanSetOperations geometryType,
     bool topLevel,
-    const java::ArrayList<CsgOperandRecord *> &operands,
+    const java::ArrayList<CsgOperandRecord> &operands,
     BakedSceneCsgPlanKind &planKind,
     bool &specializationValid,
     int &specializationCoreOperandIndex)
@@ -129,7 +129,7 @@ BakedSceneBuilder::classifyCsgProgramSpecialization(
         geometryType != BooleanSetOperations::INTERSECTION) {
         bool allPlanes = operands.size() > 0;
         for (long int i = 0; i < operands.size(); i++) {
-            if (!operands[i]->getIsInfinitePlane()) {
+            if (!operands[i].getIsInfinitePlane()) {
                 allPlanes = false;
             }
         }
@@ -151,7 +151,7 @@ BakedSceneBuilder::classifyCsgProgramSpecialization(
 
     int coreIndex = -1;
     for (long int i = 0; i < operands.size(); i++) {
-        const CsgOperandRecord *operand = operands[i];
+        const CsgOperandRecord *operand = &operands[i];
         if (operand->getIsInfinitePlane() && operand->getNestedCsgProgramIndex() < 0) {
             continue;
         }
@@ -176,7 +176,7 @@ BakedSceneBuilder::buildCsgExecutionPlan(
     BakedSceneCsgAlgorithm algorithm,
     bool specializationValid,
     BakedSceneCsgPlanKind &planKind,
-    java::ArrayList<CsgOperandRecord *> &operands,
+    java::ArrayList<CsgOperandRecord> &operands,
     const BakedScene &out,
     java::ArrayList<int> &planeOperandIndices,
     java::ArrayList<int> &nestedOperandIndices,
@@ -189,7 +189,7 @@ BakedSceneBuilder::buildCsgExecutionPlan(
     directPrimitiveOperandIndices.clear();
 
     for (long int i = 0; i < operands.size(); i++) {
-        CsgOperandRecord *operand = operands[i];
+        const CsgOperandRecord *operand = &operands[i];
         bool compiledTransformedNestedCorePlane = false;
         int compiledNestedCoreOperandIndex = -1;
         bool compiledNestedCoreDirectQuadric = false;
@@ -219,7 +219,7 @@ BakedSceneBuilder::buildCsgExecutionPlan(
                     coreIndex < nestedCsg->getOperands().size() &&
                     nestedCsg->getPlaneOperandIndices().size() + 1 ==
                         nestedCsg->getOperands().size()) {
-                    const CsgOperandRecord *coreOperand = nestedCsg->getOperands()[coreIndex];
+                    const CsgOperandRecord *coreOperand = &nestedCsg->getOperands()[coreIndex];
                     const bool directQuadric =
                         coreOperand->getKind() ==
                             BakedSceneCsgOperandKind::DirectAnnotatedPrimitive &&
@@ -272,7 +272,6 @@ BakedSceneBuilder::buildCsgExecutionPlan(
             compiledNestedCoreTransformedQuadric,
             compiledNestedPlaneOperandIndices,
             compiledNestedContainmentOperandIndices);
-        delete operand;
     }
 
     if (!specializationValid) {
@@ -283,7 +282,7 @@ BakedSceneBuilder::buildCsgExecutionPlan(
     }
 }
 
-CsgOperandRecord *
+CsgOperandRecord
 BakedSceneBuilder::cloneOperandWithCompiledPlan(
     const CsgOperandRecord *base,
     bool compiledTransformedNestedCorePlane,
@@ -293,7 +292,7 @@ BakedSceneBuilder::cloneOperandWithCompiledPlan(
     const java::ArrayList<int> &compiledNestedPlaneOperandIndices,
     const java::ArrayList<int> &compiledNestedContainmentOperandIndices)
 {
-    return new CsgOperandRecord(
+    return CsgOperandRecord(
         base->getKind(), base->getOperand(), base->getOriginalGeometry(),
         base->getOriginalQuadricGeometry(), base->getMaterial(), base->getNestedCsgProgramIndex(),
         base->getBakedBounds(), base->getObjectToLocal(), base->getLocalToObject(),
@@ -307,11 +306,11 @@ BakedSceneBuilder::cloneOperandWithCompiledPlan(
         base->getPushdownAccumulatedSteps(), base->getPushdownFolded());
 }
 
-CsgOperandRecord *
+CsgOperandRecord
 BakedSceneBuilder::cloneOperandWithViewpointSlots(
     const CsgOperandRecord *base, int quadricViewpointSlot, int planeViewpointSlot)
 {
-    return new CsgOperandRecord(
+    return CsgOperandRecord(
         base->getKind(), base->getOperand(), base->getOriginalGeometry(),
         base->getOriginalQuadricGeometry(), base->getMaterial(), base->getNestedCsgProgramIndex(),
         base->getBakedBounds(), base->getObjectToLocal(), base->getLocalToObject(),
@@ -325,7 +324,7 @@ BakedSceneBuilder::cloneOperandWithViewpointSlots(
         base->getPushdownFolded());
 }
 
-CsgOperandRecord *
+CsgOperandRecord
 BakedSceneBuilder::cloneOperandWithPushdownBake(
     const CsgOperandRecord *base,
     const AxisAlignedBoundingBox &bakedBounds,
@@ -343,7 +342,7 @@ BakedSceneBuilder::cloneOperandWithPushdownBake(
     double planeDistance,
     const java::ArrayList<TransformStep> &pushdownAccumulatedSteps)
 {
-    return new CsgOperandRecord(
+    return CsgOperandRecord(
         kind, base->getOperand(), base->getOriginalGeometry(), base->getOriginalQuadricGeometry(),
         base->getMaterial(), base->getNestedCsgProgramIndex(), bakedBounds, objectToLocal, localToObject,
         hasTransform, bounded, base->getCullSafe(), base->getIsInfinitePlane(), planeNormal, planeDistance,
@@ -381,7 +380,7 @@ BakedSceneBuilder::cloneProgramWithReclassification(
     const java::ArrayList<int> &nestedOperandIndices,
     const java::ArrayList<int> &transformedPrimitiveOperandIndices,
     const java::ArrayList<int> &directPrimitiveOperandIndices,
-    const java::ArrayList<CsgOperandRecord *> &operands)
+    const java::ArrayList<CsgOperandRecord> &operands)
 {
     return new CsgProgram(
         base->getAlgorithm(), planKind, base->getGeometryType(), base->getTopLevel(),
@@ -501,7 +500,7 @@ BakedSceneBuilder::nestedProgramFullyBakeable(const BakedScene &scene, int progr
     }
     const CsgProgram *program = scene.csgPrograms[programIndex];
     for (long int i = 0; i < program->getOperands().size(); i++) {
-        const CsgOperandRecord *operand = program->getOperands()[i];
+        const CsgOperandRecord *operand = &program->getOperands()[i];
         if (isPushdownCandidateOperand(operand)) {
             continue;
         }
@@ -520,11 +519,11 @@ BakedSceneBuilder::pushDownStepsIntoProgram(
     const Matrix4x4d &parentForwardTransform)
 {
     CsgProgram *program = out.csgPrograms[programIndex];
-    java::ArrayList<CsgOperandRecord *> newOperands;
+    java::ArrayList<CsgOperandRecord> newOperands;
     newOperands.reserve(program->getOperands().size());
 
     for (long int i = 0; i < program->getOperands().size(); i++) {
-        CsgOperandRecord *operand = program->getOperands()[i];
+        const CsgOperandRecord *operand = &program->getOperands()[i];
 
         AxisAlignedBoundingBox bakedBounds = operand->getBakedBounds();
         bool bounded = operand->getBounded();
@@ -640,12 +639,12 @@ BakedSceneBuilder::pushDownStepsIntoProgram(
         planeOperandIndices, nestedOperandIndices, transformedPrimitiveOperandIndices,
         directPrimitiveOperandIndices, newOperands);
     out.csgPrograms[programIndex] = replacement;
-    // `program`'s own (now orphaned) operand pointers are freed by its own
-    // destructor; `newOperands` are all fresh clones, never aliasing them.
+    // `program`'s own operands are destroyed by its own destructor;
+    // `newOperands` are all fresh copies, never aliasing them.
     delete program;
 }
 
-CsgOperandRecord *
+CsgOperandRecord
 BakedSceneBuilder::bakeCsgOperand(CsgOperand *operand, BakedScene &out)
 {
     Geometry *originalGeometry = operand->getGeometry();
@@ -730,7 +729,7 @@ BakedSceneBuilder::bakeCsgOperand(CsgOperand *operand, BakedScene &out)
     BakedSceneCsgOperandKind kind = classifyOperandKind(
         effectiveGeometry, nestedCsgProgramIndex, hasTransform, isInfinitePlane, effectiveQuadricGeometry);
 
-    return new CsgOperandRecord(
+    return CsgOperandRecord(
         kind, operand, originalGeometry, originalQuadricGeometry, material, nestedCsgProgramIndex,
         bakedBounds, objectToLocal, localToObject, hasTransform, bounded, cullSafe, isInfinitePlane,
         planeNormal, planeDistance, -1, -1, bakedQuadricStorage, hasBakedQuadric, bakedPlaneStorage,
@@ -755,7 +754,7 @@ BakedSceneBuilder::sortCullSafeEntriesByKey(java::ArrayList<CullSafeEntry> &entr
 OperandCullBins *
 BakedSceneBuilder::buildOperandCullBinsForBucket(
     const java::ArrayList<int> &bucket,
-    const java::ArrayList<CsgOperandRecord *> &operands)
+    const java::ArrayList<CsgOperandRecord> &operands)
 {
     const long int bucketSize = bucket.size();
     if (!kEnableOperandCullBins || bucketSize < kOperandCullBinThreshold) {
@@ -767,7 +766,7 @@ BakedSceneBuilder::buildOperandCullBinsForBucket(
     Vector3Dd lo(1e30, 1e30, 1e30);
     Vector3Dd hi(-1e30, -1e30, -1e30);
     for (long int p = 0; p < bucketSize; p++) {
-        const CsgOperandRecord *operand = operands[bucket[p]];
+        const CsgOperandRecord *operand = &operands[bucket[p]];
         if (operand->getBounded() && operand->getCullSafe()) {
             const Vector3Dd c = operand->getBakedBounds().centroid();
             cullSafeByAxis.add(CullSafeEntry{0.0, (int)p});
@@ -796,7 +795,7 @@ BakedSceneBuilder::buildOperandCullBinsForBucket(
 
     for (long int i = 0; i < cullSafeByAxis.size(); i++) {
         const CullSafeEntry &entry = cullSafeByAxis[i];
-        const Vector3Dd c = operands[bucket[entry.getPosition()]]->getBakedBounds().centroid();
+        const Vector3Dd c = operands[bucket[entry.getPosition()]].getBakedBounds().centroid();
         const double key = axis == 0 ? c.x() : (axis == 1 ? c.y() : c.z());
         cullSafeByAxis[i] = CullSafeEntry(key, entry.getPosition());
     }
@@ -826,7 +825,7 @@ BakedSceneBuilder::buildOperandCullBinsForBucket(
         for (int k = 0; k < count; k++) {
             const int pos = cullSafeByAxis[cursor].getPosition();
             binMembers.add(pos);
-            aggregate = aggregate.enclosing(operands[bucket[pos]]->getBakedBounds());
+            aggregate = aggregate.enclosing(operands[bucket[pos]].getBakedBounds());
             cursor++;
         }
         binBounds.add(aggregate);
@@ -853,7 +852,7 @@ BakedSceneBuilder::bakeConstructiveSolidGeometry(ConstructiveSolidGeometry *geom
     }
 
     const java::ArrayList<CsgOperand*> &sourceOperands = geometry->getOperands();
-    java::ArrayList<CsgOperandRecord *> operands;
+    java::ArrayList<CsgOperandRecord> operands;
     operands.reserve(sourceOperands.size());
     for (long int i = 0; i < sourceOperands.size(); i++) {
         if (sourceOperands[i] == nullptr) {
@@ -1052,7 +1051,7 @@ BakedSceneBuilder::accumulateStatistics(BakedScene &scene, long quadricViewpoint
             unionProgramOperandHistogram[bucket]++;
         }
         for (long int j = 0; j < program->getOperands().size(); j++) {
-            const CsgOperandRecord *operand = program->getOperands()[j];
+            const CsgOperandRecord *operand = &program->getOperands()[j];
             if (program->getGeometryType() == BooleanSetOperations::UNION) {
                 unionProgramOperandTotalCount++;
                 if (operand->getBounded() && operand->getCullSafe()) {
@@ -1161,10 +1160,10 @@ BakedSceneBuilder::build(const java::ArrayList<SimpleBody*> &objects, BakedScene
     int nextPlaneSlot = 0;
     for (long int i = 0; i < out.csgPrograms.size(); i++) {
         CsgProgram *program = out.csgPrograms[i];
-        java::ArrayList<CsgOperandRecord *> updatedOperands;
+        java::ArrayList<CsgOperandRecord> updatedOperands;
         updatedOperands.reserve(program->getOperands().size());
         for (long int j = 0; j < program->getOperands().size(); j++) {
-            CsgOperandRecord *operand = program->getOperands()[j];
+            const CsgOperandRecord *operand = &program->getOperands()[j];
             int quadricSlot = operand->getQuadricViewpointSlot();
             int planeSlot = operand->getPlaneViewpointSlot();
             if (operand->getQuadricGeometry() != nullptr) {

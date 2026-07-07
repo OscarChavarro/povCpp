@@ -47,7 +47,7 @@ public:
         }
 
         for (long int i = 0; i < operandCount; i++) {
-            const CsgOperandRecord *op = bakedCsg->getOperands()[i];
+            const CsgOperandRecord *op = &bakedCsg->getOperands()[i];
             if (op->getKind() != BakedScene::CsgOperandKind::TransformedQuadric ||
                 op->getQuadricGeometry() == nullptr) {
                 continue;
@@ -81,7 +81,7 @@ public:
         bool anyIntersectionFound = false;
 
         for (long int i = bakedCsg->getOperands().size() - 1; i >= 0; i--) {
-            const CsgOperandRecord *localShape = bakedCsg->getOperands()[i];
+            const CsgOperandRecord *localShape = &bakedCsg->getOperands()[i];
             if (canCache && cachedValid[i]) {
                 // Reuse the prescan's transform + quadric solve verbatim -
                 // this mirrors CsgOperandTrace::traceOperandAllCrossings's
@@ -213,7 +213,7 @@ public:
         for (long int p = bakedCsg->getPlaneOperandIndices().size() - 1;
              p >= 0; p--) {
             const CsgOperandRecord *operand =
-                bakedCsg->getOperands()[bakedCsg->getPlaneOperandIndices()[p]];
+                &bakedCsg->getOperands()[bakedCsg->getPlaneOperandIndices()[p]];
             IntersectionCandidate candidate;
             if (BakedPlaneIntersector::tracePlaneOperandCandidate(
                     operand, ray, scratch.getCache(), materialOverride, candidate)) {
@@ -226,7 +226,7 @@ public:
         for (long int d = bakedCsg->getDirectPrimitiveOperandIndices().size() - 1;
              d >= 0; d--) {
             const CsgOperandRecord *operand =
-                bakedCsg->getOperands()[bakedCsg->getDirectPrimitiveOperandIndices()[d]];
+                &bakedCsg->getOperands()[bakedCsg->getDirectPrimitiveOperandIndices()[d]];
             if (operand->getGeometry() == nullptr) {
                 continue;
             }
@@ -260,7 +260,7 @@ public:
         for (long int n = bakedCsg->getNestedOperandIndices().size() - 1;
              n >= 0; n--) {
             if (CsgOperandTrace::tracePlanOperandAllCrossings(
-                    bakedCsg->getOperands()[bakedCsg->getNestedOperandIndices()[n]],
+                    &bakedCsg->getOperands()[bakedCsg->getNestedOperandIndices()[n]],
                     bakedCsgs,
                     scratch,
                     ray,
@@ -273,7 +273,7 @@ public:
         for (long int t = bakedCsg->getTransformedPrimitiveOperandIndices().size() - 1;
              t >= 0; t--) {
             const CsgOperandRecord *operand =
-                bakedCsg->getOperands()[bakedCsg->getTransformedPrimitiveOperandIndices()[t]];
+                &bakedCsg->getOperands()[bakedCsg->getTransformedPrimitiveOperandIndices()[t]];
             if (operand->getKind() == BakedScene::CsgOperandKind::TransformedQuadric) {
                 if (operand->getGeometry() == nullptr || operand->getQuadricGeometry() == nullptr) {
                     continue;
@@ -334,7 +334,7 @@ public:
         for (long int p = bakedCsg->getPlaneOperandIndices().size() - 1;
              p >= 0; p--) {
             const CsgOperandRecord *operand =
-                bakedCsg->getOperands()[bakedCsg->getPlaneOperandIndices()[p]];
+                &bakedCsg->getOperands()[bakedCsg->getPlaneOperandIndices()[p]];
             IntersectionCandidate candidate;
             if (BakedPlaneIntersector::tracePlaneOperandCandidate(
                     operand, ray, scratch.getCache(), materialOverride, candidate)) {
@@ -360,14 +360,14 @@ public:
             for (int idx = 0; idx < directCount; idx++) {
                 const long int d = directPositions[idx];
                 dispatchDirectPrimitiveOperand(
-                    bakedCsg->getOperands()[bakedCsg->getDirectPrimitiveOperandIndices()[d]],
+                    &bakedCsg->getOperands()[bakedCsg->getDirectPrimitiveOperandIndices()[d]],
                     ray, depthQueue, materialOverride, anyFound);
             }
         } else {
             for (long int d = bakedCsg->getDirectPrimitiveOperandIndices().size() - 1;
                  d >= 0; d--) {
                 const CsgOperandRecord *operand =
-                    bakedCsg->getOperands()[bakedCsg->getDirectPrimitiveOperandIndices()[d]];
+                    &bakedCsg->getOperands()[bakedCsg->getDirectPrimitiveOperandIndices()[d]];
                 if (operand->getBounded() && operand->getCullSafe() &&
                     !AabbCullingSupport::rayIntersectsAabbForward(*ray, operand->getBakedBounds())) {
                     continue;
@@ -380,7 +380,7 @@ public:
         for (long int n = bakedCsg->getNestedOperandIndices().size() - 1;
              n >= 0; n--) {
             if (CsgOperandTrace::tracePlanOperandAllCrossings(
-                    bakedCsg->getOperands()[bakedCsg->getNestedOperandIndices()[n]],
+                    &bakedCsg->getOperands()[bakedCsg->getNestedOperandIndices()[n]],
                     bakedCsgs,
                     scratch,
                     ray,
@@ -407,14 +407,14 @@ public:
             for (int idx = 0; idx < transformedCount; idx++) {
                 const long int t = transformedPositions[idx];
                 dispatchTransformedPrimitiveOperand(
-                    bakedCsg->getOperands()[bakedCsg->getTransformedPrimitiveOperandIndices()[t]],
+                    &bakedCsg->getOperands()[bakedCsg->getTransformedPrimitiveOperandIndices()[t]],
                     bakedCsgs, scratch, ray, depthQueue, materialOverride, anyFound);
             }
         } else {
             for (long int t = bakedCsg->getTransformedPrimitiveOperandIndices().size() - 1;
                  t >= 0; t--) {
                 const CsgOperandRecord *operand =
-                    bakedCsg->getOperands()[bakedCsg->getTransformedPrimitiveOperandIndices()[t]];
+                    &bakedCsg->getOperands()[bakedCsg->getTransformedPrimitiveOperandIndices()[t]];
                 if (operand->getKind() == BakedScene::CsgOperandKind::TransformedQuadric &&
                     operand->getBounded() && operand->getCullSafe() &&
                     !AabbCullingSupport::rayIntersectsAabbForward(*ray, operand->getBakedBounds())) {

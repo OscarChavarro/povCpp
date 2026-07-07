@@ -55,7 +55,7 @@ public:
     static inline int gatherCullSurvivors(
         const OperandCullBins &bins,
         const java::ArrayList<int> &bucket,
-        const java::ArrayList<CsgOperandRecord *> &operands,
+        const java::ArrayList<CsgOperandRecord> &operands,
         RayWithTracingState &ray,
         int *outPositions,
         int capacity)
@@ -69,7 +69,7 @@ public:
             const int memberCount = bins.getBinMemberCount()[b];
             for (int m = start; m < start + memberCount; m++) {
                 const int pos = bins.getBinMembers()[m];
-                if (!rayIntersectsAabbForward(ray, operands[bucket[pos]]->getBakedBounds())) {
+                if (!rayIntersectsAabbForward(ray, operands[bucket[pos]].getBakedBounds())) {
                     continue;
                 }
                 if (count >= capacity) {

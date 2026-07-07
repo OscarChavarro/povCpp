@@ -24,7 +24,7 @@ CsgFirstHitTrace::traceFirstHitByIntersectionMembership(
     for (long int i = bakedCsg->getOperands().size() - 1; i >= 0; i--) {
         localDepthQueue->clear();
         CsgOperandTrace::tracePlanOperandAllCrossings(
-            bakedCsg->getOperands()[i],
+            &bakedCsg->getOperands()[i],
             bakedCsgs,
             scratch,
             ray,
