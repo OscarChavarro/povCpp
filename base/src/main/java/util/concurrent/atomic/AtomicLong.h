@@ -1,5 +1,5 @@
-#ifndef JAVA_UTIL_CONCURRENT_ATOMIC_ATOMICLONG_H
-#define JAVA_UTIL_CONCURRENT_ATOMIC_ATOMICLONG_H
+#ifndef __ATOMICLONG__
+#define __ATOMICLONG__
 
 #include <atomic>
 namespace java {

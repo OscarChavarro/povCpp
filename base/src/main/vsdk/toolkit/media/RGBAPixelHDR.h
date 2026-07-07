@@ -1,5 +1,5 @@
-#ifndef __RGBA_PIXEL_HDR_H__
-#define __RGBA_PIXEL_HDR_H__
+#ifndef __RGBAPIXELHDR__
+#define __RGBAPIXELHDR__
 
 class RGBAPixelHDR {
   public:

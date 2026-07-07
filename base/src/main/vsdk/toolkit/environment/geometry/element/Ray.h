@@ -1,5 +1,5 @@
-#ifndef __VSDK_TOOLKIT_ENVIRONMENT_GEOMETRY_ELEMENTS_RAY_H__
-#define __VSDK_TOOLKIT_ENVIRONMENT_GEOMETRY_ELEMENTS_RAY_H__
+#ifndef __RAY__
+#define __RAY__
 
 #include "java/lang/String.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"

@@ -1,5 +1,5 @@
-#ifndef __VSDK_TOOLKIT_COMMON_LINEALALGEBRA_VECTOR3DF_H__
-#define __VSDK_TOOLKIT_COMMON_LINEALALGEBRA_VECTOR3DF_H__
+#ifndef __VECTOR3DF__
+#define __VECTOR3DF__
 
 
 #include <cmath>
@@ -38,4 +38,4 @@ public:
 };
 
 
-#endif // __VSDK_TOOLKIT_COMMON_LINEALALGEBRA_VECTOR3DF_H__
+#endif

@@ -1,5 +1,5 @@
-#ifndef __GEOMETRY_STATISTICS__
-#define __GEOMETRY_STATISTICS__
+#ifndef __GEOMETRYSTATISTICS__
+#define __GEOMETRYSTATISTICS__
 
 #include "java/util/ArrayList.h"
 

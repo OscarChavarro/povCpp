@@ -1,5 +1,5 @@
-#ifndef __VSDK_TOOLKIT_COMMON_LINEALALGEBRA_MATRIX4X4D_H__
-#define __VSDK_TOOLKIT_COMMON_LINEALALGEBRA_MATRIX4X4D_H__
+#ifndef __MATRIX4X4D__
+#define __MATRIX4X4D__
 
 
 #include <cmath>
@@ -150,4 +150,4 @@ Matrix4x4d::axisRotationRodrigues(Matrix4x4d *matrixInverse, Vector3Dd *vector)
 }
 
 
-#endif // __VSDK_TOOLKIT_COMMON_LINEALALGEBRA_MATRIX4X4D_H__
+#endif

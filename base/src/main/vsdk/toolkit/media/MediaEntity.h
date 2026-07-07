@@ -1,5 +1,5 @@
-#ifndef __VSDK_TOOLKIT_MEDIA_MEDIAENTITY_H__
-#define __VSDK_TOOLKIT_MEDIA_MEDIAENTITY_H__
+#ifndef __MEDIAENTITY__
+#define __MEDIAENTITY__
 
 /**
 A `MediaEntity` in VitralSDK is a software element with data
@@ -34,4 +34,4 @@ public:
 
 };
 
-#endif // __VSDK_TOOLKIT_MEDIA_MEDIAENTITY_H__
+#endif

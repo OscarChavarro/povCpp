@@ -1,5 +1,5 @@
-#ifndef __VSDK_TOOLKIT_COMMON_LINEALALGEBRA_MATRIX4X4F_H__
-#define __VSDK_TOOLKIT_COMMON_LINEALALGEBRA_MATRIX4X4F_H__
+#ifndef __MATRIX4X4F__
+#define __MATRIX4X4F__
 
 
 #include "java/lang/String.h"
@@ -71,4 +71,4 @@ public:
 };
 
 
-#endif // __VSDK_TOOLKIT_COMMON_LINEALALGEBRA_MATRIX4X4F_H__
+#endif

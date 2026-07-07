@@ -1,5 +1,5 @@
-#ifndef __ArrayList__
-#define __ArrayList__
+#ifndef __ARRAYLIST__
+#define __ARRAYLIST__
 
 #include "java/lang/Object.h"
 

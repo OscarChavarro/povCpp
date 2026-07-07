@@ -1,5 +1,5 @@
-#ifndef CAMERA_H
-#define CAMERA_H
+#ifndef __CAMERA__
+#define __CAMERA__
 
 #include "java/lang/String.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
@@ -106,4 +106,4 @@ private:
 };
 
 
-#endif // CAMERA_H
+#endif

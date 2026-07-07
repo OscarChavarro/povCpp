@@ -1,5 +1,5 @@
-#ifndef __VSDK_TOOLKIT_MEDIA_RGBACOLORPALETTE_H__
-#define __VSDK_TOOLKIT_MEDIA_RGBACOLORPALETTE_H__
+#ifndef __RGBACOLORPALETTE__
+#define __RGBACOLORPALETTE__
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/media/MediaEntity.h"
@@ -39,4 +39,4 @@ class RGBAColorPalette : public MediaEntity {
     ColorRgba* evalLinear(double t) const;
 };
 
-#endif // __VSDK_TOOLKIT_MEDIA_RGBACOLORPALETTE_H__
+#endif

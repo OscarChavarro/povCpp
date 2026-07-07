@@ -1,5 +1,5 @@
-#ifndef JAVA_IO_FILE__
-#define JAVA_IO_FILE__
+#ifndef __FILE_H__
+#define __FILE_H__
 
 #include "java/lang/String.h"
 namespace java {

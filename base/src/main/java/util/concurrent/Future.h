@@ -1,5 +1,5 @@
-#ifndef JAVA_UTIL_CONCURRENT_FUTURE_H
-#define JAVA_UTIL_CONCURRENT_FUTURE_H
+#ifndef __FUTURE__
+#define __FUTURE__
 
 #include "java/lang/String.h"
 #include "java/util/concurrent/ExecutionException.h"

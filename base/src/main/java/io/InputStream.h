@@ -1,5 +1,5 @@
-#ifndef JAVA_IO_INPUT_STREAM__
-#define JAVA_IO_INPUT_STREAM__
+#ifndef __INPUTSTREAM__
+#define __INPUTSTREAM__
 
 namespace java {
 

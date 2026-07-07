@@ -1,5 +1,5 @@
-#ifndef __CUBIC_SOLVER__
-#define __CUBIC_SOLVER__
+#ifndef __CUBICSOLVER__
+#define __CUBICSOLVER__
 
 class CubicSolver {
   private:

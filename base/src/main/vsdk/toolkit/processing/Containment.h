@@ -1,5 +1,5 @@
-#ifndef __VSDK_TOOLKIT_PROCESSING_CONTAINMENT_H__
-#define __VSDK_TOOLKIT_PROCESSING_CONTAINMENT_H__
+#ifndef __CONTAINMENT__
+#define __CONTAINMENT__
 
 enum class Containment {
     OUTSIDE = -1,

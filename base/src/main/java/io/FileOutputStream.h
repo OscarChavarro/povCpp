@@ -1,5 +1,5 @@
-#ifndef JAVA_IO_FILE_OUTPUT_STREAM__
-#define JAVA_IO_FILE_OUTPUT_STREAM__
+#ifndef __FILEOUTPUTSTREAM__
+#define __FILEOUTPUTSTREAM__
 
 #include <cstdio>
 

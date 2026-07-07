@@ -1,5 +1,5 @@
-#ifndef JAVA_UTIL_FORMATTER__
-#define JAVA_UTIL_FORMATTER__
+#ifndef __FORMATTER__
+#define __FORMATTER__
 
 #include <cstdarg>
 

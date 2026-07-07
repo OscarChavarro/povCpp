@@ -1,5 +1,5 @@
-#ifndef __VSDK_TOOLKIT_MEDIA_IMAGE_H__
-#define __VSDK_TOOLKIT_MEDIA_IMAGE_H__
+#ifndef __IMAGE__
+#define __IMAGE__
 
 #include "vsdk/toolkit/media/MediaEntity.h"
 class RGBPixel;
@@ -134,4 +134,4 @@ private:
     static int positiveMod(int value, int modulus);
 };
 
-#endif // __VSDK_TOOLKIT_MEDIA_IMAGE_H__
+#endif

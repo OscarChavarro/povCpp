@@ -1,5 +1,5 @@
-#ifndef MEMORY_POOL__
-#define MEMORY_POOL__
+#ifndef __MEMORYPOOL__
+#define __MEMORYPOOL__
 
 #include "java/lang/Object.h"
 template <class T>

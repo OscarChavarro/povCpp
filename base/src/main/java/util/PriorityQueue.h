@@ -1,5 +1,5 @@
-#ifndef PriorityQueue__
-#define PriorityQueue__
+#ifndef __PRIORITYQUEUE__
+#define __PRIORITYQUEUE__
 
 #include "java/lang/Object.h"
 namespace java {

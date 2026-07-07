@@ -1,5 +1,5 @@
-#ifndef __VSDK_TOOLKIT_ENVIRONMENT_MATERIAL_RENDERERCONFIGURATION_H__
-#define __VSDK_TOOLKIT_ENVIRONMENT_MATERIAL_RENDERERCONFIGURATION_H__
+#ifndef __RENDERERCONFIGURATION__
+#define __RENDERERCONFIGURATION__
 
 #include "java/lang/String.h"
 #include "vsdk/toolkit/common/color/ColorRgb.h"
