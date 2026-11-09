@@ -63,9 +63,11 @@ lighting model, same numerical output.
 The codebase is organised around five root packages inside `src`: `app`, `common`,
 `environment`, `io`, and `render`. Dependencies mostly flow downward from orchestration
 (`app`) to parsing / domain modelling (`io`, `environment`) and finally to the rendering
-kernel (`render`) plus shared support code (`common` and the external `base` toolkit).
+kernel (`render`) plus shared support code (`common`, external `vitral_base` and
+`vitral_raycasting`). Geometry, CSG, bounds and ray-casting bodies live in the local `raycasting` extension;
+the local environment contains the application scene extension and POV materials.
 
-The diagram below was generated directly from the source code using
+The diagram below predates the VITRAL extraction and was generated using
 [dependencyGraphAnalyzer](https://github.com/OscarChavarro/dependencyGraphAnalyzer).
 
 ![Architecture diagram](doc/architectureDiagram.png)
@@ -102,13 +104,13 @@ The diagram below was generated directly from the source code using
       <td style="background-color:#9bfc8c;color:#000;padding:8px">environment</td>
       <td><strong>Environment</strong></td>
       <td><code>src/environment</code></td>
-      <td>Render-time scene model: <code>Scene</code>, object wrappers in <code>scene/</code>, geometry and intersection code in <code>geometry/</code>, light sources in <code>light/</code>, and POV-Ray materials, pigments, normals, and renderer configuration in <code>material/</code>. Camera state is stored as Vitral <code>CameraSnapshot</code> data rather than a local camera implementation</td>
+      <td><code>Scene : SimpleScene</code> adds POV render settings and default-material lifetime management to the shared scene. Materials, pigments and normal evaluators remain application-specific. Bodies, geometry and CSG come from the local raycasting extension; base interfaces, lights and camera records come from VITRAL.</td>
     </tr>
     <tr>
       <td style="background-color:#7d7ef8;color:#000;padding:8px">render</td>
       <td><strong>Render</strong></td>
       <td><code>src/render</code></td>
-      <td><code>RenderEngine</code> owns the trace loop, tile scheduling, adaptive antialiasing, per-thread workers, and output staging; <code>RenderContext</code> exposes immutable scene/config access plus shared statistics and texture services</td>
+      <td><code>RenderEngine</code> owns the trace loop, tile scheduling, adaptive antialiasing, per-thread workers, and output staging; <code>PovRenderContext</code> exposes immutable scene/config access plus shared statistics and texture services</td>
     </tr>
     <tr>
       <td style="background-color:#7d7ef8;color:#000;padding:8px">render</td>
@@ -131,19 +133,19 @@ The diagram below was generated directly from the source code using
     <tr>
       <td style="background-color:#99fcfe;color:#000;padding:8px">base</td>
       <td><strong>Base library</strong></td>
-      <td><code>base/src/main/vsdk/toolkit</code></td>
+      <td><code>VITRAL/cpp/base/src/main/vsdk/toolkit</code></td>
       <td>Vitral toolkit: linear algebra (<code>Vector3Dd</code>, <code>Matrix4x4d</code>), image buffers, I/O primitives</td>
     </tr>
     <tr>
       <td style="background-color:#99fcfe;color:#000;padding:8px">base</td>
       <td><strong>Solid textures</strong></td>
-      <td><code>base/src/main/vsdk/toolkit/media/solidTexture</code></td>
+      <td><code>VITRAL/cpp/base/src/main/vsdk/toolkit/media/solidTexture</code></td>
       <td>Solid texture evaluation (procedural noise, image-to-solid-texture projection), indexed palette images, image-map sampling</td>
     </tr>
     <tr>
       <td style="background-color:#99fcfe;color:#000;padding:8px">base</td>
       <td><strong>Processing</strong></td>
-      <td><code>base/src/main/vsdk/toolkit/numericalAnalysis/polynomial</code></td>
+      <td><code>VITRAL/cpp/base/src/main/vsdk/toolkit/numericalAnalysis/polynomial</code></td>
       <td>Sturm-sequence polynomial root solver used by quartics and polys</td>
     </tr>
   </tbody>
@@ -176,11 +178,19 @@ decoupled from the top-level iterative trace loop in `RenderEngine`.
 git clone https://github.com/OscarChavarro/povCpp.git
 cd povCpp
 
-# 2. Build
-./scripts/compile.sh
+# 2. Build against the VITRAL cpp checkout containing the convergence changes
+./scripts/compile.sh -DVITRAL_CPP_ROOT=/path/to/vitral/cpp -DVITRAL_BUILD_TESTS=OFF
 
 # The binary is placed at build/povray
 ```
+
+`VITRAL_CPP_ROOT` defaults to `$HOME/VITRAL/vitral/cpp`. Both headers and the
+`vitral_base` library come from this checkout; the local `base/src/main` subset is kept as an exact copy of VITRAL and is not
+compiled. External library artifacts stay inside the PovRay build tree,
+so building PovRay does not overwrite VITRAL's own library. The checkout must
+include `RayCrossingQuery.h`, `SurfaceDetail.h`, and the
+shared scene/body API changes.
+See [the convergence plan](doc/vitralPlan.md) for the migration sequence.
 
 ### Running a scene
 
@@ -343,3 +353,7 @@ risks, and planned architectural improvements against these goals.
   countless developers and remains a landmark in the history of computer graphics. The
   [original POV-Ray 1 author list and contribution notes](doc/references/originalPovray1Authors.md)
   preserve the credits recovered from the original source comments.
+
+The `raycasting` library is maintained locally in this repository during architecture
+alignment. It depends on `vitral_base`; VITRAL does not depend on it. Geometry and
+scene implementation convergence is reserved for a separate plan.

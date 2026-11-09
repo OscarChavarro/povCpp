@@ -15,6 +15,26 @@ class Collections final {
   public:
     template <class T>
     static void swap(ArrayList<T> &a, ArrayList<T> &b);
+
+    /**
+    Emulation of `Collections.sort(List, Comparator)`: stable sort, see
+    `ArrayList::sort`.
+    */
+    template <class T, class C>
+    static void sort(ArrayList<T> &list, const C &comparator);
+
+    /**
+    Emulation of `Collections.reverse(List)`.
+    */
+    template <class T>
+    static void reverse(ArrayList<T> &list);
+
+    /**
+    Emulation of `Collections.nCopies(int, T)`, as a list that can be
+    modified.
+    */
+    template <class T>
+    static ArrayList<T> nCopies(long n, const T &value);
 };
 
 }

@@ -1,7 +1,7 @@
 #include "java/util/concurrent/Executors.h"
 #include "vsdk/toolkit/render/raytracing/RasterTileGenerator.h"
-#include "environment/geometry/element/PovRayHit.h"
-#include "environment/geometry/element/PriorityQueuePool.txx"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/RayCastingHit.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/PriorityQueuePool.txx"
 #include "environment/material/povray/PovRayMaterial.h"
 #include "render/ColorOperations.h"
 #include "render/bakedScene/BakedSceneBuilder.h"
@@ -103,7 +103,7 @@ void
 RenderEngine::copyLineToImage(
     const ColorRgba *line, int row, const RasterTileArea &area)
 {
-    for (int x = area.getX0(); x < area.getX1(); x++) {
+    for (int x = area.getStartX(); x < area.getEndX(); x++) {
         destinationImage.setPixel(x, row, line[x]);
     }
 }
@@ -135,14 +135,14 @@ RenderEngine::renderTile(
     // once per tile since it does not change within it.
     localWorker.getTraceService()->setStatistics(&stats);
     for (y = this->getConfig().hasOptionFlags(PovRayRendererConfiguration::ANTIALIAS)
-                ? area.getY0() - 1
-                : area.getY0();
-        y < area.getY1();
+                ? area.getStartY() - 1
+                : area.getStartY();
+        y < area.getEndY();
         y++) {
 
         this->checkStats(y);
 
-        for (x = area.getX0(); x < area.getX1(); x++) {
+        for (x = area.getStartX(); x < area.getEndX(); x++) {
 
             if (this->getStopFlag()) {
                 // Image not completed / user abort. Previously this terminated
@@ -180,7 +180,7 @@ RenderEngine::renderTile(
                     localWorker, x, y, &color, area, &pool, &stats);
             }
 
-            if (y != area.getY0() - 1) {
+            if (y != area.getStartY() - 1) {
                 if (this->getConfig().hasOptionFlags(PovRayRendererConfiguration::DISPLAY)) {
                     (void)x;
                     (void)y;
@@ -188,15 +188,15 @@ RenderEngine::renderTile(
             }
         }
         // previousLine (row y-1) is final, post-AA, exactly when the streaming
-        // writer used to flush it (y > area.getY0()); copy it into the image
+        // writer used to flush it (y > area.getStartY()); copy it into the image
         // instead of writing it straight to disk, then recycle the buffers.
-        if (y > area.getY0()) {
+        if (y > area.getStartY()) {
             copyLineToImage(localWorker.getPreviousLine(), y - 1, area);
         }
         localWorker.swapLines();
     }
 
-    copyLineToImage(localWorker.getPreviousLine(), area.getY1() - 1, area);
+    copyLineToImage(localWorker.getPreviousLine(), area.getEndY() - 1, area);
 }
 
 void
@@ -212,8 +212,8 @@ RenderEngine::startTracingParallel()
     const int threads = this->getConfig().getNumberOfThreads();
 
     RasterTileGenerator generator(RasterTileGenerationStrategy::LINEAR,
-        &destinationImage, renderArea.getX0(), renderArea.getY0(),
-        renderArea.getDx(), renderArea.getDy(), threads);
+        &destinationImage, renderArea.getStartX(), renderArea.getStartY(),
+        renderArea.getWidth(), renderArea.getHeight(), threads);
     const java::ArrayList<RasterTileArea> &tileAreas = generator.getTiles();
 
     const int w = this->getScene().getScreenWidth();
@@ -465,7 +465,7 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithTracingState *localRay, Co
                 : RayWithTracingState::DETAIL_NONE);
 
         if (localRay->needsNormal()) {
-            PovRayHit winningHit;
+            RayCastingHit winningHit;
             winningHit.requiredDetailMask = localRay->getRequiredDetailMask();
             winningHit.p = localIntersection.getIntersection().point;
             winningHit.n = localIntersection.getIntersection().normal;

@@ -1,7 +1,7 @@
 #include <cctype>
 #include <unistd.h>
 
-#include "environment/geometry/element/GeometryConfig.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
 #include "environment/material/normal/MaterialConfig.h"
 #include "app/options/CommandLineOptions.h"
 

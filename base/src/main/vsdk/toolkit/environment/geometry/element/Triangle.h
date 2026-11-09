@@ -10,24 +10,24 @@ class Ray;
 class Triangle
 {
   private:
-    int p0;
-    int p1;
-    int p2;
+    int point0;
+    int point1;
+    int point2;
     Vector3Dd normal;
 
     static java::String intToStr(int val);
 
   public:
     Triangle();
-    Triangle(int p0, int p1, int p2);
+    Triangle(int point0, int point1, int point2);
 
     int getPoint0() const;
     int getPoint1() const;
     int getPoint2() const;
 
-    void setPoint0(int p0);
-    void setPoint1(int p1);
-    void setPoint2(int p2);
+    void setPoint0(int value);
+    void setPoint1(int value);
+    void setPoint2(int value);
     const Vector3Dd& getNormal() const;
     void setNormal(const Vector3Dd& normal);
 
@@ -57,43 +57,43 @@ class Triangle
     java::String toString() const;
 };
 
-inline Triangle::Triangle() : p0(0), p1(0), p2(0), normal(0, 0, 0)
+inline Triangle::Triangle() : point0(0), point1(0), point2(0), normal(0, 0, 0)
 {
 }
 
-inline Triangle::Triangle(int inP0, int inP1, int inP2)
-    : p0(inP0), p1(inP1), p2(inP2), normal(0, 0, 0)
+inline Triangle::Triangle(int point0, int point1, int point2)
+    : point0(point0), point1(point1), point2(point2), normal(0, 0, 0)
 {
 }
 
 inline int Triangle::getPoint0() const
 {
-    return p0;
+    return point0;
 }
 
 inline int Triangle::getPoint1() const
 {
-    return p1;
+    return point1;
 }
 
 inline int Triangle::getPoint2() const
 {
-    return p2;
+    return point2;
 }
 
-inline void Triangle::setPoint0(int inP0)
+inline void Triangle::setPoint0(int value)
 {
-    p0 = inP0;
+    point0 = value;
 }
 
-inline void Triangle::setPoint1(int inP1)
+inline void Triangle::setPoint1(int value)
 {
-    p1 = inP1;
+    point1 = value;
 }
 
-inline void Triangle::setPoint2(int inP2)
+inline void Triangle::setPoint2(int value)
 {
-    p2 = inP2;
+    point2 = value;
 }
 
 inline const Vector3Dd& Triangle::getNormal() const

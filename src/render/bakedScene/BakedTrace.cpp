@@ -1,12 +1,12 @@
 
-#include "environment/scene/Composite.h"
+#include "vsdk/toolkit/environment/raycasting/scene/RayCastingComposite.h"
 #include "render/bakedScene/BakedTrace.h"
 #include "render/bakedScene/CsgContainmentTest.h"
 #include "render/bakedScene/CsgFirstHitTrace.h"
 #include "render/bakedScene/CsgOperandTrace.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
-#include "environment/geometry/element/PriorityQueuePool.txx"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/PriorityQueuePool.txx"
 
 bool
 BakedTrace::finalizeSimpleBodyCandidate(
@@ -34,7 +34,7 @@ BakedTrace::finalizeSimpleBodyCandidate(
                     scene,
                     baked->getClippingObjectIndices()[i],
                     clipTestPoint,
-                    GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                    GeometryConfig::SMALL_TOLERANCE) == RayCastingGeometry::OUTSIDE) {
                 return false;
             }
         }
@@ -72,7 +72,7 @@ BakedTrace::passesBoundingShapes(
                 scene,
                 boundingIndex,
                 objectRayOrigin,
-                GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == RayCastingGeometry::OUTSIDE) {
             return false;
         }
     }
@@ -332,21 +332,21 @@ BakedTrace::simpleBodyContainmentTest(
     for (long int i = baked->getBoundingObjectIndices().size() - 1; i >= 0; i--) {
         if (BakedTrace::containmentTest(
                 scene, baked->getBoundingObjectIndices()[i], point, distanceTolerance) ==
-            Geometry::OUTSIDE) {
-            return Geometry::OUTSIDE;
+            RayCastingGeometry::OUTSIDE) {
+            return RayCastingGeometry::OUTSIDE;
         }
     }
 
     for (long int i = baked->getClippingObjectIndices().size() - 1; i >= 0; i--) {
         if (BakedTrace::containmentTest(
                 scene, baked->getClippingObjectIndices()[i], point, distanceTolerance) ==
-            Geometry::OUTSIDE) {
-            return Geometry::OUTSIDE;
+            RayCastingGeometry::OUTSIDE) {
+            return RayCastingGeometry::OUTSIDE;
         }
     }
 
     if (baked->getGeometry() == nullptr) {
-        return Geometry::OUTSIDE;
+        return RayCastingGeometry::OUTSIDE;
     }
 
     Vector3Dd geometryPoint = localPoint;
@@ -360,10 +360,10 @@ BakedTrace::simpleBodyContainmentTest(
             geometryPoint,
             distanceTolerance) :
         baked->getGeometry()->doContainmentTest(geometryPoint, distanceTolerance);
-    if (containment != Geometry::OUTSIDE) {
-        return Geometry::INSIDE;
+    if (containment != RayCastingGeometry::OUTSIDE) {
+        return RayCastingGeometry::INSIDE;
     }
-    return Geometry::OUTSIDE;
+    return RayCastingGeometry::OUTSIDE;
 }
 
 bool
@@ -384,7 +384,7 @@ BakedTrace::traceCompositeAllCrossingsInCompositeSpace(
                 scene,
                 boundingIndex,
                 compositeRayOrigin,
-                GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == RayCastingGeometry::OUTSIDE) {
             return false;
         }
     }
@@ -392,7 +392,7 @@ BakedTrace::traceCompositeAllCrossingsInCompositeSpace(
     java::PriorityQueue<IntersectionCandidate> * const localDepthQueue =
         ray->getIntersectionQueuePool()->pop(128);
     bool accepted = false;
-    // Preserve Composite::doIntersectionForAllRayCrossings child traversal
+    // Preserve RayCastingComposite::doIntersectionForAllRayCrossings child traversal
     // order exactly; changing equal-depth ordering changes some legacy scenes.
     const java::ArrayList<int> &children = composite->getChildObjectIndices();
     for (long int i = children.size() - 1; i >= 0; i--) {
@@ -423,7 +423,7 @@ BakedTrace::traceCompositeAllCrossingsInCompositeSpace(
                     scene,
                     composite->getClippingObjectIndices()[i],
                     candidate.getIntersection().point,
-                    GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                    GeometryConfig::SMALL_TOLERANCE) == RayCastingGeometry::OUTSIDE) {
                 intersectionFound = false;
                 break;
             }
@@ -511,8 +511,8 @@ BakedTrace::compositeContainmentTest(
                 scene,
                 composite->getBoundingObjectIndices()[i],
                 point,
-                distanceTolerance) == Geometry::OUTSIDE) {
-            return Geometry::OUTSIDE;
+                distanceTolerance) == RayCastingGeometry::OUTSIDE) {
+            return RayCastingGeometry::OUTSIDE;
         }
     }
 
@@ -521,8 +521,8 @@ BakedTrace::compositeContainmentTest(
                 scene,
                 composite->getClippingObjectIndices()[i],
                 point,
-                distanceTolerance) == Geometry::OUTSIDE) {
-            return Geometry::OUTSIDE;
+                distanceTolerance) == RayCastingGeometry::OUTSIDE) {
+            return RayCastingGeometry::OUTSIDE;
         }
     }
 
@@ -534,12 +534,12 @@ BakedTrace::compositeContainmentTest(
             continue;
         }
         if (BakedTrace::containmentTest(scene, childIndex, localPoint, distanceTolerance) !=
-            Geometry::OUTSIDE) {
-            return Geometry::INSIDE;
+            RayCastingGeometry::OUTSIDE) {
+            return RayCastingGeometry::INSIDE;
         }
     }
 
-    return Geometry::OUTSIDE;
+    return RayCastingGeometry::OUTSIDE;
 }
 
 bool
@@ -554,7 +554,7 @@ BakedTrace::traceFirstHit(
     switch (baked->getKind()) {
     case BakedScene::TraceKind::Empty:
         return false;
-    case BakedScene::TraceKind::Composite:
+    case BakedScene::TraceKind::RayCastingComposite:
         return traceCompositeFirstHit(
             scene, scene.composites[baked->getCompositeIndex()], ray, out, cache);
     case BakedScene::TraceKind::Csg:
@@ -578,7 +578,7 @@ BakedTrace::traceAllCrossings(
     switch (baked->getKind()) {
     case BakedScene::TraceKind::Empty:
         return false;
-    case BakedScene::TraceKind::Composite:
+    case BakedScene::TraceKind::RayCastingComposite:
         return traceCompositeAllCrossings(
             scene, scene.composites[baked->getCompositeIndex()], ray, depthQueue, cache);
     case BakedScene::TraceKind::Csg:
@@ -600,8 +600,8 @@ BakedTrace::containmentTest(
     const TraceableObject *baked = scene.traceableObjects[objectIndex];
     switch (baked->getKind()) {
     case BakedScene::TraceKind::Empty:
-        return Geometry::OUTSIDE;
-    case BakedScene::TraceKind::Composite:
+        return RayCastingGeometry::OUTSIDE;
+    case BakedScene::TraceKind::RayCastingComposite:
         return compositeContainmentTest(
             scene, scene.composites[baked->getCompositeIndex()], point, distanceTolerance);
     case BakedScene::TraceKind::Csg:
@@ -610,5 +610,5 @@ BakedTrace::containmentTest(
     case BakedScene::TraceKind::GenericFallback:
         return simpleBodyContainmentTest(scene, baked, point, distanceTolerance);
     }
-    return Geometry::OUTSIDE;
+    return RayCastingGeometry::OUTSIDE;
 }

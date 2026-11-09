@@ -1,0 +1,88 @@
+#ifndef __HEIGHT_FIELD__
+#define __HEIGHT_FIELD__
+
+#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/RayCastingBox.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/HeightFieldBlock.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/HeightFieldTraversalState.h"
+
+class HeightField : public RayCastingGeometry {
+  public:
+    static constexpr int GIF = 0;
+    static constexpr int POT = 1;
+    static constexpr int TGA = 2;
+
+    HeightField();
+    HeightField(const Matrix4x4d &transformation,
+        const Matrix4x4d &transformationInverse, const Vector3Dd &minBounds,
+        const Vector3Dd &maxBounds);
+    HeightField(const HeightField &other);
+    ~HeightField() override;
+
+    RayCastingBox *getBoundingBox() const { return boundingBox; }
+
+    static void findHfMinMax(HeightField *hField,
+        const IndexedColorImageHDRUncompressed *image, int imageType);
+    static void findHfMinMax(HeightField *hField,
+        const RGBAImageHDRUncompressed *image, int imageType);
+    static inline int signInline(double x);
+    static inline double minValue(double x, double y);
+    static inline double maxValue(double x, double y);
+
+    BoundingVolumeHierarchy *createBoundingVolume() const override;
+
+    int doIntersectionForAllRayCrossings(
+        RayWithTracingState *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        Material *materialOverride = nullptr) override;
+    int doIntersectionForAllRayCrossingsAnnotated(
+        RayWithTracingState *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        const GeometryIntersectionEmissionContext &context) override;
+    bool hasNativeAnnotatedCrossings() const override { return true; }
+    int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
+    void *copy() override;
+    void invertGeometry() override;
+
+  protected:
+    void computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
+
+  private:
+    Matrix4x4d *transformation;
+    Matrix4x4d *transformationInverse;
+    RayCastingBox *boundingBox;
+    double blockSize;
+    double invBlkSize;
+    HeightFieldBlock **block;
+    float **Map;
+    // Block/Map are raw 2D calloc'd arrays with no self-describing size; these
+    // record the extents allocateHfBlocks() computed so the copy constructor and
+    // destructor can walk/clone/free them correctly.
+    int blockOuterSize; // number of HeightFieldBlock* rows in `block` (and the
+                        // number of HeightFieldBlock entries in each row)
+    int blockInnerSize;
+    int mapOuterSize;   // number of float* rows in `Map`
+    int mapInnerSize;   // number of float entries in each allocated `Map` row
+
+    static void allocateHfBlocks(HeightField *hField, int maxX, int maxZ,
+        double width, double height);
+    static double getHeightAt(int x, int z, const HeightField *hField);
+    static int intersectPixel(int x, int z, const RayWithTracingState *ray,
+        HeightFieldTraversalState &state,
+        HeightField *hField, double height1, double height2);
+    static int intersectSubBlock(const HeightFieldBlock *block,
+        const RayWithTracingState *ray, HeightFieldTraversalState &state,
+        HeightField *hField,
+        const Vector3Dd *start, const Vector3Dd *end);
+    static int intersectHfNode(const RayWithTracingState *ray,
+        HeightFieldTraversalState &state, HeightField *hField,
+        const Vector3Dd *start, const Vector3Dd *end);
+    int traceCrossings(
+        RayWithTracingState *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        Material *materialOverride,
+        const GeometryIntersectionEmissionContext *context);
+};
+
+#endif

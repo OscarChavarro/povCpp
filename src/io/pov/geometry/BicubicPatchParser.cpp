@@ -1,6 +1,6 @@
 
 
-#include "environment/geometry/surface/parametric/ParametricPatch.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricPatch.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/pov/geometry/BicubicPatchParser.h"
@@ -22,7 +22,7 @@ SimpleBodyBuilder *
 BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
 {
     (void)ctx;
-    ParametricBiCubicPatch *localShape = nullptr;
+    RayCastingParametricBiCubicPatch *localShape = nullptr;
     SimpleBodyBuilder *body = nullptr;
     Vector3Dd localVector;
     Vector3Dd controlPoints[4][4];
@@ -57,10 +57,10 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                         PrimitiveParser::parseVector(&controlPoints[i][j], ctx);
                     }
                 }
-                localShape = new ParametricBiCubicPatch(
+                localShape = new RayCastingParametricBiCubicPatch(
                     patchType, uSteps, vSteps, flatnessValue, controlPoints);
                 body = SceneBuilder::wrap(localShape);
-                ParametricBiCubicPatch::precomputePatchValues(
+                RayCastingParametricBiCubicPatch::precomputePatchValues(
                     localShape); // interpolated mesh coords
                 Exit_Flag = true;
                 break;
@@ -74,7 +74,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                         body = new SimpleBodyBuilder(
                                 *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
                                     .getConstantData());
-                        localShape = (ParametricBiCubicPatch *)body->getGeometry();
+                        localShape = (RayCastingParametricBiCubicPatch *)body->getGeometry();
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }

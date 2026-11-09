@@ -1,24 +1,20 @@
-#ifndef __EXECUTIONEXCEPTION__
-#define __EXECUTIONEXCEPTION__
+#ifndef __EXECUTION_EXCEPTION__
+#define __EXECUTION_EXCEPTION__
 
+#include "java/lang/Exception.h"
 #include "java/lang/String.h"
 #include "java/lang/System.h"
-#include <exception>
+
 namespace java {
 
-class ExecutionException : public std::exception {
-private:
-    java::String message_;
-
+/**
+Emulation of `java.util.concurrent.ExecutionException`.
+*/
+class ExecutionException : public Exception {
 public:
-    explicit ExecutionException(const java::String& msg) : message_(msg)
+    explicit ExecutionException(const java::String& msg) : Exception(msg)
     {
-        java::System::out.println(message_.c_str());
-    }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
+        java::System::out.println(msg.c_str());
     }
 };
 

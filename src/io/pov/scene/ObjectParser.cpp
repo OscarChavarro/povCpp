@@ -1,6 +1,6 @@
 
 
-#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "environment/material/povray/DefaultTextureAliasTracker.h"
 #include "io/pov/material/PovRayMaterialUtils.h"
 #include "io/pov/geometry/SceneBuilder.h"
@@ -29,7 +29,7 @@
 static void
 releaseSimpleBody(
     SimpleBodyBuilder *body,
-    Geometry *&geometry,
+    RayCastingGeometry *&geometry,
     Material *&material,
     Matrix4x4d *&transformation,
     Matrix4x4d *&transformationInverse,
@@ -59,18 +59,18 @@ releaseSimpleBody(
     delete body;
 }
 
-static SimpleBody *
+static RayCastingBody *
 releaseSimpleBodyRegion(SimpleBodyBuilder *body)
 {
-    Geometry *releasedGeometry = body->releaseGeometry();
+    RayCastingGeometry *releasedGeometry = body->releaseGeometry();
     Matrix4x4d *releasedTransformation = body->releaseTransformation();
     Matrix4x4d *releasedTransformationInverse = body->releaseTransformationInverse();
-    java::ArrayList<SimpleBody*> emptyBoundingShapes(0);
-    java::ArrayList<SimpleBody*> emptyClippingShapes(0);
+    java::ArrayList<RayCastingBody*> emptyBoundingShapes(0);
+    java::ArrayList<RayCastingBody*> emptyClippingShapes(0);
     delete body->releaseMaterial();
     delete body->releaseShapeColor();
     delete body;
-    return new SimpleBody(
+    return new RayCastingBody(
         releasedGeometry, nullptr, nullptr, nullptr, false,
         emptyBoundingShapes, emptyClippingShapes,
         nullptr, nullptr,
@@ -79,7 +79,7 @@ releaseSimpleBodyRegion(SimpleBodyBuilder *body)
 
 // objectTexture is always a PovRayMaterial in this parser; releaseFromOwner()
 // already tells private clones (delete this) apart from shared-default
-// aliases (untrack, delete only once retired and unreferenced). SimpleBody's
+// aliases (untrack, delete only once retired and unreferenced). RayCastingBody's
 // destructor calls this through a plain function pointer so the scene layer
 // never needs to know about PovRayMaterial.
 static void
@@ -104,15 +104,15 @@ ObjectParser::ensurePrivateTexture(Material *objectTexture)
     return objectTexture;
 }
 
-SimpleBody *
+RayCastingBody *
 ObjectParser::buildObject(
-    Geometry *geometry,
+    RayCastingGeometry *geometry,
     Material *geometryMaterial,
     Material *objectTexture,
     ColorRgba *objectColor,
     bool noShadowFlag,
-    const java::ArrayList<SimpleBody*> &boundingShapes,
-    const java::ArrayList<SimpleBody*> &clippingShapes,
+    const java::ArrayList<RayCastingBody*> &boundingShapes,
+    const java::ArrayList<RayCastingBody*> &clippingShapes,
     Matrix4x4d *transformation,
     Matrix4x4d *transformationInverse,
     Matrix4x4d *geometryTransformation,
@@ -120,7 +120,7 @@ ObjectParser::buildObject(
     const java::ArrayList<TransformStep> &bodySteps,
     const java::ArrayList<TransformStep> &geometrySteps)
 {
-    return new SimpleBody(
+    return new RayCastingBody(
         geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
         boundingShapes, clippingShapes,
         transformation, transformationInverse,
@@ -128,22 +128,22 @@ ObjectParser::buildObject(
         bodySteps, geometrySteps, releasePovRayObjectTexture);
 }
 
-Composite *
+RayCastingComposite *
 ObjectParser::buildComposite(
-    Geometry *geometry,
+    RayCastingGeometry *geometry,
     Material *geometryMaterial,
     Material *objectTexture,
     ColorRgba *objectColor,
     bool noShadowFlag,
-    const java::ArrayList<SimpleBody*> &boundingShapes,
-    const java::ArrayList<SimpleBody*> &clippingShapes,
-    const java::ArrayList<SimpleBody*> &simpleBodies,
+    const java::ArrayList<RayCastingBody*> &boundingShapes,
+    const java::ArrayList<RayCastingBody*> &clippingShapes,
+    const java::ArrayList<RayCastingBody*> &simpleBodies,
     Matrix4x4d *transformation,
     Matrix4x4d *transformationInverse,
     Matrix4x4d *geometryTransformation,
     Matrix4x4d *geometryTransformationInverse)
 {
-    return new Composite(
+    return new RayCastingComposite(
         geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
         boundingShapes, clippingShapes, simpleBodies,
         transformation, transformationInverse,
@@ -153,14 +153,14 @@ ObjectParser::buildComposite(
 
 void
 ObjectParser::extractObjectState(
-    SimpleBody *object,
-    Geometry *&geometry,
+    RayCastingBody *object,
+    RayCastingGeometry *&geometry,
     Material *&geometryMaterial,
     Material *&objectTexture,
     ColorRgba *&objectColor,
     bool &noShadowFlag,
-    java::ArrayList<SimpleBody*> &boundingShapes,
-    java::ArrayList<SimpleBody*> &clippingShapes,
+    java::ArrayList<RayCastingBody*> &boundingShapes,
+    java::ArrayList<RayCastingBody*> &clippingShapes,
     Matrix4x4d *&transformation,
     Matrix4x4d *&transformationInverse,
     Matrix4x4d *&geometryTransformation,
@@ -185,15 +185,15 @@ ObjectParser::extractObjectState(
 
 void
 ObjectParser::extractCompositeState(
-    Composite *object,
-    Geometry *&geometry,
+    RayCastingComposite *object,
+    RayCastingGeometry *&geometry,
     Material *&geometryMaterial,
     Material *&objectTexture,
     ColorRgba *&objectColor,
     bool &noShadowFlag,
-    java::ArrayList<SimpleBody*> &boundingShapes,
-    java::ArrayList<SimpleBody*> &clippingShapes,
-    java::ArrayList<SimpleBody*> &simpleBodies,
+    java::ArrayList<RayCastingBody*> &boundingShapes,
+    java::ArrayList<RayCastingBody*> &clippingShapes,
+    java::ArrayList<RayCastingBody*> &simpleBodies,
     Matrix4x4d *&transformation,
     Matrix4x4d *&transformationInverse,
     Matrix4x4d *&geometryTransformation,
@@ -217,14 +217,14 @@ ObjectParser::parseShape()
     return ObjectParser::parseShape(ctx);
 }
 
-SimpleBody *
+RayCastingBody *
 ObjectParser::parseObject()
 {
     ParserContext ctx;
     return ObjectParser::parseObject(ctx);
 }
 
-SimpleBody *
+RayCastingBody *
 ObjectParser::parseComposite()
 {
     ParserContext ctx;
@@ -326,12 +326,12 @@ ObjectParser::parseShape(ParserContext &ctx)
     return (localShape);
 }
 
-SimpleBody *
+RayCastingBody *
 ObjectParser::parseObject(ParserContext &ctx)
 {
-    SimpleBody *object = nullptr;
+    RayCastingBody *object = nullptr;
     SimpleBodyBuilder *localShape;
-    Geometry *geometry;
+    RayCastingGeometry *geometry;
     Material *geometryMaterial = nullptr;
     Matrix4x4d *transformation = nullptr;
     Matrix4x4d *transformationInverse = nullptr;
@@ -339,8 +339,8 @@ ObjectParser::parseObject(ParserContext &ctx)
     Matrix4x4d *geometryTransformationInverse = nullptr;
     java::ArrayList<TransformStep> bodySteps;
     java::ArrayList<TransformStep> geometrySteps;
-    java::ArrayList<SimpleBody*> localBoundingShapes(4);
-    java::ArrayList<SimpleBody*> localClippingShapes(4);
+    java::ArrayList<RayCastingBody*> localBoundingShapes(4);
+    java::ArrayList<RayCastingBody*> localClippingShapes(4);
     Vector3Dd localVector;
     java::ArrayList<ParsedTransformOp> transformHistory(8);
     ColorRgba *objectColor = nullptr;
@@ -362,8 +362,8 @@ ObjectParser::parseObject(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::OBJECT_CONSTANT) {
-                        object = new SimpleBody(
-                            *(SimpleBody *)ctx.constants()[(int)constantId]
+                        object = new RayCastingBody(
+                            *(RayCastingBody *)ctx.constants()[(int)constantId]
                                 .getConstantData());
                         extractObjectState(
                             object, geometry, geometryMaterial, objectTexture, objectColor,
@@ -645,21 +645,21 @@ ObjectParser::parseObject(ParserContext &ctx)
         bodySteps, geometrySteps);
 }
 
-SimpleBody *
+RayCastingBody *
 ObjectParser::parseComposite(ParserContext &ctx)
 {
-    Composite *localComposite = nullptr;
-    SimpleBody *localObject;
+    RayCastingComposite *localComposite = nullptr;
+    RayCastingBody *localObject;
     SimpleBodyBuilder *localShape;
-    Geometry *geometry;
+    RayCastingGeometry *geometry;
     Material *geometryMaterial = nullptr;
     Matrix4x4d *transformation = nullptr;
     Matrix4x4d *transformationInverse = nullptr;
     Matrix4x4d *geometryTransformation = nullptr;
     Matrix4x4d *geometryTransformationInverse = nullptr;
-    java::ArrayList<SimpleBody*> localSimpleBodies(4);
-    java::ArrayList<SimpleBody*> localBoundingShapes(4);
-    java::ArrayList<SimpleBody*> localClippingShapes(4);
+    java::ArrayList<RayCastingBody*> localSimpleBodies(4);
+    java::ArrayList<RayCastingBody*> localBoundingShapes(4);
+    java::ArrayList<RayCastingBody*> localClippingShapes(4);
     Vector3Dd localVector;
     Material *objectTexture = ctx.getDefaultTexture();
     DefaultTextureAliasTracker::trackAlias(static_cast<PovRayMaterial *>(objectTexture));
@@ -680,8 +680,8 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::COMPOSITE_CONSTANT) {
-                        localComposite = new Composite(
-                            *(Composite *)ctx.constants()[(int)constantId]
+                        localComposite = new RayCastingComposite(
+                            *(RayCastingComposite *)ctx.constants()[(int)constantId]
                                 .getConstantData());
                         extractCompositeState(
                             localComposite, geometry, geometryMaterial, objectTexture,

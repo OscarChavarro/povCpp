@@ -9,6 +9,7 @@ Light::Light(const Vector3Dd &position, const ColorRgb &emission) :
 }
 
 Light::Light(const Light &other) :
+    Entity(other),
     position(other.position),
     emission(other.emission),
     id(other.id),

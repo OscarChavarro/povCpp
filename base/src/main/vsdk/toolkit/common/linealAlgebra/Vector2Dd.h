@@ -1,5 +1,5 @@
-#ifndef __VECTOR2DD__
-#define __VECTOR2DD__
+#ifndef __VECTOR_2_DD__
+#define __VECTOR_2_DD__
 
 
 #include <cmath>

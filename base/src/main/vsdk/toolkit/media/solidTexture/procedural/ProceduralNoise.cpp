@@ -9,6 +9,8 @@ References:
 "The RenderMan Companion" (Addison Wesley).
 */
 
+#include <cstdlib>
+
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/solidTexture/procedural/ProceduralNoise.h"
@@ -83,6 +85,10 @@ ProceduralNoise::initTextureTable()
     int j;
     int temp;
 
+    // WARNING: rand() algorithm is implementation defined, so the permutation
+    // table (and resulting textures) differ between platforms (e.g. glibc vs
+    // macOS libc) and from the Java port, which uses its own CRandom LCG.
+    // srand(0) also resets the global rand() seed for the whole program.
     srand(0);
 
     permutationTable = new short int[4096];

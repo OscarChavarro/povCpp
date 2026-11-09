@@ -1,3 +1,4 @@
+#include "vsdk/toolkit/environment/geometry/surface/InfinitePlane.h"
 #include <cmath>
 #include <cstdio>
 
@@ -21,7 +22,7 @@ Camera::Camera()
     : up(0, 0, 1),
       front(0, 1, 0),
       left(-1, 0, 0),
-      eyePosition(0, -5, 1),
+      position(0, -5, 1),
       focalDistance(10),
       projectionMode(PROJECTION_MODE_PERSPECTIVE),
       fov(60),
@@ -35,10 +36,11 @@ Camera::Camera()
 }
 
 Camera::Camera(const Camera& other)
-    : up(other.up),
+    : Entity(other),
+      up(other.up),
       front(other.front),
       left(other.left),
-      eyePosition(other.eyePosition),
+      position(other.position),
       focalDistance(other.focalDistance),
       projectionMode(other.projectionMode),
       fov(other.fov),
@@ -82,21 +84,21 @@ double Camera::getViewportYSize() const {
 }
 
 Vector3Dd Camera::getPosition() const {
-    return eyePosition;
+    return position;
 }
 
 void Camera::setPosition(const Vector3Dd& pos) {
-    eyePosition = Vector3Dd(pos);
+    position = Vector3Dd(pos);
     markModified();
 }
 
 Vector3Dd Camera::getFocusedPosition() const {
     Vector3Dd partial = front.multiply(focalDistance);
-    return eyePosition.add(partial);
+    return position.add(partial);
 }
 
 void Camera::setFocusedPositionDirect(const Vector3Dd& focusedPosition) {
-    Vector3Dd partial = focusedPosition.subtract(eyePosition);
+    Vector3Dd partial = focusedPosition.subtract(position);
     front = Vector3Dd(partial);
     focalDistance = front.length();
     front = front.normalized();
@@ -104,7 +106,7 @@ void Camera::setFocusedPositionDirect(const Vector3Dd& focusedPosition) {
 }
 
 void Camera::setFocusedPositionMaintainingOrthogonality(const Vector3Dd& focusedPosition) {
-    front = focusedPosition.subtract(eyePosition);
+    front = focusedPosition.subtract(position);
     focalDistance = front.length();
     front = front.normalized();
 
@@ -215,11 +217,11 @@ void Camera::updateVectors() {
     front = front.normalized();
 
     double fovFactor = viewportXSize / viewportYSize;
-    _dir = front.multiply(0.5);
+    frontWithScale = front.multiply(0.5);
     upWithScale = up.multiply(std::tan(degreesToRadians(fov / 2.0)));
     rightWithScale = left.multiply(-fovFactor * std::tan(degreesToRadians(fov / 2.0)));
 
-    Vector3Dd VRP = eyePosition.add(front.multiply(nearPlaneDistance));
+    Vector3Dd VRP = position.add(front.multiply(nearPlaneDistance));
     Matrix4x4d T1 = Matrix4x4d().translation(VRP.multiply(-1));
 
     Matrix4x4d R1 = getRotation();
@@ -300,7 +302,7 @@ Matrix4x4d Camera::calculateTransformationMatrix() const {
     Matrix4x4d R1 = getRotation();
     R1 = R1.invert();
 
-    Matrix4x4d T1 = Matrix4x4d().translation(-eyePosition.x(), -eyePosition.y(), -eyePosition.z());
+    Matrix4x4d T1 = Matrix4x4d().translation(-position.x(), -position.y(), -position.z());
     Matrix4x4d R_adic2 = Matrix4x4d().axisRotation(degreesToRadians(90), 0, 0, 1);
     Matrix4x4d R_adic1 = Matrix4x4d().axisRotation(degreesToRadians(-90), 1, 0, 0);
 
@@ -324,18 +326,18 @@ Ray Camera::generateRay(int x, int y) const
         double duScale = (-fovFactor) * (2 * u / orthogonalZoom);
         double dvScale = 2 * v / orthogonalZoom;
         Vector3Dd origin(
-            eyePosition.x() + left.x()*duScale + up.x()*dvScale,
-            eyePosition.y() + left.y()*duScale + up.y()*dvScale,
-            eyePosition.z() + left.z()*duScale + up.z()*dvScale);
+            position.x() + left.x()*duScale + up.x()*dvScale,
+            position.y() + left.y()*duScale + up.y()*dvScale,
+            position.z() + left.z()*duScale + up.z()*dvScale);
         return Ray(origin, front);
     }
 
     Vector3Dd direction(
-        rightWithScale.x()*u + upWithScale.x()*v + _dir.x(),
-        rightWithScale.y()*u + upWithScale.y()*v + _dir.y(),
-        rightWithScale.z()*u + upWithScale.z()*v + _dir.z());
+        rightWithScale.x()*u + upWithScale.x()*v + frontWithScale.x(),
+        rightWithScale.y()*u + upWithScale.y()*v + frontWithScale.y(),
+        rightWithScale.z()*u + upWithScale.z()*v + frontWithScale.z());
 
-    return Ray(eyePosition, direction);
+    return Ray(position, direction);
 }
 
 float* Camera::toColumnMajorFloatArray() const {
@@ -358,14 +360,14 @@ java::String Camera::toString() const {
     }
 
     msg += "  - eyePosition(x, y, z) = (";
-    msg += doubleToStr(eyePosition.x());
+    msg += doubleToStr(position.x());
     msg += ", ";
-    msg += doubleToStr(eyePosition.y());
+    msg += doubleToStr(position.y());
     msg += ", ";
-    msg += doubleToStr(eyePosition.z());
+    msg += doubleToStr(position.z());
     msg += ")\n";
 
-    Vector3Dd focusedPos = eyePosition.add(front.multiply(focalDistance));
+    Vector3Dd focusedPos = position.add(front.multiply(focalDistance));
     msg += "  - focusedPointPosition(x, y, z) = (";
     msg += doubleToStr(focusedPos.x());
     msg += ", ";
@@ -446,7 +448,7 @@ CameraSnapshot* Camera::exportToCameraSnapshot(int viewportXSizeIn, int viewport
     tmp.viewportYSize = viewportYSizeIn;
     tmp.updateVectors();
     return new CameraSnapshot(
-        tmp.eyePosition,
+        tmp.position,
         tmp.front,
         tmp.left,
         tmp.up,
@@ -454,7 +456,85 @@ CameraSnapshot* Camera::exportToCameraSnapshot(int viewportXSizeIn, int viewport
         tmp.orthogonalZoom,
         tmp.viewportXSize,
         tmp.viewportYSize,
-        tmp._dir,
+        tmp.frontWithScale,
         tmp.upWithScale,
-        tmp.rightWithScale);
+        tmp.rightWithScale,
+        tmp.nearPlaneDistance,
+        tmp.farPlaneDistance);
+}
+
+bool Camera::projectPointUsingRayMethod(const Vector3Dd& inPoint,
+                                        Vector3Dd* outProjected)
+{
+    // 1. Calculate vectors
+    Vector3Dd upCopy;
+    Vector3Dd rightCopy;
+    double fovFactor;
+    double scaleFactor;
+
+    fovFactor = viewportXSize/viewportYSize;
+    updateVectors(); // Should be made a prerequisite for efficiency!
+
+    // 2. Calculate projection plane
+    Vector3Dd p;
+    Vector3Dd center;
+
+    center = front;
+    p = getPosition();
+    center = center.normalized();
+    // Note: as in the Java version, the near plane distance is not applied
+    // (the result of center.multiply(nearPlaneDistance) was discarded)
+    center = center.add(p);
+    InfinitePlane viewPlane(front.multiply(-1), center);
+
+    // 3. Calculate projected global coordinates XYZ
+    Vector3Dd projected;
+
+    if ( projectionMode == PROJECTION_MODE_ORTHOGONAL ) {
+        projected = (viewPlane.projectPoint(inPoint).subtract(center)).multiply(orthogonalZoom);
+    }
+    else {
+        // 3.1. Vector calculation for perspective case
+        upCopy = up;
+        rightCopy = left.multiply(-1);
+        scaleFactor = 1.0/std::tan((fov/2) * M_PI / 180.0);
+        upCopy = upCopy.normalized();
+        upCopy = upCopy.multiply(scaleFactor);
+        rightCopy = rightCopy.normalized();
+        rightCopy = rightCopy.multiply(scaleFactor).multiply(1/fovFactor);
+
+        // 3.2. Calculate projector for perspective case
+        Ray r(p, inPoint.subtract(p));
+
+        // 3.3. Project point in view plane from perspective eyepoint
+        Ray* hit = viewPlane.doIntersectionFirstHit(r);
+        if ( hit == nullptr ||
+             r.getDirection().length() < VSDK::EPSILON ) {
+            delete hit;
+            return false;
+        }
+        projected = hit->getOrigin().add(hit->getDirection().multiply(hit->getT())).subtract(center);
+        delete hit;
+        // 3.4. Clip projected point in viewport
+        if ( projected.x() < -1 || projected.x() > 1 ||
+             projected.y() < -1 || projected.y() > 1 ) {
+            return false;
+        }
+    }
+
+    // 4. Scale point to viewport
+    double x;
+    double y;
+
+    if ( projectionMode == PROJECTION_MODE_ORTHOGONAL ) {
+        x = viewportXSize/2 + (projected.dotProduct(left.multiply(-1)))/(2*fovFactor)*viewportXSize;
+        y = (((projected.dotProduct(up)*-1)+1)/2)*viewportYSize;
+    }
+    else {
+        x = (projected.dotProduct(rightCopy)/2+0.5)*viewportXSize;
+        y = (1-(projected.dotProduct(upCopy)/2+0.5))*viewportYSize;
+    }
+
+    *outProjected = Vector3Dd(x, y, 0.0);
+    return true;
 }

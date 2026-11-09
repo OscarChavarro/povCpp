@@ -8,11 +8,11 @@
 #include "render/RenderImageWriter.h"
 #include "render/RenderOutput.h"
 #include "render/RenderTargetImage.h"
-#include "environment/geometry/element/IntersectionCandidate.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/IntersectionCandidate.h"
 
 class RenderEngine {
   private:
-    RenderContext *context;
+    PovRenderContext *context;
     Scene *scene;
     double *maxTraceLevelValue;
     bool *stopFlagValue;
@@ -33,14 +33,14 @@ class RenderEngine {
     RenderEngine();
     ~RenderEngine();
 
-    void setContext(RenderContext *ctx);
+    void setContext(PovRenderContext *ctx);
     void setMaxTraceLevel(double &value);
     void setStopFlag(bool &value);
     RenderOutput *getOutputFileInputStream() const;
     void setOutputFileInputStream(RenderOutput *out);
     const PovRayRendererConfiguration &getConfig() const;
     PovRayRendererConfiguration &getMutableConfig();
-    const RenderContext &getRenderContext() const;
+    const PovRenderContext &getRenderContext() const;
     PovRayRenderStatistics &getStatistics();
     PriorityQueuePool<IntersectionCandidate> &getIntersectionQueuePool();
     void setScene(Scene *s);
@@ -63,7 +63,7 @@ class RenderEngine {
 };
 
 inline void
-RenderEngine::setContext(RenderContext *ctx)
+RenderEngine::setContext(PovRenderContext *ctx)
 {
     context = ctx;
 }
@@ -98,7 +98,7 @@ RenderEngine::getConfig() const
     return context->getConfig();
 }
 
-inline const RenderContext &
+inline const PovRenderContext &
 RenderEngine::getRenderContext() const
 {
     return *context;

@@ -1,4 +1,4 @@
-#include "environment/geometry/element/GeometryConfig.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
 #include "render/shaders/PovRayRenderStatistics.h"
 #include "render/shaders/MirrorReflectionShader.h"
 

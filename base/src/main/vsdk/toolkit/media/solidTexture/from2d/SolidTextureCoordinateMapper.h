@@ -1,5 +1,5 @@
-#ifndef __SOLIDTEXTURECOORDINATEMAPPER__
-#define __SOLIDTEXTURECOORDINATEMAPPER__
+#ifndef __SOLID_TEXTURE_COORDINATE_MAPPER__
+#define __SOLID_TEXTURE_COORDINATE_MAPPER__
 
 #include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 class SolidTextureCoordinateMapper {

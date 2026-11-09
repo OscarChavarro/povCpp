@@ -4,7 +4,7 @@
 #include "java/lang/String.h"
 #include "java/util/concurrent/ExecutionException.h"
 #include <pthread.h>
-#include <memory>
+#include "vsdk/toolkit/common/memoryManagement/SharedPointer.h"
 namespace java {
 
 template<typename T>
@@ -30,11 +30,11 @@ public:
     };
 
 private:
-    std::shared_ptr<SharedState> state_;
+    SharedPointer<SharedState> state_;
 
 public:
     Future() : state_(new SharedState()) {}
-    explicit Future(const std::shared_ptr<SharedState>& state) : state_(state) {}
+    explicit Future(const SharedPointer<SharedState>& state) : state_(state) {}
 
     T get()
     {
@@ -48,7 +48,7 @@ public:
         pthread_mutex_unlock(&state_->mutex);
 
         if ( failed ) {
-            throw ExecutionException(message.empty() ? java::String("Task execution failed") : message);
+            throw ExecutionException(message.isEmpty() ? java::String("Task execution failed") : message);
         }
         return value;
     }

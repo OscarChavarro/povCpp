@@ -1,5 +1,5 @@
-#ifndef __LOOKUPTABLECHECKSUM16__
-#define __LOOKUPTABLECHECKSUM16__
+#ifndef __LOOK_UP_TABLE_CHECKSUM_16__
+#define __LOOK_UP_TABLE_CHECKSUM_16__
 
 /**
 Precomputed CRC-16 (CCITT/Modbus-style, reflected polynomial 0xA001) lookup

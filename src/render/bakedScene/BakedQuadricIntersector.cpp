@@ -2,7 +2,7 @@
 #include "render/bakedScene/BakedQuadricIntersector.h"
 
 #include "java/lang/Math.h"
-#include "environment/geometry/element/GeometryConfig.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 

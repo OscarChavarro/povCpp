@@ -13,9 +13,16 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # build" still produces build/povray (matching every script that hardcodes
 # that path) while any other -B tree keeps its binary to itself.
 
-add_subdirectory(base)
+set(VITRAL_CPP_ROOT "$ENV{HOME}/VITRAL/vitral/cpp" CACHE PATH "VITRAL cpp checkout")
+if(NOT EXISTS "${VITRAL_CPP_ROOT}/base/CMakeLists.txt")
+    message(FATAL_ERROR "Set VITRAL_CPP_ROOT to a VITRAL cpp checkout")
+endif()
+set(VITRAL_BASE_ISOLATED_OUTPUT ON CACHE BOOL "Isolate external base artifacts" FORCE)
+add_subdirectory("${VITRAL_CPP_ROOT}/base" "${CMAKE_BINARY_DIR}/vitral-base")
 
-add_executable(povray
+add_subdirectory(raycasting)
+
+add_library(povray_core OBJECT
     src/render/shaders/PovRayRenderStatistics.cpp
     src/environment/material/povray/PovRayMaterial.cpp
     src/io/pov/material/PovRayMaterialUtils.cpp
@@ -46,27 +53,6 @@ add_executable(povray
     src/environment/material/pigment/WoodPigment.cpp
     src/render/PovRayRendererConfiguration.cpp
     src/io/pov/material/DefaultTextureAliasTracker.cpp
-    src/environment/geometry/element/RayWithTracingState.cpp
-    src/environment/geometry/surface/parametric/ParametricPatch.cpp
-    src/environment/geometry/surface/parametric/ParametricBiCubicIntersection.cpp
-    src/environment/geometry/surface/parametric/ParametricBiCubicSolver.cpp
-    src/environment/geometry/volume/Blob.cpp
-    src/environment/geometry/volume/Box.cpp
-    src/environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.cpp
-    src/environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByMorganRules.cpp
-    src/environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.cpp
-    src/environment/geometry/volume/constructiveSolidGeometry/CsgOperand.cpp
-    src/environment/geometry/volume/constructiveSolidGeometry/RaySegments.cpp
-    src/environment/geometry/volume/HeightField.cpp
-    src/environment/geometry/Geometry.cpp
-    src/environment/geometry/surface/InfinitePlane.cpp
-    src/environment/geometry/surface/TriangleMesh.cpp
-    src/environment/geometry/volume/polynomial/PolynomialShape.cpp
-    src/environment/geometry/volume/Quadric.cpp
-    src/environment/geometry/volume/Sphere.cpp
-    src/environment/geometry/element/TransformStepArrayList.cpp
-    src/environment/scene/SimpleBody.cpp
-    src/environment/scene/Composite.cpp
     src/environment/scene/Scene.cpp
     src/io/pov/geometry/SimpleBodyBuilder.cpp
     src/io/pov/geometry/SceneBuilder.cpp
@@ -145,17 +131,25 @@ add_executable(povray
     src/app/ImageOutputAdapter.cpp
     src/app/options/CommandLineOptions.cpp
     src/app/PovRayApplication.cpp
-    src/app/main.cpp
 )
 
-target_include_directories(povray PRIVATE
-    ${CMAKE_SOURCE_DIR}/base/src/main
-    ${CMAKE_SOURCE_DIR}/base/src
+target_include_directories(povray_core PUBLIC
     src
 )
+target_compile_options(povray_core PRIVATE -O3 -Wall -pedantic)
+
+target_link_libraries(povray_core PUBLIC vitral_raycasting vitral_base m)
+add_executable(povray src/app/main.cpp)
+target_link_libraries(povray PRIVATE povray_core)
 target_compile_options(povray PRIVATE -O3 -Wall -pedantic)
 
-target_link_libraries(povray PRIVATE vitral_base m)
+option(POVRAY_BUILD_INTEGRATION_TESTS "Test the shared environment bridge" ON)
+if(POVRAY_BUILD_INTEGRATION_TESTS)
+    enable_testing()
+    add_executable(povray_environment_tests tests/environmentIntegration.cpp)
+    target_link_libraries(povray_environment_tests PRIVATE povray_core)
+    add_test(NAME povray_shared_environment COMMAND povray_environment_tests)
+endif()
 
 # LTO measured at -2.6% (drums) / -3.5% (iortest) wall-clock, byte-identical
 # output, in doc/performanceReviewPlan11.md Section 3. Applied to both
@@ -165,6 +159,8 @@ target_link_libraries(povray PRIVATE vitral_base m)
 include(CheckIPOSupported)
 check_ipo_supported(RESULT ipo_supported OUTPUT ipo_error LANGUAGES CXX)
 if(ipo_supported)
+    set_property(TARGET vitral_raycasting PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
+    set_property(TARGET povray_core PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
     set_property(TARGET povray PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
     set_property(TARGET vitral_base PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
 else()

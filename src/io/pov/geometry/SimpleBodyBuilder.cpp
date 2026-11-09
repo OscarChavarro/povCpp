@@ -2,7 +2,7 @@
 #include "environment/material/povray/PovRayMaterial.h"
 
 SimpleBodyBuilder::SimpleBodyBuilder(
-    Geometry *geometry, Material *material, ColorRgba *shapeColor) :
+    RayCastingGeometry *geometry, Material *material, ColorRgba *shapeColor) :
     geometry(geometry),
     material(material),
     shapeColor(shapeColor)
@@ -36,10 +36,10 @@ SimpleBodyBuilder::ensureShapeColor()
     return shapeColor;
 }
 
-Geometry *
+RayCastingGeometry *
 SimpleBodyBuilder::releaseGeometry()
 {
-    Geometry *released = geometry;
+    RayCastingGeometry *released = geometry;
     geometry = nullptr;
     return released;
 }
@@ -87,7 +87,7 @@ SimpleBodyBuilder::prependMaterialLayers(Material *newHead)
 
 SimpleBodyBuilder::SimpleBodyBuilder(const SimpleBodyBuilder &other) :
     geometry(other.geometry != nullptr ?
-        (Geometry *)other.geometry->copy() : nullptr),
+        (RayCastingGeometry *)other.geometry->copy() : nullptr),
     material(other.material != nullptr ?
         new PovRayMaterial(*static_cast<PovRayMaterial *>(other.material)) : nullptr),
     shapeColor(other.shapeColor != nullptr ? new ColorRgba(*other.shapeColor) : nullptr),

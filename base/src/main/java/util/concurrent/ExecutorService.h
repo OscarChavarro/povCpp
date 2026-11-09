@@ -1,10 +1,10 @@
-#ifndef __EXECUTORSERVICE__
-#define __EXECUTORSERVICE__
+#ifndef __EXECUTOR_SERVICE__
+#define __EXECUTOR_SERVICE__
 
+#include "java/lang/Exception.h"
 #include "java/util/concurrent/Callable.h"
 #include "java/util/concurrent/Future.h"
-#include <exception>
-#include <memory>
+#include "vsdk/toolkit/common/memoryManagement/SharedPointer.h"
 namespace java {
 
 class ExecutorService {
@@ -24,14 +24,14 @@ public:
     template<typename T>
     Future<T> submit(Callable<T>* callable)
     {
-        std::shared_ptr<typename Future<T>::SharedState> state(new typename Future<T>::SharedState());
+        SharedPointer<typename Future<T>::SharedState> state(new typename Future<T>::SharedState());
 
         class TaskImpl : public TaskBase {
         private:
             Callable<T>* callable_;
-            std::shared_ptr<typename Future<T>::SharedState> state_;
+            SharedPointer<typename Future<T>::SharedState> state_;
         public:
-            TaskImpl(Callable<T>* callable, const std::shared_ptr<typename Future<T>::SharedState>& state)
+            TaskImpl(Callable<T>* callable, const SharedPointer<typename Future<T>::SharedState>& state)
                 : callable_(callable), state_(state) {}
 
             virtual void run()
@@ -44,10 +44,10 @@ public:
                     pthread_cond_broadcast(&state_->cond);
                     pthread_mutex_unlock(&state_->mutex);
                 }
-                catch (const std::exception& e) {
+                catch (const java::Exception& e) {
                     pthread_mutex_lock(&state_->mutex);
                     state_->failed = true;
-                    state_->errorMessage = e.what();
+                    state_->errorMessage = e.getMessage().c_str();
                     state_->done = true;
                     pthread_cond_broadcast(&state_->cond);
                     pthread_mutex_unlock(&state_->mutex);

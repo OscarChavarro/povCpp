@@ -1,27 +1,27 @@
-#ifndef __RASTERTILEAREA__
-#define __RASTERTILEAREA__
+#ifndef __RASTER_TILE_AREA__
+#define __RASTER_TILE_AREA__
 
 class Image;
 
 class RasterTileArea {
 private:
     Image* image;
-    int x0;
-    int y0;
-    int dx;
-    int dy;
+    int startX;
+    int startY;
+    int width;
+    int height;
 
 public:
     RasterTileArea();
-    RasterTileArea(Image* image, int x0, int y0, int dx, int dy);
+    RasterTileArea(Image* image, int startX, int startY, int width, int height);
 
     Image* getImage() const;
-    int getX0() const;
-    int getY0() const;
-    int getDx() const;
-    int getDy() const;
-    int getX1() const;
-    int getY1() const;
+    int getStartX() const;
+    int getStartY() const;
+    int getWidth() const;
+    int getHeight() const;
+    int getEndX() const;
+    int getEndY() const;
 };
 
 #endif

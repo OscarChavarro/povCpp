@@ -1,5 +1,5 @@
-#ifndef __VECTOR4DF__
-#define __VECTOR4DF__
+#ifndef __VECTOR_4_DF__
+#define __VECTOR_4_DF__
 
 
 #include <cmath>

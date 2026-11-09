@@ -1,5 +1,5 @@
-#ifndef __RGBPIXEL__
-#define __RGBPIXEL__
+#ifndef __RGB_PIXEL__
+#define __RGB_PIXEL__
 
 #include "java/lang/String.h"
 #include "vsdk/toolkit/media/MediaEntity.h"

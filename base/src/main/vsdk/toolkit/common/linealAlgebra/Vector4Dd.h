@@ -1,5 +1,5 @@
-#ifndef __VECTOR4DD__
-#define __VECTOR4DD__
+#ifndef __VECTOR_4_DD__
+#define __VECTOR_4_DD__
 
 
 #include <cmath>
@@ -25,7 +25,6 @@ class Vector4Dd {
 
 public:
     Vector4Dd(double x, double y, double z, double w) : x_(x), y_(y), z_(z), w_(w) {}
-    Vector4Dd(const Vector4Dd& other) : x_(other.x_), y_(other.y_), z_(other.z_), w_(other.w_) {}
     explicit Vector4Dd(const Vector3Dd& other);
 
     Vector4Dd multiply(double a) const;

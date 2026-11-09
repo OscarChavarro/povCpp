@@ -1,5 +1,5 @@
-#ifndef __JAVA_LANG_MATH__
-#define __JAVA_LANG_MATH__
+#ifndef VITRAL_JAVA_LANG_MATH_H
+#define VITRAL_JAVA_LANG_MATH_H
 
 #include <cmath>
 namespace java {
@@ -38,13 +38,30 @@ class Math {
     static float max(float a, float b);
     static double min(double a, double b);
     static double max(double a, double b);
+    static long min(long a, long b);
+    static long max(long a, long b);
     static float sqrt(float a);
     static double sqrt(double a);
     static int getExponent(double a);
     static int getExponent(float a);
+    static double toRadians(double angdeg);
+    static double toDegrees(double angrad);
     static double scalb(double a, int scaleFactor);
     static float scalb(float a, int scaleFactor);
 };
+
+// As Java 9+ (the reference JDK): a single multiplication by the rounded
+// conversion constant, not `angdeg / 180.0 * PI` (Java 8)
+inline double
+Math::toRadians(double angdeg) {
+    return angdeg * 0.017453292519943295;
+}
+
+inline double
+Math::toDegrees(double angrad) {
+    // As Java 9+: multiplication by the rounded conversion constant
+    return angrad * 57.29577951308232;
+}
 
 inline double
 Math::ceil(double a) {
@@ -193,6 +210,16 @@ Math::min(double a, double b) {
 
 inline double
 Math::max(double a, double b) {
+    return a > b ? a : b;
+}
+
+inline long
+Math::min(long a, long b) {
+    return a < b ? a : b;
+}
+
+inline long
+Math::max(long a, long b) {
     return a > b ? a : b;
 }
 

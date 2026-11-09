@@ -1,5 +1,5 @@
-#ifndef __RGBACOLORPALETTE__
-#define __RGBACOLORPALETTE__
+#ifndef __RGBA_COLOR_PALETTE__
+#define __RGBA_COLOR_PALETTE__
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/media/MediaEntity.h"

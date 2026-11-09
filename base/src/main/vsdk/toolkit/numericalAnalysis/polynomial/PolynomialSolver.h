@@ -1,5 +1,5 @@
-#ifndef __POLYNOMIALSOLVER__
-#define __POLYNOMIALSOLVER__
+#ifndef __POLYNOMIAL_SOLVER__
+#define __POLYNOMIAL_SOLVER__
 
 class PolynomialSolver {
   public:

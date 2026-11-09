@@ -1,5 +1,5 @@
 
-#include "environment/geometry/element/PriorityQueuePool.txx"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/PriorityQueuePool.txx"
 #include "render/bakedScene/CsgMorganUnionTrace.h"
 #include "render/bakedScene/RaySegmentCsgCombiner.h"
 #include "render/bakedScene/SingleCorePlaneCsgTrace.h"

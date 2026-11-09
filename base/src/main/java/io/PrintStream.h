@@ -1,5 +1,5 @@
-#ifndef __PRINTSTREAM__
-#define __PRINTSTREAM__
+#ifndef __PRINT_STREAM__
+#define __PRINT_STREAM__
 
 #include <cstdarg>
 

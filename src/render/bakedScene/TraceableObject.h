@@ -3,12 +3,12 @@
 
 #include "render/bakedScene/BakedSceneKinds.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "environment/geometry/surface/InfinitePlane.h"
-#include "environment/geometry/volume/Quadric.h"
-#include "environment/scene/SimpleBody.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingInfinitePlane.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.h"
+#include "vsdk/toolkit/environment/raycasting/scene/RayCastingBody.h"
 
-// One traceable object: a plain SimpleBody, a CSG-wrapping SimpleBody,
-// or a Composite (in which case `compositeIndex` points at the extra
+// One traceable object: a plain RayCastingBody, a CSG-wrapping RayCastingBody,
+// or a RayCastingComposite (in which case `compositeIndex` points at the extra
 // per-composite data in `BakedScene::composites` - bounding/clipping/
 // composite kind is folded into `kind` at build time, not re-derived per
 // ray). Immutable: a later bake pass (viewpoint slots) reclassifies by
@@ -17,8 +17,8 @@ class TraceableObject {
   public:
     TraceableObject(
         BakedSceneTraceKind kind,
-        SimpleBody *object,
-        Geometry *originalGeometry,
+        RayCastingBody *object,
+        RayCastingGeometry *originalGeometry,
         Quadric *originalQuadricGeometry,
         Material *geometryMaterial,
         Material *objectTexture,
@@ -43,7 +43,7 @@ class TraceableObject {
         const java::ArrayList<int> &clippingObjectIndices,
         const Quadric &bakedQuadricStorage,
         bool hasBakedQuadric,
-        const InfinitePlane &bakedPlaneStorage,
+        const RayCastingInfinitePlane &bakedPlaneStorage,
         bool hasBakedPlane,
         int quadricViewpointSlot) :
         kind(kind),
@@ -79,14 +79,14 @@ class TraceableObject {
     {}
 
     BakedSceneTraceKind getKind() const { return kind; }
-    SimpleBody *getObject() const { return object; }
-    Geometry *getGeometry() const
+    RayCastingBody *getObject() const { return object; }
+    RayCastingGeometry *getGeometry() const
     {
         if (hasBakedQuadric) {
             return const_cast<Quadric *>(&bakedQuadricStorage);
         }
         if (hasBakedPlane) {
-            return const_cast<InfinitePlane *>(&bakedPlaneStorage);
+            return const_cast<RayCastingInfinitePlane *>(&bakedPlaneStorage);
         }
         return originalGeometry;
     }
@@ -94,10 +94,10 @@ class TraceableObject {
     {
         return hasBakedQuadric ? const_cast<Quadric *>(&bakedQuadricStorage) : originalQuadricGeometry;
     }
-    Geometry *getOriginalGeometry() const { return originalGeometry; }
+    RayCastingGeometry *getOriginalGeometry() const { return originalGeometry; }
     Quadric *getOriginalQuadricGeometry() const { return originalQuadricGeometry; }
     const Quadric &getBakedQuadricStorage() const { return bakedQuadricStorage; }
-    const InfinitePlane &getBakedPlaneStorage() const { return bakedPlaneStorage; }
+    const RayCastingInfinitePlane &getBakedPlaneStorage() const { return bakedPlaneStorage; }
     Material *getGeometryMaterial() const { return geometryMaterial; }
     Material *getObjectTexture() const { return objectTexture; }
     ColorRgba *getObjectColor() const { return objectColor; }
@@ -125,8 +125,8 @@ class TraceableObject {
 
   private:
     BakedSceneTraceKind kind;
-    SimpleBody *object;
-    Geometry *originalGeometry;
+    RayCastingBody *object;
+    RayCastingGeometry *originalGeometry;
     Quadric *originalQuadricGeometry;
     Material *geometryMaterial;
     Material *objectTexture;
@@ -151,7 +151,7 @@ class TraceableObject {
     java::ArrayList<int> clippingObjectIndices;
     Quadric bakedQuadricStorage;
     bool hasBakedQuadric;
-    InfinitePlane bakedPlaneStorage;
+    RayCastingInfinitePlane bakedPlaneStorage;
     bool hasBakedPlane;
     int quadricViewpointSlot;
 };

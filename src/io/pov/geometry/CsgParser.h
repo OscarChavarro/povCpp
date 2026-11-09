@@ -1,7 +1,7 @@
 #ifndef __CSG_PARSER__
 #define __CSG_PARSER__
 
-#include "environment/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/geometry/SimpleBodyBuilder.h"
 

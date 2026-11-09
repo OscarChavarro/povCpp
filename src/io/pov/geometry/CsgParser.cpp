@@ -12,7 +12,7 @@ ConstructiveSolidGeometryByRaySegment nodes instead, which do implement
 environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h).
 */
 #include "io/pov/geometry/CsgParser.h"
-#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
 #include "io/pov/geometry/SceneBuilder.h"
 #include "io/pov/geometry/GeometryBuilder.h"
 #include "io/pov/geometry/BicubicPatchParser.h"
@@ -24,7 +24,7 @@ environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryB
 #include "io/pov/geometry/QuadricParser.h"
 #include "io/pov/geometry/SphereParser.h"
 #include "io/pov/geometry/TriangleParser.h"
-#include "environment/geometry/surface/TriangleMesh.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingTriangleMesh.h"
 #include "io/pov/light/LightGeometryAdapter.h"
 #include "io/pov/light/LightSourceParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
@@ -78,10 +78,10 @@ flushPendingTriangles(
         return;
     }
 
-    TriangleMesh *mergedMesh = new TriangleMesh();
+    RayCastingTriangleMesh *mergedMesh = new RayCastingTriangleMesh();
     for (long int i = 0; i < pendingTriangles.size(); i++) {
-        TriangleMesh *source =
-            static_cast<TriangleMesh *>(pendingTriangles[i]->getGeometry());
+        RayCastingTriangleMesh *source =
+            static_cast<RayCastingTriangleMesh *>(pendingTriangles[i]->getGeometry());
         mergedMesh->appendFrom(*source, 0);
     }
 

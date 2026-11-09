@@ -75,7 +75,7 @@ java::String Triangle::intToStr(int val) {
 
 java::String Triangle::toString() const
 {
-    return java::String("f < ") + intToStr(p0) + ", " +
-        intToStr(p1) + ", " +
-        intToStr(p2) + " >";
+    return java::String("f < ") + intToStr(point0) + ", " +
+        intToStr(point1) + ", " +
+        intToStr(point2) + " >";
 }

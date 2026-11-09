@@ -1,5 +1,5 @@
-#ifndef __ARRAYDEQUE__
-#define __ARRAYDEQUE__
+#ifndef __ARRAY_DEQUE__
+#define __ARRAY_DEQUE__
 
 #include "java/lang/Object.h"
 namespace java {

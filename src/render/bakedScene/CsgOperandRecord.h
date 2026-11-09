@@ -2,10 +2,10 @@
 #define __CSG_OPERAND_RECORD__
 
 #include "render/bakedScene/BakedSceneKinds.h"
-#include "environment/geometry/surface/InfinitePlane.h"
-#include "environment/geometry/volume/Quadric.h"
-#include "environment/geometry/element/TransformStep.h"
-#include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingInfinitePlane.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/TransformStep.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
 #include "vsdk/toolkit/environment/material/Material.h"
 
 // Bake-time record for one CSG operand, stored **by value** in a contiguous
@@ -52,7 +52,7 @@ class CsgOperandRecord {
     CsgOperandRecord(
         BakedSceneCsgOperandKind kind,
         CsgOperand *operand,
-        Geometry *originalGeometry,
+        RayCastingGeometry *originalGeometry,
         Quadric *originalQuadricGeometry,
         Material *material,
         int nestedCsgProgramIndex,
@@ -69,7 +69,7 @@ class CsgOperandRecord {
         int planeViewpointSlot,
         const Quadric &bakedQuadricStorage,
         bool hasBakedQuadric,
-        const InfinitePlane &bakedPlaneStorage,
+        const RayCastingInfinitePlane &bakedPlaneStorage,
         bool hasBakedPlane,
         bool compiledTransformedNestedCorePlane,
         int compiledNestedCoreOperandIndex,
@@ -112,13 +112,13 @@ class CsgOperandRecord {
 
     BakedSceneCsgOperandKind getKind() const { return kind; }
     CsgOperand *getOperand() const { return operand; }
-    Geometry *getGeometry() const
+    RayCastingGeometry *getGeometry() const
     {
         if (hasBakedQuadric) {
             return const_cast<Quadric *>(&bakedQuadricStorage);
         }
         if (hasBakedPlane) {
-            return const_cast<InfinitePlane *>(&bakedPlaneStorage);
+            return const_cast<RayCastingInfinitePlane *>(&bakedPlaneStorage);
         }
         return originalGeometry;
     }
@@ -126,10 +126,10 @@ class CsgOperandRecord {
     {
         return hasBakedQuadric ? const_cast<Quadric *>(&bakedQuadricStorage) : originalQuadricGeometry;
     }
-    Geometry *getOriginalGeometry() const { return originalGeometry; }
+    RayCastingGeometry *getOriginalGeometry() const { return originalGeometry; }
     Quadric *getOriginalQuadricGeometry() const { return originalQuadricGeometry; }
     const Quadric &getBakedQuadricStorage() const { return bakedQuadricStorage; }
-    const InfinitePlane &getBakedPlaneStorage() const { return bakedPlaneStorage; }
+    const RayCastingInfinitePlane &getBakedPlaneStorage() const { return bakedPlaneStorage; }
     Material *getMaterial() const { return material; }
     int getNestedCsgProgramIndex() const { return nestedCsgProgramIndex; }
     const AxisAlignedBoundingBox &getBakedBounds() const { return bakedBounds; }
@@ -166,7 +166,7 @@ class CsgOperandRecord {
   private:
     BakedSceneCsgOperandKind kind;
     CsgOperand *operand;
-    Geometry *originalGeometry;
+    RayCastingGeometry *originalGeometry;
     Quadric *originalQuadricGeometry;
     Material *material;
     int nestedCsgProgramIndex;
@@ -183,7 +183,7 @@ class CsgOperandRecord {
     int planeViewpointSlot;
     Quadric bakedQuadricStorage;
     bool hasBakedQuadric;
-    InfinitePlane bakedPlaneStorage;
+    RayCastingInfinitePlane bakedPlaneStorage;
     bool hasBakedPlane;
     bool compiledTransformedNestedCorePlane;
     int compiledNestedCoreOperandIndex;

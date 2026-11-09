@@ -21,6 +21,12 @@ Matrix4x4d::Matrix4x4d(const Matrix4x4d& other)
     for ( int i = 0; i < 4; ++i ) for ( int j = 0; j < 4; ++j ) m_[i][j] = other.m_[i][j];
 }
 
+Matrix4x4d& Matrix4x4d::operator=(const Matrix4x4d& other)
+{
+    for ( int i = 0; i < 4; ++i ) for ( int j = 0; j < 4; ++j ) m_[i][j] = other.m_[i][j];
+    return *this;
+}
+
 Matrix4x4d::Matrix4x4d(const double values[4][4])
 {
     for ( int i = 0; i < 4; ++i ) for ( int j = 0; j < 4; ++j ) m_[i][j] = values[i][j];

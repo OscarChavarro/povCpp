@@ -1,12 +1,13 @@
 #ifndef __LIGHT__
 #define __LIGHT__
 
+#include "vsdk/toolkit/common/Entity.h"
 #include "java/lang/String.h"
 #include "vsdk/toolkit/common/color/ColorRgb.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 
-class Light {
+class Light : public Entity {
   private:
     Vector3Dd position;
     ColorRgb emission;

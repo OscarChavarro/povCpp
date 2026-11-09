@@ -1,7 +1,7 @@
 #ifndef __PHONG_SPECULAR_SHADER__
 #define __PHONG_SPECULAR_SHADER__
 
-#include "environment/geometry/element/RayWithTracingState.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/RayWithTracingState.h"
 #include "environment/material/povray/PovRayMaterial.h"
 
 class PhongSpecularShader {

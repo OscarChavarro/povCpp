@@ -1,30 +1,31 @@
+#include "java/lang/Exception.h"
 #include <cstdio>
 #include <cstdlib>
 
 #include "java/lang/String.h"
 #include "vsdk/toolkit/common/VSDKFatalException.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-bool Logger::withSystemExit_ = true;
-bool Logger::withFatalExceptions_ = true;
+bool Logger::withSystemExit = true;
+bool Logger::withFatalExceptions = true;
 
-void Logger::setWithSystemExit(bool flag) { withSystemExit_ = flag; }
-void Logger::setWithFatalExceptions(bool flag) { withFatalExceptions_ = flag; }
+void Logger::setWithSystemExit(bool flag) { withSystemExit = flag; }
+void Logger::setWithFatalExceptions(bool flag) { withFatalExceptions = flag; }
 
-void Logger::processFatalError(const java::String& method, const java::String& message, const std::exception* cause)
+void Logger::processFatalError(const java::String& method, const java::String& message, const java::Exception* cause)
 {
-    if ( withSystemExit_ ) {
+    if ( withSystemExit ) {
         std::exit(1);
     }
-    if ( !withFatalExceptions_ ) {
+    if ( !withFatalExceptions ) {
         return;
     }
-    java::String m = method.empty() ? "VSDK fatal error" : ("VSDK fatal error at " + method);
-    if ( !message.empty() ) {
+    java::String m = method.isEmpty() ? "VSDK fatal error" : ("VSDK fatal error at " + method);
+    if ( !message.isEmpty() ) {
         m += ": " + message;
     }
     if ( cause != nullptr ) {
         m += " | cause: ";
-        m += cause->what();
+        m += cause->getMessage();
     }
     throw VSDKFatalException(m);
 }
@@ -37,10 +38,10 @@ void Logger::reportMessage(const java::String& className, int level, const java:
     }
 }
 
-void Logger::reportMessageWithException(const java::String& className, int level, const java::String& method, const java::String& message, const std::exception* cause)
+void Logger::reportMessageWithException(const java::String& className, int level, const java::String& method, const java::String& message, const java::Exception* cause)
 {
     if ( cause != nullptr ) {
-        fprintf(stderr, "%s | exception: %s\n", message.c_str(), cause->what());
+        fprintf(stderr, "%s | exception: %s\n", message.c_str(), cause->getMessage().c_str());
     } else {
         fprintf(stderr, "%s\n", message.c_str());
     }

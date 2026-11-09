@@ -1,23 +1,23 @@
-#include <stdexcept>
+#include "java/lang/IllegalArgumentException.h"
 #include "vsdk/toolkit/media/Image.h"
 #include "vsdk/toolkit/render/raytracing/RasterTileArea.h"
-RasterTileArea::RasterTileArea() : image(nullptr), x0(0), y0(0), dx(0), dy(0) {}
+RasterTileArea::RasterTileArea() : image(nullptr), startX(0), startY(0), width(0), height(0) {}
 
-RasterTileArea::RasterTileArea(Image* imageIn, int x0In, int y0In, int dxIn, int dyIn)
-    : image(imageIn), x0(x0In), y0(y0In), dx(dxIn), dy(dyIn)
+RasterTileArea::RasterTileArea(Image* imageIn, int startXIn, int startYIn, int widthIn, int heightIn)
+    : image(imageIn), startX(startXIn), startY(startYIn), width(widthIn), height(heightIn)
 {
-    if ( image == 0 ) throw std::invalid_argument("image can not be null");
-    if ( x0 < 0 || y0 < 0 ) throw std::invalid_argument("tile origin must be >= 0");
-    if ( dx <= 0 || dy <= 0 ) throw std::invalid_argument("tile size must be > 0");
-    if ( x0 + dx > image->getXSize() || y0 + dy > image->getYSize() ) {
-        throw std::invalid_argument("tile bounds must be inside target image");
+    if ( image == 0 ) throw java::IllegalArgumentException("image can not be null");
+    if ( startX < 0 || startY < 0 ) throw java::IllegalArgumentException("tile origin must be >= 0");
+    if ( width <= 0 || height <= 0 ) throw java::IllegalArgumentException("tile size must be > 0");
+    if ( startX + width > image->getXSize() || startY + height > image->getYSize() ) {
+        throw java::IllegalArgumentException("tile bounds must be inside target image");
     }
 }
 
 Image* RasterTileArea::getImage() const { return image; }
-int RasterTileArea::getX0() const { return x0; }
-int RasterTileArea::getY0() const { return y0; }
-int RasterTileArea::getDx() const { return dx; }
-int RasterTileArea::getDy() const { return dy; }
-int RasterTileArea::getX1() const { return x0 + dx; }
-int RasterTileArea::getY1() const { return y0 + dy; }
+int RasterTileArea::getStartX() const { return startX; }
+int RasterTileArea::getStartY() const { return startY; }
+int RasterTileArea::getWidth() const { return width; }
+int RasterTileArea::getHeight() const { return height; }
+int RasterTileArea::getEndX() const { return startX + width; }
+int RasterTileArea::getEndY() const { return startY + height; }

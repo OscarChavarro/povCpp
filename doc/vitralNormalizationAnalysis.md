@@ -1,5 +1,30 @@
 # Comparative analysis of the intersection model: povCpp <-> VITRAL
 
+## Implementation update — 2026-11-09
+
+The analysis below is the historical 2026-07-07 snapshot, not a description of
+current file locations. See [vitralImplementation.md](vitralImplementation.md)
+for implementation status and validation.
+
+- povCpp links the actual VITRAL checkout. Its local `base/src/main` reference
+  subset was subsequently restored from VITRAL and checked for byte equality;
+  that copy is not used by the build.
+- `Scene` extends `SimpleScene` and uses its owned bodies/lights directly.
+- Ray-casting geometries, CSG, bounds and bodies now live in povCpp's local
+  `raycasting` module and extend `Geometry` / `SimpleBody`. VITRAL does not depend
+  on that module. Geometry/scene convergence is deferred to a separate plan;
+  materials and shaders remain application-specific.
+- `RayCastingHit` and ordered candidates remain the specialized detail model;
+  compatibility queries expose first hits and all crossings through shared APIs.
+- `SurfaceDetail` centralizes detail bits. `Material` is still the generic material
+  interface; `getSurfaceMaterial()` exposes it without requiring `SimpleMaterial`.
+- Affine two-layer placement, numerical tolerances, sampling and optimized baked
+  traversal retain their historical behavior. Unifying these policies with the
+  original nearest-hit implementations is a separate, still pending normalization.
+- The eight-owner detail chain now rejects overflow explicitly.
+
+---
+
 Status snapshot comparing the current `povCpp` raytracer with the current
 [VITRAL library](https://github.com/OscarChavarro/vitral).
 

@@ -1,5 +1,5 @@
-#ifndef __VECTOR3DD__
-#define __VECTOR3DD__
+#ifndef __VECTOR_3_DD__
+#define __VECTOR_3_DD__
 
 
 #include <cmath>
@@ -25,6 +25,13 @@ public:
     inline Vector3Dd() : x_(0.0), y_(0.0), z_(0.0) {}
     inline Vector3Dd(double x, double y, double z) : x_(x), y_(y), z_(z) {}
     inline Vector3Dd(const Vector3Dd& other) : x_(other.x_), y_(other.y_), z_(other.z_) {}
+    inline Vector3Dd& operator=(const Vector3Dd& other)
+    {
+        x_ = other.x_;
+        y_ = other.y_;
+        z_ = other.z_;
+        return *this;
+    }
 
     static inline Vector3Dd copyOf(const Vector3Dd& other) { return Vector3Dd(other); }
 

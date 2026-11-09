@@ -1,6 +1,7 @@
 #include <cmath>
 #include <cstring>
 
+#include "java/lang/Double.h"
 #include "java/lang/String.h"
 #include "vsdk/toolkit/common/VSDK.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
@@ -13,8 +14,6 @@ Ray::Ray(const Vector3Dd& origin, const Vector3Dd& direction)
 
 Ray::Ray(const Vector3Dd& origin, const Vector3Dd& direction, double t)
     : origin(origin), direction(normalizeDirection(direction)), t(t) {}
-
-Ray::Ray(const Ray& b) : origin(b.origin), direction(b.direction), t(b.t) {}
 
 Ray Ray::copyOf(const Ray& other)
 {
@@ -33,7 +32,7 @@ Ray Ray::withDirection(const Vector3Dd& newDirection) const
 
 Ray Ray::withT(double newT) const
 {
-    if ( newT == t ) {
+    if ( java::Double::compare(newT, t) == 0 ) {
         return *this;
     }
     return Ray(origin, direction, newT);

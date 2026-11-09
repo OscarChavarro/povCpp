@@ -6,6 +6,7 @@ start_time=$(date +%s)
 POVRAY_BIN="$(pwd)/build/povray"
 
 mkdir -p output/level1 output/level2 output/level3 output/math
+pids=()
 
 render_scene() {
     local output_dir="$1"
@@ -20,6 +21,7 @@ render_scene() {
         +w1280 +h800 -d -v +x +ft ${EXTRA_POVRAY_OPTS:-} \
         >"${output_dir}/${base_name}_stdout.log" \
         2>"${output_dir}/${base_name}_stderr.log" &
+    pids+=("$!")
 }
 
 cd etc
@@ -164,7 +166,6 @@ render_scene ../../output/math trough.pov ../include
 render_scene ../../output/math witch.pov ../include
 cd ..
 
-pids=($(jobs -p))
 failed_jobs=0
 completed_jobs=0
 
@@ -194,4 +195,5 @@ if [ "$failed_jobs" -eq 0 ]; then
     echo "All render processes have finished. Total execution time: ${elapsed_seconds} seconds."
 else
     echo "All render processes have finished. ${failed_jobs} process(es) failed. Total execution time: ${elapsed_seconds} seconds."
+    exit 1
 fi

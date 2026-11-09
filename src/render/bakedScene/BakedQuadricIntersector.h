@@ -1,7 +1,7 @@
 #ifndef __BAKED_QUADRIC_INTERSECTOR__
 #define __BAKED_QUADRIC_INTERSECTOR__
 
-#include "environment/geometry/volume/Quadric.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.h"
 #include "render/raySharedCache/RaySharedCache.h"
 
 // Ray-quadric intersection resolution for baked CSG operands: solves the

@@ -9,7 +9,7 @@ class BlobParser {
     static SimpleBodyBuilder *parseBlob(ParserContext &ctx);
 
   private:
-    static SimpleBodyBuilder *rebuildBodyWithGeometry(SimpleBodyBuilder *body, Geometry *geometry);
+    static SimpleBodyBuilder *rebuildBodyWithGeometry(SimpleBodyBuilder *body, RayCastingGeometry *geometry);
 };
 
 #endif

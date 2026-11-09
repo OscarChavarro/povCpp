@@ -1,6 +1,6 @@
 
 
-#include "environment/geometry/surface/InfinitePlane.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingInfinitePlane.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/pov/geometry/PlaneParser.h"
@@ -21,7 +21,7 @@ PlaneParser::parsePlane()
 SimpleBodyBuilder *
 PlaneParser::parsePlane(ParserContext &ctx)
 {
-    InfinitePlane *localShape;
+    RayCastingInfinitePlane *localShape;
     SimpleBodyBuilder *body = nullptr;
     int constantId;
     Vector3Dd localVector;
@@ -43,7 +43,7 @@ PlaneParser::parsePlane(ParserContext &ctx)
                 ctx.tokenStream().ungetToken();
                 PrimitiveParser::parseVector(&localNormal, ctx);
                 localDistance = PrimitiveParser::parseFloat(ctx);
-                localShape = new InfinitePlane(localNormal, localDistance * -1.0);
+                localShape = new RayCastingInfinitePlane(localNormal, localDistance * -1.0);
                 body = SceneBuilder::wrap(localShape);
                 Exit_Flag = true;
                 break;
@@ -55,7 +55,7 @@ PlaneParser::parsePlane(ParserContext &ctx)
                         body = new SimpleBodyBuilder(
                                 *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
                                     .getConstantData());
-                        localShape = (InfinitePlane *)body->getGeometry();
+                        localShape = (RayCastingInfinitePlane *)body->getGeometry();
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }

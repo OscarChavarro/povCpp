@@ -1,5 +1,5 @@
-#ifndef __SOLIDTEXTURESTATISTICS__
-#define __SOLIDTEXTURESTATISTICS__
+#ifndef __SOLID_TEXTURE_STATISTICS__
+#define __SOLID_TEXTURE_STATISTICS__
 
 #include "java/util/ArrayList.h"
 

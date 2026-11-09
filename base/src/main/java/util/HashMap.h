@@ -1,5 +1,5 @@
-#ifndef __HASHMAP__
-#define __HASHMAP__
+#ifndef __HASH_MAP__
+#define __HASH_MAP__
 
 #include <cstddef>
 #include <cstring>

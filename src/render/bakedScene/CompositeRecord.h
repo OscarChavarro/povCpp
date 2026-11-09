@@ -1,12 +1,12 @@
 #ifndef __COMPOSITE_RECORD__
 #define __COMPOSITE_RECORD__
 
-#include "environment/scene/Composite.h"
+#include "vsdk/toolkit/environment/raycasting/scene/RayCastingComposite.h"
 
 class CompositeRecord {
   public:
     CompositeRecord(
-        Composite *object,
+        RayCastingComposite *object,
         const AxisAlignedBoundingBox &worldBounds,
         const Matrix4x4d &objectToWorld,
         const Matrix4x4d &worldToObject,
@@ -32,7 +32,7 @@ class CompositeRecord {
         childObjectIndices(childObjectIndices)
     {}
 
-    Composite *getObject() const { return object; }
+    RayCastingComposite *getObject() const { return object; }
     const AxisAlignedBoundingBox &getWorldBounds() const { return worldBounds; }
     const Matrix4x4d &getObjectToWorld() const { return objectToWorld; }
     const Matrix4x4d &getWorldToObject() const { return worldToObject; }
@@ -46,7 +46,7 @@ class CompositeRecord {
     const java::ArrayList<int> &getChildObjectIndices() const { return childObjectIndices; }
 
   private:
-    Composite *object;
+    RayCastingComposite *object;
     AxisAlignedBoundingBox worldBounds;
     Matrix4x4d objectToWorld;
     Matrix4x4d worldToObject;

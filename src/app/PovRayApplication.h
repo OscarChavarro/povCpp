@@ -14,7 +14,7 @@ class PovRayApplication {
     TextureUtils textureUtils;
     Scene scene;
     RenderEngine engine;
-    RenderContext context;
+    PovRenderContext context;
     ImageOutput *selectedImageOutput;
 
     void printProgress(const char *message);

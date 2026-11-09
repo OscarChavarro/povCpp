@@ -1,21 +1,12 @@
-#ifndef __VSDKFATALEXCEPTION__
-#define __VSDKFATALEXCEPTION__
+#ifndef __VSDK_FATAL_EXCEPTION__
+#define __VSDK_FATAL_EXCEPTION__
 
-
+#include "java/lang/RuntimeException.h"
 #include "java/lang/String.h"
-#include <exception>
-class VSDKFatalException : public std::exception {
-private:
-    java::String message_;
 
+class VSDKFatalException : public java::RuntimeException {
 public:
-    explicit VSDKFatalException(const java::String& message) : message_(message) {}
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
+    explicit VSDKFatalException(const java::String& message) : java::RuntimeException(message) {}
 };
-
 
 #endif

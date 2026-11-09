@@ -1,5 +1,5 @@
-#ifndef __FILEOUTPUTSTREAM__
-#define __FILEOUTPUTSTREAM__
+#ifndef __FILE_OUTPUT_STREAM__
+#define __FILE_OUTPUT_STREAM__
 
 #include <cstdio>
 
