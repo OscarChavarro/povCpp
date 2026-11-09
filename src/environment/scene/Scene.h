@@ -3,14 +3,22 @@
 
 #include "vsdk/toolkit/environment/camera/CameraSnapshot.h"
 #include "vsdk/toolkit/environment/light/Light.h"
-#include "environment/scene/SimpleBody.h"
+#include "vsdk/toolkit/environment/raycasting/scene/RayCastingBody.h"
+#include "vsdk/toolkit/environment/scene/SimpleScene.h"
 
-class Scene {
+class Scene : public SimpleScene {
   public:
     static constexpr double DEFAULT_ANTIALIAS_THRESHOLD = 0.3;
 
     Scene();
     ~Scene();
+
+    SimpleSceneSnapshot* exportToSimpleSceneSnapshot() override {
+        return SimpleScene::exportToSimpleSceneSnapshot(new CameraSnapshot(viewPoint), nullptr);
+    }
+    SimpleSceneSnapshot* exportToSimpleSceneSnapshot(int, int) override {
+        return exportToSimpleSceneSnapshot();
+    }
 
     const CameraSnapshot& getViewPoint() const { return viewPoint; }
     void setViewPoint(const CameraSnapshot &camera) { viewPoint = camera; }
@@ -20,8 +28,8 @@ class Scene {
     int& getScreenWidth() { return screenWidth; }
     int getScreenWidth() const { return screenWidth; }
     void setScreenWidth(int w) { screenWidth = w; }
-    const java::ArrayList<Light*>& getLightSources() const { return lightSources; }
-    java::ArrayList<Light*>& getLightSources() { return lightSources; }
+    const java::ArrayList<Light*>& getLightSources() const { return getLights(); }
+    java::ArrayList<Light*>& getLightSources() { return getLights(); }
     double getAtmosphereIor() const { return atmosphereIor; }
     void setAtmosphereIor(double ior) { atmosphereIor = ior; }
     double getAntialiasThreshold() const { return antialiasThreshold; }
@@ -34,12 +42,16 @@ class Scene {
         fogDistance = distance;
     }
     const ColorRgba& getFogColor() const { return fogColor; }
-    const java::ArrayList<SimpleBody*>& getObjects() const { return Objects; }
-    void setObjects(const java::ArrayList<SimpleBody*> &objects) { Objects = objects; }
+    const java::ArrayList<SimpleBody*>& getObjects() const { return getSimpleBodies(); }
+    void setObjects(const java::ArrayList<RayCastingBody*>& objects) {
+        java::ArrayList<SimpleBody*> bodies;
+        for (long int i = 0; i < objects.size(); ++i) bodies.add(objects[i]);
+        setSimpleBodies(bodies);
+    }
 
     // The scene's default texture is aliased (not cloned) into every untextured
-    // object's SimpleBody::objectTexture for the entire render (see
-    // ~SimpleBody()'s objectTextureReleaser guard) - it can only be freed
+    // object's RayCastingBody::objectTexture for the entire render (see
+    // ~RayCastingBody()'s objectTextureReleaser guard) - it can only be freed
     // once nothing will read it again, i.e. once Scene itself is destroyed.
     // SceneParser::parse() calls this once, after parsing finishes, with
     // whatever the final default texture turned out to be (it may have been
@@ -55,8 +67,6 @@ class Scene {
     CameraSnapshot viewPoint;
     int screenHeight;
     int screenWidth;
-    java::ArrayList<Light*> lightSources;
-    java::ArrayList<SimpleBody*> Objects{4};
     double atmosphereIor;
     double antialiasThreshold;
     double fogDistance;

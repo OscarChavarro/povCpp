@@ -1,5 +1,5 @@
-#ifndef __MATRIX4X4F__
-#define __MATRIX4X4F__
+#ifndef __MATRIX_4_X_4_F__
+#define __MATRIX_4_X_4_F__
 
 
 #include "java/lang/String.h"

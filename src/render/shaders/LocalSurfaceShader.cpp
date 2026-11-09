@@ -1,5 +1,5 @@
 #include "render/PovRayRendererConfiguration.h"
-#include "environment/geometry/element/PovRayHit.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/RayCastingHit.h"
 #include "render/shaders/AmbientLightShader.h"
 #include "render/shaders/BumpNormalShader.h"
 #include "render/shaders/DirectLightShader.h"
@@ -15,7 +15,7 @@ LocalSurfaceShader::shade(const RayWithTracingState *ray, PovRayMaterial *textur
     const BakedScene &bakedScene,
     int &traceLevel, TextureUtils *textureUtils)
 {
-    PovRayHit hit = PovRayHit::fromCandidate(*rayIntersection, ray->getRequiredDetailMask());
+    RayCastingHit hit = RayCastingHit::fromCandidate(*rayIntersection, ray->getRequiredDetailMask());
     Vector3Dd surfaceNormal;
     Vector3Dd texturePoint;
     double normalDirection;
@@ -55,7 +55,7 @@ LocalSurfaceShader::shade(const RayWithTracingState *ray, PovRayMaterial *textur
     if (usingMaterialTexture &&
         hit.materialUsesObjectLocalPoint &&
         hit.hitBody != nullptr) {
-        texturePoint = static_cast<SimpleBody *>(hit.hitBody)->worldPointToLocal(hit.p);
+        texturePoint = static_cast<RayCastingBody *>(hit.hitBody)->worldPointToLocal(hit.p);
     }
 
     if (static_cast<const PovRayRendererConfiguration *>(ray->getConfig())->withBumpMapping()) {

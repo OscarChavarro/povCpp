@@ -1,6 +1,6 @@
 
 
-#include "environment/geometry/volume/HeightField.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/HeightField.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/image/GifFormat.h"

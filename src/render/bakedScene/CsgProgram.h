@@ -4,7 +4,7 @@
 #include "render/bakedScene/BakedSceneKinds.h"
 #include "render/bakedScene/CsgOperandRecord.h"
 #include "render/bakedScene/OperandCullBins.h"
-#include "environment/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
 
 // One compiled CSG node: algorithm/specialization chosen once at build
 // time, plus the operand-kind bucket arrays the fused-plan kernels

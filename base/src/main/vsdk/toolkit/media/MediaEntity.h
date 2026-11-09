@@ -1,5 +1,7 @@
-#ifndef __MEDIAENTITY__
-#define __MEDIAENTITY__
+#ifndef __MEDIA_ENTITY__
+#define __MEDIA_ENTITY__
+
+#include "vsdk/toolkit/common/Entity.h"
 
 /**
 A `MediaEntity` in VitralSDK is a software element with data
@@ -14,23 +16,10 @@ classes NOT related with 3D geometry. This serves two purposes:
     multimedia objects. Note that currently none of such operations have been
     detected.
 */
-class MediaEntity {
+class MediaEntity : public Entity {
 
 public:
-    static const int BYTE_SIZE_IN_BYTES = 1;
-    static const int INT_SIZE_IN_BYTES = 4;
-    static const int LONG_SIZE_IN_BYTES = 8;
-    static const int FLOAT_SIZE_IN_BYTES = 4;
-    static const int DOUBLE_SIZE_IN_BYTES = 8;
-    static const int VECTOR3D_SIZE_IN_BYTES = 24;
-    static const int COLORRGB_SIZE_IN_BYTES = 24;
-    static const int POINTER_SIZE_IN_BYTES = 8;
-
     virtual ~MediaEntity() = default;
-
-    virtual int getSizeInBytes() const {
-        return 0;
-    }
 
 };
 

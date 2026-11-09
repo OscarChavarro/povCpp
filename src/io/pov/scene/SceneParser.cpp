@@ -1,7 +1,7 @@
 
 #include "io/pov/geometry/SimpleBodyBuilder.h"
-#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
-#include "environment/scene/Composite.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+#include "vsdk/toolkit/environment/raycasting/scene/RayCastingComposite.h"
 #include "io/pov/material/PovRayMaterialUtils.h"
 #include "environment/scene/Scene.h"
 #include "io/pov/context/ParserContext.h"
@@ -20,7 +20,7 @@ SceneParser::postProcessPhase(Scene *framePtr)
         framePtr->getObjects();
     java::ArrayList<Light*> &lights = framePtr->getLightSources();
     for (long int i = 0; i < objects.size(); i++) {
-        ScenePostProcessor::linkLights(objects[i], lights);
+        ScenePostProcessor::linkLights(static_cast<RayCastingBody*>(objects[i]), lights);
     }
 }
 
@@ -51,7 +51,7 @@ SceneParser::freeConstant(int constantType, void *data)
     }
     switch (constantType) {
     case ParseGlobals::OBJECT_CONSTANT:
-        delete static_cast<SimpleBody *>(data);
+        delete static_cast<RayCastingBody *>(data);
         break;
     case ParseGlobals::SPHERE_CONSTANT:
     case ParseGlobals::PLANE_CONSTANT:
@@ -71,7 +71,7 @@ SceneParser::freeConstant(int constantType, void *data)
         delete static_cast<SimpleBodyBuilder *>(data);
         break;
     case ParseGlobals::COMPOSITE_CONSTANT:
-        delete static_cast<Composite *>(data);
+        delete static_cast<RayCastingComposite *>(data);
         break;
     case ParseGlobals::TEXTURE_CONSTANT:
         PovRayMaterialConstancy::unmarkConstant(static_cast<PovRayMaterial *>(data));
@@ -116,7 +116,7 @@ SceneParser::parse(Scene *framePtr, ParserContext &ctx)
     // ~Scene() and doc/memoryAudit/ownership.md), and the compiler-generated
     // copy constructor/assignment only shallow-copies that ArrayList. An
     // intermediate by-value Scene here would have its destructor delete the
-    // same SimpleBody* the caller's framePtr still needs for the render.
+    // same RayCastingBody* the caller's framePtr still needs for the render.
     ctx.degenerateTriangles() = false;
     SceneParser::tokenInit(ctx);
     SceneParser::frameInit(framePtr, ctx);

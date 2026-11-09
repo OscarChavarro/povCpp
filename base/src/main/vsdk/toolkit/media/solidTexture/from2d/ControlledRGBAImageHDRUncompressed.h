@@ -1,5 +1,5 @@
-#ifndef __CONTROLLEDRGBAIMAGEHDRUNCOMPRESSED__
-#define __CONTROLLEDRGBAIMAGEHDRUNCOMPRESSED__
+#ifndef __CONTROLLED_RGBA_IMAGE_HDR_UNCOMPRESSED__
+#define __CONTROLLED_RGBA_IMAGE_HDR_UNCOMPRESSED__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"

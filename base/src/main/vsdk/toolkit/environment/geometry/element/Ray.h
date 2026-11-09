@@ -20,7 +20,6 @@ public:
     Ray();
     Ray(const Vector3Dd& origin, const Vector3Dd& direction);
     Ray(const Vector3Dd& origin, const Vector3Dd& direction, double t);
-    Ray(const Ray& b);
 
     static Ray copyOf(const Ray& other);
 

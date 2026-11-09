@@ -1,5 +1,5 @@
-#ifndef __CONCURRENTLINKEDQUEUE__
-#define __CONCURRENTLINKEDQUEUE__
+#ifndef __CONCURRENT_LINKED_QUEUE__
+#define __CONCURRENT_LINKED_QUEUE__
 
 #include "java/util/ArrayDeque.h"
 #include <pthread.h>

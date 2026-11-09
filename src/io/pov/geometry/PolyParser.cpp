@@ -14,7 +14,7 @@
 #include "java/util/PriorityQueue.txx"
 
 SimpleBodyBuilder *
-PolyParser::rebuildBodyWithGeometry(SimpleBodyBuilder *body, Geometry *geometry)
+PolyParser::rebuildBodyWithGeometry(SimpleBodyBuilder *body, RayCastingGeometry *geometry)
 {
     Material *clonedMaterial = (body->getMaterial() != nullptr) ?
         new PovRayMaterial(*static_cast<PovRayMaterial *>(body->getMaterial())) : nullptr;

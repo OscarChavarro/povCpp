@@ -84,11 +84,11 @@ BakedGeometryBaker::bakeQuadric(
     return baked;
 }
 
-InfinitePlane
+RayCastingInfinitePlane
 BakedGeometryBaker::bakePlane(
-    const InfinitePlane &original, const java::ArrayList<TransformStep> &steps)
+    const RayCastingInfinitePlane &original, const java::ArrayList<TransformStep> &steps)
 {
-    InfinitePlane baked(original);
+    RayCastingInfinitePlane baked(original);
     for (long int i = 0; i < steps.size(); i++) {
         const TransformStep &step = steps[i];
         switch (step.getKind()) {

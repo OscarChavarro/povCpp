@@ -8,7 +8,7 @@ class PolyParser {
     static SimpleBodyBuilder *parsePoly(int order, ParserContext &ctx);
 
   private:
-    static SimpleBodyBuilder *rebuildBodyWithGeometry(SimpleBodyBuilder *body, Geometry *geometry);
+    static SimpleBodyBuilder *rebuildBodyWithGeometry(SimpleBodyBuilder *body, RayCastingGeometry *geometry);
     static void parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx);
 };
 

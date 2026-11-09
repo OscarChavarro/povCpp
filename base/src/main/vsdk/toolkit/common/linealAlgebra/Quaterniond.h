@@ -11,7 +11,6 @@ class Quaterniond {
 public:
     Quaterniond() : direction_(Vector3Dd(0.0, 0.0, 0.0)), magnitude_(0.0) {}
     Quaterniond(const Vector3Dd& direction, double magnitude) : direction_(direction), magnitude_(magnitude) {}
-    Quaterniond(const Quaterniond& other) : direction_(other.direction_), magnitude_(other.magnitude_) {}
 
     static Quaterniond copyOf(const Quaterniond& other) { return Quaterniond(other); }
 

@@ -1,8 +1,8 @@
 #ifndef __CSG_OPERAND_TRACE__
 #define __CSG_OPERAND_TRACE__
 
-#include "environment/geometry/element/GeometryConfig.h"
-#include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
 #include "render/bakedScene/AabbCullingSupport.h"
 #include "render/bakedScene/BakedPlaneIntersector.h"
 #include "render/bakedScene/BakedQuadricIntersector.h"
@@ -234,9 +234,9 @@ public:
 
                 double depth1;
                 double depth2;
-                if (!Sphere::intersectSphereLocalSpace(
+                if (!RayCastingSphere::intersectSphereLocalSpace(
                         localOrigin, localDirection, ray->getGeometryStatistics(),
-                        static_cast<Sphere *>(operand->getGeometry())->getRadius(),
+                        static_cast<RayCastingSphere *>(operand->getGeometry())->getRadius(),
                         &depth1, &depth2)) {
                     return false;
                 }

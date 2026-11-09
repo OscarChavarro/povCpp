@@ -71,7 +71,7 @@ AdaptiveAntiAliasing::doAntiAliasing(RenderWorker &worker, int x, int y,
 
     worker.setCurrentLineAntiAliasedFlag(x, false);
 
-    if (x != area.getX0()) {
+    if (x != area.getStartX()) {
         if (ColorOperations::colorDistance(
                 worker.getCurrentLinePixel(x - 1),
                 worker.getCurrentLinePixel(x)) >=
@@ -86,14 +86,14 @@ AdaptiveAntiAliasing::doAntiAliasing(RenderWorker &worker, int x, int y,
         }
     }
 
-    if (y != area.getY0() - 1) {
+    if (y != area.getStartY() - 1) {
         if (ColorOperations::colorDistance(
                 worker.getPreviousLinePixel(x),
                 worker.getCurrentLinePixel(x)) >=
             renderEngine->getScene().getAntialiasThreshold()) {
             antialiasCenterFlag = 1;
             if (!worker.getPreviousLineAntiAliasedFlag(x) &&
-                (y - 1) >= area.getY0()) {
+                (y - 1) >= area.getStartY()) {
                 superSample(worker, worker.getPreviousLinePixel(x), x, y - 1,
                     renderEngine->getScene().getScreenWidth(),
                     renderEngine->getScene().getScreenHeight(), pool, stats);

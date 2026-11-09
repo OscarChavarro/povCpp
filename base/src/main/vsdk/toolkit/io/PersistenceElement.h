@@ -1,5 +1,5 @@
-#ifndef __PERSISTENCEELEMENT__
-#define __PERSISTENCEELEMENT__
+#ifndef __PERSISTENCE_ELEMENT__
+#define __PERSISTENCE_ELEMENT__
 
 #include "java/io/File.h"
 #include "java/io/InputStream.h"
@@ -31,8 +31,13 @@ reverse order (from little endian to big endian or from big endian to
 little endian) the "Invert" versions are used.
 */
 class PersistenceElement {
+  protected:
+    // As the Java abstract class: not instantiable by itself, but concrete
+    // persistence classes (e.g. `FontReader` implementations) derive from it
+    PersistenceElement() {}
+
   public:
-    PersistenceElement() = delete;
+    virtual ~PersistenceElement() {}
 
     static int readByteInt(java::InputStream &is);
     static int readByteUnsignedInt(java::InputStream &is);

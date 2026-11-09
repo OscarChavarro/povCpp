@@ -48,17 +48,7 @@ Scene::Scene() :
 
 Scene::~Scene()
 {
-    // Scene owns lightSources: ScenePostProcessor::linkLights transfers each
-    // Light out of its parse-time LightGeometryAdapter (see
-    // LightGeometryAdapter::releaseLight) once the object tree traversal has
-    // resolved its final world transform, matching VITRAL's
-    // SimpleScene::addLight ownership model.
-    for (long int i = 0; i < lightSources.size(); i++) {
-        delete lightSources[i];
-    }
-    for (long int i = 0; i < Objects.size(); i++) {
-        delete Objects[i];
-    }
+    clearOwnedElements();
     delete defaultTexture;
 }
 
@@ -66,11 +56,9 @@ void
 Scene::resetForSceneParse(double antialiasThreshold)
 {
     viewPoint = defaultViewPoint();
-    for (long int i = 0; i < lightSources.size(); i++) {
-        delete lightSources[i];
-    }
-    lightSources.clear();
-    Objects.clear();
+    clearOwnedElements();
+    delete defaultTexture;
+    defaultTexture = nullptr;
     atmosphereIor = 1.0;
     this->antialiasThreshold = antialiasThreshold;
     setFog(blackFogColor(), 0.0);

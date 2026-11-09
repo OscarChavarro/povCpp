@@ -1,5 +1,5 @@
-#ifndef __PROCEDURALNOISE__
-#define __PROCEDURALNOISE__
+#ifndef __PROCEDURAL_NOISE__
+#define __PROCEDURAL_NOISE__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/numericalAnalysis/lookUpTables/LookUpTableChecksum16.h"

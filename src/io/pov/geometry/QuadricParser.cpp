@@ -1,6 +1,6 @@
 
 
-#include "environment/geometry/volume/Quadric.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/pov/geometry/QuadricParser.h"

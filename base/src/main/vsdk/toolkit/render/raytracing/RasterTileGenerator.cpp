@@ -18,19 +18,19 @@ RasterTileGenerator::RasterTileGenerator(
 RasterTileGenerator::RasterTileGenerator(
     RasterTileGenerationStrategy strategyIn,
     Image* imageIn,
-    int x0In,
-    int y0In,
+    int startXIn,
+    int startYIn,
     int widthIn,
     int heightIn,
     int numberOfThreadsIn)
-    : strategy(strategyIn), image(imageIn), x0(x0In), y0(y0In),
+    : strategy(strategyIn), image(imageIn), startX(startXIn), startY(startYIn),
       width(widthIn), height(heightIn), numberOfThreads(numberOfThreadsIn)
 {
     if ( image == 0 ) {
         Logger::reportMessage("RasterTileGenerator", Logger::ERROR, "RasterTileGenerator", "image can not be null");
         throw VSDKFatalException("image can not be null");
     }
-    if ( x0 < 0 || y0 < 0 ) {
+    if ( startX < 0 || startY < 0 ) {
         Logger::reportMessage("RasterTileGenerator", Logger::ERROR, "RasterTileGenerator", "origin must be >= 0");
         throw VSDKFatalException("origin must be >= 0");
     }
@@ -38,7 +38,7 @@ RasterTileGenerator::RasterTileGenerator(
         Logger::reportMessage("RasterTileGenerator", Logger::ERROR, "RasterTileGenerator", "width/height must be > 0");
         throw VSDKFatalException("width/height must be > 0");
     }
-    if ( x0 + width > image->getXSize() || y0 + height > image->getYSize() ) {
+    if ( startX + width > image->getXSize() || startY + height > image->getYSize() ) {
         Logger::reportMessage("RasterTileGenerator", Logger::ERROR, "RasterTileGenerator", "requested tile area must be inside image");
         throw VSDKFatalException("requested tile area must be inside image");
     }
@@ -71,7 +71,7 @@ java::ArrayList<RasterTileArea> RasterTileGenerator::generateLinearTiles() const
     out.reserve((long int)workerBands);
     for ( int i = 0; i < workerBands; i++ ) {
         int currentBandHeight = baseBandHeight + (i < extraRows ? 1 : 0);
-        out.add(RasterTileArea(image, x0, y0 + y, width, currentBandHeight));
+        out.add(RasterTileArea(image, startX, startY + y, width, currentBandHeight));
         y += currentBandHeight;
     }
     return out;
@@ -81,6 +81,6 @@ java::ArrayList<RasterTileArea> RasterTileGenerator::generateSerialTile() const
 {
     java::ArrayList<RasterTileArea> out;
     out.reserve(1);
-    out.add(RasterTileArea(image, x0, y0, width, height));
+    out.add(RasterTileArea(image, startX, startY, width, height));
     return out;
 }

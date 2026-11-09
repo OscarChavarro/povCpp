@@ -1,3 +1,6 @@
+#ifndef __MEMORY_POOL_TXX__
+#define __MEMORY_POOL_TXX__
+
 #include "vsdk/toolkit/common/memoryManagement/MemoryPool.h"
 template <class T>
 MemoryPool<T>::MemoryPool():
@@ -176,3 +179,5 @@ MemoryPool<T>::expand(int numberOfElements) {
     initialized = true;
     return true;
 }
+
+#endif

@@ -1,5 +1,5 @@
-#ifndef __RENDERERCONFIGURATION__
-#define __RENDERERCONFIGURATION__
+#ifndef __RENDERER_CONFIGURATION__
+#define __RENDERER_CONFIGURATION__
 
 #include "java/lang/String.h"
 #include "vsdk/toolkit/common/color/ColorRgb.h"

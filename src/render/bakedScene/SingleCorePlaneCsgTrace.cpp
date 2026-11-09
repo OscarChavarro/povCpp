@@ -36,7 +36,7 @@ SingleCorePlaneCsgTrace::candidateInsideCompiledSingleCorePlaneOperands(
                 &bakedCsg->getOperands()[coreIndex],
                 bakedCsgs,
                 point,
-                GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == RayCastingGeometry::OUTSIDE) {
             return false;
         }
     }
@@ -51,7 +51,7 @@ SingleCorePlaneCsgTrace::candidateInsideCompiledSingleCorePlaneOperands(
                 &bakedCsg->getOperands()[operandIndex],
                 bakedCsgs,
                 point,
-                GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == RayCastingGeometry::OUTSIDE) {
             return false;
         }
     }
@@ -78,7 +78,7 @@ SingleCorePlaneCsgTrace::candidateInsideCompiledNestedContainmentSequence(
                 &nestedCsg->getOperands()[operandIndex],
                 bakedCsgs,
                 point,
-                GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == RayCastingGeometry::OUTSIDE) {
             return false;
         }
     }
@@ -105,7 +105,7 @@ SingleCorePlaneCsgTrace::candidateInsideDirectDescriptorOperands(
         if (BakedPlaneIntersector::planeContainmentTest(
                 &nestedCsg->getOperands()[planeIdx],
                 point,
-                GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == RayCastingGeometry::OUTSIDE) {
             return false;
         }
     }
@@ -116,7 +116,7 @@ SingleCorePlaneCsgTrace::candidateInsideDirectDescriptorOperands(
         Quadric *quadric = nestedCsg->getOperands()[coreIndex].getQuadricGeometry();
         if (quadric == nullptr ||
             quadric->doContainmentTest(point, GeometryConfig::SMALL_TOLERANCE) ==
-                Geometry::OUTSIDE) {
+                RayCastingGeometry::OUTSIDE) {
             return false;
         }
     }
@@ -218,9 +218,9 @@ SingleCorePlaneCsgTrace::traceCompiledCoreOperandAllCrossings(
 
         double depth1;
         double depth2;
-        if (!Sphere::intersectSphereLocalSpace(
+        if (!RayCastingSphere::intersectSphereLocalSpace(
                 localOrigin, localDirection, ray->getGeometryStatistics(),
-                static_cast<Sphere *>(operand->getGeometry())->getRadius(),
+                static_cast<RayCastingSphere *>(operand->getGeometry())->getRadius(),
                 &depth1, &depth2)) {
             return false;
         }

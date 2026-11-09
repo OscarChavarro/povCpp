@@ -1,8 +1,8 @@
 
 #include "render/bakedScene/BakedPlaneIntersector.h"
 
-#include "environment/geometry/element/GeometryConfig.h"
-#include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 
@@ -56,7 +56,7 @@ BakedPlaneIntersector::planeContainmentTest(
 {
     const double signedDistance =
         point.dotProduct(operand->getPlaneNormal()) + operand->getPlaneDistance();
-    return signedDistance <= distanceTolerance ? Geometry::INSIDE : Geometry::OUTSIDE;
+    return signedDistance <= distanceTolerance ? RayCastingGeometry::INSIDE : RayCastingGeometry::OUTSIDE;
 }
 
 bool

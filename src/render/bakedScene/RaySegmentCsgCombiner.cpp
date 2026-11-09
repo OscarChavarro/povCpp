@@ -33,13 +33,13 @@ RaySegmentCsgCombiner::buildRaySegments(
             ray->getDirection().multiply(0.5 * firstCandidate.getIntersection().t));
         initialInside =
             CsgContainmentTest::containmentTestOperand(
-                operand, bakedCsgs, samplePoint, 0.0) == Geometry::INSIDE;
+                operand, bakedCsgs, samplePoint, 0.0) == RayCastingGeometry::INSIDE;
     } else {
         Vector3Dd samplePoint =
             ray->getOrigin().add(ray->getDirection().multiply(2.0 * GeometryConfig::SMALL_TOLERANCE));
         initialInside =
             CsgContainmentTest::containmentTestOperand(
-                operand, bakedCsgs, samplePoint, 0.0) == Geometry::INSIDE;
+                operand, bakedCsgs, samplePoint, 0.0) == RayCastingGeometry::INSIDE;
     }
 
     java::ArrayList<RaySegmentCrossing> crossings{localDepthQueue->size()};

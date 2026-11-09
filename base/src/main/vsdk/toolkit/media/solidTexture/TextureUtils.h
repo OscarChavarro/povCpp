@@ -1,5 +1,5 @@
-#ifndef __TEXTUREUTILS__
-#define __TEXTUREUTILS__
+#ifndef __TEXTURE_UTILS__
+#define __TEXTURE_UTILS__
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"

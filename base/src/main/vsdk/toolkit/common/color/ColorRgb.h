@@ -1,5 +1,5 @@
-#ifndef __COLORRGB__
-#define __COLORRGB__
+#ifndef __COLOR_RGB__
+#define __COLOR_RGB__
 
 class ColorRgb {
 private:

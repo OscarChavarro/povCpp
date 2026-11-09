@@ -3,7 +3,7 @@
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/environment/light/Light.h"
-#include "environment/geometry/element/RayWithTracingState.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/RayWithTracingState.h"
 
 class LightSamplerShader {
 public:

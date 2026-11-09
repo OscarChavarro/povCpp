@@ -6,6 +6,7 @@ Makefile
 compile_commands.json
 compile_commands.rel.json
 build/
+/build-vitral/
 
 # Compiled object files and archives
 *.o

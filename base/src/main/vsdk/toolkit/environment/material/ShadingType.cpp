@@ -15,3 +15,15 @@ ShadingType ShadingTypeUtil::next(ShadingType value)
 {
     return static_cast<ShadingType>((static_cast<int>(value) + 1) % 5);
 }
+
+const char* ShadingTypeUtil::name(ShadingType value)
+{
+    switch ( value ) {
+        case SHADING_NOLIGHT: return "NOLIGHT";
+        case SHADING_FLAT: return "FLAT";
+        case SHADING_GOURAUD: return "GOURAUD";
+        case SHADING_PHONG: return "PHONG";
+        case SHADING_COOK_TERRANCE: return "COOK_TERRANCE";
+        default: return "GOURAUD";
+    }
+}

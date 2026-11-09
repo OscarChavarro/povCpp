@@ -3,19 +3,19 @@
 
 #include "render/bakedScene/BakedScene.h"
 #include "render/bakedScene/CullSafeEntry.h"
-#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 
 class BakedSceneBuilder {
   public:
     static void build(const java::ArrayList<SimpleBody*> &objects, BakedScene &out);
 
   private:
-    static bool isBakeableSimpleBody(SimpleBody *object);
+    static bool isBakeableSimpleBody(RayCastingBody *object);
     static Matrix4x4d copyOrIdentity(const Matrix4x4d *matrix);
     static BakedSceneTraceKind classifyTraceableObject(
         bool hasGeometry, bool boundedOrClipped, bool hasCsg);
     static BakedSceneCsgOperandKind classifyOperandKind(
-        Geometry *geometry,
+        RayCastingGeometry *geometry,
         int nestedCsgProgramIndex,
         bool hasTransform,
         bool isInfinitePlane,
@@ -43,10 +43,10 @@ class BakedSceneBuilder {
         java::ArrayList<int> &transformedPrimitiveOperandIndices,
         java::ArrayList<int> &directPrimitiveOperandIndices);
     static void compileTracingObjects(
-        const java::ArrayList<SimpleBody*> &objects,
+        const java::ArrayList<RayCastingBody*> &objects,
         BakedScene &out,
         java::ArrayList<int> &result);
-    static TraceableObject *bakeSimpleBody(SimpleBody *object, BakedScene &out);
+    static TraceableObject *bakeSimpleBody(RayCastingBody *object, BakedScene &out);
     static bool isPushdownCandidateOperand(const CsgOperandRecord *operand);
     static bool nestedProgramFullyBakeable(
         const BakedScene &scene, int programIndex, int depthGuard);
@@ -83,7 +83,7 @@ class BakedSceneBuilder {
         bool pushdownFolded,
         const Quadric &bakedQuadricStorage,
         bool hasBakedQuadric,
-        const InfinitePlane &bakedPlaneStorage,
+        const RayCastingInfinitePlane &bakedPlaneStorage,
         bool hasBakedPlane,
         const Vector3Dd &planeNormal,
         double planeDistance,
@@ -122,8 +122,8 @@ class BakedSceneBuilder {
         ConstructiveSolidGeometry *geometry, BakedScene &out);
     static int compileConstructiveSolidGeometry(
         ConstructiveSolidGeometry *geometry, BakedScene &out);
-    static CompositeRecord *bakeComposite(Composite *object, BakedScene &out);
-    static int compileTracingObject(SimpleBody *object, BakedScene &out);
+    static CompositeRecord *bakeComposite(RayCastingComposite *object, BakedScene &out);
+    static int compileTracingObject(RayCastingBody *object, BakedScene &out);
     static void accumulateStatistics(
         BakedScene &scene, long quadricViewpointSlotCount, long planeViewpointSlotCount);
 };

@@ -1,7 +1,7 @@
 #ifndef __RAY_SEGMENT_CSG_COMBINER__
 #define __RAY_SEGMENT_CSG_COMBINER__
 
-#include "environment/geometry/volume/constructiveSolidGeometry/RaySegments.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/RaySegments.h"
 #include "render/bakedScene/BakedScene.h"
 #include "render/bakedScene/CsgScratchContext.h"
 

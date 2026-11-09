@@ -5,7 +5,7 @@ enum class BakedSceneTraceKind {
     Empty,
     DirectPrimitive,
     Csg,
-    Composite,
+    RayCastingComposite,
     BoundedGeneric,
     GenericFallback,
 };

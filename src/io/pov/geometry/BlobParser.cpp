@@ -1,6 +1,6 @@
 
 
-#include "environment/geometry/volume/Blob.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/Blob.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/pov/geometry/BlobParser.h"
@@ -12,7 +12,7 @@
 #include "java/util/ArrayList.txx"
 
 SimpleBodyBuilder *
-BlobParser::rebuildBodyWithGeometry(SimpleBodyBuilder *body, Geometry *geometry)
+BlobParser::rebuildBodyWithGeometry(SimpleBodyBuilder *body, RayCastingGeometry *geometry)
 {
     Material *clonedMaterial = (body->getMaterial() != nullptr) ?
         new PovRayMaterial(*static_cast<PovRayMaterial *>(body->getMaterial())) : nullptr;

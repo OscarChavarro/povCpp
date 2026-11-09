@@ -1,14 +1,14 @@
 
-#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "vsdk/toolkit/environment/light/SpotLight.h"
-#include "environment/scene/Composite.h"
+#include "vsdk/toolkit/environment/raycasting/scene/RayCastingComposite.h"
 #include "io/pov/light/LightGeometryAdapter.h"
 #include "io/pov/scene/ScenePostProcessor.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 
 void
-ScenePostProcessor::linkLights(SimpleBody *object, java::ArrayList<Light*> &lights)
+ScenePostProcessor::linkLights(RayCastingBody *object, java::ArrayList<Light*> &lights)
 {
     java::ArrayList<const Matrix4x4d*> transforms(8);
     ScenePostProcessor::linkLights(object, lights, transforms);
@@ -44,7 +44,7 @@ ScenePostProcessor::applyTransformsToLight(
 
 void
 ScenePostProcessor::linkLights(
-    SimpleBody *object,
+    RayCastingBody *object,
     java::ArrayList<Light*> &lights,
     java::ArrayList<const Matrix4x4d*> &transforms)
 {
@@ -56,8 +56,8 @@ ScenePostProcessor::linkLights(
         transforms.add(object->getGeometryTransformation());
     }
 
-    if (Composite *composite = dynamic_cast<Composite *>(object)) {
-        java::ArrayList<SimpleBody*> &simpleBodies = composite->getSimpleBodies();
+    if (RayCastingComposite *composite = dynamic_cast<RayCastingComposite *>(object)) {
+        java::ArrayList<RayCastingBody*> &simpleBodies = composite->getSimpleBodies();
         for (long int i = 0; i < simpleBodies.size(); i++) {
             ScenePostProcessor::linkLights(simpleBodies[i], lights, transforms);
         }
@@ -88,7 +88,7 @@ ScenePostProcessor::linkLightsInOperand(
 
 void
 ScenePostProcessor::linkLightsInShape(
-    Geometry *shape,
+    RayCastingGeometry *shape,
     java::ArrayList<Light*> &lights,
     java::ArrayList<const Matrix4x4d*> &transforms)
 {

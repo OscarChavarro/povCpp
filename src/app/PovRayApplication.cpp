@@ -57,12 +57,12 @@ PovRayApplication::printStatistics(
     };
 
     const GeometryStatistics *geometryStats = stats.getGeometryStatistics();
-    logIntersectionRow("  Sphere        ", geometryStats->getRaySphereTests(), geometryStats->getRaySphereTestsSucceeded());
+    logIntersectionRow("  RayCastingSphere        ", geometryStats->getRaySphereTests(), geometryStats->getRaySphereTestsSucceeded());
     logIntersectionRow("  Plane         ", geometryStats->getRayPlaneTests(), geometryStats->getRayPlaneTestsSucceeded());
     logIntersectionRow("  Triangle     ", geometryStats->getRayTriangleTests(), geometryStats->getRayTriangleTestsSucceeded());
     logIntersectionRow("  Quadric       ", geometryStats->getRayQuadricTests(), geometryStats->getRayQuadricTestsSucceeded());
     logIntersectionRow("  Blob          ", geometryStats->getRayBlobTests(), geometryStats->getRayBlobTestsSucceeded());
-    logIntersectionRow("  Box           ", geometryStats->getRayBoxTests(), geometryStats->getRayBoxTestsSucceeded());
+    logIntersectionRow("  RayCastingBox           ", geometryStats->getRayBoxTests(), geometryStats->getRayBoxTestsSucceeded());
     logIntersectionRow("  Quartic\\Poly ", geometryStats->getRayPolyTests(), geometryStats->getRayPolyTestsSucceeded());
     logIntersectionRow("  Bezier Patch ", geometryStats->getRayBicubicTests(), geometryStats->getRayBicubicTestsSucceeded());
     logIntersectionRow("  Height field   ", geometryStats->getRayHtFieldTests(), geometryStats->getRayHtFieldTestsSucceeded());

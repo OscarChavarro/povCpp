@@ -2,12 +2,12 @@
 #define __SIMPLE_BODY_BUILDER__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "environment/geometry/Geometry.h"
-#include "environment/geometry/element/TransformStep.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/RayCastingGeometry.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/TransformStep.h"
 
 class SimpleBodyBuilder {
   private:
-    Geometry *geometry = nullptr;
+    RayCastingGeometry *geometry = nullptr;
     Material *material = nullptr;
     ColorRgba *shapeColor = nullptr;
     Matrix4x4d *transformation = nullptr;
@@ -18,17 +18,17 @@ class SimpleBodyBuilder {
 
   public:
     SimpleBodyBuilder() {}
-    SimpleBodyBuilder(Geometry *geometry, Material *material, ColorRgba *shapeColor);
+    SimpleBodyBuilder(RayCastingGeometry *geometry, Material *material, ColorRgba *shapeColor);
     SimpleBodyBuilder(const SimpleBodyBuilder &other);
     ~SimpleBodyBuilder();
 
-    Geometry* getGeometry() const { return geometry; }
+    RayCastingGeometry* getGeometry() const { return geometry; }
     Material* getMaterial() const { return material; }
     ColorRgba* getShapeColor() const { return shapeColor; }
     Matrix4x4d* getTransformation() const { return transformation; }
     Matrix4x4d* getTransformationInverse() const { return transformationInverse; }
     const java::ArrayList<TransformStep>& getSteps() const { return steps; }
-    Geometry* releaseGeometry();
+    RayCastingGeometry* releaseGeometry();
     Material* releaseMaterial();
     ColorRgba* releaseShapeColor();
     Matrix4x4d* releaseTransformation();

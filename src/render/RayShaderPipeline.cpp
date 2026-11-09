@@ -1,5 +1,5 @@
-#include "environment/geometry/element/GeometryConfig.h"
-#include "environment/geometry/element/PovRayHit.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/RayCastingHit.h"
 #include "render/RayShaderPipeline.h"
 #include "render/shaders/BumpNormalShader.h"
 #include "render/shaders/ExponentialFogShader.h"
@@ -11,10 +11,10 @@ void
 RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
     ColorRgba *color, const RayWithTracingState *ray, int shadowRay,
     const TraceService *traceService, TextureUtils *textureUtils,
-    const RenderContext &context, int &traceLevel)
+    const PovRenderContext &context, int &traceLevel)
 {
-    PovRayHit hit = PovRayHit::fromCandidate(
-        *rayIntersection, ray != nullptr ? ray->getRequiredDetailMask() : PovRayHit::DETAIL_ALL);
+    RayCastingHit hit = RayCastingHit::fromCandidate(
+        *rayIntersection, ray != nullptr ? ray->getRequiredDetailMask() : RayCastingHit::DETAIL_ALL);
     ColorRgba surfaceColor(0.0, 0.0, 0.0, 0.0);
     ColorRgba refractedColor(0.0, 0.0, 0.0, 0.0);
     ColorRgba filterColor(0.0, 0.0, 0.0, 0.0);
@@ -42,7 +42,7 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
     if (usingMaterialTexture &&
         hit.materialUsesObjectLocalPoint &&
         hit.hitBody != nullptr) {
-        texturePoint = static_cast<SimpleBody *>(hit.hitBody)->worldPointToLocal(hit.p);
+        texturePoint = static_cast<RayCastingBody *>(hit.hitBody)->worldPointToLocal(hit.p);
     }
 
     // Check to see if this object/shape has a material_map texture, if so

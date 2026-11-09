@@ -1,5 +1,5 @@
-#ifndef __MATRIX4X4D__
-#define __MATRIX4X4D__
+#ifndef __MATRIX_4_X_4_D__
+#define __MATRIX_4_X_4_D__
 
 
 #include <cmath>
@@ -14,6 +14,7 @@ class Matrix4x4d {
 public:
     Matrix4x4d();
     Matrix4x4d(const Matrix4x4d& other);
+    Matrix4x4d& operator=(const Matrix4x4d& other);
     explicit Matrix4x4d(const double values[4][4]);
 
     static Matrix4x4d copyOf(const Matrix4x4d& other) { return Matrix4x4d(other); }

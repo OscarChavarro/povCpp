@@ -9,7 +9,7 @@ class RayShaderPipeline {
     static void shadeSurface(IntersectionCandidate *rayIntersection,
         ColorRgba *color, const RayWithTracingState *ray, int shadowRay,
         const TraceService *traceService, TextureUtils *textureUtils,
-        const RenderContext &context, int &traceLevel);
+        const PovRenderContext &context, int &traceLevel);
 };
 
 #endif

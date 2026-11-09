@@ -1,13 +1,14 @@
 #ifndef __CAMERA__
 #define __CAMERA__
 
+#include "vsdk/toolkit/common/Entity.h"
 #include "java/lang/String.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 class CameraSnapshot;
 
-class Camera {
+class Camera : public Entity {
 public:
     static const int OPCODE_FAR = (0x01 << 1);
     static const int OPCODE_NEAR = (0x01 << 2);
@@ -21,6 +22,7 @@ public:
 
     Camera();
     Camera(const Camera& other);
+    Camera& operator=(const Camera& other) = default;
 
     Matrix4x4d getNormalizingTransformation() const;
     long getModificationVersion() const;
@@ -74,6 +76,19 @@ public:
     Matrix4x4d calculateProjectionMatrix() const;
     Ray generateRay(int x, int y) const;
 
+    /**
+    Projects a point in world coordinates to the viewport of this camera,
+    by intersecting its projector ray with the view plane (see the Java
+    version for applications and notes).
+    @param inPoint point to project, in world coordinates
+    @param outProjected the projected point in viewport pixel coordinates
+    (z is 0), when the projection is valid
+    @return false if the point can not be projected or lies outside the
+    viewport (the Java version returns null)
+    */
+    bool projectPointUsingRayMethod(const Vector3Dd& inPoint,
+                                    Vector3Dd* outProjected);
+
     float* toColumnMajorFloatArray() const;
 
     java::String toString() const;
@@ -84,7 +99,7 @@ private:
     Vector3Dd up;
     Vector3Dd front;
     Vector3Dd left;
-    Vector3Dd eyePosition;
+    Vector3Dd position;
     double focalDistance;
     int projectionMode;
 
@@ -98,7 +113,7 @@ private:
     double viewportXSize;
     double viewportYSize;
 
-    Vector3Dd dx, dy, _dir, upWithScale, rightWithScale;
+    Vector3Dd frontWithScale, upWithScale, rightWithScale;
     Matrix4x4d normalizingTransformation;
     mutable long modificationVersion;
 

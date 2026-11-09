@@ -1,5 +1,5 @@
-#ifndef __RENDER_CONTEXT__
-#define __RENDER_CONTEXT__
+#ifndef __POV_RENDER_CONTEXT__
+#define __POV_RENDER_CONTEXT__
 
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "render/PovRayRendererConfiguration.h"
@@ -7,7 +7,7 @@
 #include "environment/scene/Scene.h"
 #include "render/bakedScene/BakedScene.h"
 
-class RenderContext {
+class PovRenderContext {
   private:
     const PovRayRendererConfiguration &config;
     PovRayRenderStatistics &statistics;
@@ -16,7 +16,7 @@ class RenderContext {
     const BakedScene *bakedScene = nullptr;
 
   public:
-    RenderContext(
+    PovRenderContext(
         const PovRayRendererConfiguration &cfg,
         PovRayRenderStatistics &stats,
         const Scene &scn,

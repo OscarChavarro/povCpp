@@ -1,6 +1,6 @@
 
 
-#include "environment/geometry/volume/Box.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/RayCastingBox.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/pov/geometry/BoxParser.h"
@@ -20,7 +20,7 @@ BoxParser::parseBox()
 SimpleBodyBuilder *
 BoxParser::parseBox(ParserContext &ctx)
 {
-    Box *localShape = nullptr;
+    RayCastingBox *localShape = nullptr;
     SimpleBodyBuilder *body = nullptr;
     Vector3Dd localVector;
     Vector3Dd minBounds;
@@ -50,7 +50,7 @@ BoxParser::parseBox(ParserContext &ctx)
                 ctx.tokenStream().ungetToken();
                 PrimitiveParser::parseVector(&minBounds, ctx);
                 PrimitiveParser::parseVector(&maxBounds, ctx);
-                localShape = new Box(minBounds, maxBounds);
+                localShape = new RayCastingBox(minBounds, maxBounds);
                 body = SceneBuilder::wrap(localShape);
                 Exit_Flag = true;
                 break;
@@ -65,7 +65,7 @@ BoxParser::parseBox(ParserContext &ctx)
                         body = new SimpleBodyBuilder(
                                 *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
                                     .getConstantData());
-                        localShape = (Box *)body->getGeometry();
+                        localShape = (RayCastingBox *)body->getGeometry();
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }

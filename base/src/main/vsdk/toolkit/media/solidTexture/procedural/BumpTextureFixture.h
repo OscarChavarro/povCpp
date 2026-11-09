@@ -1,5 +1,5 @@
-#ifndef __BUMPTEXTUREFIXTURE__
-#define __BUMPTEXTUREFIXTURE__
+#ifndef __BUMP_TEXTURE_FIXTURE__
+#define __BUMP_TEXTURE_FIXTURE__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/solidTexture/procedural/ProceduralNoise.h"

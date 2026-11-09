@@ -1,7 +1,7 @@
 
 #include "render/bakedScene/CsgContainmentTest.h"
 
-#include "environment/geometry/element/GeometryConfig.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
 #include "render/bakedScene/AabbCullingSupport.h"
 #include "render/bakedScene/BakedPlaneIntersector.h"
 #include "java/util/ArrayList.txx"
@@ -16,7 +16,7 @@ CsgContainmentTest::containmentTestOperand(
 {
     switch (operand->getKind()) {
     case BakedScene::CsgOperandKind::Empty:
-        return Geometry::OUTSIDE;
+        return RayCastingGeometry::OUTSIDE;
 
     case BakedScene::CsgOperandKind::DirectPlane:
         return BakedPlaneIntersector::planeContainmentTest(operand, point, distanceTolerance);
@@ -53,9 +53,9 @@ CsgContainmentTest::containmentTestOperand(
     case BakedScene::CsgOperandKind::GenericFallback:
         return operand->getGeometry() != nullptr ?
             operand->getGeometry()->doContainmentTest(point, distanceTolerance) :
-            Geometry::OUTSIDE;
+            RayCastingGeometry::OUTSIDE;
     }
-    return Geometry::OUTSIDE;
+    return RayCastingGeometry::OUTSIDE;
 }
 
 bool
@@ -73,7 +73,7 @@ CsgContainmentTest::candidateInsideAllOtherOperands(
                 &bakedCsg->getOperands()[j],
                 bakedCsgs,
                 point,
-                GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == RayCastingGeometry::OUTSIDE) {
             return false;
         }
     }
@@ -93,7 +93,7 @@ CsgContainmentTest::candidateInsideOperandsCoreFirst(
                 &bakedCsg->getOperands()[coreIndex],
                 bakedCsgs,
                 point,
-                GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == RayCastingGeometry::OUTSIDE) {
             return false;
         }
     }
@@ -106,7 +106,7 @@ CsgContainmentTest::candidateInsideOperandsCoreFirst(
                 &bakedCsg->getOperands()[j],
                 bakedCsgs,
                 point,
-                GeometryConfig::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == RayCastingGeometry::OUTSIDE) {
             return false;
         }
     }
@@ -121,7 +121,7 @@ CsgContainmentTest::containmentTest(
     double distanceTolerance)
 {
     if (bakedCsg->getOperands().size() == 0) {
-        return Geometry::OUTSIDE;
+        return RayCastingGeometry::OUTSIDE;
     }
 
     if (bakedCsg->getPlanKind() ==
@@ -135,11 +135,11 @@ CsgContainmentTest::containmentTest(
                     operand,
                     bakedCsgs,
                     point,
-                    distanceTolerance) != Geometry::OUTSIDE) {
-                return Geometry::INSIDE;
+                    distanceTolerance) != RayCastingGeometry::OUTSIDE) {
+                return RayCastingGeometry::INSIDE;
             }
         }
-        return Geometry::OUTSIDE;
+        return RayCastingGeometry::OUTSIDE;
     }
 
     bool isInside;
@@ -147,13 +147,13 @@ CsgContainmentTest::containmentTest(
     case BooleanSetOperations::DIFFERENCE:
         isInside =
             containmentTestOperand(
-                &bakedCsg->getOperands()[0], bakedCsgs, point, distanceTolerance) != Geometry::OUTSIDE;
+                &bakedCsg->getOperands()[0], bakedCsgs, point, distanceTolerance) != RayCastingGeometry::OUTSIDE;
         for (long int i = 1; isInside && (i < bakedCsg->getOperands().size()); i++) {
             if (containmentTestOperand(
                     &bakedCsg->getOperands()[i],
                     bakedCsgs,
                     point,
-                    distanceTolerance) != Geometry::OUTSIDE) {
+                    distanceTolerance) != RayCastingGeometry::OUTSIDE) {
                 isInside = false;
             }
         }
@@ -166,7 +166,7 @@ CsgContainmentTest::containmentTest(
                     &bakedCsg->getOperands()[i],
                     bakedCsgs,
                     point,
-                    distanceTolerance) == Geometry::OUTSIDE) {
+                    distanceTolerance) == RayCastingGeometry::OUTSIDE) {
                 isInside = false;
             }
         }
@@ -179,11 +179,11 @@ CsgContainmentTest::containmentTest(
                     &bakedCsg->getOperands()[i],
                     bakedCsgs,
                     point,
-                    distanceTolerance) != Geometry::OUTSIDE) {
+                    distanceTolerance) != RayCastingGeometry::OUTSIDE) {
                 isInside = true;
             }
         }
         break;
     }
-    return isInside ? Geometry::INSIDE : Geometry::OUTSIDE;
+    return isInside ? RayCastingGeometry::INSIDE : RayCastingGeometry::OUTSIDE;
 }

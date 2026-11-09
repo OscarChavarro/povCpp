@@ -1,8 +1,8 @@
+#include "java/lang/IllegalArgumentException.h"
 #include <cmath>
 #include <cstdio>
 
 #include "java/lang/String.h"
-#include <stdexcept>
 #include "vsdk/toolkit/common/VSDK.h"
 #include "vsdk/toolkit/common/linealAlgebra/Quaterniond.h"
 #include "vsdk/toolkit/common/linealAlgebra/Quaternionf.h"
@@ -16,7 +16,7 @@ Vector2Df::Vector2Df(const Vector2Dd& other) : x_((float)other.x), y_((float)oth
 
 bool Vector3Dd::epsilonEquals(const Vector3Dd& other, double epsilon) const
 {
-    if ( epsilon < 0.0 ) throw std::invalid_argument("epsilon must be >= 0");
+    if ( epsilon < 0.0 ) throw java::IllegalArgumentException("epsilon must be >= 0");
     return std::abs(x_ - other.x_) <= epsilon && std::abs(y_ - other.y_) <= epsilon && std::abs(z_ - other.z_) <= epsilon;
 }
 
@@ -65,7 +65,7 @@ Vector3Df Vector3Df::add(const Vector3Df& b) const { return Vector3Df(x_ + b.x_,
 Vector3Df Vector3Df::subtract(const Vector3Df& b) const { return Vector3Df(x_ - b.x_, y_ - b.y_, z_ - b.z_); }
 bool Vector3Df::epsilonEquals(const Vector3Df& other, float epsilon) const
 {
-    if ( epsilon < 0.0f ) throw std::invalid_argument("epsilon must be >= 0");
+    if ( epsilon < 0.0f ) throw java::IllegalArgumentException("epsilon must be >= 0");
     return std::abs(x_ - other.x_) <= epsilon && std::abs(y_ - other.y_) <= epsilon && std::abs(z_ - other.z_) <= epsilon;
 }
 
@@ -76,7 +76,7 @@ double Vector4Dd::length() const { return std::sqrt(x_ * x_ + y_ * y_ + z_ * z_ 
 Vector4Dd Vector4Dd::add(const Vector4Dd& b) const { return Vector4Dd(x_ + b.x_, y_ + b.y_, z_ + b.z_, w_ + b.w_); }
 bool Vector4Dd::epsilonEquals(const Vector4Dd& other, double epsilon) const
 {
-    if ( epsilon < 0.0 ) throw std::invalid_argument("epsilon must be >= 0");
+    if ( epsilon < 0.0 ) throw java::IllegalArgumentException("epsilon must be >= 0");
     return std::abs(x_ - other.x_) <= epsilon && std::abs(y_ - other.y_) <= epsilon && std::abs(z_ - other.z_) <= epsilon && std::abs(w_ - other.w_) <= epsilon;
 }
 
@@ -88,7 +88,7 @@ float Vector4Df::length() const { return std::sqrt(x_ * x_ + y_ * y_ + z_ * z_ +
 Vector4Df Vector4Df::add(const Vector4Df& b) const { return Vector4Df(x_ + b.x_, y_ + b.y_, z_ + b.z_, w_ + b.w_); }
 bool Vector4Df::epsilonEquals(const Vector4Df& other, float epsilon) const
 {
-    if ( epsilon < 0.0f ) throw std::invalid_argument("epsilon must be >= 0");
+    if ( epsilon < 0.0f ) throw java::IllegalArgumentException("epsilon must be >= 0");
     return std::abs(x_ - other.x_) <= epsilon && std::abs(y_ - other.y_) <= epsilon && std::abs(z_ - other.z_) <= epsilon && std::abs(w_ - other.w_) <= epsilon;
 }
 
@@ -109,7 +109,7 @@ Vector3Dd Quaterniond::rotate(const Vector3Dd& vector) const
 }
 bool Quaterniond::epsilonEquals(const Quaterniond& other, double epsilon) const
 {
-    if ( epsilon < 0.0 ) throw std::invalid_argument("epsilon must be >= 0");
+    if ( epsilon < 0.0 ) throw java::IllegalArgumentException("epsilon must be >= 0");
     return direction_.epsilonEquals(other.direction_, epsilon) && std::abs(magnitude_ - other.magnitude_) <= epsilon;
 }
 
@@ -132,7 +132,7 @@ Vector3Df Quaternionf::rotate(const Vector3Df& vector) const
 }
 bool Quaternionf::epsilonEquals(const Quaternionf& other, float epsilon) const
 {
-    if ( epsilon < 0.0f ) throw std::invalid_argument("epsilon must be >= 0");
+    if ( epsilon < 0.0f ) throw java::IllegalArgumentException("epsilon must be >= 0");
     return direction_.epsilonEquals(other.direction_, epsilon) && std::abs(magnitude_ - other.magnitude_) <= epsilon;
 }
 
