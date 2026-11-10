@@ -77,6 +77,16 @@ Add interfaces only when they separate necessary responsibilities. Do not create
 an interface per application, renderer, or CSG strategy that forces every primitive
 to be implemented twice.
 
+### C++ implementation conventions
+
+Use the `java::` abstractions in VITRAL base for data structures and their
+operations, including `java::ArrayList` instead of STL containers. Include template
+`.h` declarations from headers and `.txx` definitions from implementation files.
+Each new class belongs in its own `.h`/`.cpp` module. Keep helpers and state as
+class members; do not introduce namespaces, structs, or standalone global
+functions/variables. Reuse the existing `java` package without introducing new
+namespace blocks. These conventions also apply to new test helpers.
+
 ## 4. Mathematical Geometry contract
 
 ### 4.1. Required operations
@@ -340,8 +350,8 @@ with its tests. Do not move all of `raycasting` as a block and call that converg
 | Consumer | Mandatory gate |
 |---|---|
 | PovRay | Complete `./scripts/renderAll.sh`, with no omitted scenes or failures and no degradation from baseline performance; compare before/after images |
-| PovRay CSG | Explicit corpus using both strategies, including CSG/Roth scripts and degenerate cases; the general gate alone is insufficient |
-| VITRAL | Build every testsuite example, with necessary optional dependencies enabled, and run relevant tests |
+| PovRay CSG | Explicit corpus using both strategies, including CSG/Roth scripts and degenerate cases. Preserve normal-flow references. The seven recorded Roth RMSE exceptions are accepted starting conditions; reject any additional discrepant scene, missing output, or render failure |
+| VITRAL | Build testsuite consumers and run relevant base tests. VGA programs depend on base and do not require a separate autonomous validation campaign |
 | RaytracingOfflineExample | MIT corpus and new fixtures in sequential/parallel execution, with verified images and geometric queries |
 | ShadersExample | Software and OpenGL execution, material/bump controls, new geometries, and representation checks; record graphics environment limitations separately |
 
