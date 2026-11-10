@@ -55,6 +55,8 @@ message(STATUS "  POSIX Threads: ${WITH_POSIX_THREADS}")
 
 # Source files for the base library
 set(VITRAL_BASE_SOURCES
+    src/main/vsdk/toolkit/environment/geometry/element/RaySolidBoundary.cpp
+    src/main/vsdk/toolkit/environment/geometry/element/RaySolidClassification.cpp
     src/main/vsdk/toolkit/environment/geometry/element/RayCrossingQuery.cpp
     src/main/vsdk/toolkit/environment/geometry/element/RayCrossing.cpp
     src/main/vsdk/toolkit/environment/geometry/element/RayCrossingSink.cpp
@@ -431,6 +433,7 @@ if(VITRAL_BUILD_TESTS)
   FetchContent_MakeAvailable(googletest)
 
   add_executable(vitral_base_tests
+    src/test/normal_map_texture_tests.cpp
     src/test/vector_tests.cpp
     src/test/quaternion_tests.cpp
     src/test/matrix_nxm_tests.cpp
@@ -442,6 +445,7 @@ if(VITRAL_BUILD_TESTS)
     src/test/dialog_persistence_tests.cpp
     src/test/java_emulation_tests.cpp
     src/test/image_persistence_tests.cpp
+    src/test/RayCrossingTestCollector.cpp
     src/test/ray_crossing_tests.cpp
     src/test/sphere_polyhedral_cache_tests.cpp
     src/test/box_cone_containment_tests.cpp

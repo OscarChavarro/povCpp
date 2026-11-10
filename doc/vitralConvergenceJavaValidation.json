@@ -1,0 +1,61 @@
+{
+  "change": "Replace newly introduced STL containers with java::ArrayList and use java::Double for new numeric checks; separate collector into its own class module.",
+  "conventions": {
+    "new_header_template_includes": ".h",
+    "new_implementation_template_includes": ".txx",
+    "new_namespaces": 0,
+    "new_structs": 0,
+    "new_global_helpers": 0
+  },
+  "tests": {
+    "vitral_passed": 118,
+    "povray_passed": 119,
+    "preexisting_disabled_per_build": 1,
+    "new_checks": [
+      "independent ArrayList copies",
+      "capacity retained after reuse",
+      "Double special values"
+    ]
+  },
+  "normal_render": {
+    "command": "env -u SKIP_HEAVY_SCENES -u EXTRA_POVRAY_OPTS ./scripts/renderAll.sh",
+    "exit_code": 0,
+    "wall_time": "1:57.41",
+    "user_cpu_seconds": 1329.72,
+    "system_cpu_seconds": 6.26,
+    "images": 108,
+    "identical_to_baseline": true,
+    "repeat": {
+      "wall_time": "1:51.25",
+      "user_cpu_seconds": 1325.52,
+      "system_cpu_seconds": 6.91,
+      "exit_code": 0,
+      "identical_to_baseline": true
+    },
+    "performance_note": "Wall timings vary: 117.41 s and 111.25 s versus initial 111.59 s and 112.39 s. The repeat is within the baseline wall-time range; CPU totals are higher (1329.72/1325.52 s versus 1291.53/1295.18 s). These observations do not isolate code cost from execution conditions."
+  },
+  "vitral_examples": {
+    "build": "all testsuite consumers",
+    "captured_runs": 30,
+    "identical_to_baseline": true,
+    "vga_policy": "base consumer; no autonomous runtime gate"
+  },
+  "roth": {
+    "command": "./scripts/renderCsgByRaySegments.sh && python3 scripts/checkVitralConvergenceRoth.py",
+    "known_exceptions": 7,
+    "new_exceptions": 0,
+    "log": "RMSE above threshold: level2/iortest.tga (RMSE=0.0361584, threshold=0.02)\nRMSE above threshold: level2/pawns.tga (RMSE=0.0704312, threshold=0.02)\nRMSE above threshold: level3/pool.tga (RMSE=0.0288425, threshold=0.02)\nRMSE above threshold: level3/snail.tga (RMSE=0.0372648, threshold=0.02)\nRMSE above threshold: level3/takeoff.tga (RMSE=0.0272118, threshold=0.02)\nRMSE above threshold: level3/wg5.tga (RMSE=0.0357182, threshold=0.02)\nRMSE above threshold: math/trough.tga (RMSE=0.052355, threshold=0.02)\nTest failed with 7 issue(s).\nRoth regression check passed: 7 known discrepancies, no new scenes."
+  },
+  "base_mirror": {
+    "files": 149,
+    "identical": true
+  },
+  "stage_status": {
+    "A": "complete",
+    "B": "partial",
+    "C-H": "not_started"
+  },
+  "raw_artifacts": "/tmp/vitral-convergence-java",
+  "commits_created": false,
+  "runtime_snapshot": "/tmp/vitral-convergence-java/runtime (set LD_LIBRARY_PATH to this directory when using its saved executable)"
+}

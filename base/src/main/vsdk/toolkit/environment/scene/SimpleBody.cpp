@@ -5,6 +5,7 @@
 #include "vsdk/toolkit/common/VSDK.h"
 #include "vsdk/toolkit/media/Image.h"
 #include "vsdk/toolkit/media/NormalMap.h"
+#include "vsdk/toolkit/media/NormalMapTexture.h"
 #include "vsdk/toolkit/media/RGBImageUncompressed.h"
 #include "vsdk/toolkit/environment/material/SimpleMaterial.h"
 #include "vsdk/toolkit/environment/geometry/Geometry.h"
@@ -26,6 +27,7 @@ SimpleBody::SimpleBody()
 
 SimpleBody::~SimpleBody()
 {
+    delete normalMapRgb;
     if ( geometry != 0 ) {
         if ( ownsGeometry ) {
             delete geometry;
@@ -168,7 +170,8 @@ void SimpleBody::setNormalMap(NormalMap* in)
         delete normalMap;
     }
     normalMap = in;
-    normalMapRgb = 0;
+    delete normalMapRgb;
+    normalMapRgb = in ? new NormalMapTexture(*in) : 0;
     markModified();
 }
 

@@ -10,6 +10,17 @@ output_dir="outputCsgByRaySegments"
 reference_dir="../referenceTestImages"
 RMSE_THRESHOLD="${RMSE_THRESHOLD:-0.02}"
 
+is_nonnegative_number() {
+    awk -v value="$1" 'BEGIN {
+        exit !(value ~ /^([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][+-]?[0-9]+)?$/)
+    }'
+}
+
+if ! is_nonnegative_number "$RMSE_THRESHOLD"; then
+    echo "Invalid RMSE_THRESHOLD: ${RMSE_THRESHOLD}" >&2
+    exit 1
+fi
+
 if [[ ! -d "${output_dir}" ]]; then
     echo "Missing output directory: ${output_dir}" >&2
     exit 1
@@ -37,13 +48,15 @@ while IFS= read -r generated; do
     # compare prints "<absolute> (<normalized 0..1>)" on stderr.
     normalized_rmse=$(printf '%s' "${compare_output}" | sed -n 's/.*(\(.*\))/\1/p')
 
-    if [[ -z "${normalized_rmse}" ]]; then
+    if ! is_nonnegative_number "${normalized_rmse}"; then
         echo "compare failed for ${rel_path}: ${compare_output}" >&2
         failures=$((failures + 1))
         continue
     fi
 
-    if (( $(echo "${normalized_rmse} > ${RMSE_THRESHOLD}" | bc -l) )); then
+    # ImageMagick may emit scientific notation, which bc does not accept.
+    if awk -v value="${normalized_rmse}" -v threshold="${RMSE_THRESHOLD}" \
+        'BEGIN { exit !(value + 0 > threshold + 0) }'; then
         echo "RMSE above threshold: ${rel_path} (RMSE=${normalized_rmse}, threshold=${RMSE_THRESHOLD})" >&2
         failures=$((failures + 1))
     fi

@@ -208,3 +208,14 @@ int java::Double::compare(double d1, double d2)
     }
     return negative1 ? -1 : 1;
 }
+
+
+bool java::Double::isNaN(double value)
+{
+    return value != value;
+}
+
+bool java::Double::isFinite(double value)
+{
+    return value >= -MAX_VALUE && value <= MAX_VALUE;
+}

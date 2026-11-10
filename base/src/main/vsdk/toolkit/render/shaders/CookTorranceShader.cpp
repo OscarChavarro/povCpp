@@ -37,7 +37,7 @@ static Vector3Dd computeBlinnPerturbedNormal(const RayHit* info, const Vector3Dd
     if ( normalVariation.length() <= VSDK::EPSILON ) return surfaceNormal;
 
     Vector3Dd baseNormal = surfaceNormal.normalized();
-    Vector3Dd surfaceTangentU = info->tangent.normalized();
+    Vector3Dd surfaceTangentU = (info->tangent.subtract(baseNormal.multiply(baseNormal.dotProduct(info->tangent)))).normalized();
     if ( surfaceTangentU.length() <= VSDK::EPSILON ) return surfaceNormal;
 
     Vector3Dd surfaceTangentV = baseNormal.crossProduct(surfaceTangentU).normalized();

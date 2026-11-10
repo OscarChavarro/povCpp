@@ -1,0 +1,124 @@
+{
+  "baseline": "vitralConvergenceBaseline.json",
+  "implemented": "Native Geometry::classifyRay contract and Sphere IN/OUT interval classification; existing render paths not switched.",
+  "stages": {
+    "A": "complete",
+    "B": "partial",
+    "C": "not_started",
+    "D": "not_started",
+    "E": "not_started",
+    "F": "not_started",
+    "G": "not_started",
+    "H": "not_started"
+  },
+  "pov_render": {
+    "command": "env -u SKIP_HEAVY_SCENES -u EXTRA_POVRAY_OPTS ./scripts/renderAll.sh",
+    "runs": [
+      {
+        "wall_time": "1:50.52",
+        "user_cpu_seconds": 1290.42,
+        "system_cpu_seconds": 4.94,
+        "maximum_resident_set_kib": 56448,
+        "exit_code": 0
+      },
+      {
+        "wall_time": "1:52.11",
+        "user_cpu_seconds": 1287.25,
+        "system_cpu_seconds": 4.86,
+        "maximum_resident_set_kib": 57024,
+        "exit_code": 0
+      },
+      {
+        "wall_time": "1:51.51",
+        "user_cpu_seconds": 1295.75,
+        "system_cpu_seconds": 4.84,
+        "maximum_resident_set_kib": 57024,
+        "exit_code": 0
+      }
+    ],
+    "image_count": 108,
+    "all_runs_identical_to_baseline": true,
+    "performance": "No observed regression against the two initial runs; no concurrent builds or other renders during timed runs."
+  },
+  "roth": {
+    "command": "./scripts/renderCsgByRaySegments.sh && python3 scripts/checkVitralConvergenceRoth.py",
+    "image_count": 108,
+    "hash_changes_against_baseline": [
+      "level1/stone1.tga",
+      "level1/stone2.tga",
+      "level1/stone3.tga",
+      "level1/sunset1.tga",
+      "level2/crystal.tga",
+      "level2/eight.tga",
+      "level2/esp01.tga",
+      "level2/illum1.tga",
+      "level2/lpops1.tga",
+      "level2/lpops2.tga",
+      "level2/mtmand.tga",
+      "level2/planet.tga",
+      "level2/poolball.tga",
+      "level2/room.tga",
+      "level2/stonewal.tga",
+      "level2/tetra.tga",
+      "level3/chess.tga",
+      "level3/desk.tga",
+      "level3/ionic5.tga",
+      "level3/kscope.tga",
+      "level3/ntreal.tga",
+      "level3/piece1.tga",
+      "level3/pool.tga",
+      "level3/roman.tga",
+      "level3/snack.tga",
+      "level3/snail.tga",
+      "level3/tomb.tga",
+      "level3/wg5.tga"
+    ],
+    "repeat_same_binary": {
+      "scene": "level1/stone1",
+      "sha256": [
+        "a5ff0e40bb5962d566b34957bac230148965b1e4cc1149ca2e8559637af8772d",
+        "9654d0e7c46efb0d0a7fb5abe0b2ea6510710a93baf09607dfb495c8d30a4dc9"
+      ],
+      "normalized_rmse_between_repeats": 0.00161563,
+      "note": "Parallel Roth output varies between runs with the same binary; exact image equality is not claimed."
+    },
+    "known_exceptions": 7,
+    "new_exceptions": 0,
+    "check_output": "RMSE above threshold: level2/iortest.tga (RMSE=0.0361584, threshold=0.02)\nRMSE above threshold: level2/pawns.tga (RMSE=0.0704312, threshold=0.02)\nRMSE above threshold: level3/pool.tga (RMSE=0.0289041, threshold=0.02)\nRMSE above threshold: level3/snail.tga (RMSE=0.037265, threshold=0.02)\nRMSE above threshold: level3/takeoff.tga (RMSE=0.0272118, threshold=0.02)\nRMSE above threshold: level3/wg5.tga (RMSE=0.035717, threshold=0.02)\nRMSE above threshold: math/trough.tga (RMSE=0.052355, threshold=0.02)\nTest failed with 7 issue(s).\nRoth regression check passed: 7 known discrepancies, no new scenes."
+  },
+  "vitral_examples": {
+    "build": "all testsuite consumers built; VGA treated as base consumers, no autonomous runtime gate",
+    "image_runs": 30,
+    "all_identical_to_baseline": true,
+    "offline_scenes": 12,
+    "offline_modes": [
+      "sequential",
+      "parallel"
+    ],
+    "shader_fixtures_per_backend": 3,
+    "shader_backends": [
+      "software",
+      "opengl under Xvfb"
+    ]
+  },
+  "tests": {
+    "povray": {
+      "passed": 117,
+      "failed": 0,
+      "preexisting_disabled": 1
+    },
+    "vitral": {
+      "passed": 116,
+      "failed": 0,
+      "preexisting_disabled": 1
+    },
+    "new_native_groups": 6,
+    "roth_gate_policy_checks": 4
+  },
+  "base_mirror": {
+    "files": 149,
+    "identical_to_vitral": true
+  },
+  "raw_artifacts": "/tmp/vitral-convergence-contracts",
+  "commits_created": false
+}

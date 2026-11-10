@@ -1,3 +1,6 @@
+#include "java/lang/Double.h"
+#include "java/util/ArrayList.txx"
+#include "vsdk/toolkit/environment/geometry/element/RaySolidClassification.h"
 #include <cmath>
 
 #include "java/util/ArrayList.txx"
@@ -323,4 +326,52 @@ RayCrossingSupport Sphere::emitRayCrossings(const Ray& ray,
     if (count > 0) emit(nearT);
     if (count > 1) emit(farT);
     return RayCrossingSupport::Supported;
+}
+
+
+RaySolidQueryStatus Sphere::classifyRay(const Ray& ray,
+    const RayCrossingQuery& query, RaySolidClassification& result) const
+{
+    result.clear();
+    const Vector3Dd& origin = ray.getOrigin();
+    const Vector3Dd& direction = ray.getDirection();
+    const double infinity = java::Double::POSITIVE_INFINITY;
+    // Surface compatibility cutoffs may discard genuine boundaries and cannot
+    // define a solid classification. Applications apply those to surface queries.
+    if (java::Double::isNaN(query.minT) || java::Double::isNaN(query.maxT) || query.minT >= query.maxT ||
+        query.minimumChordSquared != 0.0 || query.minimumExteriorApproach != -infinity ||
+        !java::Double::isFinite(radius) || radius <= 0.0 ||
+        !java::Double::isFinite(origin.x()) || !java::Double::isFinite(origin.y()) || !java::Double::isFinite(origin.z()) ||
+        !java::Double::isFinite(direction.x()) || !java::Double::isFinite(direction.y()) || !java::Double::isFinite(direction.z()) ||
+        (direction.x() == 0 && direction.y() == 0 && direction.z() == 0)) {
+        return RaySolidQueryStatus::InvalidInput;
+    }
+    const double lengthSquared = direction.dotProduct(direction);
+    if (!java::Double::isFinite(lengthSquared) || lengthSquared == 0 ||
+        !java::Double::isFinite(origin.dotProduct(origin)) || !java::Double::isFinite(radius * radius) ||
+        radius * radius == 0.0) {
+        return RaySolidQueryStatus::Indeterminate;
+    }
+    // Obtain the complete analytic interval before clipping: an empty set of
+    // surface events in the requested range can still mean entirely inside.
+    double nearT = 0, farT = 0;
+    const int count = intersectionRoots(origin, direction, radius,
+        RayCrossingQuery(-infinity, infinity), nearT, farT);
+    if (!java::Double::isFinite(nearT) || !java::Double::isFinite(farT)) {
+        return RaySolidQueryStatus::Indeterminate;
+    }
+    if (count < 2) {
+        result.insideSegments.add(false); // Miss or point tangency (IN/OUT).
+        return RaySolidQueryStatus::Supported;
+    }
+    result.insideSegments.add(query.minT > nearT && query.minT <= farT);
+    if (nearT >= query.minT && nearT <= query.maxT) {
+        result.boundaries.add(RaySolidBoundary(nearT, this));
+        result.insideSegments.add(true);
+    }
+    if (farT >= query.minT && farT <= query.maxT) {
+        result.boundaries.add(RaySolidBoundary(farT, this));
+        result.insideSegments.add(false);
+    }
+    return RaySolidQueryStatus::Supported;
 }

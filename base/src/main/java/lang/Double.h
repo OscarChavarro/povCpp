@@ -12,6 +12,10 @@ class Double {
     static constexpr double POSITIVE_INFINITY = __builtin_huge_val();
     static constexpr double NEGATIVE_INFINITY = -__builtin_huge_val();
 
+    static constexpr double NaN = __builtin_nan("");
+    static bool isNaN(double value);
+    static bool isFinite(double value);
+
     /**
     Emulation of `Double.parseDouble`: leading and trailing white space is
     ignored.

@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "purpose": "Analytic acceptance data for stages B-E; these are required results, not a claim that current APIs satisfy them.",
+  "ray_convention": "p(t) = origin + t * direction; preserve direction magnitude; query endpoints are included for surface events.",
+  "membership_convention": "Samples avoid boundaries. Tangent surface events do not toggle solid membership. ON/regularization extensions require separately specified cases.",
+  "sphere_cases": [
+    {
+      "id": "G1.nonunit_exterior",
+      "radius": 1,
+      "origin": [-3, 0, 0], "direction": [2, 0, 0], "query": [0, 4],
+      "surface_events": [{"t": 1, "kind": "Entering"}, {"t": 2, "kind": "Leaving"}],
+      "first_hit": 1,
+      "membership_samples": [{"t": 0, "inside": false}, {"t": 1.5, "inside": true}, {"t": 3, "inside": false}]
+    },
+    {
+      "id": "G1.nonunit_interior",
+      "radius": 1,
+      "origin": [0, 0, 0], "direction": [2, 0, 0], "query": [0, 2],
+      "surface_events": [{"t": 0.5, "kind": "Leaving"}],
+      "first_hit": 0.5,
+      "membership_samples": [{"t": 0, "inside": true}, {"t": 1, "inside": false}]
+    },
+    {
+      "id": "G1.tangent",
+      "radius": 1,
+      "origin": [-2, 1, 0], "direction": [1, 0, 0], "query": [0, 4],
+      "surface_events": [{"t": 2, "kind": "Tangent"}],
+      "first_hit": 2,
+      "membership_samples": [{"t": 1, "inside": false}, {"t": 3, "inside": false}]
+    },
+    {
+      "id": "G1.clipped_all_inside",
+      "radius": 1,
+      "origin": [-3, 0, 0], "direction": [2, 0, 0], "query": [1.25, 1.75],
+      "surface_events": [], "first_hit": null,
+      "membership_samples": [{"t": 1.25, "inside": true}, {"t": 1.5, "inside": true}, {"t": 1.75, "inside": true}]
+    },
+    {
+      "id": "G1.miss",
+      "radius": 1,
+      "origin": [-3, 2, 0], "direction": [2, 0, 0], "query": [0, 4],
+      "surface_events": [], "first_hit": null,
+      "membership_samples": [{"t": 0, "inside": false}, {"t": 1.5, "inside": false}, {"t": 4, "inside": false}]
+    },
+    {
+      "id": "G1.endpoint_events",
+      "radius": 1,
+      "origin": [-3, 0, 0], "direction": [2, 0, 0], "query": [1, 2],
+      "surface_events": [{"t": 1, "kind": "Entering"}, {"t": 2, "kind": "Leaving"}],
+      "first_hit": 1,
+      "membership_samples": [{"t": 1.5, "inside": true}]
+    }
+  ],
+  "interval_csg_cases": [
+    {
+      "id": "C1.overlap_union", "operation": "union",
+      "a_intervals": [[1, 3]], "b_intervals": [[2, 4]],
+      "result_intervals": [[1, 4]],
+      "boundary_sources": [{"t": 1, "operand": "a", "reversed": false}, {"t": 4, "operand": "b", "reversed": false}],
+      "heuristic_surface_parameters": [1, 2, 3, 4]
+    },
+    {
+      "id": "C1.overlap_intersection", "operation": "intersection",
+      "a_intervals": [[1, 3]], "b_intervals": [[2, 4]],
+      "result_intervals": [[2, 3]],
+      "boundary_sources": [{"t": 2, "operand": "b", "reversed": false}, {"t": 3, "operand": "a", "reversed": false}]
+    },
+    {
+      "id": "C1.overlap_difference", "operation": "difference",
+      "a_intervals": [[1, 3]], "b_intervals": [[2, 4]],
+      "result_intervals": [[1, 2]],
+      "boundary_sources": [{"t": 1, "operand": "a", "reversed": false}, {"t": 2, "operand": "b", "reversed": true}]
+    },
+    {
+      "id": "C1.nested_difference", "operation": "difference",
+      "a_intervals": [[1, 5]], "b_intervals": [[2, 4]],
+      "result_intervals": [[1, 2], [4, 5]],
+      "boundary_sources": [{"t": 1, "operand": "a", "reversed": false}, {"t": 2, "operand": "b", "reversed": true}, {"t": 4, "operand": "b", "reversed": true}, {"t": 5, "operand": "a", "reversed": false}]
+    }
+  ]
+}

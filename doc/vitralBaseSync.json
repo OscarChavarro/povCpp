@@ -1,7 +1,7 @@
 {
   "source": "/home/jedilink/VITRAL/vitral/cpp/base/src/main",
   "destination": "base/src/main",
-  "file_count": 144,
+  "file_count": 149,
   "all_diffs_empty": true,
   "sha256": {
     "java/io/File.cpp": "8ceeb11d0e92d78d139d3ef48dcf3f2c69fa027fa647349da17a4a324d47ff35",
@@ -85,6 +85,11 @@
     "vsdk/toolkit/environment/geometry/element/RayCrossingSink.cpp": "a80f267c29f2d5e9ddcbdb87039c25c783348f54945610d2629a5709d1e7c87e",
     "vsdk/toolkit/environment/geometry/element/RayCrossingSink.h": "0d39171f9846bc485584fe51c1b4ff621b29ada0c8e87f59550c7ec35c6eef78",
     "vsdk/toolkit/environment/geometry/element/RayCrossingSupport.h": "f922b4a7ea689427f5fab329b74dfd5a3b24ebd905570589fcd705fef1998a57",
+    "vsdk/toolkit/environment/geometry/element/RaySolidBoundary.cpp": "36b6acff6d2ab89287025a91a88feb3bb5f79762519461f0ead4d0c9c197c565",
+    "vsdk/toolkit/environment/geometry/element/RaySolidBoundary.h": "76cb95e6a21d00b45a25bd73d48593b5794f81524d6eba8fc03ca35d8b71a1c5",
+    "vsdk/toolkit/environment/geometry/element/RaySolidClassification.cpp": "b5b73e1a99125c043bc2d7ccf3f7987c179e5aed203292425181aa344c39b05f",
+    "vsdk/toolkit/environment/geometry/element/RaySolidClassification.h": "0b164e9feba6509aaa78e16a7b130e0346132f7e9d82181f8c5e2cd82145cbee",
+    "vsdk/toolkit/environment/geometry/element/RaySolidQueryStatus.h": "767b50d4836f22da0f5abcaa530d7565ab8acc21bfe822b69232a9466cf41e42",
     "vsdk/toolkit/environment/geometry/element/SurfaceDetail.h": "23fae419f2c066cb3fca21106272fe8bea08e4720fc8b01e857dc636a37e9cca",
     "vsdk/toolkit/environment/geometry/element/Triangle.cpp": "cd3a3d125d82cea49342ef0d61b18b8371703a23bb967a2421f6214b84138ca6",
     "vsdk/toolkit/environment/geometry/element/Triangle.h": "8ca3dd39f7d174bf79cbe7a40e956b5ec7886355070ce962cd8f97bd684e8a5b",

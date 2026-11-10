@@ -7,6 +7,8 @@
 #include "vsdk/toolkit/environment/geometry/element/RayCrossingQuery.h"
 #include "vsdk/toolkit/environment/geometry/element/RayCrossingSink.h"
 #include "vsdk/toolkit/environment/geometry/element/RayCrossingSupport.h"
+#include "vsdk/toolkit/environment/geometry/element/RaySolidQueryStatus.h"
+class RaySolidClassification;
 class Ray;
 class RayHit;
 
@@ -22,6 +24,11 @@ public:
     virtual RayCrossingSupport emitRayCrossings(
         const Ray&, const RayCrossingQuery&, RayCrossingSink&) const
     { return RayCrossingSupport::Unsupported; }
+
+    // Full solid membership over the query interval; never infer interior from
+    // surface hits alone. Unsupported geometries leave result empty.
+    virtual RaySolidQueryStatus classifyRay(const Ray&, const RayCrossingQuery&,
+        RaySolidClassification& result) const;
 
     virtual bool doIntersectionFirstHit(const Ray& inRay, RayHit* outHit) = 0;
     virtual void doExtraInformation(const Ray& inRay, double inT, RayHit* outHit);

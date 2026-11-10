@@ -1,3 +1,4 @@
+#include "vsdk/toolkit/environment/geometry/element/RaySolidClassification.h"
 #include "vsdk/toolkit/environment/geometry/Geometry.h"
 
 // Definitions needed by C++11 when the constants are bound to references
@@ -9,3 +10,11 @@ constexpr int Geometry::OUTSIDE;
 void Geometry::doExtraInformation(const Ray&, double, RayHit*) {}
 int Geometry::computeQuantitativeInvisibility(const Vector3Dd&, const Vector3Dd&) { return 0; }
 int Geometry::doContainmentTest(const Vector3Dd&, double) { return OUTSIDE; }
+
+
+RaySolidQueryStatus Geometry::classifyRay(const Ray&, const RayCrossingQuery&,
+    RaySolidClassification& result) const
+{
+    result.clear();
+    return RaySolidQueryStatus::Unsupported;
+}

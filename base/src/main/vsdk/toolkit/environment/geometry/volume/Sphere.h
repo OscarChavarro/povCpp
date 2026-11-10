@@ -25,6 +25,9 @@ public:
     RayCrossingSupport emitRayCrossings(const Ray& ray,
         const RayCrossingQuery& query, RayCrossingSink& sink) const override;
 
+    RaySolidQueryStatus classifyRay(const Ray& ray, const RayCrossingQuery& query,
+        RaySolidClassification& result) const override;
+
     // Returns zero, one or two roots in increasing order without allocation.
     static int intersectionRoots(const Vector3Dd& origin, const Vector3Dd& direction,
         double radius, const RayCrossingQuery& query, double& nearT, double& farT);
