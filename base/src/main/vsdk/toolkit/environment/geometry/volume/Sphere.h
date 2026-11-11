@@ -18,6 +18,9 @@ private:
     static const int MIN_MERIDIANS = 3;
 
     static Vector3Dd spherePosition(double theta, double t, double r);
+    bool validateSurfaceQuery(const Ray& ray, const RayCrossingQuery& query,
+        RayFirstHitStatus& failure) const;
+    void fillSurfaceDetail(const Ray& ray, double t, RayHit* result) const;
     PolyhedralBoundedSolid* buildPolyhedralBoundedSolid(int nmeridians, int nparalels);
 
 public:
@@ -28,6 +31,9 @@ public:
     RaySolidQueryStatus classifyRay(const Ray& ray, const RayCrossingQuery& query,
         RaySolidClassification& result) const override;
 
+    RayFirstHitStatus queryFirstHit(const Ray& ray, const RayCrossingQuery& query,
+        RayHit* result, RayBoundary* boundary = nullptr) const override;
+
     // Returns zero, one or two roots in increasing order without allocation.
     static int intersectionRoots(const Vector3Dd& origin, const Vector3Dd& direction,
         double radius, const RayCrossingQuery& query, double& nearT, double& farT);
@@ -36,8 +42,13 @@ public:
 
     Ray* doIntersectionFirstHit(const Ray& inoutRay);
     virtual bool doIntersectionFirstHit(const Ray& inRay, RayHit* outHit);
+    // Explicit inclusive interval; the legacy overload queries [0,+infinity).
+    bool doIntersectionFirstHit(const Ray& inRay, const RayCrossingQuery& query,
+        RayHit* outHit);
     virtual void doExtraInformation(const Ray& inRay, double inT, RayHit* outData);
+    GeometryContainment classifyPoint(const Vector3Dd& p, double distanceTolerance) const override;
     virtual int doContainmentTest(const Vector3Dd& p, double distanceTolerance);
+    void getBounds(GeometryBounds& result) const override;
     virtual double* getMinMax();
 
     double getRadius() const;

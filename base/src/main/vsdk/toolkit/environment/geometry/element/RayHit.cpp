@@ -50,6 +50,8 @@ void RayHit::clear()
     texture = nullptr;
     normalMap = nullptr;
     hasRay = false;
+    availableDetailMask = DETAIL_NONE;
+    detailAvailabilityKnown = false;
     hitDistance = 0;
     hitDistanceKnown = false;
 }
@@ -64,6 +66,8 @@ void RayHit::resetForDistanceOnly()
 {
     requiredDetailMask = DETAIL_NONE;
     hasRay = false;
+    availableDetailMask = DETAIL_NONE;
+    detailAvailabilityKnown = false;
     hitDistance = 0;
     hitDistanceKnown = false;
 }
@@ -73,6 +77,8 @@ void RayHit::clone(const RayHit& other)
     RaytraceStatistics::recordHitInfoClone();
     requiredDetailMask = other.requiredDetailMask;
     storeRay = other.storeRay;
+    availableDetailMask = other.availableDetailMask;
+    detailAvailabilityKnown = other.detailAvailabilityKnown;
     hitDistance = other.hitDistance;
     hitDistanceKnown = other.hitDistanceKnown;
     point = other.point;
@@ -169,3 +175,9 @@ void RayHit::setHitDistance(double value)
     hitDistance = value;
     hitDistanceKnown = true;
 }
+
+
+bool RayHit::isDetailAvailabilityKnown() const { return detailAvailabilityKnown; }
+int RayHit::getAvailableDetailMask() const { return availableDetailMask; }
+void RayHit::beginDetailEvaluation() { availableDetailMask = DETAIL_NONE; detailAvailabilityKnown = true; }
+void RayHit::markDetailAvailable(int mask) { availableDetailMask |= mask & DETAIL_ALL; }

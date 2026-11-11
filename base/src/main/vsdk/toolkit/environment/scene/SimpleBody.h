@@ -17,6 +17,9 @@ class Material;
 #include "vsdk/toolkit/environment/geometry/element/RayCrossingQuery.h"
 #include "vsdk/toolkit/environment/geometry/element/RayCrossingSink.h"
 #include "vsdk/toolkit/environment/geometry/element/RayCrossingSupport.h"
+#include "vsdk/toolkit/environment/geometry/element/RaySolidQueryStatus.h"
+#include "vsdk/toolkit/environment/geometry/element/GeometryContainment.h"
+class RaySolidClassification;
 
 class SimpleBody : public Entity {
 protected:
@@ -52,6 +55,8 @@ private:
 protected:
     void markModified();
 private:
+    enum class QueryPlacementStatus { Valid, Invalid, Indeterminate };
+    QueryPlacementStatus queryPlacementStatus() const;
     void updateTransformFlags();
     static bool isIdentityRotation(const Matrix4x4d& matrix);
     bool doIntersectionWithTranslationOnly(const Ray& inOutRay, RayHit* outHit, int requiredDetailMask) const;
@@ -61,6 +66,12 @@ public:
     virtual RayCrossingSupport emitRayCrossings(
         const Ray&, const RayCrossingQuery&, RayCrossingSink&) const
     { return RayCrossingSupport::Unsupported; }
+    // Classifies with an affine local ray and appends this instance's provenance.
+    // World-space tolerance is exact for uniform scales; otherwise explicit indeterminate.
+    virtual GeometryContainment classifyPoint(const Vector3Dd& point, double distanceTolerance) const;
+    virtual RaySolidQueryStatus classifyRay(const Ray&, const RayCrossingQuery&,
+        RaySolidClassification& result) const;
+
     virtual bool supportsDecomposedPlacement() const { return true; }
     SimpleBody();
     virtual ~SimpleBody();

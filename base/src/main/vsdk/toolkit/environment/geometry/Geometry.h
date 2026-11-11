@@ -8,6 +8,10 @@
 #include "vsdk/toolkit/environment/geometry/element/RayCrossingSink.h"
 #include "vsdk/toolkit/environment/geometry/element/RayCrossingSupport.h"
 #include "vsdk/toolkit/environment/geometry/element/RaySolidQueryStatus.h"
+#include "vsdk/toolkit/environment/geometry/element/RayFirstHitStatus.h"
+#include "vsdk/toolkit/environment/geometry/element/GeometryContainment.h"
+class GeometryBounds;
+class RayBoundary;
 class RaySolidClassification;
 class Ray;
 class RayHit;
@@ -30,10 +34,18 @@ public:
     virtual RaySolidQueryStatus classifyRay(const Ray&, const RayCrossingQuery&,
         RaySolidClassification& result) const;
 
+    // Inclusive explicit interval; unsupported implementations clear output.
+    virtual RayFirstHitStatus queryFirstHit(const Ray&, const RayCrossingQuery&, RayHit*,
+        RayBoundary* boundary = nullptr) const;
+
     virtual bool doIntersectionFirstHit(const Ray& inRay, RayHit* outHit) = 0;
     virtual void doExtraInformation(const Ray& inRay, double inT, RayHit* outHit);
     virtual int computeQuantitativeInvisibility(const Vector3Dd& origin, const Vector3Dd& p);
+    // Unsupported is explicit; legacy getMinMax remains available.
+    virtual void getBounds(GeometryBounds& result) const;
     virtual double* getMinMax() = 0;
+    // Legacy containment remains for existing callers; unsupported is explicit here.
+    virtual GeometryContainment classifyPoint(const Vector3Dd&, double distanceTolerance) const;
     virtual int doContainmentTest(const Vector3Dd& p, double distanceTolerance);
 };
 

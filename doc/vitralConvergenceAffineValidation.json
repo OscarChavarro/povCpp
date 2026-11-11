@@ -1,0 +1,61 @@
+{
+  "change": "Affine Ray construction/copies, shared Sphere first-hit kernel including the scene fast path, explicit sphere first-hit intervals.",
+  "phase_B_status": "partial; bounds, detail availability, full provenance and generic workspace/interval integration remain",
+  "new_native_test_groups": 8,
+  "tests": {
+    "vitral": 126,
+    "povray": 127,
+    "preexisting_disabled_per_build": 1
+  },
+  "normal_render": {
+    "command": "env -u SKIP_HEAVY_SCENES -u EXTRA_POVRAY_OPTS ./scripts/renderAll.sh",
+    "exit_code": 0,
+    "wall_time": "1:52.01",
+    "user_cpu_seconds": 1288.13,
+    "system_cpu_seconds": 4.81,
+    "image_count": 108,
+    "identical_to_baseline": true
+  },
+  "examples": {
+    "runs": 30,
+    "unchanged_images": 28,
+    "changed_images": [
+      "shaders-software-default",
+      "shaders-software-rotated"
+    ],
+    "difference_metrics": {
+      "shaders-software-default": {
+        "different_pixels": 67,
+        "max_channel_difference": 30,
+        "normalized_rmse": 0.0006610582851028578,
+        "size": [
+          320,
+          240
+        ]
+      },
+      "shaders-software-rotated": {
+        "different_pixels": 2,
+        "max_channel_difference": 2,
+        "normalized_rmse": 2.1615615286475414e-05,
+        "size": [
+          320,
+          240
+        ]
+      }
+    },
+    "references_overwritten": false,
+    "assessment": "Small localized shader differences retained for review. All 24 MIT images, all OpenGL fixtures and the plain software fixture are unchanged. The analytic inward-shadow-bias test requires the newly detected positive exit; no renderer-specific geometry exception is introduced."
+  },
+  "roth": {
+    "command": "./scripts/renderCsgByRaySegments.sh && python3 scripts/checkVitralConvergenceRoth.py",
+    "accepted_exceptions": 7,
+    "new_exceptions": 0,
+    "check_output": "RMSE above threshold: level2/iortest.tga (RMSE=0.0361584, threshold=0.02)\nRMSE above threshold: level2/pawns.tga (RMSE=0.0704312, threshold=0.02)\nRMSE above threshold: level3/pool.tga (RMSE=0.0289376, threshold=0.02)\nRMSE above threshold: level3/snail.tga (RMSE=0.0372644, threshold=0.02)\nRMSE above threshold: level3/takeoff.tga (RMSE=0.0272118, threshold=0.02)\nRMSE above threshold: level3/wg5.tga (RMSE=0.0357292, threshold=0.02)\nRMSE above threshold: math/trough.tga (RMSE=0.052355, threshold=0.02)\nTest failed with 7 issue(s).\nRoth regression check passed: 7 known discrepancies, no new scenes."
+  },
+  "base_mirror": {
+    "files": 149,
+    "identical": true
+  },
+  "raw_artifacts": "/tmp/vitral-convergence-affine",
+  "commits_created": false
+}

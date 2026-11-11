@@ -43,6 +43,8 @@ private:
     bool hasRay;
 
     int requiredDetailMask;
+    int availableDetailMask;
+    bool detailAvailabilityKnown;
     bool storeRay;
     double hitDistance;
     bool hitDistanceKnown;
@@ -59,6 +61,12 @@ public:
     void resetForDistanceOnly();
 
     void clone(const RayHit& other);
+
+    // Legacy producers may leave availability unknown; requested is not available.
+    bool isDetailAvailabilityKnown() const;
+    int getAvailableDetailMask() const;
+    void beginDetailEvaluation();
+    void markDetailAvailable(int mask);
 
     int getRequiredDetailMask() const;
     void setRequiredDetailMask(int value);

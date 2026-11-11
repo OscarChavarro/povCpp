@@ -52,7 +52,8 @@ static double clamp01(double v)
 
 static double parseDoubleOr(const java::String& s, double fallback)
 {
-    const char* str = trim(s).toCString();
+    const java::String trimmed = trim(s);
+    const char* str = trimmed.toCString();
     char* endptr = nullptr;
     double val = strtod(str, &endptr);
     if (endptr == str) return fallback;
@@ -61,7 +62,8 @@ static double parseDoubleOr(const java::String& s, double fallback)
 
 static int parseIntOr(const java::String& s, int fallback)
 {
-    const char* str = trim(s).toCString();
+    const java::String trimmed = trim(s);
+    const char* str = trimmed.toCString();
     char* endptr = nullptr;
     long val = strtol(str, &endptr, 10);
     if (endptr == str) return fallback;

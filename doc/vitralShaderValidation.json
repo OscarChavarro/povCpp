@@ -1,0 +1,51 @@
+{
+  "cause": "Dangling pointer to destroyed trimmed java::String during strtod/strtol; material parameters silently fall back.",
+  "fix": "Keep trimmed java::String alive through numeric conversion.",
+  "real_copper_before": {
+    "roughness": 0.35,
+    "alpha": 0.1225,
+    "eta": [
+      0.2,
+      0.9,
+      1.1
+    ]
+  },
+  "real_copper_after": {
+    "roughness": 0.25,
+    "alpha": 0.0625,
+    "eta": [
+      0.27,
+      0.68,
+      1.32
+    ]
+  },
+  "tests": {
+    "vitral": 130,
+    "povray": 131,
+    "preexisting_disabled_per_build": 1,
+    "f7_cycle": true,
+    "material_rows": 2
+  },
+  "example_validation": {
+    "offline_shader_modes": 5,
+    "backends": [
+      "software",
+      "opengl under Xvfb"
+    ],
+    "interactive_F7": true,
+    "interactive_material_change_gpu_and_cpu": true,
+    "cpu_flat_gouraud_preexisting_identical": true
+  },
+  "pov_normal": {
+    "images": 108,
+    "identical_to_baseline": true,
+    "wall_seconds": 110.75,
+    "user_cpu_seconds": 1298.44
+  },
+  "roth": {
+    "accepted_exceptions": 7,
+    "new_exceptions": 0
+  },
+  "commits_created": false,
+  "raw_artifacts": "/tmp/vitral-shader-fix"
+}

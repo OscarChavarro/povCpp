@@ -1,5 +1,7 @@
 #include "vsdk/toolkit/environment/geometry/element/RaySolidClassification.h"
 #include "vsdk/toolkit/environment/geometry/Geometry.h"
+#include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
+#include "vsdk/toolkit/environment/geometry/element/RayHit.h"
 
 // Definitions needed by C++11 when the constants are bound to references
 // (i.e. by the comparisons of the tests)
@@ -18,3 +20,16 @@ RaySolidQueryStatus Geometry::classifyRay(const Ray&, const RayCrossingQuery&,
     result.clear();
     return RaySolidQueryStatus::Unsupported;
 }
+
+void Geometry::getBounds(GeometryBounds& result) const { result.setUnsupported(); }
+
+RayFirstHitStatus Geometry::queryFirstHit(const Ray&, const RayCrossingQuery&, RayHit* result,
+    RayBoundary* boundary) const
+{
+    if (result) result->clear();
+    if (boundary) *boundary = RayBoundary();
+    return RayFirstHitStatus::Unsupported;
+}
+
+GeometryContainment Geometry::classifyPoint(const Vector3Dd&, double) const
+{ return GeometryContainment::Unsupported; }

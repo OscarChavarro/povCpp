@@ -213,3 +213,26 @@ TEST(RaySolidClassification, JavaDoubleClassifiesSpecialValues) {
     EXPECT_TRUE(java::Double::isFinite(java::Double::MIN_VALUE));
     EXPECT_FALSE(java::Double::isNaN(0));
 }
+
+
+#include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
+TEST(GeometryBoundsContract, ExplicitStatesAndSphereBounds) {
+    GeometryBounds bounds;
+    EXPECT_EQ(GeometryBounds::Kind::Unsupported, bounds.getKind());
+    Sphere sphere(2);
+    sphere.getBounds(bounds);
+    EXPECT_EQ(GeometryBounds::Kind::Finite, bounds.getKind());
+    EXPECT_DOUBLE_EQ(-2, bounds.getMinimum().x());
+    EXPECT_DOUBLE_EQ(2, bounds.getMaximum().z());
+    Box box(1,1,1);
+    box.getBounds(bounds);
+    EXPECT_EQ(GeometryBounds::Kind::Unsupported, bounds.getKind());
+    bounds.setEmpty();
+    EXPECT_EQ(GeometryBounds::Kind::Empty, bounds.getKind());
+    bounds.setUnbounded();
+    EXPECT_EQ(GeometryBounds::Kind::Unbounded, bounds.getKind());
+    EXPECT_FALSE(bounds.setFinite(Vector3Dd(2,0,0), Vector3Dd(1,1,1)));
+    EXPECT_EQ(GeometryBounds::Kind::Indeterminate, bounds.getKind());
+    EXPECT_FALSE(bounds.setFinite(Vector3Dd(), Vector3Dd(java::Double::POSITIVE_INFINITY,1,1)));
+    EXPECT_EQ(GeometryBounds::Kind::Indeterminate, bounds.getKind());
+}
