@@ -15,6 +15,14 @@ Ray::Ray(const Vector3Dd& origin, const Vector3Dd& direction)
 Ray::Ray(const Vector3Dd& origin, const Vector3Dd& direction, double t)
     : origin(origin), direction(normalizeDirection(direction)), t(t) {}
 
+Ray Ray::fromAffine(const Vector3Dd& origin, const Vector3Dd& direction, double t)
+{
+    Ray result;
+    result.setOriginAndDirection(origin, direction);
+    result.setT(t);
+    return result;
+}
+
 Ray Ray::copyOf(const Ray& other)
 {
     return other;
@@ -22,20 +30,23 @@ Ray Ray::copyOf(const Ray& other)
 
 Ray Ray::withOrigin(const Vector3Dd& newOrigin) const
 {
-    return Ray(newOrigin, direction, t);
+    Ray result = *this;
+    result.origin = newOrigin;
+    return result;
 }
 
 Ray Ray::withDirection(const Vector3Dd& newDirection) const
 {
-    return Ray(origin, newDirection, t);
+    Ray result = *this;
+    result.direction = newDirection;
+    return result;
 }
 
 Ray Ray::withT(double newT) const
 {
-    if ( java::Double::compare(newT, t) == 0 ) {
-        return *this;
-    }
-    return Ray(origin, direction, newT);
+    Ray result = *this;
+    result.t = newT;
+    return result;
 }
 
 void Ray::setOrigin(const Vector3Dd& newOrigin)

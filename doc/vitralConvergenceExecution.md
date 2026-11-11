@@ -79,18 +79,15 @@ does not validate a Boolean evaluator.
 
 ### Contract gaps to resolve in stage B
 
-- `Sphere::doIntersectionFirstHit` currently uses a normalized-direction formula
-  and rejects a negative near root instead of trying the far root. Its two
-  overloads duplicate that formula, whereas `emitRayCrossings` uses the shared
-  `intersectionRoots` kernel. G1 must expose this mismatch before the vertical
-  slice; sharing the root helper with POV does not yet unify first-hit semantics.
+- Resolved in the affine increment: native sphere first-hit overloads and the
+  scene fast path now use `intersectionRoots`, including interior exits. The
+  duplicate `RayCastingSphere` object is still a stage C concern.
 - `Geometry::emitRayCrossings` distinguishes unsupported from empty, but there is
   no complete solid interval result with an explicit initial membership and
   indeterminate state. A list of hits cannot represent a clipped all-inside ray.
-- `Ray` constructors and `withT`/`withOrigin` normalize directions, but setters
-  preserve them. G1 must set an unnormalized direction explicitly when probing
-  the current API; the final contract must preserve affine parameters through
-  copying and deferred detail, not only during root solving.
+- Resolved in the affine increment: component copies retain parameterization,
+  and `Ray::fromAffine` explicitly constructs an unnormalized ray. Legacy
+  constructors keep normalization for compatibility.
 - `RayCrossingQuery` includes compatibility chord/approach cutoffs. Their role must
   be explicit application policy, rather than an implicit definition of a sphere.
 - `RayCrossing` carries a material binding; the future mathematical event must
@@ -166,7 +163,7 @@ new scenes, missing outputs, and comparison errors. Use
 `python3 scripts/checkVitralConvergenceRoth.py` after rendering the Roth corpus. Stages B–H are not
 complete merely because their acceptance cases or destinations are specified here.
 The following iteration begins that mathematical contract; the sphere
-first-hit/affine-copy gaps remain pending.
+first-hit/affine-copy gaps were still pending at that point.
 
 
 ## Stage B: native solid classification (first increment)
@@ -191,7 +188,7 @@ or a missing image still fails, while fewer known discrepancies are acceptable.
 | Plan stage | Status after this increment | Remaining work |
 |---|---|---|
 | A. Specification and baselines | Complete | Maintain the inventory and accepted baseline as migrations proceed |
-| B. Mathematical contracts | Partial | Bounds, detail/provenance completeness, affine copies, nearest-hit unification and workspace integration |
+| B. Mathematical contracts | Complete | Contracts and sphere/decomposed-scene reference implementation validated; migrate other primitives and adapters in C–H |
 | C. First vertical slice | Not started | Remove the duplicate sphere object and connect all three applications |
 | D. Basic primitives and composition | Not started | Consolidate box, plane/half-space, triangles, quadrics and placement |
 | E. CSG evaluators | Not started | Consume common classifications in both evaluators and optimized paths |
@@ -242,3 +239,131 @@ Roth retains exactly its seven accepted exceptions. Normal-render wall times wer
 CPU totals remain higher than the original observations, so no claim of a CPU
 speedup or exact performance equivalence is made. Both measurements are retained
 in [the follow-up validation report](vitralConvergenceJavaValidation.json).
+
+
+## Stage B: affine copies and shared sphere first-hit kernel
+
+Added `Ray::fromAffine` and made component-copy methods preserve the unchanged
+ray components. Legacy constructors still normalize. Both native sphere nearest-hit
+entry points and the `SimpleBody` sphere fast path now use the shared root kernel;
+translated and scaled scene queries preserve the world parameter in returned
+rays and detail. The sphere also exposes an explicit inclusive first-hit interval.
+No STL containers, namespace blocks, structs, or global helper functions were
+introduced. The new tests use `java::` abstractions and the existing collector
+class module.
+
+All 12 MIT scenes in both execution modes remain byte-identical to the initial
+references. All three OpenGL fixtures and the plain software fixture also remain
+identical. Two software shader fixtures differ:
+
+| Fixture | Changed pixels (320×240) | Maximum channel difference | Normalized RMSE |
+|---|---:|---:|---:|
+| Default textured/bumped sphere | 67 | 30 | 0.0006610582851028578 |
+| Rotated textured/bumped sphere | 2 | 2 | 0.000021615615286475414 |
+
+The changed default pixels are near the shadow terminator and become ambient-only.
+The renderer offsets shadow origins toward the light; that can place them inside
+the sphere. The new analytic test proves that such a ray must find its positive
+exit. This explains a meaningful behavioral consequence of correcting inside
+hits, rather than introducing a renderer-specific geometry exception to conceal
+it. Small arithmetic differences from the unified kernel can also affect pixel
+quantization. The original references have not been overwritten. The images were
+inspected, and the measured differences are retained for review.
+
+Phase A remains complete and phase B partial. C–H have not started; in particular,
+`RayCastingSphere` has not yet been removed and neither CSG evaluator has been
+migrated to the new solid-classification result.
+
+## Stage B: typed bounds (initial implementation)
+
+Added a caller-owned `GeometryBounds` result with explicit unsupported, empty,
+finite, unbounded and indeterminate states. Sphere implements local finite bounds;
+other geometries explicitly report unsupported until migrated. The existing
+`getMinMax()` consumers continue to work. A native test covers the states,
+validation, reuse and sphere values. The class has its own `.h/.cpp` and uses no
+STL containers, namespace blocks or structs.
+
+The full contract remains partial: bounds still need implementations for the
+remaining geometry catalog and integration with consumers; explicit detail
+availability, extensible instance/surface provenance, and a generic reusable
+workspace are not yet implemented by this increment.
+
+## Stage B: detail availability (initial implementation)
+
+Added a separate known/unknown availability state and mask to `RayHit`; requests
+remain independent. The sphere marks only finite, calculated fields. Native tests
+cover a pole with unavailable UV/tangent, independent copies and reset. Legacy
+producers retain an explicit unknown state until migrated. No STL containers,
+namespace blocks, structs or global helpers were added.
+
+This does not complete phase B: detail propagation in other geometries and scene,
+extensible provenance, and a general per-query/worker workspace remain pending.
+The existing classification result already retains its list capacity for reuse,
+but is not claimed to be the complete generic workspace.
+
+
+Validation: 128 enabled VITRAL tests and 129 POV tests passed; 30 example
+images match the preceding iteration. Both normal renders match all 108 baseline
+images (117.26 s and 111.61 s); Roth retains the seven accepted exceptions with
+no new ones. See [the report](vitralConvergenceDetailValidation.json).
+
+## ShadersExample: microfacet material loading fix
+
+The F7 controller cycles through all five shading types. The shared CPU/GPU
+material loader had a dangling pointer: `parseDoubleOr` and `parseIntOr` stored
+`trim(s).toCString()` after the temporary `java::String` had been destroyed.
+The allocator could overwrite the text before `strtod`/`strtol`, silently
+selecting default material parameters. Keeping the trimmed string alive for the
+conversion fixes both renderers without adding a new material model or STL
+container.
+
+A probe using the actual Copper CSV row changed from fallback roughness 0.35,
+alpha 0.1225, and eta `(0.2,0.9,1.1)` to the row's 0.25, 0.0625, and
+`(0.27,0.68,1.32)`. Regression tests cover two material rows, floating-point and
+integer fields, whitespace, and the full F7 sequence. Offline software/OpenGL
+rendering of all five modes and interactive F7/material cycling under Xvfb are
+also checked.
+
+A separate limitation predates this fix: CPU Flat and Gouraud instantiate
+`LightingShader` with identical arguments, and their captured images are
+identical. Correct distinct flat/Gouraud evaluation for ray casting remains
+unresolved; the material parsing fix does not claim to implement that behavior.
+
+Validation: both applications were built; 130 VITRAL tests and 131 POV tests
+passed, with the pre-existing disabled test unchanged. Interactive Xvfb runs
+confirmed F7 and material selection in GPU and CPU, and offline runs covered all
+five shader options on both backends. The 108 normal POV images remained identical
+(110.75 s); Roth retained the seven accepted exceptions without new ones. Details
+are in [the shader validation report](vitralShaderValidation.json).
+
+
+## Stage B: contract exit audit
+
+Stage B is complete at **contract and reference-implementation level**. This
+is not completion of the later geometry, CSG, scene or application migrations.
+
+| Contract | Reference implementation and evidence |
+|---|---|
+| First admissible hit | `Geometry::queryFirstHit`: typed hit/miss/unsupported/invalid/indeterminate status, inclusive interval, optional geometric boundary and lazy detail; sphere shares its root kernel |
+| Surface events | `RayCrossing` uses the same generic `RayBoundary`/provenance model; sphere distinguishes invalid and indeterminate input from an empty supported sequence |
+| Solid intervals and containment | Sphere classifies IN/OUT segments, tangency and initial state; typed point containment distinguishes boundary, invalid, indeterminate and unsupported |
+| Bounds and detail | Explicit bounds kinds and detail availability, with no inferred legacy capability; sphere supplies the reference implementation |
+| Provenance | Borrowed leaf/instance identities, surface locator, orientation and unbounded instance path with copied forward/inverse transforms; decomposed `SimpleBody` appends its instance |
+| Workspace | Caller-owned per-worker storage with stable, reusable nested scratch values and checked LIFO release; no STL containers or POV state |
+| Numerical and placement policy | Affine `t`, endpoint rules, small and large inputs, singular/non-finite placements, nonuniform tolerance and unsupported surfaces have explicit outcomes |
+
+The native tests cover interior, boundary, tangency, degeneracy, negative and
+nonuniform scale, shear parameter preservation, singular/invalid placements,
+32-step paths, nested workspaces and concurrent workers without depending on
+PovRay. ASan/UBSan run the selected 22 tests. The normal test suites, full example
+build, offline and shader fixtures, `renderAll.sh` and the accepted Roth gate all
+pass; [the validation report](vitralStageBValidation.json) contains the evidence.
+
+Remaining work is deliberately assigned to later stages: `RayCastingSphere` and
+other duplicate geometry families remain; unmigrated primitives and the legacy
+POV scene adapter can return `Unsupported`; coincident CSG event policy and the
+full Roth/heuristic evaluators remain in E; scene ownership and appearance binding
+remain in G; compatibility fields and `raycasting` are removed in H. In particular,
+positive world-space tolerance under nonuniform scale is currently explicit
+`Indeterminate` and must be addressed by the CSG/scene integration instead of
+being silently approximated.

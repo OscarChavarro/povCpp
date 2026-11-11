@@ -1,0 +1,27 @@
+{
+  "scope": "Typed GeometryBounds result and Sphere implementation; other geometry types report Unsupported.",
+  "phase_B": "partial: detail availability, full provenance, generic workspace, other bounds and consumer integration remain.",
+  "tests": {
+    "vitral": 127,
+    "povray": 128,
+    "preexisting_disabled_per_build": 1
+  },
+  "normal_render": {
+    "images": 108,
+    "identical_to_baseline": true,
+    "wall_time": "1:50.36",
+    "user_cpu_seconds": 1311.77
+  },
+  "examples": {
+    "count": 30,
+    "identical_to_previous_iteration": true
+  },
+  "roth": {
+    "known_exceptions": 7,
+    "new_exceptions": 0,
+    "output": "RMSE above threshold: level2/iortest.tga (RMSE=0.0361584, threshold=0.02)\nRMSE above threshold: level2/pawns.tga (RMSE=0.0704312, threshold=0.02)\nRMSE above threshold: level3/pool.tga (RMSE=0.0289253, threshold=0.02)\nRMSE above threshold: level3/snail.tga (RMSE=0.0372668, threshold=0.02)\nRMSE above threshold: level3/takeoff.tga (RMSE=0.0272118, threshold=0.02)\nRMSE above threshold: level3/wg5.tga (RMSE=0.035751, threshold=0.02)\nRMSE above threshold: math/trough.tga (RMSE=0.052355, threshold=0.02)\nTest failed with 7 issue(s).\nRoth regression check passed: 7 known discrepancies, no new scenes."
+  },
+  "base_mirror_files": 151,
+  "commits_created": false,
+  "raw_artifacts": "/tmp/vitral-convergence-bounds"
+}

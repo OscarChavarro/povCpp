@@ -1,0 +1,33 @@
+{
+  "scope": "RayHit detail availability state and Sphere finite-detail reporting; other producers remain unknown.",
+  "phase_B": "partial: other bounds, detail propagation, extensible provenance and generic workspace remain.",
+  "tests": {
+    "vitral": 128,
+    "povray": 129,
+    "preexisting_disabled_per_build": 1
+  },
+  "normal_render": {
+    "images": 108,
+    "identical_to_baseline": true,
+    "wall_time": "1:57.26",
+    "user_cpu_seconds": 1321.33,
+    "repeat": {
+      "wall_time": "1:51.61",
+      "user_cpu_seconds": 1299.06,
+      "exit_code": 0,
+      "identical_to_baseline": true
+    }
+  },
+  "examples": {
+    "count": 30,
+    "identical_to_previous_iteration": true
+  },
+  "roth": {
+    "known_exceptions": 7,
+    "new_exceptions": 0,
+    "output": "RMSE above threshold: level2/iortest.tga (RMSE=0.0361584, threshold=0.02)\nRMSE above threshold: level2/pawns.tga (RMSE=0.0704312, threshold=0.02)\nRMSE above threshold: level3/pool.tga (RMSE=0.0289462, threshold=0.02)\nRMSE above threshold: level3/snail.tga (RMSE=0.0372653, threshold=0.02)\nRMSE above threshold: level3/takeoff.tga (RMSE=0.0272118, threshold=0.02)\nRMSE above threshold: level3/wg5.tga (RMSE=0.0357402, threshold=0.02)\nRMSE above threshold: math/trough.tga (RMSE=0.052355, threshold=0.02)\nTest failed with 7 issue(s).\nRoth regression check passed: 7 known discrepancies, no new scenes."
+  },
+  "base_mirror_files": 151,
+  "commits_created": false,
+  "raw_artifacts": "/tmp/vitral-convergence-detail"
+}

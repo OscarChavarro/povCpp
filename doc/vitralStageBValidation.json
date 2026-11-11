@@ -1,0 +1,39 @@
+{
+  "phase_B": "completed at contract level; migration of remaining geometries, scene adapters and CSG evaluators belongs to later phases",
+  "contracts": [
+    "bounded first hit with explicit status",
+    "surface events with explicit failure status",
+    "solid interval classification",
+    "point containment",
+    "detail availability",
+    "typed bounds",
+    "boundary and instance provenance",
+    "per-query nested workspace"
+  ],
+  "reference_implementation": "Sphere and decomposed SimpleBody; unmigrated implementations explicitly return Unsupported",
+  "tests": {
+    "vitral": 142,
+    "povray": 143,
+    "preexisting_disabled_per_build": 1,
+    "asan_ubsan": 22
+  },
+  "normal_render": {
+    "images": 108,
+    "identical_to_baseline": true,
+    "wall_time": "1:49.48",
+    "user_cpu_seconds": 1288.71,
+    "exit_code": 0
+  },
+  "vitral_examples": {
+    "runs": 30,
+    "identical_to_previous_iteration": true
+  },
+  "roth": {
+    "accepted_exceptions": 7,
+    "new_exceptions": 0,
+    "log": "RMSE above threshold: level2/iortest.tga (RMSE=0.0361584, threshold=0.02)\nRMSE above threshold: level2/pawns.tga (RMSE=0.0704312, threshold=0.02)\nRMSE above threshold: level3/pool.tga (RMSE=0.028962, threshold=0.02)\nRMSE above threshold: level3/snail.tga (RMSE=0.0372659, threshold=0.02)\nRMSE above threshold: level3/takeoff.tga (RMSE=0.0272118, threshold=0.02)\nRMSE above threshold: level3/wg5.tga (RMSE=0.0357223, threshold=0.02)\nRMSE above threshold: math/trough.tga (RMSE=0.052355, threshold=0.02)\nTest failed with 7 issue(s).\nRoth regression check passed: 7 known discrepancies, no new scenes."
+  },
+  "base_mirror_files": 161,
+  "commits_created": false,
+  "raw_artifacts": "/tmp/vitral-stageb-contract"
+}
