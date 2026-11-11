@@ -1,11 +1,12 @@
 #include <cmath>
 #include <cstdio>
-#include <vector>
 #include <stdexcept>
 #include "vsdk/toolkit/environment/raycasting/scene/RayCastingBody.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
 #include "java/util/ArrayList.txx"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/RayCastingSphere.h"
+#include "vsdk/toolkit/environment/geometry/volume/Sphere.h"
+#include "vsdk/toolkit/environment/geometry/element/Ray.h"
+#include "vsdk/toolkit/environment/geometry/element/RayHit.h"
 #include "vsdk/toolkit/environment/background/SimpleBackground.h"
 #include "vsdk/toolkit/environment/camera/Camera.h"
 #include "vsdk/toolkit/environment/light/PointLight.h"
@@ -17,28 +18,96 @@
 #include "vsdk/toolkit/media/RGBPixel.h"
 #include "vsdk/toolkit/render/raytracing/SimpleRaytracer.h"
 #include "vsdk/toolkit/render/raytracing/ParallelRaytracer.h"
-
-class CrossingCollector : public RayCrossingSink {
-public:
-    std::vector<RayCrossing> hits;
-    void crossing(const RayCrossing& hit) override { hits.push_back(hit); }
-};
+#include "vsdk/toolkit/environment/raycasting/scene/NativeGeometryBinding.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/RayCastingQueryAdapter.h"
+#include "vsdk/toolkit/environment/geometry/volume/Box.h"
+#include "java/lang/UnsupportedOperationException.h"
+#include "TestSlabGeometry.h"
+#include "TestCrossingCollector.h"
 
 int main() {
+    NativeGeometryBinding slab(new TestSlabGeometry());
+    const Ray slabRay = Ray::fromAffine(Vector3Dd(-3,0,0), Vector3Dd(1,0,0));
+    Geometry* slabGeometry = &slab;
+    TestCrossingCollector slabCrossings;
+    if (slabGeometry->emitRayCrossings(slabRay, RayCrossingQuery(0,10), slabCrossings) !=
+            RayCrossingSupport::Supported || slabCrossings.hits.size() != 2 ||
+        slabCrossings.hits[0]->t != 2 || slabCrossings.hits[1]->t != 4 ||
+        slabCrossings.hits[0]->geometry != slab.getIntrinsicGeometry()) return 29;
+    RayCastingQueryAdapter slabContext(slabRay);
+    IntersectionCandidate slabHit;
+    if (!slab.doIntersectionFirstHit(&slabContext.ray, slabHit) ||
+        slabHit.getIntersection().t != 2 ||
+        slab.doContainmentTest(Vector3Dd(0,0,0), 0) != Geometry::INSIDE) return 30;
+    RayHit slabDetail(RayHit::DETAIL_NORMAL, false);
+    if (!slabGeometry->doIntersectionFirstHit(slabRay, &slabDetail) ||
+        slabDetail.normal.x() != -1) return 31;
+    NativeGeometryBinding slabCopy(slab);
+    if (slabCopy.getIntrinsicGeometry() == slab.getIntrinsicGeometry()) return 32;
+    slab.invertGeometry();
+    if (slab.doContainmentTest(Vector3Dd(0,0,0), 0) != Geometry::OUTSIDE) return 33;
+    NativeGeometryBinding unsupported(new Box(1,1,1));
+    bool rejectedUnsupported = false;
+    try { unsupported.doIntersectionFirstHit(&slabContext.ray, slabHit); }
+    catch (const java::UnsupportedOperationException&) { rejectedUnsupported = true; }
+    if (!rejectedUnsupported) return 34;
+    NativeGeometryBinding reversedBoundary(new TestSlabGeometry(true));
+    bool rejectedProvenance = false;
+    try {
+        TestCrossingCollector ignored;
+        static_cast<Geometry*>(&reversedBoundary)->emitRayCrossings(
+            slabRay, RayCrossingQuery(0,10), ignored);
+    }
+    catch (const java::UnsupportedOperationException&) { rejectedProvenance = true; }
+    if (!rejectedProvenance) return 35;
+    Sphere* intrinsicPointer = new Sphere(2.0);
+    NativeGeometryBinding bridge(intrinsicPointer);
+    const Sphere& intrinsic = *intrinsicPointer;
+    intrinsicPointer->setRadius(3.0);
+    if (intrinsic.getRadius() != 3.0 || intrinsic.implicitValue(Vector3Dd(3,0,0)) != 0) return 21;
+    intrinsicPointer->setRadius(2.0);
+    if (bridge.doContainmentTest(Vector3Dd(2,0,0), 0.0) != Geometry::OUTSIDE ||
+        bridge.doContainmentTest(Vector3Dd(2,0,0), 0.01) != Geometry::INSIDE) return 24;
+    bridge.invertGeometry();
+    if (bridge.doContainmentTest(Vector3Dd(3,0,0), 0.0) != Geometry::INSIDE) return 25;
+    bridge.invertGeometry();
+    RayHit nativeHit(RayHit::DETAIL_NONE, false);
+    const Ray nativeRay = Ray::fromAffine(Vector3Dd(-3,0,0), Vector3Dd(1,0,0));
+    if (intrinsic.queryFirstHit(nativeRay, RayCrossingQuery(0,10), &nativeHit) != RayFirstHitStatus::Hit ||
+        nativeHit.getHitDistance() != 1.0) return 22;
+    TestCrossingCollector nativeCrossings;
+    if (intrinsic.emitRayCrossings(nativeRay, RayCrossingQuery(0,10), nativeCrossings) !=
+            RayCrossingSupport::Supported || nativeCrossings.hits.size() != 2 ||
+        nativeCrossings.hits[0]->t != 1.0 || nativeCrossings.hits[1]->t != 5.0) return 26;
+    NativeGeometryBinding bridgeCopy(bridge);
+    intrinsicPointer->setRadius(1.0);
+    const Sphere* copiedSphere = dynamic_cast<const Sphere*>(bridgeCopy.getIntrinsicGeometry());
+    if (copiedSphere == nullptr || copiedSphere->getRadius() != 2.0 || intrinsic.getRadius() != 1.0) return 23;
+    TestCrossingCollector bridgeCrossings;
+    if (bridgeCopy.emitRayCrossings(nativeRay, RayCrossingQuery(0,10), bridgeCrossings) !=
+            RayCrossingSupport::Supported || bridgeCrossings.hits.size() != 2 ||
+        bridgeCrossings.hits[0]->geometry != copiedSphere ||
+        bridgeCrossings.hits[1]->geometry != copiedSphere) return 27;
     ConstructiveSolidGeometryByRaySegment shell(BooleanSetOperations::DIFFERENCE);
-    shell.addShape(new RayCastingSphere(2.0), nullptr);
-    shell.addShape(new RayCastingSphere(1.0), nullptr);
+    NativeGeometryBinding* outer = new NativeGeometryBinding(new Sphere(2.0));
+    NativeGeometryBinding* inner = new NativeGeometryBinding(new Sphere(1.0));
+    shell.addShape(outer, nullptr);
+    shell.addShape(inner, nullptr);
     Geometry* sharedGeometry = &shell;
-    CrossingCollector crossings;
+    TestCrossingCollector crossings;
     if (sharedGeometry->emitRayCrossings(Ray(Vector3Dd(-3,0,0),Vector3Dd(1,0,0)),
         RayCrossingQuery(0.001,10), crossings) != RayCrossingSupport::Supported) return 4;
     const double expected[] = {1,2,4,5};
     if (crossings.hits.size() != 4) return 5;
     for (int i=0;i<4;++i) {
-        if (std::abs(crossings.hits[i].t-expected[i]) > 1e-10 || !crossings.hits[i].geometry) return 6;
+        if (std::abs(crossings.hits[i]->t-expected[i]) > 1e-10 || !crossings.hits[i]->geometry) return 6;
     }
+    if (crossings.hits[0]->geometry != outer->getIntrinsicGeometry() ||
+        crossings.hits[1]->geometry != inner->getIntrinsicGeometry() ||
+        crossings.hits[2]->geometry != inner->getIntrinsicGeometry() ||
+        crossings.hits[3]->geometry != outer->getIntrinsicGeometry()) return 28;
     IntersectionAttributes attributes;
-    RayCastingSphere owner(1.0);
+    NativeGeometryBinding owner(new Sphere(1.0));
     for (int i=0;i<8;++i) attributes.pushDetailOwner(&owner);
     bool rejectedOverflow = false;
     try { attributes.pushDetailOwner(&owner); }
@@ -55,15 +124,18 @@ int main() {
     background->setColor(0.2,0.3,0.4);
     java::ArrayList<RayCastingBody*> regions;
     auto* material = new SimpleMaterial(SimpleMaterial().withDiffuse(ColorRgb(0.8,0.5,0.3)));
-    auto* body = new RayCastingBody(new RayCastingSphere(1.0), material, nullptr,
+    auto* bodySphere = new NativeGeometryBinding(new Sphere(1.0));
+    auto* body = new RayCastingBody(bodySphere, material, nullptr,
         nullptr, false, regions, regions);
     SimpleBody* sharedBody = body;
     if (sharedBody->getSurfaceMaterial()!=material || sharedBody->getMaterial()!=material) return 8;
-    CrossingCollector bodyCrossings;
+    TestCrossingCollector bodyCrossings;
     if (sharedBody->emitRayCrossings(Ray(Vector3Dd(-3,0,0),Vector3Dd(1,0,0)),
         RayCrossingQuery(0.001,10), bodyCrossings) != RayCrossingSupport::Supported) return 9;
-    if (bodyCrossings.hits.size()!=2 || bodyCrossings.hits[0].body!=body ||
-        bodyCrossings.hits[0].material!=material) return 10;
+    if (bodyCrossings.hits.size()!=2 || bodyCrossings.hits[0]->body!=body ||
+        bodyCrossings.hits[0]->material!=material ||
+        bodyCrossings.hits[0]->geometry!=bodySphere->getIntrinsicGeometry() ||
+        bodyCrossings.hits[1]->geometry!=bodySphere->getIntrinsicGeometry()) return 10;
     scene.addBody(body);
     scene.addCamera(camera);
     scene.addBackground(background);

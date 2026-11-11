@@ -57,7 +57,7 @@ PovRayApplication::printStatistics(
     };
 
     const GeometryStatistics *geometryStats = stats.getGeometryStatistics();
-    logIntersectionRow("  RayCastingSphere        ", geometryStats->getRaySphereTests(), geometryStats->getRaySphereTestsSucceeded());
+    logIntersectionRow("  Sphere                  ", geometryStats->getRaySphereTests(), geometryStats->getRaySphereTestsSucceeded());
     logIntersectionRow("  Plane         ", geometryStats->getRayPlaneTests(), geometryStats->getRayPlaneTestsSucceeded());
     logIntersectionRow("  Triangle     ", geometryStats->getRayTriangleTests(), geometryStats->getRayTriangleTestsSucceeded());
     logIntersectionRow("  Quadric       ", geometryStats->getRayQuadricTests(), geometryStats->getRayQuadricTestsSucceeded());

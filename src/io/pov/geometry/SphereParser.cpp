@@ -1,6 +1,7 @@
 
 
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/RayCastingSphere.h"
+#include "vsdk/toolkit/environment/geometry/volume/Sphere.h"
+#include "vsdk/toolkit/environment/raycasting/scene/NativeGeometryBinding.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/pov/geometry/SphereParser.h"
@@ -22,7 +23,6 @@ SimpleBodyBuilder *
 SphereParser::parseSphere(ParserContext &ctx)
 {
     SimpleBodyBuilder *body = nullptr;
-    RayCastingSphere *localShape = nullptr;
 
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
@@ -39,9 +39,8 @@ SphereParser::parseSphere(ParserContext &ctx)
                 ctx.tokenStream().ungetToken();
                 PrimitiveParser::parseVector(&localCenter, ctx);
                 localRadius = PrimitiveParser::parseFloat(ctx);
-                localShape = new RayCastingSphere(localRadius);
-                body = SceneBuilder::wrap(localShape);
-                // The radius is intrinsic to the RayCastingSphere geometry now; only
+                body = SceneBuilder::wrap(new NativeGeometryBinding(new Sphere(localRadius)));
+                // The radius is intrinsic to the VITRAL sphere; only
                 // the center is accumulated on the owner transform, kept
                 // separate from the material/texture transform path.
                 body->translateOwnerOnly(&localCenter);
@@ -58,7 +57,6 @@ SphereParser::parseSphere(ParserContext &ctx)
                         body = new SimpleBodyBuilder(
                                 *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
                                     .getConstantData());
-                        localShape = (RayCastingSphere *)body->getGeometry();
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }

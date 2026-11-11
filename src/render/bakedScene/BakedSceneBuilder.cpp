@@ -3,6 +3,7 @@
 
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
 #include "vsdk/toolkit/environment/raycasting/scene/RayCastingComposite.h"
+#include "vsdk/toolkit/environment/raycasting/scene/NativeGeometryBinding.h"
 #include "render/bakedScene/BakedGeometryBaker.h"
 #include "render/bakedScene/BakedSceneBuilder.h"
 #include "java/util/ArrayList.txx"
@@ -59,7 +60,7 @@ BakedSceneBuilder::classifyOperandKind(
         if (quadricGeometry != nullptr) {
             return BakedSceneCsgOperandKind::TransformedQuadric;
         }
-        if (dynamic_cast<RayCastingSphere *>(geometry) != nullptr) {
+        if (dynamic_cast<const Sphere *>(geometry->getIntrinsicGeometry()) != nullptr) {
             return BakedSceneCsgOperandKind::TransformedSphere;
         }
         return BakedSceneCsgOperandKind::TransformedPrimitive;
@@ -77,8 +78,9 @@ BakedSceneBuilder::hasFiniteInteriorBounds(const CsgOperandRecord *operand)
     }
 
     const RayCastingGeometry *geometry = operand->getGeometry();
-    if (const RayCastingSphere *sphere = dynamic_cast<const RayCastingSphere *>(geometry)) {
-        return !sphere->isInverted();
+    if (const NativeGeometryBinding *binding = dynamic_cast<const NativeGeometryBinding *>(geometry)) {
+        if (dynamic_cast<const Sphere *>(binding->getIntrinsicGeometry()) != nullptr)
+            return !binding->isInverted();
     }
     if (const RayCastingBox *box = dynamic_cast<const RayCastingBox *>(geometry)) {
         return !box->isInverted();
@@ -694,7 +696,8 @@ BakedSceneBuilder::bakeCsgOperand(CsgOperand *operand, BakedScene &out)
 
     bool cullSafe =
         bounded &&
-        (dynamic_cast<RayCastingSphere *>(originalGeometry) != nullptr ||
+        ((originalGeometry != nullptr &&
+          dynamic_cast<const Sphere *>(originalGeometry->getIntrinsicGeometry()) != nullptr) ||
          dynamic_cast<RayCastingBox *>(originalGeometry) != nullptr ||
          dynamic_cast<Blob *>(originalGeometry) != nullptr ||
          dynamic_cast<Quadric *>(originalGeometry) != nullptr ||

@@ -1,7 +1,8 @@
 #include <cmath>
 #include <cstdio>
 #include "environment/scene/Scene.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/RayCastingSphere.h"
+#include "vsdk/toolkit/environment/geometry/volume/Sphere.h"
+#include "vsdk/toolkit/environment/raycasting/scene/NativeGeometryBinding.h"
 #include "vsdk/toolkit/environment/geometry/element/RayHit.h"
 #include "vsdk/toolkit/environment/scene/SimpleSceneSnapshot.h"
 
@@ -13,7 +14,7 @@ int main() {
     try {
         Scene scene;
         java::ArrayList<RayCastingBody*> regions;
-        auto* body = new RayCastingBody(new RayCastingSphere(1.0), nullptr, nullptr,
+        auto* body = new RayCastingBody(new NativeGeometryBinding(new Sphere(1.0)), nullptr, nullptr,
             nullptr, false, regions, regions);
         Geometry* geometry = body->getGeometry();
         RayHit hit(RayHit::DETAIL_POINT | RayHit::DETAIL_NORMAL, false);

@@ -2,6 +2,7 @@
 #define __CSG_OPERAND_TRACE__
 
 #include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/SphereTrace.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
 #include "render/bakedScene/AabbCullingSupport.h"
 #include "render/bakedScene/BakedPlaneIntersector.h"
@@ -234,9 +235,8 @@ public:
 
                 double depth1;
                 double depth2;
-                if (!RayCastingSphere::intersectSphereLocalSpace(
+                if (!SphereTrace::intersect(*operand->getIntrinsicSphere(),
                         localOrigin, localDirection, ray->getGeometryStatistics(),
-                        static_cast<RayCastingSphere *>(operand->getGeometry())->getRadius(),
                         &depth1, &depth2)) {
                     return false;
                 }

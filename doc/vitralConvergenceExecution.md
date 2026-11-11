@@ -362,8 +362,94 @@ pass; [the validation report](vitralStageBValidation.json) contains the evidence
 Remaining work is deliberately assigned to later stages: `RayCastingSphere` and
 other duplicate geometry families remain; unmigrated primitives and the legacy
 POV scene adapter can return `Unsupported`; coincident CSG event policy and the
-full Roth/heuristic evaluators remain in E; scene ownership and appearance binding
-remain in G; compatibility fields and `raycasting` are removed in H. In particular,
+full Roth/heuristic evaluators remain in F; scene ownership and appearance binding
+remain in H; compatibility fields and `raycasting` are removed in I. In particular,
 positive world-space tolerance under nonuniform scale is currently explicit
 `Indeterminate` and must be addressed by the CSG/scene integration instead of
 being silently approximated.
+
+## Stage C: shared sphere state (in progress)
+
+`RayCastingSphere` now owns a VITRAL `Sphere` instead of maintaining a second
+radius. Radius changes and copies construct or update the VITRAL geometry, and
+the POV containment heuristic evaluates its implicit function. Inversion and
+the existing tolerance comparison remain POV policies; in particular, that
+comparison is in squared implicit-function units and is not the world-distance
+containment contract planned for stage E. The existing root kernel remains
+shared by first-hit and crossing paths.
+
+The integration test checks the shared radius, copy independence, native
+first-hit and crossing queries, and the legacy boundary and inversion decisions. This is an
+intermediate migration, not the stage C exit: the sphere-specific adapter,
+its scene and optimized CSG bindings, and its detail callbacks still need to
+be replaced by integration of the VITRAL geometry. No claim is made that the
+three applications already use one scene representation.
+
+The full VITRAL example build and its 142 enabled tests passed; 143 enabled POV
+tests passed, and the 30 captured VITRAL example images matched the preceding
+iteration. The normal POV render produced 108 baseline-identical images in
+111.03 seconds (1291.03 user CPU seconds), versus baseline runs of 111.59 and
+112.39 seconds (1291.53 and 1295.18 user CPU seconds). The existing disabled
+test remains disabled. The copied base subset audit reports 161 identical files.
+The full Roth render also completed, and the comparison reported exactly the
+seven previously accepted discrepancies and no new ones.
+
+### Native leaf provenance and optimized tracing
+
+The transitional geometry bridge now exposes its intrinsic mathematical leaf.
+Crossings emitted directly, through a POV body, and from CSG identify that leaf
+instead of the bridge; integration tests check the sphere identities, including
+both leaves of a difference. The leaf is borrowed and remains valid for the
+lifetime of its owning bridge. Other legacy geometries retain their previous
+identity until migrated.
+
+The baked CSG dispatcher recognizes the intrinsic `Sphere` and retains a
+borrowed pointer in the operand record, so its hot path does not perform a
+per-ray dynamic cast or virtual dispatch. `SphereTrace` holds the POV tracing
+limits and statistics and calls the VITRAL sphere root kernel, removing the
+optimized trace paths' dependency on a sphere-specific geometry adapter.
+Inversion, normal detail, ownership and scene binding still require migration;
+`RayCastingSphere` therefore remains and stage C is not yet complete.
+
+Validation: 143 enabled POV tests and 142 enabled VITRAL tests passed; the
+full VITRAL example build succeeded and the 30 captured example images matched
+the preceding iteration. The normal render's 108 images matched the baseline
+in 110.46 seconds (1297.86 user CPU seconds), compared with baseline runs of
+111.59 and 112.39 seconds (1291.53 and 1295.18 user CPU seconds). The full
+Roth render completed with the same seven accepted discrepancies and no new
+ones. The inventory audit maps 71 raycasting files and confirms that all 161
+files in the local copied base subset match VITRAL.
+
+### Native sphere scene binding
+
+The POV parser now constructs a VITRAL `Sphere` and binds it to the legacy
+scene using `NativeGeometryBinding`; the sphere-specific `RayCastingSphere`
+source files have been removed. The binding owns its native geometry and
+copies it through the optional `Geometry::copyGeometry` contract. Sphere
+implements that operation; unsupported geometry copies are explicitly
+rejected. The fast sphere traversal delegates to the same VITRAL root kernel,
+while POV's query limits, statistics, inversion and historical containment
+policy remain in the scene and tracing integration.
+
+The binding can also use the general native first-hit, crossings, containment,
+detail and bounds contracts. A non-spherical test fixture exercises those
+paths. Unsupported operations and invalid or indeterminate results are not
+silently converted into misses or inside/outside answers. The old queue format
+cannot represent nested leaf provenance, instance paths or reversed boundaries;
+the generic adapter explicitly rejects those events pending the scene work in
+stage H. The binding and queue sink remain transitional components to remove
+with the rest of `raycasting` in stage I.
+
+Stage C's sphere exit conditions are met: the separate sphere geometry is gone,
+the three applications use VITRAL's mathematical sphere, and first-hit and
+crossing paths share its root kernel. Both ShadersExample backends and the
+offline raytracer ran successfully. This does not complete the later scene,
+primitive, tolerance or CSG phases.
+
+Validation: the full VITRAL example build and its 142 enabled tests passed;
+143 enabled POV tests passed. All 30 captured example images match the previous
+iteration. `renderAll.sh` produced 108 baseline-identical images in 109.90 s
+(1305.43 user CPU seconds); baseline runs took 111.59 and 112.39 s (1291.53
+and 1295.18 user CPU seconds). Roth completed with the same seven accepted
+above-threshold scenes and no new discrepancies. The inventory audit maps 77
+raycasting files and confirms 161 copied base files match VITRAL.

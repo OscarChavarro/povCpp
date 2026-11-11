@@ -8,7 +8,7 @@
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/Blob.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/HeightField.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/RayCastingSphere.h"
+#include "vsdk/toolkit/environment/geometry/volume/Sphere.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/element/TransformStep.h"
 
 class CsgOperand : public PostRayHitElement {
@@ -67,7 +67,7 @@ class CsgOperand : public PostRayHitElement {
         bakedBoundsBounded = !bakedBounds.isUnbounded();
         bakedBoundsCullSafe =
             bakedBoundsBounded &&
-            (dynamic_cast<RayCastingSphere *>(geometry) != nullptr ||
+            (dynamic_cast<const Sphere *>(geometry->getIntrinsicGeometry()) != nullptr ||
              dynamic_cast<RayCastingBox *>(geometry) != nullptr ||
              dynamic_cast<Blob *>(geometry) != nullptr ||
              dynamic_cast<Quadric *>(geometry) != nullptr ||

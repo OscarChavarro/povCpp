@@ -7,6 +7,86 @@
   "note": "Targets are responsibility destinations, not instructions to copy files unchanged. Split entries assign disjoint responsibilities, never duplicate implementations. Acceptance IDs are defined in vitralConvergenceExecution.md.",
   "files": [
     {
+      "source": "raycasting/tests/TestCrossingCollector.h",
+      "destination": "PovRay",
+      "action": "move",
+      "target": "test fixture",
+      "acceptance": "G1",
+      "policy": "Retain this collector with the compatibility binding tests."
+    },
+    {
+      "source": "raycasting/tests/TestCrossingCollector.cpp",
+      "destination": "PovRay",
+      "action": "move",
+      "target": "test fixture",
+      "acceptance": "G1",
+      "policy": "Retain this collector with the compatibility binding tests."
+    },
+    {
+      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/NativeGeometryBinding.h",
+      "destination": "PovRay",
+      "action": "move",
+      "target": "scene compatibility binding",
+      "acceptance": "G1",
+      "policy": "Replace the temporary bridge as the scene model and render callbacks converge."
+    },
+    {
+      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/NativeGeometryBinding.cpp",
+      "destination": "PovRay",
+      "action": "move",
+      "target": "scene compatibility binding",
+      "acceptance": "G1",
+      "policy": "Replace the temporary bridge as the scene model and render callbacks converge."
+    },
+    {
+      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/NativeGeometryCrossingSink.h",
+      "destination": "PovRay",
+      "action": "move",
+      "target": "scene compatibility binding",
+      "acceptance": "G1",
+      "policy": "Replace this temporary queue conversion with the shared scene contract."
+    },
+    {
+      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/NativeGeometryCrossingSink.cpp",
+      "destination": "PovRay",
+      "action": "move",
+      "target": "scene compatibility binding",
+      "acceptance": "G1",
+      "policy": "Replace this temporary queue conversion with the shared scene contract."
+    },
+    {
+      "source": "raycasting/tests/TestSlabGeometry.h",
+      "destination": "PovRay",
+      "action": "move",
+      "target": "test fixture",
+      "acceptance": "G1",
+      "policy": "Retain this contract fixture with the compatibility binding tests."
+    },
+    {
+      "source": "raycasting/tests/TestSlabGeometry.cpp",
+      "destination": "PovRay",
+      "action": "move",
+      "target": "test fixture",
+      "acceptance": "G1",
+      "policy": "Retain this contract fixture with the compatibility binding tests."
+    },
+    {
+      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/element/SphereTrace.h",
+      "destination": "PovRay",
+      "action": "move",
+      "target": "render tracing policy",
+      "acceptance": "G1",
+      "policy": "Keep POV statistics and query limits in the renderer; the sphere root kernel belongs to VITRAL."
+    },
+    {
+      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/element/SphereTrace.cpp",
+      "destination": "PovRay",
+      "action": "move",
+      "target": "render tracing policy",
+      "acceptance": "G1",
+      "policy": "Keep POV statistics and query limits in the renderer; the sphere root kernel belongs to VITRAL."
+    },
+    {
       "source": "raycasting/CMakeLists.txt",
       "destination": "none",
       "action": "remove",
@@ -389,22 +469,6 @@
       "target": "volume/Box",
       "acceptance": "G1",
       "policy": "Unify slabs, detail, containment and bounds."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/RayCastingSphere.cpp",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "volume/Sphere",
-      "acceptance": "G1",
-      "policy": "Remove duplicate radius/inversion object; retain shared root kernel and move complement to composition."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/RayCastingSphere.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "volume/Sphere",
-      "acceptance": "G1",
-      "policy": "Remove duplicate radius/inversion object; retain shared root kernel and move complement to composition."
     },
     {
       "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h",

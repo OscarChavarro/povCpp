@@ -30,6 +30,7 @@ class CsgOperandRecord {
         kind(BakedSceneCsgOperandKind::Empty),
         operand(nullptr),
         originalGeometry(nullptr),
+        intrinsicSphere(nullptr),
         originalQuadricGeometry(nullptr),
         material(nullptr),
         nestedCsgProgramIndex(-1),
@@ -82,6 +83,8 @@ class CsgOperandRecord {
         kind(kind),
         operand(operand),
         originalGeometry(originalGeometry),
+        intrinsicSphere(originalGeometry != nullptr ?
+            dynamic_cast<const Sphere *>(originalGeometry->getIntrinsicGeometry()) : nullptr),
         originalQuadricGeometry(originalQuadricGeometry),
         material(material),
         nestedCsgProgramIndex(nestedCsgProgramIndex),
@@ -127,6 +130,7 @@ class CsgOperandRecord {
         return hasBakedQuadric ? const_cast<Quadric *>(&bakedQuadricStorage) : originalQuadricGeometry;
     }
     RayCastingGeometry *getOriginalGeometry() const { return originalGeometry; }
+    const Sphere *getIntrinsicSphere() const { return intrinsicSphere; }
     Quadric *getOriginalQuadricGeometry() const { return originalQuadricGeometry; }
     const Quadric &getBakedQuadricStorage() const { return bakedQuadricStorage; }
     const RayCastingInfinitePlane &getBakedPlaneStorage() const { return bakedPlaneStorage; }
@@ -167,6 +171,7 @@ class CsgOperandRecord {
     BakedSceneCsgOperandKind kind;
     CsgOperand *operand;
     RayCastingGeometry *originalGeometry;
+    const Sphere *intrinsicSphere;
     Quadric *originalQuadricGeometry;
     Material *material;
     int nestedCsgProgramIndex;
