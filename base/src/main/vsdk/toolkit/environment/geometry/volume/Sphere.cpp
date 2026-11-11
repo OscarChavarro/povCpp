@@ -1,10 +1,12 @@
 #include "java/lang/Double.h"
+#include "java/lang/IllegalStateException.h"
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/environment/geometry/element/RaySolidClassification.h"
 #include <cmath>
 
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/VSDK.h"
+#include "vsdk/toolkit/common/numerics/FloatingInterval.h"
 #include "vsdk/toolkit/common/statistics/RaytraceStatistics.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 #include "vsdk/toolkit/environment/geometry/element/RayHit.h"
@@ -149,6 +151,20 @@ Sphere::classifyPoint(const Vector3Dd& p, double distanceTolerance) const {
         !java::Double::isFinite(distanceTolerance) || distanceTolerance < 0 ||
         !java::Double::isFinite(p.x()) || !java::Double::isFinite(p.y()) ||
         !java::Double::isFinite(p.z())) return GeometryContainment::InvalidInput;
+    if (distanceTolerance>0) {
+        if (!FloatingInterval::isSupportedEnvironment()) return GeometryContainment::Unsupported;
+        FloatingInterval squared=FloatingInterval::exact(0);
+        squared=squared.add(FloatingInterval::exact(p.x()).square());
+        squared=squared.add(FloatingInterval::exact(p.y()).square());
+        squared=squared.add(FloatingInterval::exact(p.z()).square());
+        const FloatingInterval signedDistance=squared.squareRoot().subtract(FloatingInterval::exact(radius));
+        if (!signedDistance.isValid()) return GeometryContainment::Indeterminate;
+        if (signedDistance.getUpper() < -distanceTolerance) return GeometryContainment::Inside;
+        if (signedDistance.getLower() > distanceTolerance) return GeometryContainment::Outside;
+        if (signedDistance.getLower() >= -distanceTolerance && signedDistance.getUpper() <= distanceTolerance)
+            return GeometryContainment::Boundary;
+        return GeometryContainment::Indeterminate;
+    }
     const double squared = p.dotProduct(p);
     const double radiusSquaredValue = radius * radius;
     if (!java::Double::isFinite(squared) || !java::Double::isFinite(radius + distanceTolerance) ||
@@ -166,7 +182,10 @@ Sphere::doContainmentTest(const Vector3Dd& p, double distanceTolerance) {
     const GeometryContainment result = classifyPoint(p, distanceTolerance);
     if (result == GeometryContainment::Inside) return INSIDE;
     if (result == GeometryContainment::Boundary) return LIMIT;
-    return OUTSIDE;
+    if (result == GeometryContainment::Outside) return OUTSIDE;
+    // The legacy integer contract has no representation for uncertainty.
+    // Do not silently convert an indeterminate or failed query to outside.
+    throw java::IllegalStateException("Sphere containment cannot be represented by the legacy integer result");
 }
 
 double*

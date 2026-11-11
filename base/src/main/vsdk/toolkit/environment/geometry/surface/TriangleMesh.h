@@ -3,6 +3,7 @@
 
 #include "java/lang/String.h"
 #include "java/util/ArrayList.h"
+#include "vsdk/toolkit/environment/geometry/surface/TriangleMeshIntersectionIndex.h"
 #include "vsdk/toolkit/environment/geometry/surface/Surface.h"
 class Vertex;
 class Triangle;
@@ -36,13 +37,16 @@ private:
     java::ArrayList< java::ArrayList<int> > textureRanges;
     java::ArrayList< java::ArrayList<int> > materialRanges;
 
-    int intersectionTriangleIndex;
+    TriangleMeshIntersectionIndex intersectionTriangleIndex;
     bool ownsMaterials;
 
-    static bool intersectTriangle(const Ray& ray, const Vector3Dd& v0, const Vector3Dd& v1, const Vector3Dd& v2, double& t, double& u, double& v);
     void interpolateTriangleData(int triangleIndex, double u, double v, RayHit* outHit, const Vector3Dd& rayDirection);
     void fillMaterialAndTexture(int triangleIndex, RayHit* outHit);
     bool doIntersectionInternal(const Ray& inRay, RayHit* outHit, int* outTriangleIndex);
+    bool getTrianglePoints(int index, Vector3Dd& p0, Vector3Dd& p1, Vector3Dd& p2) const;
+    void fillTypedDetail(const Ray& ray, double t, int face, double u, double v,
+        const Vector3Dd& p0, const Vector3Dd& p1, const Vector3Dd& p2,
+        bool normalReversed, RayHit* hit) const;
 
     double* calculateMinMaxPositions();
 
@@ -65,6 +69,14 @@ public:
     ~TriangleMesh();
 
     TriangleMesh* clone() const;
+    // Mathematical copy; scene-owned materials and textures are not copied.
+    Geometry* copyGeometry() const override;
+    RayFirstHitStatus queryFirstHit(const Ray& ray, const RayCrossingQuery& query,
+        RayHit* hit, RayBoundary* boundary = nullptr) const override;
+    RayFirstHitStatus querySurfaceDetail(const Ray& ray, const RayBoundary& boundary,
+        RayHit* hit) const override;
+    RayCrossingSupport emitRayCrossings(const Ray& ray, const RayCrossingQuery& query,
+        RayCrossingSink& sink) const override;
 
     java::String getName() const;
     void setName(const java::String& name);
@@ -101,6 +113,7 @@ public:
     java::ArrayList<bool>& getVertexSelections();
 
     java::ArrayList<double>& getVertexPositions();
+    const java::ArrayList<double>& getVertexPositionsView() const { return vertexPositions; }
     java::ArrayList<double>& getVertexNormals();
     java::ArrayList<double>& getVertexBinormals();
     java::ArrayList<double>& getVertexTangents();
@@ -108,6 +121,8 @@ public:
     java::ArrayList<double>& getVertexUvs();
     java::ArrayList<int>& getTriangleIndexes();
     java::ArrayList<double>& getTriangleNormals();
+    const java::ArrayList<int>& getTriangleIndexesView() const { return triangleIndexes; }
+    const java::ArrayList<double>& getTriangleNormalsView() const { return triangleNormals; }
 
     java::ArrayList<SimpleMaterial*>& getMaterials();
     java::ArrayList<Image*>& getTextures();
@@ -133,6 +148,7 @@ public:
     virtual void doExtraInformation(const Ray& inRay, double inT, RayHit* outData);
 
     virtual int doContainmentTest(const Vector3Dd& p, double distanceTolerance);
+    void getBounds(GeometryBounds& result) const override;
     virtual double* getMinMax();
 
     TriangleMeshGroup* exportToTriangleMeshGroup();

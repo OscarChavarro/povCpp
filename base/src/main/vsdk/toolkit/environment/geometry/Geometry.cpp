@@ -31,5 +31,11 @@ RayFirstHitStatus Geometry::queryFirstHit(const Ray&, const RayCrossingQuery&, R
     return RayFirstHitStatus::Unsupported;
 }
 
+RayFirstHitStatus Geometry::querySurfaceDetail(const Ray&, const RayBoundary&, RayHit* result) const
+{
+    if (result) result->clear();
+    return RayFirstHitStatus::Unsupported;
+}
+
 GeometryContainment Geometry::classifyPoint(const Vector3Dd&, double) const
 { return GeometryContainment::Unsupported; }

@@ -55,6 +55,19 @@ message(STATUS "  POSIX Threads: ${WITH_POSIX_THREADS}")
 
 # Source files for the base library
 set(VITRAL_BASE_SOURCES
+    src/main/vsdk/toolkit/common/numerics/FloatingInterval.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/QuadraticInteriorBound.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/AffineEllipsoidMinimumDistance.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/AffineEllipsoidDualBound.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/AffineEllipsoidDistanceBounds.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/AffineEllipsoidDistance.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/OrthogonalEllipsoidDistance.cpp
+    src/main/vsdk/toolkit/environment/scene/AffinePlacement.cpp
+    src/main/vsdk/toolkit/environment/scene/InstanceRayCrossingBuffer.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgExpression.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgOperandView.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgBodyOperand.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgTree.cpp
     src/main/vsdk/toolkit/environment/geometry/element/GeometryBounds.cpp
     src/main/vsdk/toolkit/environment/geometry/element/GeometryQueryWorkspace.cpp
     src/main/vsdk/toolkit/environment/geometry/element/RayInstanceStep.cpp
@@ -160,12 +173,14 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/environment/geometry/surface/Surface.cpp
     src/main/vsdk/toolkit/environment/geometry/surface/HalfSpace.cpp
     src/main/vsdk/toolkit/environment/geometry/surface/InfinitePlane.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/PlanarHalfSpace.cpp
     src/main/vsdk/toolkit/environment/geometry/surface/FunctionalExplicitSurface.cpp
     src/main/vsdk/toolkit/environment/geometry/surface/Md2Mesh.cpp
     src/main/vsdk/toolkit/environment/geometry/surface/ParametricBiCubicPatch.cpp
     src/main/vsdk/toolkit/environment/geometry/surface/_ParametricBiCubicPatchIntersector.cpp
     src/main/vsdk/toolkit/environment/geometry/surface/TriangleStripMesh.cpp
     src/main/vsdk/toolkit/environment/geometry/surface/TriangleMesh.cpp
+    src/main/vsdk/toolkit/environment/geometry/surface/TriangleMeshIntersectionIndex.cpp
     src/main/vsdk/toolkit/environment/geometry/surface/QuadMesh.cpp
     src/main/vsdk/toolkit/environment/geometry/surface/TriangleMeshGroup.cpp
     src/main/vsdk/toolkit/environment/geometry/geometricProcessing/Voxelization.cpp
@@ -196,6 +211,7 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/environment/geometry/volume/Box.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/Cone.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/Arrow.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/QuadricSurface.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/Torus.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/VoxelVolume.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolid.cpp
@@ -247,6 +263,7 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/io/geometry/ReaderPly.cpp
     src/main/vsdk/toolkit/io/geometry/ReaderPlyResult.cpp
     src/main/vsdk/toolkit/io/geometry/ReaderMitScene.cpp
+    src/main/vsdk/toolkit/io/geometry/ReaderMitTriangleGroup.cpp
     src/main/vsdk/toolkit/io/image/ImagePersistence.cpp
     src/main/java/io/BufferedOutputStream.cpp
     src/main/vsdk/toolkit/media/MediaEntity.h
@@ -371,6 +388,18 @@ if(WITH_FREETYPE)
         src/main/vsdk/toolkit/io/geometry/Freetype2FontReader.cpp)
 endif()
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  set_source_files_properties(
+    src/main/vsdk/toolkit/common/numerics/FloatingInterval.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/QuadraticInteriorBound.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/AffineEllipsoidMinimumDistance.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/AffineEllipsoidDualBound.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/AffineEllipsoidDistanceBounds.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/Sphere.cpp
+    src/main/vsdk/toolkit/environment/scene/SimpleBody.cpp
+    src/main/java/lang/Double.cpp
+    PROPERTIES COMPILE_OPTIONS "-fno-fast-math;-ffp-contract=off")
+endif()
 add_library(vitral_base SHARED ${VITRAL_BASE_SOURCES})
 
 # java::Thread runs over std::thread
@@ -455,6 +484,8 @@ if(VITRAL_BUILD_TESTS)
     src/test/microfaceted_material_csv_tests.cpp
     src/test/ray_affine_contract_tests.cpp
     src/test/ray_crossing_tests.cpp
+    src/test/reader_mit_triangles_tests.cpp
+    src/test/triangle_mesh_contract_tests.cpp
     src/test/sphere_polyhedral_cache_tests.cpp
     src/test/box_cone_containment_tests.cpp
     src/test/voxel_volume_tests.cpp

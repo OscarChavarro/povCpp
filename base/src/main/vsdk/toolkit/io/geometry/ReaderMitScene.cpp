@@ -3,12 +3,16 @@
 #include <cstring>
 
 #include "java/lang/String.h"
+#include "java/lang/Double.h"
 #include "vsdk/toolkit/common/VSDKFatalException.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/common/color/ColorRgb.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/environment/material/SimpleMaterial.h"
 #include "vsdk/toolkit/environment/geometry/volume/Sphere.h"
+#include "vsdk/toolkit/environment/geometry/volume/Box.h"
+#include "vsdk/toolkit/environment/geometry/volume/PlanarHalfSpace.h"
+#include "vsdk/toolkit/environment/geometry/volume/QuadricSurface.h"
 #include "vsdk/toolkit/environment/background/SimpleBackground.h"
 #include "vsdk/toolkit/environment/camera/Camera.h"
 #include "vsdk/toolkit/environment/light/AmbientLight.h"
@@ -17,6 +21,7 @@
 #include "vsdk/toolkit/environment/scene/SimpleBody.h"
 #include "vsdk/toolkit/environment/scene/SimpleScene.h"
 #include "vsdk/toolkit/io/geometry/ReaderMitScene.h"
+#include "vsdk/toolkit/io/geometry/ReaderMitTriangleGroup.h"
 ReaderMitScene::ReaderMitScene()
 {
 }
@@ -65,6 +70,8 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
     double importedHorizontalFov = 30.0;
 
     SimpleMaterial* currentMaterial = new SimpleMaterial();
+    ReaderMitTriangleGroup triangleGroup;
+    bool inTriangles = false;
 
     char lineBuf[1024];
     while ( fgets(lineBuf, sizeof(lineBuf), file) ) {
@@ -83,7 +90,37 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
         sscanf(javaLine.toCString(), "%255s", cmdStr);
         java::String cmd(cmdStr);
 
-        if ( cmd == "viewport" ) {
+        if ( cmd == "triangles" ) {
+            if (inTriangles) {
+                fclose(file);
+                delete currentMaterial;
+                throw VSDKFatalException("ReaderMitScene: nested triangles block");
+            }
+            triangleGroup.reset();
+            inTriangles = true;
+        }
+        else if ( cmd == "v" && inTriangles ) {
+            double x, y, z;
+            if (sscanf(javaLine.toCString(), "%*s %lf %lf %lf", &x, &y, &z) != 3 ||
+                !triangleGroup.addVertex(Vector3Dd(x,y,z))) {
+                fclose(file);
+                delete currentMaterial;
+                throw VSDKFatalException("ReaderMitScene: invalid triangle vertex");
+            }
+        }
+        else if ( cmd == "f" && inTriangles ) {
+            if (!triangleGroup.addFace(javaLine.toCString() + 1)) {
+                fclose(file);
+                delete currentMaterial;
+                throw VSDKFatalException("ReaderMitScene: invalid triangle face");
+            }
+        }
+        else if ( cmd == "end" && inTriangles ) {
+            triangleGroup.flush(outScene, currentMaterial);
+            triangleGroup.reset();
+            inTriangles = false;
+        }
+        else if ( cmd == "viewport" ) {
             int w, h;
             if ( sscanf(javaLine.toCString(), "%*s %d %d", &w, &h) == 2 ) {
                 viewportXSize = w;
@@ -125,6 +162,7 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
             }
         }
         else if ( cmd == "surface" ) {
+            if (inTriangles) triangleGroup.flush(outScene, currentMaterial);
             double r, g, b;
             double ka, kd, ks;
             double ns;
@@ -143,6 +181,49 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
                     1.0,
                     ns);
             }
+        }
+        else if ( cmd == "box" ) {
+            double xmin, ymin, zmin, xmax, ymax, zmax;
+            if (sscanf(javaLine.toCString(), "%*s %lf %lf %lf %lf %lf %lf",
+                    &xmin, &ymin, &zmin, &xmax, &ymax, &zmax) != 6 ||
+                !java::Double::isFinite(xmin) || !java::Double::isFinite(ymin) || !java::Double::isFinite(zmin) ||
+                !java::Double::isFinite(xmax) || !java::Double::isFinite(ymax) || !java::Double::isFinite(zmax) ||
+                xmin >= xmax || ymin >= ymax || zmin >= zmax) {
+                delete currentMaterial; fclose(file);
+                throw VSDKFatalException("ReaderMitScene: box requires ordered minimum and maximum corners");
+            }
+            SimpleBody* b = new SimpleBody();
+            b->setGeometry(new Box(Vector3Dd(xmin,ymin,zmin), Vector3Dd(xmax,ymax,zmax)));
+            b->setMaterial(new SimpleMaterial(*currentMaterial));
+            outScene->addBody(b);
+        }
+        else if ( cmd == "halfspace" ) {
+            double a, b, c, d;
+            if (sscanf(javaLine.toCString(), "%*s %lf %lf %lf %lf", &a, &b, &c, &d) != 4 ||
+                !java::Double::isFinite(a) || !java::Double::isFinite(b) ||
+                !java::Double::isFinite(c) || !java::Double::isFinite(d) ||
+                (a == 0 && b == 0 && c == 0)) {
+                delete currentMaterial; fclose(file);
+                throw VSDKFatalException("ReaderMitScene: halfspace requires a nonzero normal and constant");
+            }
+            SimpleBody* body = new SimpleBody();
+            body->setGeometry(new PlanarHalfSpace(a,b,c,d));
+            body->setMaterial(new SimpleMaterial(*currentMaterial));
+            outScene->addBody(body);
+        }
+        else if ( cmd == "quadric" ) {
+            double xx, yy, zz, xy, xz, yz, x, y, z, c;
+            if (sscanf(javaLine.toCString(), "%*s %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",
+                    &xx, &yy, &zz, &xy, &xz, &yz, &x, &y, &z, &c) != 10) {
+                delete currentMaterial;
+                fclose(file);
+                throw VSDKFatalException("ReaderMitScene: quadric requires ten coefficients");
+            }
+            SimpleBody* b = new SimpleBody();
+            b->setGeometry(new QuadricSurface(Vector3Dd(xx,yy,zz), Vector3Dd(xy,xz,yz),
+                Vector3Dd(x,y,z), c));
+            b->setMaterial(new SimpleMaterial(*currentMaterial));
+            outScene->addBody(b);
         }
         else if ( cmd == "sphere" ) {
             double x, y, z, r;
@@ -179,6 +260,10 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
     }
 
     fclose(file);
+    if (inTriangles) {
+        delete currentMaterial;
+        throw VSDKFatalException("ReaderMitScene: unterminated triangles block");
+    }
 
     if ( hasEye ) {
         camera->setPosition(eye);

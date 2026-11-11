@@ -24,6 +24,9 @@ public:
 
     virtual ~Geometry() {}
 
+    // An independent mathematical copy, or nullptr when copying is unsupported.
+    virtual Geometry* copyGeometry() const { return nullptr; }
+
     // Unsupported is distinct from an empty sequence of crossings.
     virtual RayCrossingSupport emitRayCrossings(
         const Ray&, const RayCrossingQuery&, RayCrossingSink&) const
@@ -37,6 +40,10 @@ public:
     // Inclusive explicit interval; unsupported implementations clear output.
     virtual RayFirstHitStatus queryFirstHit(const Ray&, const RayCrossingQuery&, RayHit*,
         RayBoundary* boundary = nullptr) const;
+
+    // Resolve detail for a boundary in this geometry's local coordinates.
+    // Hit means evaluated; unsupported and numerical failures remain explicit.
+    virtual RayFirstHitStatus querySurfaceDetail(const Ray&, const RayBoundary&, RayHit*) const;
 
     virtual bool doIntersectionFirstHit(const Ray& inRay, RayHit* outHit) = 0;
     virtual void doExtraInformation(const Ray& inRay, double inT, RayHit* outHit);

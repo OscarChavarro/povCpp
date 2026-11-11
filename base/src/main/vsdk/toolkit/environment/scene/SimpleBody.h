@@ -19,7 +19,10 @@ class Material;
 #include "vsdk/toolkit/environment/geometry/element/RayCrossingSupport.h"
 #include "vsdk/toolkit/environment/geometry/element/RaySolidQueryStatus.h"
 #include "vsdk/toolkit/environment/geometry/element/GeometryContainment.h"
+#include "vsdk/toolkit/environment/scene/AffinePlacement.h"
+#include "vsdk/toolkit/environment/geometry/element/GeometryDistanceStatus.h"
 class RaySolidClassification;
+class GeometryBounds;
 
 class SimpleBody : public Entity {
 protected:
@@ -28,6 +31,8 @@ private:
     /// False when the geometry is shared (see `setGeometryReference`)
     bool ownsGeometry;
     bool geometryIsSphere;
+    AffinePlacement affinePlacement;
+    bool explicitAffinePlacement;
     Vector3Dd position;
     Vector3Dd scale;
     Matrix4x4d rotation;
@@ -58,21 +63,40 @@ private:
     enum class QueryPlacementStatus { Valid, Invalid, Indeterminate };
     QueryPlacementStatus queryPlacementStatus() const;
     void updateTransformFlags();
+    void updateDecomposedPlacement();
+    GeometryContainment classifyPointCertifiedWithLimit(const Vector3Dd& point,
+        double distanceTolerance, int iterationLimit) const;
+    bool doIntersectionWithAffinePlacement(const Ray& ray, RayHit* hit) const;
+    void doExtraInformationWithAffinePlacement(const Ray& ray, double t, RayHit* hit) const;
     static bool isIdentityRotation(const Matrix4x4d& matrix);
     bool doIntersectionWithTranslationOnly(const Ray& inOutRay, RayHit* outHit, int requiredDetailMask) const;
     bool doIntersectionWithTranslationOnlySphereFastPath(const Ray& inOutRay, RayHit* outHit) const;
 
 public:
     virtual RayCrossingSupport emitRayCrossings(
-        const Ray&, const RayCrossingQuery&, RayCrossingSink&) const
-    { return RayCrossingSupport::Unsupported; }
+        const Ray&, const RayCrossingQuery&, RayCrossingSink&) const;
     // Classifies with an affine local ray and appends this instance's provenance.
-    // World-space tolerance is exact for uniform scales; otherwise explicit indeterminate.
+    // Positive world-space tolerance uses conservative affine-sphere certificates;
+    // other nonuniform placements remain explicitly indeterminate.
     virtual GeometryContainment classifyPoint(const Vector3Dd& point, double distanceTolerance) const;
+    // Numerical estimate for placed spheres; estimatedError is not certified.
+    // On failure both output arguments remain unchanged.
+    virtual GeometryDistanceStatus estimateBoundaryDistance(const Vector3Dd& point,
+        double& distance, double& estimatedError) const;
+    // Certified enclosure for a placed sphere and a nonzero local direction.
+    // The lower bound may be zero; all outputs are unchanged on failure.
+    virtual GeometryDistanceStatus encloseBoundaryDistance(const Vector3Dd& point,
+        const Vector3Dd& localDirection, GeometryContainment& side, double& lower, double& upper) const;
+    // Certified minimum-distance enclosure no wider than maxWidth. Failure
+    // leaves all outputs untouched; currently supported for placed spheres.
+    virtual GeometryDistanceStatus encloseMinimumBoundaryDistance(const Vector3Dd& point,
+        double maxWidth, GeometryContainment& side, double& lower, double& upper) const;
+    // Only decides when the enclosure proves the result; otherwise Indeterminate.
+    virtual GeometryContainment classifyPointCertified(const Vector3Dd& point, double distanceTolerance) const;
     virtual RaySolidQueryStatus classifyRay(const Ray&, const RayCrossingQuery&,
         RaySolidClassification& result) const;
 
-    virtual bool supportsDecomposedPlacement() const { return true; }
+    virtual bool supportsDecomposedPlacement() const { return !explicitAffinePlacement; }
     SimpleBody();
     virtual ~SimpleBody();
 
@@ -130,6 +154,15 @@ public:
 
     virtual Vector3Dd getScale() const;
     virtual Matrix4x4d getTransformationMatrix() const;
+    // Column-vector affine geometry-to-parent placement, including all layers.
+    virtual Matrix4x4d getAffinePlacement() const;
+    // On failure the previous placement remains unchanged.
+    virtual AffinePlacementStatus setAffinePlacement(const Matrix4x4d& forward, const Matrix4x4d& inverse);
+    // Reset to identity and re-enable decomposed editing.
+    virtual void resetAffinePlacement();
+    virtual AffinePlacementStatus queryAffinePlacement(Matrix4x4d& forward, Matrix4x4d& inverse) const;
+    // Result is in the parent coordinate system of this body.
+    virtual void getWorldBounds(GeometryBounds& result) const;
     virtual void setScale(const Vector3Dd& s);
 
     Ray* doIntersectionFirstHit(const Ray& inRay) const;

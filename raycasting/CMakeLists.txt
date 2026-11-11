@@ -9,6 +9,7 @@ endif()
 add_library(vitral_raycasting STATIC
     src/main/vsdk/toolkit/environment/raycasting/geometry/RayCastingGeometry.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/element/RayWithTracingState.cpp
+    src/main/vsdk/toolkit/environment/raycasting/geometry/element/SphereTrace.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingInfinitePlane.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingTriangleMesh.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricBiCubicIntersection.cpp
@@ -18,7 +19,6 @@ add_library(vitral_raycasting STATIC
     src/main/vsdk/toolkit/environment/raycasting/geometry/volume/HeightField.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/volume/RayCastingBox.cpp
-    src/main/vsdk/toolkit/environment/raycasting/geometry/volume/RayCastingSphere.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByMorganRules.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.cpp
@@ -26,6 +26,8 @@ add_library(vitral_raycasting STATIC
     src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/RaySegments.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/volume/polynomial/PolynomialShape.cpp
     src/main/vsdk/toolkit/environment/raycasting/scene/RayCastingBody.cpp
+    src/main/vsdk/toolkit/environment/raycasting/scene/NativeGeometryBinding.cpp
+    src/main/vsdk/toolkit/environment/raycasting/scene/NativeGeometryCrossingSink.cpp
     src/main/vsdk/toolkit/environment/raycasting/scene/RayCastingComposite.cpp
 )
 target_compile_features(vitral_raycasting PUBLIC cxx_std_11)
@@ -38,7 +40,8 @@ endif()
 option(RAYCASTING_BUILD_TESTS "Build raycasting integration tests" ON)
 if(RAYCASTING_BUILD_TESTS)
     enable_testing()
-    add_executable(vitral_raycasting_tests tests/sharedEnvironment.cpp)
+    add_executable(vitral_raycasting_tests tests/sharedEnvironment.cpp
+        tests/TestSlabGeometry.cpp tests/TestCrossingCollector.cpp)
     target_link_libraries(vitral_raycasting_tests PRIVATE vitral_raycasting)
     add_test(NAME raycasting_shared_environment COMMAND vitral_raycasting_tests)
 endif()

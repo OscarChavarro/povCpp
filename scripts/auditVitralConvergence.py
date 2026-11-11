@@ -16,9 +16,11 @@ def main():
     inventory = json.loads((root / 'doc/vitralConvergenceInventory.json').read_text())
     entries = inventory['files']
     listed = [entry['source'] for entry in entries]
-    actual = set(subprocess.check_output(
+    tracked_or_new = set(subprocess.check_output(
         ['git', 'ls-files', '--cached', '--others', '--exclude-standard', 'raycasting'],
         cwd=root, text=True).splitlines())
+    # Deleted tracked files remain in the index until staged; audit the working tree.
+    actual = {path for path in tracked_or_new if (root / path).is_file()}
     errors = []
     if len(listed) != len(set(listed)):
         errors.append('Duplicate source entries in migration inventory')

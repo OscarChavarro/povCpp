@@ -3,6 +3,8 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
+class Matrix4x4d;
+
 // Values are owned by this result, in the geometry's local coordinates.
 class GeometryBounds {
 public:
@@ -21,5 +23,10 @@ public:
     Kind getKind() const;
     const Vector3Dd& getMinimum() const;
     const Vector3Dd& getMaximum() const;
+    // Conservative axis-aligned enclosure in the destination coordinates.
+    // Non-affine or numerically invalid transforms are indeterminate.
+    GeometryBounds transformed(const Matrix4x4d& placement) const;
+    // Enclose both bounds; unknown states remain explicit.
+    GeometryBounds enclosing(const GeometryBounds& other) const;
 };
 #endif

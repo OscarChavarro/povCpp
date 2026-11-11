@@ -9,6 +9,8 @@ public:
     java::ArrayList<double> roots;
     java::ArrayList<RayCrossingKind> kinds;
     java::ArrayList<const Geometry*> geometries;
+    java::ArrayList<int> surfaceIndices;
+    java::ArrayList<int> instanceCounts;
 
     RayCrossingTestCollector();
     ~RayCrossingTestCollector() override;

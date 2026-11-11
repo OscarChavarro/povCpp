@@ -25,6 +25,7 @@ private:
 
 public:
     explicit Sphere(double r);
+    Geometry* copyGeometry() const override { return new Sphere(radius); }
     RayCrossingSupport emitRayCrossings(const Ray& ray,
         const RayCrossingQuery& query, RayCrossingSink& sink) const override;
 
@@ -52,6 +53,12 @@ public:
     virtual double* getMinMax();
 
     double getRadius() const;
+    // Borrowed reference to this object's intrinsic radius; valid while it lives.
+    const double& getRadiusReference() const { return radius; }
+    // Signed squared implicit function: negative inside, positive outside.
+    double implicitValue(const Vector3Dd& point) const { return point.dotProduct(point) - radiusSquared; }
+    // Fast normal for a known nonzero surface point in local coordinates.
+    Vector3Dd surfaceNormalAtNonzeroPoint(const Vector3Dd& point) const { return point.normalizedFast(); }
     double getRadiusSquared() const;
     void setRadius(double value);
 

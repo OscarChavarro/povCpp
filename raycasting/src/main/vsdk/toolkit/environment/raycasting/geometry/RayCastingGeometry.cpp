@@ -61,6 +61,14 @@ RayCastingGeometry::createBoundingVolume() const
     return new AabbBoundingVolume(AxisAlignedBoundingBox::unbounded());
 }
 
+const Geometry *
+RayCastingGeometry::resolveIntrinsicGeometry(const PostRayHitElement *element)
+{
+    const RayCastingGeometry *adapter = dynamic_cast<const RayCastingGeometry *>(element);
+    return adapter != nullptr ? adapter->getIntrinsicGeometry() :
+        dynamic_cast<const Geometry *>(element);
+}
+
 #include "vsdk/toolkit/environment/raycasting/geometry/element/RayCastingQueryAdapter.h"
 
 bool RayCastingGeometry::doIntersectionFirstHit(const Ray& source, RayHit* out)
@@ -119,7 +127,7 @@ RayCrossingSupport RayCastingGeometry::emitRayCrossings(const Ray& source,
         const IntersectionCandidate candidate = queue->poll();
         const double t = candidate.getIntersection().t;
         if (t < query.minT || t > query.maxT) continue;
-        RayCrossing event(t, dynamic_cast<const Geometry*>(candidate.getAttributes().getHitGeometry()),
+        RayCrossing event(t, resolveIntrinsicGeometry(candidate.getAttributes().getHitGeometry()),
             RayCrossing::Kind::Unclassified);
         event.body = dynamic_cast<const SimpleBody*>(candidate.getAttributes().getHitBody());
         event.material = candidate.getAttributes().getMaterial();

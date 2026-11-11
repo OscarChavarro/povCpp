@@ -2,6 +2,7 @@
 #include <cstdio>
 
 #include "java/lang/Math.h"
+#include "java/lang/Double.h"
 #include "java/lang/String.h"
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/VSDK.h"
@@ -10,6 +11,7 @@
 #include "vsdk/toolkit/environment/material/SimpleMaterial.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 #include "vsdk/toolkit/environment/geometry/element/RayHit.h"
+#include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
 #include "vsdk/toolkit/environment/geometry/element/Triangle.h"
 #include "vsdk/toolkit/environment/geometry/element/Vertex.h"
 #include "vsdk/toolkit/environment/geometry/surface/InfinitePlane.h"
@@ -34,7 +36,7 @@ This class does not ensure nor impose data integrity, and this will be the
 sole responsability of the cooperating utilities and applications.
 */
 
-TriangleMesh::TriangleMesh() : name("default"), intersectionTriangleIndex(-1), ownsMaterials(false) {}
+TriangleMesh::TriangleMesh() : name("default"), ownsMaterials(false) {}
 
 TriangleMesh::TriangleMesh(const TriangleMesh& o)
     : name(o.name), vertexPositions(o.vertexPositions), vertexNormals(o.vertexNormals),
@@ -60,6 +62,16 @@ TriangleMesh::~TriangleMesh()
 }
 
 TriangleMesh* TriangleMesh::clone() const { return new TriangleMesh(*this); }
+
+Geometry* TriangleMesh::copyGeometry() const
+{
+    TriangleMesh* copy = new TriangleMesh(*this);
+    copy->materials.clear();
+    copy->textures.clear();
+    copy->materialRanges.clear();
+    copy->textureRanges.clear();
+    return copy;
+}
 
 java::String TriangleMesh::getName() const { return name; }
 void TriangleMesh::setName(const java::String& n) { name = n; }
@@ -311,25 +323,178 @@ double* TriangleMesh::calculateMinMaxPositions()
     return m;
 }
 
-int TriangleMesh::doIntersectionInformation() const { return intersectionTriangleIndex; }
-
-bool TriangleMesh::intersectTriangle(const Ray& ray, const Vector3Dd& v0, const Vector3Dd& v1, const Vector3Dd& v2, double& t, double& u, double& v)
+void TriangleMesh::getBounds(GeometryBounds& result) const
 {
-    Vector3Dd e1 = v1.subtract(v0);
-    Vector3Dd e2 = v2.subtract(v0);
-    Vector3Dd h = ray.getDirection().crossProduct(e2);
-    double a = e1.dotProduct(h);
-    if (std::abs(a) < VSDK::EPSILON) return false;
-    double f = 1.0 / a;
-    Vector3Dd s = ray.getOrigin().subtract(v0);
-    u = f * s.dotProduct(h);
-    if (u < 0.0 || u > 1.0) return false;
-    Vector3Dd q = s.crossProduct(e1);
-    v = f * ray.getDirection().dotProduct(q);
-    if (v < 0.0 || u + v > 1.0) return false;
-    t = f * e2.dotProduct(q);
-    return t > VSDK::EPSILON;
+    if (triangleIndexes.size() % 3 != 0 || vertexPositions.size() % 3 != 0) {
+        result.setIndeterminate(); return;
+    }
+    if (getNumTriangles() == 0) { result.setEmpty(); return; }
+    Vector3Dd minimum, maximum;
+    bool first = true;
+    for (long int i = 0; i < triangleIndexes.size(); ++i) {
+        const int index = triangleIndexes[i];
+        if (index < 0 || index >= getNumVertices()) { result.setIndeterminate(); return; }
+        const double x = vertexPositions[index*3], y = vertexPositions[index*3+1];
+        const double z = vertexPositions[index*3+2];
+        if (!java::Double::isFinite(x) || !java::Double::isFinite(y) || !java::Double::isFinite(z)) {
+            result.setIndeterminate(); return;
+        }
+        if (first) { minimum = maximum = Vector3Dd(x,y,z); first = false; }
+        else {
+            minimum = Vector3Dd(java::Math::min(minimum.x(),x), java::Math::min(minimum.y(),y), java::Math::min(minimum.z(),z));
+            maximum = Vector3Dd(java::Math::max(maximum.x(),x), java::Math::max(maximum.y(),y), java::Math::max(maximum.z(),z));
+        }
+    }
+    if (first) result.setEmpty();
+    else result.setFinite(minimum, maximum);
 }
+
+bool TriangleMesh::getTrianglePoints(int index, Vector3Dd& p0, Vector3Dd& p1, Vector3Dd& p2) const
+{
+    if (index < 0 || index >= getNumTriangles() || vertexPositions.size() % 3 != 0 ||
+        triangleIndexes.size() % 3 != 0) return false;
+    const int a = triangleIndexes[index*3], b = triangleIndexes[index*3+1], c = triangleIndexes[index*3+2];
+    if (a < 0 || b < 0 || c < 0 || a >= getNumVertices() || b >= getNumVertices() || c >= getNumVertices())
+        return false;
+    p0 = Vector3Dd(vertexPositions[a*3], vertexPositions[a*3+1], vertexPositions[a*3+2]);
+    p1 = Vector3Dd(vertexPositions[b*3], vertexPositions[b*3+1], vertexPositions[b*3+2]);
+    p2 = Vector3Dd(vertexPositions[c*3], vertexPositions[c*3+1], vertexPositions[c*3+2]);
+    return true;
+}
+
+void TriangleMesh::fillTypedDetail(const Ray& ray, double t, int face, double u, double v,
+    const Vector3Dd& p0, const Vector3Dd& p1, const Vector3Dd& p2,
+    bool normalReversed, RayHit* hit) const
+{
+    if (!hit || !hit->needsAnySurfaceData()) return;
+    hit->beginDetailEvaluation();
+    if (hit->needsPoint()) {
+        hit->point = ray.getOrigin().add(ray.getDirection().multiply(t));
+        hit->markDetailAvailable(RayHit::DETAIL_POINT);
+    }
+    if (hit->needsNormal()) {
+        const Vector3Dd normal = p1.subtract(p0).crossProduct(p2.subtract(p0));
+        const double squared = normal.dotProduct(normal);
+        if (java::Double::isFinite(squared) && squared > 0) {
+            hit->normal = squared < VSDK::EPSILON ? normal.multiply(1.0/java::Math::sqrt(squared)) : normal.normalized();
+            if (normalReversed) hit->normal = hit->normal.multiply(-1);
+            hit->markDetailAvailable(RayHit::DETAIL_NORMAL);
+        }
+    }
+    if (hit->needsTextureCoordinates() && vertexUvs.size() >= (long)getNumVertices()*2) {
+        const int a = triangleIndexes[face*3], b = triangleIndexes[face*3+1], c = triangleIndexes[face*3+2];
+        const double w = 1.0-u-v;
+        const double texU = w*vertexUvs[a*2] + u*vertexUvs[b*2] + v*vertexUvs[c*2];
+        const double texV = w*vertexUvs[a*2+1] + u*vertexUvs[b*2+1] + v*vertexUvs[c*2+1];
+        if (java::Double::isFinite(texU) && java::Double::isFinite(texV)) {
+            hit->u = texU; hit->v = texV; hit->markDetailAvailable(RayHit::DETAIL_UV);
+        }
+    }
+}
+
+RayFirstHitStatus TriangleMesh::queryFirstHit(const Ray& ray, const RayCrossingQuery& query,
+    RayHit* hit, RayBoundary* boundary) const
+{
+    if (hit) hit->clear();
+    if (boundary) *boundary = RayBoundary();
+    if (triangleIndexes.size() % 3 != 0 || vertexPositions.size() % 3 != 0)
+        return RayFirstHitStatus::Indeterminate;
+    double t = 0, u = 0, v = 0;
+    if (getNumTriangles() == 0) {
+        const Vector3Dd zero;
+        return Triangle::queryIntersection(ray, zero, zero, zero, query, t, u, v);
+    }
+    int best = -1;
+    double bestT = 0, bestU = 0, bestV = 0;
+    Vector3Dd bestP0, bestP1, bestP2;
+    for (int i = 0; i < getNumTriangles(); ++i) {
+        Vector3Dd p0, p1, p2;
+        if (!getTrianglePoints(i, p0, p1, p2)) return RayFirstHitStatus::Indeterminate;
+        const RayFirstHitStatus status = Triangle::queryIntersection(ray, p0, p1, p2, query, t, u, v);
+        if (status != RayFirstHitStatus::Hit && status != RayFirstHitStatus::Miss) return status;
+        if (status == RayFirstHitStatus::Hit && (best < 0 || t < bestT)) {
+            best = i; bestT = t; bestU = u; bestV = v; bestP0 = p0; bestP1 = p1; bestP2 = p2;
+        }
+    }
+    if (best < 0) return RayFirstHitStatus::Miss;
+    const Vector3Dd point = ray.getOrigin().add(ray.getDirection().multiply(bestT));
+    if (!java::Double::isFinite(point.x()) || !java::Double::isFinite(point.y()) ||
+        !java::Double::isFinite(point.z())) return RayFirstHitStatus::Indeterminate;
+    if (boundary) *boundary = RayBoundary(bestT, this, false, best);
+    if (hit) {
+        hit->setHitDistance(bestT);
+        if (hit->shouldStoreRay()) hit->setRay(ray.withT(bestT));
+        fillTypedDetail(ray, bestT, best, bestU, bestV, bestP0, bestP1, bestP2, false, hit);
+    }
+    return RayFirstHitStatus::Hit;
+}
+
+RayFirstHitStatus TriangleMesh::querySurfaceDetail(const Ray& ray, const RayBoundary& boundary,
+    RayHit* hit) const
+{
+    if (hit) hit->clear();
+    if (!hit || boundary.geometry != this || boundary.surfaceIndex < 0 ||
+        boundary.surfaceIndex >= getNumTriangles() || !java::Double::isFinite(boundary.t))
+        return RayFirstHitStatus::InvalidInput;
+    if (boundary.getInstanceCount() != 0) return RayFirstHitStatus::Unsupported;
+    const int face = (int)boundary.surfaceIndex;
+    Vector3Dd p0, p1, p2;
+    if (!getTrianglePoints(face, p0, p1, p2)) return RayFirstHitStatus::Indeterminate;
+    double t = 0, u = 0, v = 0;
+    const RayFirstHitStatus status = Triangle::queryIntersection(ray, p0, p1, p2,
+        RayCrossingQuery(boundary.t, boundary.t), t, u, v);
+    if (status != RayFirstHitStatus::Hit) return status;
+    const Vector3Dd point = ray.getOrigin().add(ray.getDirection().multiply(t));
+    if (!java::Double::isFinite(point.x()) || !java::Double::isFinite(point.y()) ||
+        !java::Double::isFinite(point.z())) return RayFirstHitStatus::Indeterminate;
+    hit->setHitDistance(t);
+    if (hit->shouldStoreRay()) hit->setRay(ray.withT(t));
+    fillTypedDetail(ray, t, face, u, v, p0, p1, p2, boundary.normalReversed, hit);
+    return RayFirstHitStatus::Hit;
+}
+
+RayCrossingSupport TriangleMesh::emitRayCrossings(const Ray& ray, const RayCrossingQuery& query,
+    RayCrossingSink& sink) const
+{
+    if (triangleIndexes.size() % 3 != 0 || vertexPositions.size() % 3 != 0)
+        return RayCrossingSupport::Indeterminate;
+    java::ArrayList<double> depths;
+    java::ArrayList<int> faces;
+    double t = 0, u = 0, v = 0;
+    if (getNumTriangles() == 0) {
+        const Vector3Dd zero;
+        const RayFirstHitStatus status = Triangle::queryIntersection(ray, zero, zero, zero, query, t, u, v);
+        if (status == RayFirstHitStatus::Unsupported) return RayCrossingSupport::Unsupported;
+        if (status == RayFirstHitStatus::InvalidInput) return RayCrossingSupport::InvalidInput;
+        if (status == RayFirstHitStatus::Indeterminate) return RayCrossingSupport::Indeterminate;
+        return RayCrossingSupport::Supported;
+    }
+    for (int i = 0; i < getNumTriangles(); ++i) {
+        Vector3Dd p0, p1, p2;
+        if (!getTrianglePoints(i, p0, p1, p2)) return RayCrossingSupport::Indeterminate;
+        const RayFirstHitStatus status = Triangle::queryIntersection(ray, p0, p1, p2, query, t, u, v);
+        if (status == RayFirstHitStatus::Unsupported) return RayCrossingSupport::Unsupported;
+        if (status == RayFirstHitStatus::InvalidInput) return RayCrossingSupport::InvalidInput;
+        if (status == RayFirstHitStatus::Indeterminate) return RayCrossingSupport::Indeterminate;
+        if (status == RayFirstHitStatus::Hit) {
+            const Vector3Dd point = ray.getOrigin().add(ray.getDirection().multiply(t));
+            if (!java::Double::isFinite(point.x()) || !java::Double::isFinite(point.y()) ||
+                !java::Double::isFinite(point.z())) return RayCrossingSupport::Indeterminate;
+            long int at = 0;
+            while (at < depths.size() && depths[at] <= t) ++at;
+            if (at == depths.size()) { depths.add(t); faces.add(i); }
+            else { depths.add(at, t); faces.add(at, i); }
+        }
+    }
+    for (long int i = 0; i < depths.size(); ++i) {
+        RayCrossing event(depths[i], this, RayCrossing::Kind::Unclassified);
+        event.surfaceIndex = faces[i];
+        sink.crossing(event);
+    }
+    return RayCrossingSupport::Supported;
+}
+
+int TriangleMesh::doIntersectionInformation() const { return (int)intersectionTriangleIndex.get(); }
 
 Ray* TriangleMesh::doIntersectionFirstHit(const Ray& inOut_Ray)
 {
@@ -397,7 +562,7 @@ void TriangleMesh::fillMaterialAndTexture(int triangleIndex, RayHit* outHit)
 bool TriangleMesh::doIntersectionInternal(const Ray& inRay, RayHit* outHit, int* outTriangleIndex)
 {
     if (getNumTriangles() == 0) {
-        intersectionTriangleIndex = -1;
+        intersectionTriangleIndex.set(-1);
         if (outTriangleIndex != 0) *outTriangleIndex = -1;
         return false;
     }
@@ -414,17 +579,17 @@ bool TriangleMesh::doIntersectionInternal(const Ray& inRay, RayHit* outHit, int*
         Vector3Dd v1(vertexPositions[i1*3], vertexPositions[i1*3+1], vertexPositions[i1*3+2]);
         Vector3Dd v2(vertexPositions[i2*3], vertexPositions[i2*3+1], vertexPositions[i2*3+2]);
         double t,u,v;
-        if (intersectTriangle(inRay, v0, v1, v2, t, u, v) && t < bestT) {
+        if (Triangle::intersectRay(inRay, v0, v1, v2, t, u, v) && t < bestT) {
             bestT=t; bestTri=i; bestU=u; bestV=v; found=true;
         }
     }
 
     if (!found) {
-        intersectionTriangleIndex = -1;
+        intersectionTriangleIndex.set(-1);
         if (outTriangleIndex != 0) *outTriangleIndex = -1;
         return false;
     }
-    intersectionTriangleIndex = bestTri;
+    intersectionTriangleIndex.set(bestTri);
     if (outTriangleIndex != 0) *outTriangleIndex = bestTri;
 
     if (outHit != 0) {

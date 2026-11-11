@@ -2,6 +2,7 @@
 #include <cmath>
 
 #include "java/lang/String.h"
+#include "java/lang/IllegalStateException.h"
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/environment/geometry/element/RaySolidClassification.h"
 #include "java/lang/Double.h"
@@ -14,12 +15,18 @@
 #include "vsdk/toolkit/environment/material/SimpleMaterial.h"
 #include "vsdk/toolkit/environment/geometry/Geometry.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
+#include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
 #include "vsdk/toolkit/environment/geometry/element/RayHit.h"
 #include "vsdk/toolkit/environment/geometry/volume/Sphere.h"
 #include "vsdk/toolkit/environment/geometry/geometricProcessing/SurfaceRayIntersection.h"
 #include "vsdk/toolkit/environment/scene/SimpleBody.h"
+#include "vsdk/toolkit/environment/scene/AffinePlacement.h"
+#include "vsdk/toolkit/environment/geometry/volume/AffineEllipsoidDistance.h"
+#include "vsdk/toolkit/environment/geometry/volume/AffineEllipsoidDistanceBounds.h"
+#include "vsdk/toolkit/environment/geometry/volume/AffineEllipsoidMinimumDistance.h"
+#include "vsdk/toolkit/environment/scene/InstanceRayCrossingBuffer.h"
 SimpleBody::SimpleBody()
-    : geometry(0), ownsGeometry(true), geometryIsSphere(false), position(0, 0, 0), scale(1, 1, 1), rotation(), rotationInverse(),
+    : geometry(0), ownsGeometry(true), geometryIsSphere(false), affinePlacement(), explicitAffinePlacement(false), position(0, 0, 0), scale(1, 1, 1), rotation(), rotationInverse(),
       rotationQuaternion(rotation.exportToQuaternion()), rotationInverseQuaternion(rotationInverse.exportToQuaternion()),
       inverseScale(1, 1, 1), hasInvertibleScale(true),
       hasIdentityRotation(true), hasUnitScale(true), hasZeroTranslation(true),
@@ -85,6 +92,15 @@ void SimpleBody::updateTransformFlags()
     hasIdentityTransform = hasTranslationOnlyTransform && hasZeroTranslation;
 }
 
+void SimpleBody::updateDecomposedPlacement()
+{
+    const Matrix4x4d forward = Matrix4x4d().translation(position)
+        .multiply(rotation.multiply(Matrix4x4d().scale(scale)));
+    const Matrix4x4d inverse = Matrix4x4d().scale(inverseScale)
+        .multiply(rotationInverse).multiply(Matrix4x4d().translation(position.multiply(-1)));
+    affinePlacement.assign(forward, inverse);
+}
+
 const java::String& SimpleBody::getName() const { return name; }
 long long SimpleBody::getModificationVersion() const { return modificationVersion; }
 void SimpleBody::setName(const java::String& n) { name = n; markModified(); }
@@ -112,27 +128,37 @@ void SimpleBody::setGeometryReference(Geometry* g)
     markModified();
 }
 
-Matrix4x4d SimpleBody::getRotation() const { return rotation; }
+Matrix4x4d SimpleBody::getRotation() const {
+    if (explicitAffinePlacement) throw java::IllegalStateException("Rotation is not defined for an arbitrary affine placement");
+    return rotation;
+}
 void SimpleBody::setRotation(const Matrix4x4d& r)
 {
+    if (explicitAffinePlacement) throw java::IllegalStateException("Cannot decompose an arbitrary affine placement");
     Matrix4x4d sanitized = r.withoutTranslation();
     rotationQuaternion = sanitized.exportToQuaternion().normalized();
     rotation = sanitized;
     rotationInverseQuaternion = rotationQuaternion.conjugated();
     rotationInverse = Matrix4x4d().importFromQuaternion(rotationInverseQuaternion);
     updateTransformFlags();
+    updateDecomposedPlacement();
     markModified();
 }
 
-Matrix4x4d SimpleBody::getRotationInverse() const { return rotationInverse; }
+Matrix4x4d SimpleBody::getRotationInverse() const {
+    if (explicitAffinePlacement) throw java::IllegalStateException("Rotation is not defined for an arbitrary affine placement");
+    return rotationInverse;
+}
 void SimpleBody::setRotationInverse(const Matrix4x4d& ri)
 {
+    if (explicitAffinePlacement) throw java::IllegalStateException("Cannot decompose an arbitrary affine placement");
     Matrix4x4d sanitized = ri.withoutTranslation();
     rotationInverseQuaternion = sanitized.exportToQuaternion().normalized();
     rotationInverse = sanitized;
     rotationQuaternion = rotationInverseQuaternion.conjugated();
     rotation = Matrix4x4d().importFromQuaternion(rotationQuaternion);
     updateTransformFlags();
+    updateDecomposedPlacement();
     markModified();
 }
 
@@ -179,19 +205,62 @@ void SimpleBody::setNormalMap(NormalMap* in)
     markModified();
 }
 
-Vector3Dd SimpleBody::getPosition() const { return position; }
-void SimpleBody::setPosition(const Vector3Dd& p) { position = p; updateTransformFlags(); markModified(); }
-Vector3Dd SimpleBody::getScale() const { return scale; }
-
-Matrix4x4d SimpleBody::getTransformationMatrix() const
+Vector3Dd SimpleBody::getPosition() const {
+    return explicitAffinePlacement ? affinePlacement.getForward().extractTranslation() : position;
+}
+void SimpleBody::setPosition(const Vector3Dd& p) {
+    if (explicitAffinePlacement) {
+        const Matrix4x4d forward = affinePlacement.getForward().withTranslation(p);
+        const Vector3Dd inverseTranslation = affinePlacement.getInverse().withoutTranslation().multiply(p).multiply(-1);
+        const Matrix4x4d inverse = affinePlacement.getInverse().withTranslation(inverseTranslation);
+        AffinePlacement candidate;
+        if (candidate.assign(forward,inverse) != AffinePlacementStatus::Valid)
+            throw java::IllegalStateException("Invalid affine translation");
+        affinePlacement = candidate;
+        markModified();
+        return;
+    }
+    position = p; updateTransformFlags(); updateDecomposedPlacement(); markModified();
+}
+Vector3Dd SimpleBody::getScale() const {
+    if (explicitAffinePlacement) throw java::IllegalStateException("Scale is not defined for an arbitrary affine placement");
+    return scale;
+}
+Matrix4x4d SimpleBody::getTransformationMatrix() const { return affinePlacement.getForward(); }
+Matrix4x4d SimpleBody::getAffinePlacement() const { return affinePlacement.getForward(); }
+AffinePlacementStatus SimpleBody::setAffinePlacement(const Matrix4x4d& forward, const Matrix4x4d& inverse)
 {
-    Matrix4x4d scaleMatrix = Matrix4x4d().scale(scale);
-    Matrix4x4d translateMatrix = Matrix4x4d().translation(position);
-    return translateMatrix.multiply(rotation.multiply(scaleMatrix));
+    AffinePlacement candidate;
+    const AffinePlacementStatus status = candidate.assign(forward,inverse);
+    if (status != AffinePlacementStatus::Valid) return status;
+    affinePlacement = candidate;
+    explicitAffinePlacement = true;
+    markModified();
+    return status;
+}
+
+void SimpleBody::resetAffinePlacement()
+{
+    explicitAffinePlacement = false;
+    position = Vector3Dd(); scale = Vector3Dd(1,1,1); inverseScale = Vector3Dd(1,1,1);
+    rotation = Matrix4x4d::identityMatrix(); rotationInverse = rotation;
+    rotationQuaternion = rotation.exportToQuaternion(); rotationInverseQuaternion = rotationQuaternion;
+    hasInvertibleScale = true;
+    updateTransformFlags(); updateDecomposedPlacement(); markModified();
+}
+
+void SimpleBody::getWorldBounds(GeometryBounds& result) const
+{
+    Geometry* shape = getGeometry();
+    if (shape == nullptr) { result.setEmpty(); return; }
+    GeometryBounds local;
+    shape->getBounds(local);
+    result = local.transformed(getAffinePlacement());
 }
 
 void SimpleBody::setScale(const Vector3Dd& s)
 {
+    if (explicitAffinePlacement) throw java::IllegalStateException("Cannot decompose an arbitrary affine placement");
     scale = s;
     hasInvertibleScale =
         std::abs(scale.x()) > VSDK::EPSILON &&
@@ -205,6 +274,7 @@ void SimpleBody::setScale(const Vector3Dd& s)
         inverseScale = Vector3Dd();
     }
     updateTransformFlags();
+    updateDecomposedPlacement();
     markModified();
 }
 
@@ -240,9 +310,10 @@ bool SimpleBody::doIntersectionWithTranslationOnlySphereFastPath(const Ray& inOu
 
 bool SimpleBody::doIntersectionFirstHit(const Ray& inOutRay, RayHit* outHit) const
 {
-    if ( geometry == 0 || !hasInvertibleScale ) {
+    if ( geometry == 0 || (!explicitAffinePlacement && !hasInvertibleScale) ) {
         return false;
     }
+    if (explicitAffinePlacement) return doIntersectionWithAffinePlacement(inOutRay, outHit);
 
     const int requestedDetailMask = outHit != 0 ? outHit->getRequiredDetailMask() : RayHit::DETAIL_NONE;
 
@@ -335,6 +406,55 @@ bool SimpleBody::doIntersectionFirstHit(const Ray& inOutRay, RayHit* outHit) con
     return true;
 }
 
+bool SimpleBody::doIntersectionWithAffinePlacement(const Ray& ray, RayHit* outHit) const
+{
+    const Matrix4x4d& inverse = affinePlacement.getInverse();
+    const Vector3Dd origin = inverse.multiply(ray.getOrigin());
+    const Vector3Dd direction = inverse.withoutTranslation().multiply(ray.getDirection());
+    const double length = direction.length();
+    if (!java::Double::isFinite(length) || length <= VSDK::EPSILON) return false;
+    double localT = ray.getT();
+    if (localT >= DBL_MAX / length) localT = DBL_MAX; else localT *= length;
+    const Ray localRay(origin, direction, localT);
+    RayHit localHit(RayHit::DETAIL_NONE, false);
+    if (!SurfaceRayIntersection::doIntersectionFirstHit(geometry, localRay, &localHit)) return false;
+    const double distance = localHit.getRay() ? localHit.getRay()->getT() : localHit.getHitDistance();
+    if (!localHit.getRay() && !localHit.hasHitDistance()) return false;
+    const double worldT = distance / length;
+    if (!java::Double::isFinite(worldT)) return false;
+    if (outHit) {
+        if (outHit->shouldStoreRay() || outHit->needsAnySurfaceData()) {
+            const Ray worldRay = ray.withT(worldT);
+            outHit->setRay(worldRay);
+            if (outHit->needsAnySurfaceData()) doExtraInformationWithAffinePlacement(worldRay, worldT, outHit);
+        } else outHit->setHitDistance(worldT);
+    }
+    return true;
+}
+
+void SimpleBody::doExtraInformationWithAffinePlacement(const Ray& ray, double t, RayHit* hit) const
+{
+    const Matrix4x4d& forward = affinePlacement.getForward();
+    const Matrix4x4d& inverse = affinePlacement.getInverse();
+    const Vector3Dd origin = inverse.multiply(ray.getOrigin());
+    const Vector3Dd rawDirection = inverse.withoutTranslation().multiply(ray.getDirection());
+    const double length = rawDirection.length();
+    if (!java::Double::isFinite(length) || length <= VSDK::EPSILON) return;
+    const Ray localRay(origin, rawDirection, t*length);
+    geometry->doExtraInformation(localRay, t*length, hit);
+    if (hit->needsPoint()) hit->point = forward.multiply(hit->point);
+    if (hit->needsNormal()) {
+        const Vector3Dd n = hit->normal;
+        hit->normal = Vector3Dd(
+            inverse.get(0,0)*n.x()+inverse.get(1,0)*n.y()+inverse.get(2,0)*n.z(),
+            inverse.get(0,1)*n.x()+inverse.get(1,1)*n.y()+inverse.get(2,1)*n.z(),
+            inverse.get(0,2)*n.x()+inverse.get(1,2)*n.y()+inverse.get(2,2)*n.z()).normalized();
+    }
+    if (hit->needsTangent()) hit->tangent = forward.withoutTranslation().multiply(hit->tangent).normalized();
+    hit->material = material; hit->texture = texture; hit->normalMap = normalMap;
+    hit->setRay(ray.withT(t));
+}
+
 bool SimpleBody::doIntersectionWithTranslationOnly(
     const Ray& inOutRay,
     RayHit* outHit,
@@ -399,9 +519,11 @@ int SimpleBody::computeQuantitativeInvisibility(
     const Vector3Dd& origin,
     const Vector3Dd& p) const
 {
-    if ( geometry == 0 || !hasInvertibleScale ) {
+    if ( geometry == 0 || (!explicitAffinePlacement && !hasInvertibleScale) ) {
         return 0;
     }
+    if (explicitAffinePlacement) return geometry->computeQuantitativeInvisibility(
+        affinePlacement.getInverse().multiply(origin), affinePlacement.getInverse().multiply(p));
 
     Vector3Dd translatedOrigin = origin.subtract(position);
     Vector3Dd rotatedOrigin = rotationInverseQuaternion.rotate(translatedOrigin);
@@ -422,7 +544,11 @@ int SimpleBody::computeQuantitativeInvisibility(
 
 void SimpleBody::doExtraInformation(const Ray&, double, RayHit* outData) const
 {
-    if ( outData == 0 || geometry == 0 || !hasInvertibleScale ) return;
+    if ( outData == 0 || geometry == 0 || (!explicitAffinePlacement && !hasInvertibleScale) ) return;
+    if (explicitAffinePlacement) {
+        if (outData->getRay()) doExtraInformationWithAffinePlacement(*outData->getRay(), outData->getRay()->getT(), outData);
+        return;
+    }
 
     const Ray* worldRayPtr = outData->getRay();
     if ( worldRayPtr == 0 ) {
@@ -523,24 +649,59 @@ SimpleBody::QueryPlacementStatus SimpleBody::queryPlacementStatus() const
     return QueryPlacementStatus::Valid;
 }
 
+AffinePlacementStatus SimpleBody::queryAffinePlacement(Matrix4x4d& forward, Matrix4x4d& inverse) const
+{
+    if (explicitAffinePlacement) {
+        forward = affinePlacement.getForward(); inverse = affinePlacement.getInverse();
+        return affinePlacement.getStatus();
+    }
+    const QueryPlacementStatus status = queryPlacementStatus();
+    if (status == QueryPlacementStatus::Invalid) return AffinePlacementStatus::Invalid;
+    if (status == QueryPlacementStatus::Indeterminate) return AffinePlacementStatus::Indeterminate;
+    forward = affinePlacement.getForward(); inverse = affinePlacement.getInverse();
+    return affinePlacement.getStatus();
+}
+
+RayCrossingSupport SimpleBody::emitRayCrossings(const Ray& ray,
+    const RayCrossingQuery& query, RayCrossingSink& sink) const
+{
+    if (geometry == nullptr) return RayCrossingSupport::Unsupported;
+    Matrix4x4d forward, inverse;
+    const AffinePlacementStatus status = queryAffinePlacement(forward, inverse);
+    if (status == AffinePlacementStatus::Unsupported) return RayCrossingSupport::Unsupported;
+    if (status == AffinePlacementStatus::Invalid) return RayCrossingSupport::InvalidInput;
+    if (status == AffinePlacementStatus::Indeterminate) return RayCrossingSupport::Indeterminate;
+    const Vector3Dd origin = inverse.multiply(ray.getOrigin());
+    const Vector3Dd direction = inverse.withoutTranslation().multiply(ray.getDirection());
+    if (!java::Double::isFinite(origin.x()) || !java::Double::isFinite(origin.y()) ||
+        !java::Double::isFinite(origin.z()) || !java::Double::isFinite(direction.x()) ||
+        !java::Double::isFinite(direction.y()) || !java::Double::isFinite(direction.z()))
+        return RayCrossingSupport::Indeterminate;
+    const Ray local = Ray::fromAffine(origin, direction, ray.getT());
+    InstanceRayCrossingBuffer buffer(RayInstanceStep(this,forward,inverse), this, getSurfaceMaterial());
+    const RayCrossingSupport result = geometry->emitRayCrossings(local,query,buffer);
+    if (result != RayCrossingSupport::Supported) return result;
+    if (!buffer.isValid()) return RayCrossingSupport::Indeterminate;
+    buffer.deliver(sink);
+    return RayCrossingSupport::Supported;
+}
+
 RaySolidQueryStatus SimpleBody::classifyRay(const Ray& ray, const RayCrossingQuery& query,
     RaySolidClassification& result) const
 {
     result.clear();
-    if (!supportsDecomposedPlacement() || geometry == nullptr) return RaySolidQueryStatus::Unsupported;
-    const QueryPlacementStatus placement = queryPlacementStatus();
-    if (placement == QueryPlacementStatus::Invalid) return RaySolidQueryStatus::InvalidInput;
-    if (placement == QueryPlacementStatus::Indeterminate) return RaySolidQueryStatus::Indeterminate;
+    if (geometry == nullptr) return RaySolidQueryStatus::Unsupported;
+    Matrix4x4d childToParent, parentToChild;
+    const AffinePlacementStatus placement = queryAffinePlacement(childToParent, parentToChild);
+    if (placement == AffinePlacementStatus::Unsupported) return RaySolidQueryStatus::Unsupported;
+    if (placement == AffinePlacementStatus::Invalid) return RaySolidQueryStatus::InvalidInput;
+    if (placement == AffinePlacementStatus::Indeterminate) return RaySolidQueryStatus::Indeterminate;
     const Vector3Dd& origin = ray.getOrigin();
     const Vector3Dd& direction = ray.getDirection();
     if (!java::Double::isFinite(origin.x()) || !java::Double::isFinite(origin.y()) ||
         !java::Double::isFinite(origin.z()) || !java::Double::isFinite(direction.x()) ||
         !java::Double::isFinite(direction.y()) || !java::Double::isFinite(direction.z()))
         return RaySolidQueryStatus::InvalidInput;
-    const Matrix4x4d childToParent = Matrix4x4d().translation(position)
-        .multiply(rotation).multiply(Matrix4x4d().scale(scale));
-    const Matrix4x4d parentToChild = Matrix4x4d().scale(inverseScale)
-        .multiply(rotationInverse).multiply(Matrix4x4d().translation(position.multiply(-1)));
     for (int row = 0; row < 4; row++) {
         for (int column = 0; column < 4; column++) {
             if (!java::Double::isFinite(childToParent.get(row,column)) ||
@@ -566,12 +727,145 @@ RaySolidQueryStatus SimpleBody::classifyRay(const Ray& ray, const RayCrossingQue
     return status;
 }
 
+GeometryDistanceStatus SimpleBody::encloseMinimumBoundaryDistance(const Vector3Dd& point,
+    double maxWidth, GeometryContainment& side, double& lower, double& upper) const
+{
+    if (!geometryIsSphere) return GeometryDistanceStatus::Unsupported;
+    Matrix4x4d forward,inverse;
+    const AffinePlacementStatus status=queryAffinePlacement(forward,inverse);
+    if (status==AffinePlacementStatus::Invalid) return GeometryDistanceStatus::InvalidInput;
+    if (status==AffinePlacementStatus::Unsupported) return GeometryDistanceStatus::Unsupported;
+    if (status==AffinePlacementStatus::Indeterminate) return GeometryDistanceStatus::Indeterminate;
+    return AffineEllipsoidMinimumDistance::query(point,static_cast<const Sphere*>(geometry)->getRadius(),
+        forward,inverse,maxWidth,side,lower,upper);
+}
+
+GeometryDistanceStatus SimpleBody::encloseBoundaryDistance(const Vector3Dd& point,
+    const Vector3Dd& localDirection, GeometryContainment& side, double& lower, double& upper) const
+{
+    if (!geometryIsSphere) return GeometryDistanceStatus::Unsupported;
+    Matrix4x4d forward,inverse;
+    const AffinePlacementStatus status=queryAffinePlacement(forward,inverse);
+    if (status==AffinePlacementStatus::Invalid) return GeometryDistanceStatus::InvalidInput;
+    if (status==AffinePlacementStatus::Unsupported) return GeometryDistanceStatus::Unsupported;
+    if (status==AffinePlacementStatus::Indeterminate) return GeometryDistanceStatus::Indeterminate;
+    return AffineEllipsoidDistanceBounds::query(point,static_cast<const Sphere*>(geometry)->getRadius(),
+        forward,localDirection,side,lower,upper);
+}
+
+GeometryContainment SimpleBody::classifyPointCertified(const Vector3Dd& point, double tolerance) const
+{
+    return classifyPointCertifiedWithLimit(point,tolerance,128);
+}
+
+GeometryContainment SimpleBody::classifyPointCertifiedWithLimit(const Vector3Dd& point,
+    double tolerance, int iterationLimit) const
+{
+    if (!java::Double::isFinite(point.x()) || !java::Double::isFinite(point.y()) ||
+        !java::Double::isFinite(point.z()) || !java::Double::isFinite(tolerance) || tolerance<0)
+        return GeometryContainment::InvalidInput;
+    if (!geometryIsSphere) return GeometryContainment::Unsupported;
+    Matrix4x4d forward,inverse;
+    const AffinePlacementStatus placement=queryAffinePlacement(forward,inverse);
+    if (placement==AffinePlacementStatus::Invalid) return GeometryContainment::InvalidInput;
+    if (placement==AffinePlacementStatus::Unsupported) return GeometryContainment::Unsupported;
+    if (placement==AffinePlacementStatus::Indeterminate) return GeometryContainment::Indeterminate;
+    Vector3Dd seed=inverse.multiply(point);
+    if (!java::Double::isFinite(seed.x()) || !java::Double::isFinite(seed.y()) ||
+        !java::Double::isFinite(seed.z())) return GeometryContainment::Indeterminate;
+    const double radius=static_cast<const Sphere*>(geometry)->getRadius();
+    const bool center=(point.x()==forward.get(0,3) && point.y()==forward.get(1,3) && point.z()==forward.get(2,3)) ||
+        (seed.x()==0 && seed.y()==0 && seed.z()==0);
+    const Vector3Dd axes[]={Vector3Dd(1,0,0),Vector3Dd(0,1,0),Vector3Dd(0,0,1)};
+    double forwardNormSquared=0;
+    for (int i=0;i<3;++i) for (int j=0;j<3;++j)
+        forwardNormSquared+=forward.get(i,j)*forward.get(i,j);
+    const double lipschitz=radius*radius*forwardNormSquared;
+    const int seedCount=center ? 3 : 1;
+    for (int candidate=0;candidate<seedCount;++candidate) {
+      if (center) seed=axes[candidate];
+      for (int iteration=0;iteration<iterationLimit;++iteration) {
+        if (iteration==0 || iteration%4==0 || iteration+1==iterationLimit) {
+            GeometryContainment side=GeometryContainment::Indeterminate;
+            double lower=0,upper=0;
+            const GeometryDistanceStatus status=AffineEllipsoidDistanceBounds::query(point,
+                radius,forward,seed,side,lower,upper,iteration==0 && candidate==0);
+            if (status==GeometryDistanceStatus::InvalidInput) return GeometryContainment::InvalidInput;
+            if (status==GeometryDistanceStatus::Unsupported) return GeometryContainment::Unsupported;
+            if (status!=GeometryDistanceStatus::Valid) return GeometryContainment::Indeterminate;
+            if (upper<=tolerance) return GeometryContainment::Boundary;
+            if (lower>tolerance) return side;
+        }
+        if (!(lipschitz>0) || !java::Double::isFinite(lipschitz)) break;
+        const double seedLength=seed.length();
+        if (!(seedLength>0) || !java::Double::isFinite(seedLength)) break;
+        const Vector3Dd unit=seed.multiply(1.0/seedLength);
+        const Vector3Dd delta=forward.multiply(unit.multiply(radius)).subtract(point);
+        const double components[3]={delta.x(),delta.y(),delta.z()};
+        double gradient[3]={0,0,0};
+        for (int i=0;i<3;++i) for (int j=0;j<3;++j)
+            gradient[i]+=radius*forward.get(j,i)*components[j];
+        const Vector3Dd g(gradient[0],gradient[1],gradient[2]);
+        const Vector3Dd tangent=g.subtract(unit.multiply(g.dotProduct(unit)));
+        if (tangent.dotProduct(tangent)==0) break;
+        seed=unit.subtract(tangent.multiply(1.0/lipschitz));
+        if (!java::Double::isFinite(seed.x()) || !java::Double::isFinite(seed.y()) ||
+            !java::Double::isFinite(seed.z())) break;
+      }
+    }
+    // If surface-directed search cannot decide, use a separately certified
+    // minimum-distance enclosure. The numerical estimate only proposes its
+    // witness; interval bounds, never the estimate, determine this result.
+    const double requestedWidth=tolerance*1e-3;
+    if (requestedWidth>0 && java::Double::isFinite(requestedWidth)) {
+        GeometryContainment side=GeometryContainment::Indeterminate;
+        double lower=0,upper=0;
+        const GeometryDistanceStatus status=AffineEllipsoidMinimumDistance::query(
+            point,radius,forward,inverse,requestedWidth,side,lower,upper);
+        if (status==GeometryDistanceStatus::InvalidInput) return GeometryContainment::InvalidInput;
+        if (status==GeometryDistanceStatus::Unsupported) return GeometryContainment::Unsupported;
+        if (status==GeometryDistanceStatus::Valid) {
+            if (upper<=tolerance) return GeometryContainment::Boundary;
+            if (lower>tolerance) return side;
+        }
+    }
+    return GeometryContainment::Indeterminate;
+}
+
+GeometryDistanceStatus SimpleBody::estimateBoundaryDistance(const Vector3Dd& point,
+    double& distance, double& estimatedError) const
+{
+    if (!java::Double::isFinite(point.x()) || !java::Double::isFinite(point.y()) ||
+        !java::Double::isFinite(point.z())) return GeometryDistanceStatus::InvalidInput;
+    if (!geometryIsSphere) return GeometryDistanceStatus::Unsupported;
+    Matrix4x4d forward,inverse;
+    const AffinePlacementStatus status=queryAffinePlacement(forward,inverse);
+    if (status==AffinePlacementStatus::Invalid) return GeometryDistanceStatus::InvalidInput;
+    if (status==AffinePlacementStatus::Unsupported) return GeometryDistanceStatus::Unsupported;
+    if (status==AffinePlacementStatus::Indeterminate) return GeometryDistanceStatus::Indeterminate;
+    return AffineEllipsoidDistance::query(point,static_cast<const Sphere*>(geometry)->getRadius(),
+        forward,distance,estimatedError);
+}
+
 GeometryContainment SimpleBody::classifyPoint(const Vector3Dd& point, double tolerance) const
 {
-    if (!supportsDecomposedPlacement() || geometry == nullptr) return GeometryContainment::Unsupported;
+    if (geometry == nullptr) return GeometryContainment::Unsupported;
     if (!java::Double::isFinite(tolerance) || tolerance < 0 ||
         !java::Double::isFinite(point.x()) || !java::Double::isFinite(point.y()) ||
         !java::Double::isFinite(point.z())) return GeometryContainment::InvalidInput;
+    if (tolerance == 0) {
+        Matrix4x4d forward, inverse;
+        const AffinePlacementStatus status = queryAffinePlacement(forward, inverse);
+        if (status == AffinePlacementStatus::Unsupported) return GeometryContainment::Unsupported;
+        if (status == AffinePlacementStatus::Invalid) return GeometryContainment::InvalidInput;
+        if (status == AffinePlacementStatus::Indeterminate) return GeometryContainment::Indeterminate;
+        const Vector3Dd local = inverse.multiply(point);
+        if (!java::Double::isFinite(local.x()) || !java::Double::isFinite(local.y()) ||
+            !java::Double::isFinite(local.z())) return GeometryContainment::Indeterminate;
+        return geometry->classifyPoint(local, 0);
+    }
+    if (geometryIsSphere) return classifyPointCertifiedWithLimit(point,tolerance,128);
+    if (!supportsDecomposedPlacement()) return GeometryContainment::Indeterminate;
     const QueryPlacementStatus placement = queryPlacementStatus();
     if (placement == QueryPlacementStatus::Invalid) return GeometryContainment::InvalidInput;
     if (placement == QueryPlacementStatus::Indeterminate) return GeometryContainment::Indeterminate;

@@ -44,6 +44,10 @@ class RayCastingGeometry : public Geometry, public PostRayHitElement {
     virtual int doContainmentTest(const Vector3Dd &point, double distanceTolerance) { (void)point; (void)distanceTolerance; return OUTSIDE; }
     virtual void doExtraInformation(const RayWithTracingState &ray, double t, RayCastingHit *hit) override;
     virtual BoundingVolumeHierarchy *createBoundingVolume() const;
+    // The leaf used for mathematical provenance may outlive a single query,
+    // but is owned by this adapter and has the same lifetime as the adapter.
+    virtual const Geometry *getIntrinsicGeometry() const { return this; }
+    static const Geometry *resolveIntrinsicGeometry(const PostRayHitElement *element);
     virtual void *copy() = 0;
     virtual ~RayCastingGeometry() {}
 

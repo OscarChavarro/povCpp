@@ -137,6 +137,12 @@ Document repeated roots, ordering, coincident event grouping, very small or larg
 scales, parallel rays, and singular matrices. Separate geometric tolerance,
 solver tolerance, and query limits: they are not interchangeable.
 
+World-space containment tolerance under nonuniform affine transforms is addressed
+in stage E before the CSG evaluators in F. A scalar world-space tolerance generally
+cannot be converted to an equivalent scalar object-space tolerance. Until E provides
+an appropriate operation and policy, `Indeterminate` must be propagated; it is
+never implicitly converted into inside or outside.
+
 Geometry will not inspect `isShadowRay`, `isPrimaryRay`, quality levels, or renderer
 configuration. For example, shadow-root cutoffs in blobs and polynomials must be
 expressed through query limits/policies chosen by the application, without changing
@@ -318,13 +324,23 @@ duplicated algorithms and will have an explicit removal stage.
 | B. Mathematical contracts | Minimal API for hits, events, solid classification, containment, available detail, bounds, and workspace; provenance model | Interior, boundary, tangency, degeneracy, and transform cases defined and tested without depending on PovRay |
 | C. First vertical slice | A single VITRAL sphere used by ShadersExample, the offline example, and PovRay; sufficient scene support and bindings for all three | The `raycasting` sphere variant disappears; first hit and crossings share a kernel, and both ShadersExample backends work |
 | D. Basic primitives and composition | Unique box, plane/half-space, triangle, and quadric implementations; shared placement and bounds; common CSG model | The same objects can be queried by both evaluators without application-specific geometry adaptations |
-| E. CSG evaluators | Documented heuristic and Roth classification/combination over shared operations, with provenance and boundary policies | Tests cover both algorithms and their legitimate differences; no primitive requires an implementation per strategy |
-| F. Complete catalog | Generic blobs, heightfields, quartics/polynomials, meshes, and patches; fixtures and visualization representations | All POV objects available in VITRAL and consumed by examples without a PovRay dependency |
-| G. Final scene model and consumers | Scene contract, minimal specializations, separate materials, adapted snapshots, parser, renderers, and bake | A single geometric graph, consistent placement, and shared kernels in optimized paths as well |
-| H. Removal and completion | Relocate remaining components; remove transitional wrappers, algorithm copies, and the `raycasting` target/directory | Full gates and uniqueness/dependency audit pass, with no components awaiting a destination |
+| E. Containment tolerance under affine transforms | First add a failing unit regression test for a scene containing ellipsoids, demonstrating the current `Indeterminate` result for positive world-space tolerance under nonuniform scale. Then define and implement world-space boundary-distance/tolerance queries, including numerical guarantees, explicit failure cases and an efficient zero-tolerance path | The initial ellipsoid regression passes without weakening its expected results. Analytical and independent numerical tests cover inside, outside and near-boundary points under uniform/nonuniform/negative scales and shear, including singular and ill-conditioned transforms. The operations needed by both CSG evaluators are available without treating `Indeterminate` as inside or outside |
+| F. CSG evaluators | Documented heuristic and Roth classification/combination over shared operations, including stage E's tolerance semantics, provenance and boundary policies | Tests cover both algorithms and their legitimate differences; no primitive requires an implementation per strategy. Any indeterminate result is propagated or handled by an explicitly specified alternative, never silently classified |
+| G. Complete catalog | Generic blobs, heightfields, quartics/polynomials, meshes, and patches; fixtures and visualization representations | All POV objects available in VITRAL and consumed by examples without a PovRay dependency |
+| H. Final scene model and consumers | Scene contract, minimal specializations, separate materials, adapted snapshots, parser, renderers, and bake | A single geometric graph, consistent placement, and shared kernels in optimized paths as well |
+| I. Removal and completion | Relocate remaining components; remove transitional wrappers, algorithm copies, and the `raycasting` target/directory | Full gates and uniqueness/dependency audit pass, with no components awaiting a destination |
 
-The scene foundations of stage C are consolidated in G; scene adaptation is not
-entirely deferred until the end. Each family in F will be integrated individually
+Begin stage E by constructing an ellipsoid as a nonuniformly scaled sphere in a
+scene and writing a unit test against independently established world-space
+expectations. Cover points inside, outside and on both sides of the tolerance band,
+including a positive tolerance. Run it before implementing the fix and record the
+expected failure; retain those same assertions until it passes. Include multiple
+axes and an anisotropic scale so the test cannot pass by dividing the tolerance by
+one arbitrary scale component. Follow with rotated, reflected and sheared cases,
+and explicitly test singular and numerically indeterminate placements.
+
+The scene foundations of stage C are consolidated in H; scene adaptation is not
+entirely deferred until the end. Each family in G will be integrated individually
 with its tests. Do not move all of `raycasting` as a block and call that convergence.
 
 ## 9. Verification and gates

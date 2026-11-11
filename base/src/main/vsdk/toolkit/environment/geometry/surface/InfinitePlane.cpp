@@ -1,7 +1,10 @@
 #include <cmath>
 
 #include "java/lang/String.h"
+#include "java/lang/Double.h"
+#include "java/lang/Math.h"
 #include "vsdk/toolkit/common/VSDK.h"
+#include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 #include "vsdk/toolkit/environment/geometry/element/RayHit.h"
 #include "vsdk/toolkit/environment/geometry/surface/InfinitePlane.h"
@@ -29,6 +32,108 @@ InfinitePlane::InfinitePlane(const Vector3Dd& p0, const Vector3Dd& p1, const Vec
 void InfinitePlane::clone(const InfinitePlane& other)
 {
     a = other.a; b = other.b; c = other.c; d = other.d;
+}
+
+void InfinitePlane::getBounds(GeometryBounds& result) const
+{
+    if (!java::Double::isFinite(a) || !java::Double::isFinite(b) ||
+        !java::Double::isFinite(c) || !java::Double::isFinite(d) ||
+        (a == 0 && b == 0 && c == 0)) result.setIndeterminate();
+    else result.setUnbounded();
+}
+
+RayFirstHitStatus InfinitePlane::evaluateRay(const Ray& ray, const RayCrossingQuery& query,
+    double& depth) const
+{
+    const Vector3Dd& origin = ray.getOrigin();
+    const Vector3Dd& direction = ray.getDirection();
+    if (!java::Double::isFinite(a) || !java::Double::isFinite(b) ||
+        !java::Double::isFinite(c) || !java::Double::isFinite(d) ||
+        (a == 0 && b == 0 && c == 0) ||
+        !java::Double::isFinite(origin.x()) || !java::Double::isFinite(origin.y()) ||
+        !java::Double::isFinite(origin.z()) || !java::Double::isFinite(direction.x()) ||
+        !java::Double::isFinite(direction.y()) || !java::Double::isFinite(direction.z()) ||
+        (direction.x() == 0 && direction.y() == 0 && direction.z() == 0) ||
+        java::Double::isNaN(query.minT) || java::Double::isNaN(query.maxT) || query.minT > query.maxT ||
+        !java::Double::isFinite(query.minimumChordSquared) || query.minimumChordSquared < 0 ||
+        java::Double::isNaN(query.minimumExteriorApproach)) return RayFirstHitStatus::InvalidInput;
+    if (query.minimumChordSquared != 0 || query.minimumExteriorApproach != java::Double::NEGATIVE_INFINITY)
+        return RayFirstHitStatus::Unsupported;
+    const Vector3Dd normal(a,b,c);
+    const double squared = normal.dotProduct(normal);
+    const double numerator = -(normal.dotProduct(origin) + d);
+    const double denominator = normal.dotProduct(direction);
+    if (!java::Double::isFinite(squared) || squared == 0 ||
+        !java::Double::isFinite(numerator) || !java::Double::isFinite(denominator))
+        return RayFirstHitStatus::Indeterminate;
+    if (denominator == 0 &&
+        ((a != 0 && direction.x() != 0 && a * direction.x() == 0) ||
+         (b != 0 && direction.y() != 0 && b * direction.y() == 0) ||
+         (c != 0 && direction.z() != 0 && c * direction.z() == 0)))
+        return RayFirstHitStatus::Indeterminate;
+    const RayFirstHitStatus status = intersectionDepth(numerator, denominator, 0,
+        query.minT, query.maxT, true, depth);
+    if (status != RayFirstHitStatus::Hit) return status;
+    const Vector3Dd point = origin.add(direction.multiply(depth));
+    if (!java::Double::isFinite(point.x()) || !java::Double::isFinite(point.y()) ||
+        !java::Double::isFinite(point.z())) return RayFirstHitStatus::Indeterminate;
+    return RayFirstHitStatus::Hit;
+}
+
+RayCrossingSupport InfinitePlane::emitRayCrossings(const Ray& ray,
+    const RayCrossingQuery& query, RayCrossingSink& sink) const
+{
+    double depth;
+    const RayFirstHitStatus status = evaluateRay(ray, query, depth);
+    if (status == RayFirstHitStatus::Unsupported) return RayCrossingSupport::Unsupported;
+    if (status == RayFirstHitStatus::InvalidInput) return RayCrossingSupport::InvalidInput;
+    if (status == RayFirstHitStatus::Indeterminate) return RayCrossingSupport::Indeterminate;
+    if (status == RayFirstHitStatus::Hit)
+        sink.crossing(RayCrossing(depth, this, RayCrossing::Kind::Unclassified));
+    return RayCrossingSupport::Supported;
+}
+
+RayFirstHitStatus InfinitePlane::queryFirstHit(const Ray& ray, const RayCrossingQuery& query,
+    RayHit* result, RayBoundary* boundary) const
+{
+    if (result) result->clear();
+    if (boundary) *boundary = RayBoundary();
+    double depth;
+    const RayFirstHitStatus status = evaluateRay(ray, query, depth);
+    if (status != RayFirstHitStatus::Hit) return status;
+    if (boundary) *boundary = RayBoundary(depth, this);
+    if (result) {
+        result->setHitDistance(depth);
+        if (result->shouldStoreRay()) result->setRay(ray.withT(depth));
+        if (result->needsAnySurfaceData()) const_cast<InfinitePlane*>(this)->doExtraInformation(ray, depth, result);
+    }
+    return RayFirstHitStatus::Hit;
+}
+
+RayFirstHitStatus InfinitePlane::querySurfaceDetail(const Ray& ray, const RayBoundary& boundary,
+    RayHit* hit) const
+{
+    if (hit) hit->clear();
+    if (!hit || boundary.geometry != this || !java::Double::isFinite(boundary.t))
+        return RayFirstHitStatus::InvalidInput;
+    if (boundary.getInstanceCount() != 0) return RayFirstHitStatus::Unsupported;
+    const RayFirstHitStatus status = queryFirstHit(ray, RayCrossingQuery(boundary.t, boundary.t), nullptr);
+    if (status != RayFirstHitStatus::Hit) return status;
+    hit->setHitDistance(boundary.t);
+    if (hit->shouldStoreRay()) hit->setRay(ray.withT(boundary.t));
+    const_cast<InfinitePlane*>(this)->doExtraInformation(ray, boundary.t, hit);
+    if (boundary.normalReversed && hit->needsNormal() &&
+        (hit->getAvailableDetailMask() & RayHit::DETAIL_NORMAL))
+        hit->normal = hit->normal.multiply(-1);
+    return RayFirstHitStatus::Hit;
+}
+
+Vector3Dd InfinitePlane::surfaceNormal() const
+{
+    const Vector3Dd normal(a,b,c);
+    const double squared = normal.dotProduct(normal);
+    if (squared > 0 && squared < VSDK::EPSILON) return normal.multiply(1.0 / java::Math::sqrt(squared));
+    return normal.normalized();
 }
 
 Ray* InfinitePlane::doIntersectionFirstHit(const Ray& inout_rayo)
@@ -90,11 +195,14 @@ int InfinitePlane::doContainmentTest(const Vector3Dd& p, double distanceToleranc
 void InfinitePlane::doExtraInformation(const Ray& inRay, double inT, RayHit* outData)
 {
     if (outData == nullptr) return;
+    outData->beginDetailEvaluation();
     outData->point = Vector3Dd(
         inRay.getOrigin().x() + inT*inRay.getDirection().x(),
         inRay.getOrigin().y() + inT*inRay.getDirection().y(),
         inRay.getOrigin().z() + inT*inRay.getDirection().z());
-    outData->normal = getNormal();
+    outData->normal = surfaceNormal();
+    if (outData->needsPoint()) outData->markDetailAvailable(RayHit::DETAIL_POINT);
+    if (outData->needsNormal()) outData->markDetailAvailable(RayHit::DETAIL_NORMAL);
 }
 
 double* InfinitePlane::getMinMax()
