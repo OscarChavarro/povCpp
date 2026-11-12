@@ -42,6 +42,7 @@ class Math {
     static long max(long a, long b);
     static float sqrt(float a);
     static double sqrt(double a);
+    static double nextAfter(double start, double direction);
     static int getExponent(double a);
     static int getExponent(float a);
     static double toRadians(double angdeg);
@@ -231,6 +232,11 @@ Math::sqrt(float a) {
 inline double
 Math::sqrt(double a) {
     return std::sqrt(a);
+}
+
+inline double
+Math::nextAfter(double start, double direction) {
+    return std::nextafter(start, direction);
 }
 
 inline int

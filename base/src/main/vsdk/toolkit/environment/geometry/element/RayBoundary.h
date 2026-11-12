@@ -10,6 +10,8 @@ public:
     double t;
     const Geometry* geometry;
     bool normalReversed;
+    // Face/element within the leaf geometry, or -1 when not applicable.
+    long surfaceIndex;
 private:
     // Ordered from the leaf instance outward. Values are snapshots, identities borrowed.
     RayInstancePath path;
@@ -25,7 +27,8 @@ public:
     RayBoundary(const RayBoundary& other);
     RayBoundary& operator=(const RayBoundary& other);
     ~RayBoundary();
-    RayBoundary(double t, const Geometry* geometry, bool normalReversed = false);
+    RayBoundary(double t, const Geometry* geometry, bool normalReversed = false,
+        long surfaceIndex = -1);
 };
 
 #endif

@@ -438,7 +438,7 @@ BakedSceneBuilder::bakeSimpleBody(RayCastingBody *object, BakedScene &out)
     RayCastingInfinitePlane bakedPlaneStorage;
     bool hasBakedPlane = false;
 
-    if (!hasBoundingShapes && !hasClippingShapes &&
+    if (!hasBoundingShapes && !hasClippingShapes && !object->hasArbitraryAffineTransform() &&
         (hasObjectTransform || hasGeometryTransform)) {
         java::ArrayList<TransformStep> combinedSteps(
             object->getGeometrySteps().size() + object->getBodySteps().size());

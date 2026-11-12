@@ -5,13 +5,15 @@
 #include "vsdk/toolkit/environment/raycasting/geometry/element/PostRayHitElement.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/boundingVolumeHierarchy/AabbBoundingVolume.h"
 #include "vsdk/toolkit/environment/material/Material.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgOperandView.h"
+#include "vsdk/toolkit/environment/scene/AffinePlacement.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/Blob.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/HeightField.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.h"
 #include "vsdk/toolkit/environment/geometry/volume/Sphere.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/element/TransformStep.h"
 
-class CsgOperand : public PostRayHitElement {
+class CsgOperand : public PostRayHitElement, public CsgOperandView {
   private:
     RayCastingGeometry *geometry = nullptr;
     Material *material = nullptr;
@@ -130,7 +132,17 @@ class CsgOperand : public PostRayHitElement {
 
     CsgOperand *copy() const { return new CsgOperand(*this); }
 
-    RayCastingGeometry *getGeometry() const { return geometry; }
+    RayCastingGeometry *getGeometry() const override { return geometry; }
+    Matrix4x4d getAffinePlacement() const override {
+        return transformation ? transformation->transpose() : Matrix4x4d::identityMatrix();
+    }
+    AffinePlacementStatus queryAffinePlacement(Matrix4x4d& forward, Matrix4x4d& inverse) const override {
+        if ((transformation == nullptr) != (transformationInverse == nullptr))
+            return AffinePlacementStatus::Indeterminate;
+        forward = getAffinePlacement();
+        inverse = transformationInverse ? transformationInverse->transpose() : Matrix4x4d::identityMatrix();
+        return AffinePlacement::validate(forward, inverse);
+    }
     Material *getMaterial() const { return material; }
     Matrix4x4d *getTransformation() const { return transformation; }
     Matrix4x4d *getTransformationInverse() const { return transformationInverse; }

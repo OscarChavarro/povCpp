@@ -39,6 +39,7 @@ class RayCastingHit {
     double v = 0.0;        // texture pipeline, not stored on the candidate
     double hitDistance = 0.0;
     int requiredDetailMask = DETAIL_NONE;
+    int surfaceIndex = -1;
 
     // --- POV-specific extensions (no equivalent in vsdk RayHit) ---
     PostRayHitElement *hitGeometry = nullptr;
@@ -74,6 +75,7 @@ RayCastingHit::fromCandidate(const IntersectionCandidate &candidate, int require
 
     hit.hitGeometry = attributes.getHitGeometry();
     hit.hitBody = attributes.getHitBody();
+    hit.surfaceIndex = attributes.getSurfaceIndex();
     hit.detailOwnerCount = attributes.getDetailOwnerCount();
     for (int i = 0; i < hit.detailOwnerCount; i++) {
         hit.detailOwners[i] = attributes.getDetailOwnerAt(i);

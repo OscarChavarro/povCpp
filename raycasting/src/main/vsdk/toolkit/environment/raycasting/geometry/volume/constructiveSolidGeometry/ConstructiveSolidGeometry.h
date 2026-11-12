@@ -3,8 +3,9 @@
 
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgExpression.h"
 
-class ConstructiveSolidGeometry : public RayCastingGeometry {
+class ConstructiveSolidGeometry : public RayCastingGeometry, public CsgExpression {
   private:
     BooleanSetOperations geometryType;
     java::ArrayList<CsgOperand*> operands{4};
@@ -13,6 +14,11 @@ class ConstructiveSolidGeometry : public RayCastingGeometry {
     explicit ConstructiveSolidGeometry(BooleanSetOperations initialGeometryType = BooleanSetOperations::UNION);
     ~ConstructiveSolidGeometry() override;
 
+    CsgOperation getOperation() const override { return geometryType; }
+    long int getOperandCount() const override { return operands.size(); }
+    const CsgOperandView* getOperand(long int index) const override {
+        return index < 0 || index >= operands.size() ? nullptr : operands[index];
+    }
     BooleanSetOperations getGeometryType() const;
     void setGeometryType(BooleanSetOperations value);
     void addShape(RayCastingGeometry *shape, Material *material);
@@ -36,6 +42,7 @@ class ConstructiveSolidGeometry : public RayCastingGeometry {
     void scale(Vector3Dd *vector);
     void invert();
 
+    void getBounds(GeometryBounds& result) const override;
     BoundingVolumeHierarchy *createBoundingVolume() const override;
 
     int doIntersectionForAllRayCrossings(

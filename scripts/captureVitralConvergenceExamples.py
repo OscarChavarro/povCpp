@@ -45,6 +45,32 @@ def main():
         print(name, 'exit:', result.returncode, flush=True)
         if result.returncode or not image.is_file() or image.stat().st_size == 0:
             raise RuntimeError(f'{name} failed; see {output / (name + ".log")}')
+        if name in ('offline-cow-sequential', 'offline-cow-parallel'):
+            parts = image.read_bytes().split(b'\n', 4)
+            if len(parts) != 5 or parts[0] != b'P6' or parts[3] != b'255':
+                raise RuntimeError(f'{name} is not a supported PPM image')
+            pixels = parts[4]
+            background = pixels[:3]
+            non_background = 0
+            cow_colored = 0
+            for i in range(0, len(pixels) - 2, 3):
+                red, green, blue = pixels[i:i+3]
+                if pixels[i:i+3] != background:
+                    non_background += 1
+                if red > 40 and red * 2 > green * 3 and blue * 2 > green * 3:
+                    cow_colored += 1
+            if non_background < 1000 or cow_colored < 100:
+                raise RuntimeError(f'{name} does not visibly contain the cow mesh')
+        if name.startswith(('offline-quadric_', 'offline-box_', 'offline-halfspace_')):
+            parts = image.read_bytes().split(b'\n', 4)
+            if len(parts) != 5 or parts[0] != b'P6' or parts[3] != b'255':
+                raise RuntimeError(f'{name} is not a supported PPM image')
+            pixels = parts[4]
+            colored = sum(1 for i in range(0, len(pixels) - 2, 3)
+                          if pixels[i] > 60 and pixels[i] * 2 > pixels[i+1] * 3
+                          and pixels[i] * 2 > pixels[i+2] * 3)
+            if colored < 100:
+                raise RuntimeError(f'{name} does not visibly contain the colored solid')
 
     for scene in scenes:
         for mode in ('sequential', 'parallel'):

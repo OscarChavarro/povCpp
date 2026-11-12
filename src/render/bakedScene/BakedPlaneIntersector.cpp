@@ -2,6 +2,7 @@
 #include "render/bakedScene/BakedPlaneIntersector.h"
 
 #include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
+#include "vsdk/toolkit/environment/geometry/surface/InfinitePlane.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
@@ -34,14 +35,9 @@ BakedPlaneIntersector::intersectBakedPlane(
 
     const double normalDotDirection =
         operand->getPlaneNormal().dotProduct(direction);
-    if (normalDotDirection < GeometryConfig::SMALL_TOLERANCE &&
-        normalDotDirection > -GeometryConfig::SMALL_TOLERANCE) {
-        return false;
-    }
-
-    *depth = normalDotOrigin / normalDotDirection;
-    if (*depth >= GeometryConfig::SMALL_TOLERANCE &&
-        *depth <= GeometryConfig::MAX_DISTANCE) {
+    if (InfinitePlane::intersectionDepth(normalDotOrigin, normalDotDirection,
+            GeometryConfig::SMALL_TOLERANCE, GeometryConfig::SMALL_TOLERANCE,
+            GeometryConfig::MAX_DISTANCE, false, *depth) == RayFirstHitStatus::Hit) {
         stats.incrementRayPlaneTestsSucceeded();
         return true;
     }

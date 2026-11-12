@@ -1,9 +1,20 @@
+#include "vsdk/toolkit/environment/scene/AffinePlacement.h"
+#include "java/lang/IllegalStateException.h"
+#include "java/lang/Double.h"
 #include <stdexcept>
 #include "vsdk/toolkit/environment/material/SimpleMaterial.h"
 #include "vsdk/toolkit/environment/scene/SimpleBody.h"
+#include "vsdk/toolkit/environment/geometry/volume/Sphere.h"
+#include "vsdk/toolkit/environment/geometry/volume/AffineEllipsoidDistanceBounds.h"
+#include "vsdk/toolkit/environment/geometry/volume/AffineEllipsoidDistance.h"
+#include "vsdk/toolkit/environment/geometry/volume/AffineEllipsoidMinimumDistance.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "vsdk/toolkit/environment/raycasting/scene/RayCastingBody.h"
+#include "vsdk/toolkit/environment/raycasting/scene/NativeGeometryBinding.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/RayCastingBox.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingInfinitePlane.h"
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
@@ -259,7 +270,8 @@ RayCastingBody::RayCastingBody(const RayCastingBody &other) :
     objectTexture(other.getObjectTexture() != nullptr ?
         other.getObjectTexture()->copy() : nullptr),
     bodySteps(other.getBodySteps()),
-    geometrySteps(other.getGeometrySteps())
+    geometrySteps(other.getGeometrySteps()),
+    arbitraryAffineTransform(other.arbitraryAffineTransform)
 {
     setGeometry(other.getGeometry() != nullptr ?
         static_cast<RayCastingGeometry*>(other.getGeometry()->copy()) : nullptr);
@@ -702,6 +714,161 @@ RayCastingBody::invert()
     }
 }
 
+Matrix4x4d RayCastingBody::getAffinePlacement() const
+{
+    // POV stores row-vector transforms; the scene contract uses column vectors.
+    const Matrix4x4d outer = transformation ? transformation->transpose() : Matrix4x4d::identityMatrix();
+    const Matrix4x4d inner = geometryTransformation ? geometryTransformation->transpose() : Matrix4x4d::identityMatrix();
+    return outer.multiply(inner);
+}
+
+AffinePlacementStatus RayCastingBody::setAffinePlacement(const Matrix4x4d& forward,
+    const Matrix4x4d& inverse)
+{
+    const AffinePlacementStatus input = AffinePlacement::validate(forward, inverse);
+    if (input != AffinePlacementStatus::Valid) return input;
+    // Moving separately owned bounding or clipping regions requires the scene
+    // graph's ownership rules; do not change only one part of such an object.
+    if (boundingShapes.size() != 0 || clippingShapes.size() != 0)
+        return AffinePlacementStatus::Unsupported;
+    if ((geometryTransformation == nullptr) != (geometryTransformationInverse == nullptr))
+        return AffinePlacementStatus::Indeterminate;
+    const Matrix4x4d inner = geometryTransformation ? geometryTransformation->transpose() : Matrix4x4d::identityMatrix();
+    const Matrix4x4d innerInverse = geometryTransformationInverse ? geometryTransformationInverse->transpose() : Matrix4x4d::identityMatrix();
+    const Matrix4x4d outer = forward.multiply(innerInverse);
+    const Matrix4x4d outerInverse = inner.multiply(inverse);
+    const AffinePlacementStatus composed = AffinePlacement::validate(outer,outerInverse);
+    if (composed != AffinePlacementStatus::Valid) return composed;
+    ensureMatrices();
+    *transformation = outer.transpose();
+    *transformationInverse = outerInverse.transpose();
+    arbitraryAffineTransform = true;
+    bakedTransformFolded = false;
+    markModified();
+    return AffinePlacementStatus::Valid;
+}
+
+void RayCastingBody::resetAffinePlacement()
+{
+    const AffinePlacementStatus status = setAffinePlacement(Matrix4x4d::identityMatrix(), Matrix4x4d::identityMatrix());
+    if (status != AffinePlacementStatus::Valid)
+        throw java::IllegalStateException("Cannot reset this layered POV placement");
+}
+
+AffinePlacementStatus RayCastingBody::queryAffinePlacement(Matrix4x4d& forward, Matrix4x4d& inverse) const
+{
+    if ((transformation == nullptr) != (transformationInverse == nullptr) ||
+        (geometryTransformation == nullptr) != (geometryTransformationInverse == nullptr))
+        return AffinePlacementStatus::Indeterminate;
+    forward = getAffinePlacement();
+    const Matrix4x4d outer = transformationInverse ? transformationInverse->transpose() : Matrix4x4d::identityMatrix();
+    const Matrix4x4d inner = geometryTransformationInverse ? geometryTransformationInverse->transpose() : Matrix4x4d::identityMatrix();
+    inverse = inner.multiply(outer);
+    return AffinePlacement::validate(forward, inverse);
+}
+
+GeometryDistanceStatus RayCastingBody::queryCertifiedSphere(const Sphere*& sphere, bool& inverted,
+    Matrix4x4d& forward, Matrix4x4d& inverse) const
+{
+    // A clipped or bounded body has scene-specific surface semantics. Do not
+    // pretend its nearest surface is the unmodified sphere.
+    if (!boundingShapes.isEmpty() || !clippingShapes.isEmpty()) return GeometryDistanceStatus::Unsupported;
+    const NativeGeometryBinding* binding=dynamic_cast<const NativeGeometryBinding*>(getGeometry());
+    if (binding==nullptr) return GeometryDistanceStatus::Unsupported;
+    sphere=dynamic_cast<const Sphere*>(binding->getIntrinsicGeometry());
+    if (sphere==nullptr) return GeometryDistanceStatus::Unsupported;
+    inverted=binding->isInverted();
+    const AffinePlacementStatus placement=queryAffinePlacement(forward,inverse);
+    if (placement==AffinePlacementStatus::Invalid) return GeometryDistanceStatus::InvalidInput;
+    if (placement==AffinePlacementStatus::Unsupported) return GeometryDistanceStatus::Unsupported;
+    if (placement==AffinePlacementStatus::Indeterminate) return GeometryDistanceStatus::Indeterminate;
+    return GeometryDistanceStatus::Valid;
+}
+
+GeometryContainment RayCastingBody::orientCertifiedSide(GeometryContainment side, bool inverted)
+{
+    if (inverted && side==GeometryContainment::Inside) return GeometryContainment::Outside;
+    if (inverted && side==GeometryContainment::Outside) return GeometryContainment::Inside;
+    return side;
+}
+
+GeometryDistanceStatus RayCastingBody::estimateBoundaryDistance(const Vector3Dd& point,
+    double& distance, double& estimatedError) const
+{
+    const Sphere* sphere=nullptr; bool inverted=false;
+    Matrix4x4d forward,inverse;
+    const GeometryDistanceStatus availability=queryCertifiedSphere(sphere,inverted,forward,inverse);
+    if (availability!=GeometryDistanceStatus::Valid) return availability;
+    return AffineEllipsoidDistance::query(point,sphere->getRadius(),forward,distance,estimatedError);
+}
+
+GeometryDistanceStatus RayCastingBody::encloseBoundaryDistance(const Vector3Dd& point,
+    const Vector3Dd& localDirection, GeometryContainment& side, double& lower, double& upper) const
+{
+    const Sphere* sphere=nullptr; bool inverted=false;
+    Matrix4x4d forward,inverse;
+    const GeometryDistanceStatus availability=queryCertifiedSphere(sphere,inverted,forward,inverse);
+    if (availability!=GeometryDistanceStatus::Valid) return availability;
+    GeometryContainment candidateSide=GeometryContainment::Indeterminate;
+    double candidateLower=0,candidateUpper=0;
+    const GeometryDistanceStatus status=AffineEllipsoidDistanceBounds::query(point,sphere->getRadius(),
+        forward,localDirection,candidateSide,candidateLower,candidateUpper);
+    if (status!=GeometryDistanceStatus::Valid) return status;
+    side=orientCertifiedSide(candidateSide,inverted); lower=candidateLower; upper=candidateUpper;
+    return GeometryDistanceStatus::Valid;
+}
+
+GeometryDistanceStatus RayCastingBody::encloseMinimumBoundaryDistance(const Vector3Dd& point,
+    double maxWidth, GeometryContainment& side, double& lower, double& upper) const
+{
+    const Sphere* sphere=nullptr; bool inverted=false;
+    Matrix4x4d forward,inverse;
+    const GeometryDistanceStatus availability=queryCertifiedSphere(sphere,inverted,forward,inverse);
+    if (availability!=GeometryDistanceStatus::Valid) return availability;
+    GeometryContainment candidateSide=GeometryContainment::Indeterminate;
+    double candidateLower=0,candidateUpper=0;
+    const GeometryDistanceStatus status=AffineEllipsoidMinimumDistance::query(point,sphere->getRadius(),
+        forward,inverse,maxWidth,candidateSide,candidateLower,candidateUpper);
+    if (status!=GeometryDistanceStatus::Valid) return status;
+    side=orientCertifiedSide(candidateSide,inverted); lower=candidateLower; upper=candidateUpper;
+    return GeometryDistanceStatus::Valid;
+}
+
+GeometryContainment RayCastingBody::classifyPointCertified(const Vector3Dd& point, double tolerance) const
+{
+    if (!java::Double::isFinite(point.x()) || !java::Double::isFinite(point.y()) ||
+        !java::Double::isFinite(point.z()) || !java::Double::isFinite(tolerance) || tolerance<0)
+        return GeometryContainment::InvalidInput;
+    const Sphere* sphere=nullptr; bool inverted=false;
+    Matrix4x4d forward,inverse;
+    const GeometryDistanceStatus availability=queryCertifiedSphere(sphere,inverted,forward,inverse);
+    if (availability==GeometryDistanceStatus::InvalidInput) return GeometryContainment::InvalidInput;
+    if (availability==GeometryDistanceStatus::Unsupported) return GeometryContainment::Unsupported;
+    if (availability!=GeometryDistanceStatus::Valid) return GeometryContainment::Indeterminate;
+    Vector3Dd seed=inverse.multiply(point);
+    if (!java::Double::isFinite(seed.x()) || !java::Double::isFinite(seed.y()) ||
+        !java::Double::isFinite(seed.z())) return GeometryContainment::Indeterminate;
+    if (seed.x()==0 && seed.y()==0 && seed.z()==0) seed=Vector3Dd(1,0,0);
+    GeometryContainment side=GeometryContainment::Indeterminate;
+    double lower=0,upper=0;
+    GeometryDistanceStatus status=AffineEllipsoidDistanceBounds::query(point,sphere->getRadius(),forward,
+        seed,side,lower,upper);
+    if (status==GeometryDistanceStatus::InvalidInput) return GeometryContainment::InvalidInput;
+    if (status==GeometryDistanceStatus::Unsupported) return GeometryContainment::Unsupported;
+    if (status!=GeometryDistanceStatus::Valid) return GeometryContainment::Indeterminate;
+    if (upper<=tolerance) return GeometryContainment::Boundary;
+    if (lower<=tolerance && tolerance>0) {
+        const double width=tolerance*1e-3;
+        if (width>0 && java::Double::isFinite(width))
+            status=AffineEllipsoidMinimumDistance::query(point,sphere->getRadius(),forward,inverse,width,side,lower,upper);
+        else status=GeometryDistanceStatus::Indeterminate;
+        if (status==GeometryDistanceStatus::Valid && upper<=tolerance) return GeometryContainment::Boundary;
+        if (status!=GeometryDistanceStatus::Valid) return GeometryContainment::Indeterminate;
+    }
+    if (lower<=tolerance) return GeometryContainment::Indeterminate;
+    return orientCertifiedSide(side,inverted);
+}
+
 AxisAlignedBoundingBox
 RayCastingBody::getAABB() const
 {
@@ -766,6 +933,12 @@ void RayCastingBody::doExtraInformation(const Ray& source, double t, RayHit* out
 RayCrossingSupport RayCastingBody::emitRayCrossings(const Ray& source,
     const RayCrossingQuery& query, RayCrossingSink& sink) const
 {
+    const NativeGeometryBinding* binding = dynamic_cast<const NativeGeometryBinding*>(geometry);
+    const bool typedLeaf = binding ||
+        dynamic_cast<const RayCastingBox*>(geometry) || dynamic_cast<const Quadric*>(geometry) ||
+        dynamic_cast<const RayCastingInfinitePlane*>(geometry);
+    if (typedLeaf && boundingShapes.size() == 0 && clippingShapes.size() == 0)
+        return SimpleBody::emitRayCrossings(source, query, sink);
     RayCastingQueryAdapter context(source);
     auto* queue = context.pool.pop(128);
     const_cast<RayCastingBody*>(this)->doIntersectionForAllRayCrossings(&context.ray, queue);
@@ -776,6 +949,7 @@ RayCrossingSupport RayCastingBody::emitRayCrossings(const Ray& source,
         RayCrossing event(t, RayCastingGeometry::resolveIntrinsicGeometry(
             candidate.getAttributes().getHitGeometry()),
             RayCrossing::Kind::Unclassified);
+        event.surfaceIndex = candidate.getAttributes().getSurfaceIndex();
         event.body = dynamic_cast<const SimpleBody*>(candidate.getAttributes().getHitBody());
         event.material = candidate.getAttributes().getMaterial();
         sink.crossing(event);

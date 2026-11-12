@@ -129,6 +129,7 @@ RayCrossingSupport RayCastingGeometry::emitRayCrossings(const Ray& source,
         if (t < query.minT || t > query.maxT) continue;
         RayCrossing event(t, resolveIntrinsicGeometry(candidate.getAttributes().getHitGeometry()),
             RayCrossing::Kind::Unclassified);
+        event.surfaceIndex = candidate.getAttributes().getSurfaceIndex();
         event.body = dynamic_cast<const SimpleBody*>(candidate.getAttributes().getHitBody());
         event.material = candidate.getAttributes().getMaterial();
         sink.crossing(event);

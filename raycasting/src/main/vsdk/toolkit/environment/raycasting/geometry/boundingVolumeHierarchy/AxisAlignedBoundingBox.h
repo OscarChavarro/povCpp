@@ -3,6 +3,7 @@
 
 #include "vsdk/toolkit/environment/raycasting/geometry/element/RayWithTracingState.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
+#include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
 
 class AxisAlignedBoundingBox {
   private:
@@ -91,21 +92,11 @@ class AxisAlignedBoundingBox {
     static AxisAlignedBoundingBox fromTransformedCorners(
         const Vector3Dd &lo, const Vector3Dd &hi, const Matrix4x4d *matrix)
     {
-        AxisAlignedBoundingBox result = empty();
-        for (int ix = 0; ix < 2; ix++) {
-            double x = (ix == 0) ? lo.x() : hi.x();
-            for (int iy = 0; iy < 2; iy++) {
-                double y = (iy == 0) ? lo.y() : hi.y();
-                for (int iz = 0; iz < 2; iz++) {
-                    double z = (iz == 0) ? lo.z() : hi.z();
-                    Vector3Dd corner = matrix
-                        ? matrix->transformPoint(Vector3Dd(x, y, z))
-                        : Vector3Dd(x, y, z);
-                    result = result.expandedBy(corner);
-                }
-            }
-        }
-        return result;
+        GeometryBounds local;
+        if (!local.setFinite(lo, hi)) return unbounded();
+        const GeometryBounds result = matrix ? local.transformed(matrix->transpose()) : local;
+        if (result.getKind() != GeometryBounds::Kind::Finite) return unbounded();
+        return AxisAlignedBoundingBox(result.getMinimum(), result.getMaximum());
     }
 
     bool intersectsRayForward(const RayWithTracingState &ray) const

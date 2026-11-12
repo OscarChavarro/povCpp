@@ -453,3 +453,844 @@ iteration. `renderAll.sh` produced 108 baseline-identical images in 109.90 s
 and 1295.18 user CPU seconds). Roth completed with the same seven accepted
 above-threshold scenes and no new discrepancies. The inventory audit maps 77
 raycasting files and confirms 161 copied base files match VITRAL.
+
+## Stage D: native box contracts (in progress)
+
+VITRAL's centered `Box` now implements the typed first-hit, crossing,
+solid-interval, containment, bounds and independent-copy operations. A single
+slab computation supplies first-hit, crossing and interval queries while
+preserving the affine ray parameter. Containment uses Euclidean distance near
+outside edges and corners. A ray overlapping a face and numerically collapsed
+or non-finite calculations are reported as indeterminate. The sphere-specific
+chord and exterior-approach cutoffs are explicitly unsupported for boxes;
+the POV generic scene binding now applies those cutoffs only to the sphere
+specialization and can query the VITRAL box using the general contract.
+
+Tests cover crossing order, clipping, endpoint states, tangency, coincident
+faces, surface detail, Euclidean tolerance at corners, copying, bounds, and an
+instance with negative/nonuniform scale and provenance. Positive world-space
+tolerance under nonuniform placement remains explicitly indeterminate for
+stage E. The legacy `Box::doContainmentTest` behavior remains unchanged.
+
+Stage D is partial: the POV parser and its optimized renderer still use
+`RayCastingBox` and its historical cutoff and boundary policies. Convergence
+of that path, plane/half-space, triangle, quadric, shared bounds and the common
+CSG model remain to be implemented and verified.
+
+Validation: the complete VITRAL example build succeeded; 146 enabled VITRAL
+tests and 147 enabled POV tests passed. All 30 captured example images match
+the preceding iteration. `renderAll.sh` produced 108 baseline-identical images
+in 110.35 seconds (1296.72 user CPU seconds), compared with baseline runs of
+111.59 and 112.39 seconds (1291.53 and 1295.18 user CPU seconds). Roth
+retained the seven accepted above-threshold scenes without new discrepancies.
+The copied-base audit verified all 161 local files match VITRAL.
+
+### Shared slab kernel for boxes
+
+The native box contracts and POV's `RayCastingBox` now call the same VITRAL
+`Box::intersectBounds` slab kernel. It accepts arbitrary local minima and maxima
+and a caller-selected parallel threshold. VITRAL's typed queries check arithmetic
+and explicitly report overlapping faces and numerical failures; the legacy POV
+caller retains its previous threshold, initial interval, distance filtering and
+statistics. This also shares the kernel with the bounding boxes used by POV
+heightfields. Tests cover non-centered bounds, both ray directions, an interior
+origin, parallel misses, and the separate parallel and face-overlap policies.
+
+The intersection kernel is shared, but the complete box geometry is not yet
+unified: POV still owns `RayCastingBox`, its bounds, scene binding and historical
+containment and normal policies. The VITRAL legacy first-hit path also remains to
+be reconciled with its typed query. Stage D therefore remains in progress.
+
+Validation: all VITRAL examples built, with 147 enabled VITRAL tests and 148
+enabled POV tests passing. The 30 captured VITRAL example images matched the
+previous iteration. `renderAll.sh` produced all 108 baseline-identical images
+in 109.99 seconds (1298.14 user CPU seconds), compared with 110.35 seconds
+(1296.72 user CPU seconds) in the preceding iteration. Roth kept the same seven
+accepted discrepancies without new ones. All 161 files in the copied local
+base subset remain identical to VITRAL.
+
+### Infinite plane surface and shared intersection
+
+VITRAL's `InfinitePlane` now provides typed first-hit and crossing queries,
+unbounded bounds, independent copying and explicit point/normal detail. The
+query keeps the original affine ray parameter and distinguishes a parallel
+miss from a coincident or numerically indeterminate ray. It remains an open
+surface: solid-interval and point-containment queries are unsupported rather
+than assigning a fictitious interior. The generic scene binding can query it.
+
+The general POV plane trace and the optimized baked-plane trace both delegate
+their depth calculation to `InfinitePlane::intersectionDepth`. POV retains its
+original parallel threshold, hit interval, viewpoint cache and statistics.
+Tests cover affine parameters, details, bounds, independent copying, parallel
+and coincident cases, numerical underflow, the threshold endpoint and the POV
+viewpoint cache. A mathematical half-space, a unique plane/scene representation
+and the two CSG evaluator integrations remain subsequent stage D work.
+
+Validation: all VITRAL examples built; 149 enabled VITRAL tests and 150 enabled
+POV tests passed. All 30 captured VITRAL example images matched the preceding
+iteration. `renderAll.sh` produced 108 baseline-identical images in 111.78 seconds
+(1298.86 user CPU seconds), compared with 109.99 seconds (1298.14 user CPU
+seconds) in the preceding iteration and the recorded 111.59–112.39 second
+baseline. Roth retained the seven accepted discrepancies with no new ones.
+All 161 files in the copied local base subset remain identical to VITRAL.
+
+### Planar half-space solid
+
+VITRAL now provides `PlanarHalfSpace`, a concrete solid defined by the negative
+side of an `InfinitePlane`. It owns the shared plane representation and uses the
+same surface intersection for first hits, oriented crossings and IN/OUT interval
+classification. Typed point containment uses local Euclidean distance to the
+plane; invalid and numerically indeterminate results remain explicit. Its bounds
+are unbounded, and the generic scene binding can query the new solid.
+
+Tests cover both crossing orientations, clipped intervals, endpoint states,
+parallel inside/outside rays, coincident boundaries, invalid and underflowing
+inputs, independent copying, surface detail, and provenance through a reflected,
+nonuniformly scaled instance. This does not resolve positive world-space
+tolerance under general affine transforms, which remains stage E work.
+
+The POV parser, legacy half-space policies and optimized plane bindings have not
+yet migrated to `PlanarHalfSpace`; both CSG evaluators still require integration
+with the common solid model. Stage D remains partial.
+
+Validation: all VITRAL examples built; 153 enabled VITRAL tests and 154 enabled
+POV tests passed. The 30 captured example images matched the preceding iteration.
+`renderAll.sh` produced all 108 baseline-identical images in 109.67 seconds
+(1296.29 user CPU seconds), compared with 111.78 seconds (1298.86 user CPU
+seconds) in the preceding iteration. Roth retained the seven accepted
+discrepancies and introduced none. All 161 copied local base files match VITRAL.
+
+### Triangle meshes and MIT cow scene
+
+VITRAL's `Triangle` and `TriangleMesh` now share one allocation-free
+Möller–Trumbore kernel for their existing first-hit operations, including affine
+ray parameters and barycentric coordinates. POV's legacy triangle trace shares
+the VITRAL plane-depth kernel, but retains its projected-edge and inversion
+policies; it is not yet the same triangle implementation.
+
+The MIT scene reader now imports `triangles` blocks, vertices, polygon faces
+and material changes. It triangulates each face as a fan and skips triangles
+with repeated vertex indices. Material groups become separate mesh bodies;
+their normals are prepared before parallel rendering. The mesh's legacy last-hit
+index uses the `java::AtomicLong` abstraction, avoiding a data race on that
+field when the same mesh is traced concurrently. The last-hit value remains
+shared legacy state; it is not a per-ray provenance mechanism.
+
+Previously `cow.ray` loaded without error but produced a completely uniform
+background because its triangle blocks were ignored. The reader test now checks
+the six material groups, 3640 triangles and actual ray hits, and the capture
+script rejects a cow image without visible mesh-colored pixels. Both sequential
+and parallel renders produce the same image and show the cow. `cow.ray` and
+`test.ray` now intentionally differ from their earlier incomplete renders;
+the other 26 example captures remain identical. Unification with POV's
+projected triangle geometry, the complete mesh catalog and shared scene/CSG
+models remain pending in stage D and later stages.
+
+Validation: all VITRAL examples built; 155 enabled VITRAL tests and 156 enabled
+POV tests passed. The six cow material groups contain 3640 triangles; the cow
+render has 423 colors and matching sequential/parallel SHA-256
+`098976c03d2baef1bbf0b2b8bc34bbcd5716a773ba28f2298535251952443ab7`.
+Among 30 captured example images, only the sequential and parallel `cow.ray`
+and `test.ray` renders changed, because their previously ignored triangles now
+render. `renderAll.sh` produced all 108 baseline-identical images in 110.01
+seconds (1282.60 user CPU seconds), compared with 109.67 seconds (1296.29 user
+CPU seconds) in the preceding iteration. Roth retained the seven accepted
+discrepancies without new ones. All 161 copied local base files match VITRAL.
+
+### One triangle geometry for both applications
+
+POV's triangle parser and grouped triangle CSG now construct VITRAL's
+`TriangleMesh`; the separate `RayCastingTriangleMesh` geometry has been removed.
+The native mesh provides typed first-hit and ordered crossing queries, bounds,
+independent mathematical copies and deferred surface detail. A face index in
+`RayBoundary` carries the identity needed to recover normals and texture
+coordinates without relying on the mesh's legacy shared last-hit field.
+Mathematical copies do not retain scene material or texture references.
+
+VITRAL's `Triangle` supplies both the common Möller–Trumbore intersection
+kernel and the projected-edge mathematics. POV's projected traversal remains
+an application policy over the same mesh: it maintains derived per-face
+projection and viewpoint caches, the historical inversion and hit policies,
+and statistics. It can also bind an existing valid VITRAL mesh without
+rewriting its indices or normals. The mesh must only be changed through the
+traversal while its caches are attached. Geometry copies rebuild or copy the
+relevant policy data without retaining a stale viewpoint cache.
+
+The tests cover triangle orientation and projections, empty and malformed
+meshes, affine ray parameters, ordered events and face provenance, deferred
+normals and UVs, inversion, copying, and grouped POV triangles. The real MIT
+`cow.ray` mesh is also queried and rendered sequentially and in parallel.
+Coplanar and numerically ambiguous queries remain explicitly indeterminate;
+unsupported nested provenance is not silently discarded. These are conservative
+contract outcomes, not an implementation of the later general CSG model.
+
+The triangle geometry and its integration in the current consumers are complete
+for this stage. Stage D as a whole remains partial: the other primitive bindings,
+placement and bounds still need convergence, the quadric remains to be unified,
+and the common CSG composition and the two evaluator integrations remain open.
+
+Validation: all VITRAL examples built; 159 enabled VITRAL tests and 160 enabled
+POV tests passed. The 30 example captures, including sequential and parallel
+`cow.ray`, matched the preceding iteration. All ten checked ShadersExample
+images (five shading modes on both software and OpenGL) matched their reference.
+`renderAll.sh` produced all 108 baseline-identical images in 110.83 seconds
+(1306.61 user CPU seconds), compared with 110.01 seconds (1282.60 user CPU
+seconds) in the preceding iteration and the recorded 111.59–112.39 second
+baseline. Roth rendered all 108 scenes and retained exactly the seven accepted
+RMSE discrepancies. All 161 copied local base files match VITRAL.
+
+### Planar half-space ownership and box operations
+
+The POV plane traversal now owns a VITRAL `PlanarHalfSpace`, whose boundary
+`InfinitePlane` is the sole storage for its mathematical coefficients. The
+existing POV type remains a traversal and scene adapter, retaining the primary
+ray cache, historical tolerance, statistics and baked-plane integration. The
+boundary plane exposes its raw equation coefficients without normalizing them;
+this preserves the scale of POV equations. Editing or inverting the equation
+invalidates the adapter's primary-ray cache. Tests cover non-unit coefficients,
+classification via the native half-space, inversion, copying and cache refresh.
+
+VITRAL `Box` now provides operations for containment and face normals on
+arbitrary axis-aligned bounds. The existing POV box delegates these calculations
+as well as the slab intersection to VITRAL; the historical boundary inclusion,
+face precedence and fallback remain POV policies. Tests exercise non-centred
+bounds, boundary inclusion, face precedence and inversion.
+
+This is not yet complete convergence of these primitives: POV still stores its
+own box bounds and uses a separate box scene adapter, including heightfield and
+baked-scene dependencies. The plane/half-space adapter and the optimized scene
+and CSG paths also still need to consume the common scene and query model.
+Consequently stage D and this family of primitives remain in progress.
+
+Validation: all VITRAL examples built; 159 enabled VITRAL tests and 160 enabled
+POV tests passed. The 30 captured VITRAL examples and the ten checked
+ShadersExample CPU/OpenGL shading images matched the preceding references.
+`renderAll.sh` rendered 108 baseline-identical images in 113.66 seconds
+(1302.54 user CPU seconds), compared with 110.83 seconds (1306.61 user CPU
+seconds) in the preceding iteration. Roth rendered 108 scenes and retained
+exactly the seven accepted discrepancies. All 161 copied local base files match
+VITRAL.
+
+### Shared affine bounds and placement query
+
+`GeometryBounds::transformed` now transforms finite local bounds through the
+shared VITRAL affine matrix convention, enclosing the eight transformed corners.
+It preserves empty and unbounded states and returns an explicit indeterminate
+result for invalid, non-affine or numerically non-finite transformations.
+`SimpleBody` exposes `getAffinePlacement` and `getWorldBounds`, so a scene
+consumer can obtain placement and bounds without depending on a render policy.
+
+POV's bounding-box conversion now delegates the corner transformation to that
+same VITRAL operation. POV stores its legacy matrices in the opposite vector
+convention, so its adapter transposes them at the boundary; the shared placement
+query composes geometry and object layers in the correct order. Unknown or
+invalid bounds fall back to an unbounded POV acceleration box. In the typed
+query, complemented native geometries and projected triangle policies report
+unbounded bounds conservatively. A POV composite reports unsupported rather than
+incorrectly reporting empty when only its children contain geometry.
+
+Tests cover translation, reflection, shear, two placement layers, finite and
+non-finite transforms, empty and unbounded bounds, inversion and agreement with
+the existing POV culling bounds. The substage is still partial: the common
+placement is currently a query over the existing representations, not yet the
+one authoritative affine state for both scene implementations; aggregate bounds
+for POV composites and the remaining primitive/CSG bindings are not unified.
+
+Validation: all VITRAL examples built; 161 enabled VITRAL tests and 162 enabled
+POV tests passed. The 30 captured VITRAL examples and ten checked ShadersExample
+CPU/OpenGL images matched their preceding references. `renderAll.sh` produced
+all 108 baseline-identical images in 113.40 seconds (1301.20 user CPU seconds),
+compared with 113.66 seconds (1302.54 user CPU seconds) in the preceding
+iteration. Roth retained exactly the seven accepted discrepancies. All 161 copied
+local base files match VITRAL.
+
+### Bounds for composed scene bodies
+
+VITRAL's `GeometryBounds::enclosing` now combines bounds with an empty identity
+and explicit finite, unbounded, unsupported and indeterminate outcomes. POV
+composites use that operation to enclose their children in composite-local
+coordinates and then apply the composite's outer affine placement. Nested
+composites, unknown children and unbounded children are covered by tests. The
+aggregation deliberately ignores clipping and bounding regions, yielding a
+conservative enclosure rather than assuming that those regions can always be
+used to tighten it.
+
+The POV box and planar half-space adapters now expose their bounds through the
+same typed contract. Inverted boxes are unbounded; invalid bounds and plane
+equations retain the native indeterminate result. This makes these primitives
+usable by the common placement/bounds query even before their remaining scene
+and geometry adapters are eliminated.
+
+The shared bounds query and affine transformation now cover nested composites
+and the currently supported primitives. Full authoritative affine state and
+bounds for the remaining legacy geometry and CSG representations still require
+later scene and primitive convergence; the stage D exit condition is not yet met.
+
+Validation: all VITRAL examples built; 162 enabled VITRAL tests and 163 enabled
+POV tests passed. All 30 captured VITRAL example images and ten checked
+ShadersExample CPU/OpenGL images matched their references. `renderAll.sh`
+produced 108 baseline-identical images in 113.67 seconds (1302.40 user CPU
+seconds), compared with 113.40 seconds (1301.20 user CPU seconds) in the
+preceding iteration. Roth retained exactly the seven accepted discrepancies.
+All 161 copied local base files match VITRAL.
+
+### CSG bounds and planar half-space queries
+
+POV's transitional CSG representation now provides typed bounds by enclosing
+its operands' own typed bounds after applying each operand's placement in the
+shared affine convention. The enclosure is conservative for union,
+intersection and difference; supported complemented children report unbounded
+bounds, while unsupported or indeterminate operand bounds remain explicit. Empty CSG
+objects currently report unsupported because their operation-specific semantics
+are not defined by this adapter. This query does not replace the existing baked
+culling policy.
+
+The POV plane adapter now delegates typed point classification, first hit,
+crossings and solid interval classification to its owned VITRAL
+`PlanarHalfSpace`. Typed events and boundaries identify that native half-space as
+their geometric source. Its mathematical copy is likewise a VITRAL half-space.
+POV's original rendering, tolerance and caching policies remain in place.
+Tests cover native provenance, solid intervals, transformed CSG operands,
+difference and complemented operands.
+
+These changes extend the common query but do not complete stage D: POV's box
+still has its own geometric storage and historical scene adapter, the common
+affine placement remains a query over separate states, and not every geometry
+or CSG composition has a unified implementation.
+
+Validation: all VITRAL examples built; 162 enabled VITRAL tests and 163 enabled
+POV tests passed. The 30 captured examples and ten checked ShadersExample
+CPU/OpenGL shading images matched their references. `renderAll.sh` produced
+108 baseline-identical images in 113.51 seconds (1294.70 user CPU seconds),
+compared with 113.67 seconds (1302.40 user CPU seconds) in the preceding
+iteration. Roth retained the same seven accepted discrepancies without new
+ones. All 161 copied local base files match VITRAL.
+
+### Initial VITRAL quadrics and offline fixtures
+
+VITRAL now has `QuadricSurface`, defined by ten quadratic, mixed, linear and
+constant coefficients. Its ray equations use the same quadratic/linear root
+solver adopted from POV's quadric implementation; POV's existing optimized
+traversal calls that solver. The VITRAL geometry supports independent copying,
+first hits, ordered crossings, normals, zero-tolerance point classification and
+conservative unbounded bounds. Degenerate coincident rays are explicitly
+indeterminate. Positive-tolerance point classification and full solid interval
+classification remain unsupported until their numerical and CSG semantics are
+implemented; the legacy POV wrapper still owns separate coefficients and its
+render-specific caches. This is an initial integration, not yet a unique
+quadric representation.
+
+The MIT reader accepts `quadric xx yy zz xy xz yz x y z constant`. New
+`quadric_ellipsoid.ray` and `quadric_paraboloid.ray` fixtures exercise the
+quadratic and linear ray cases in the offline renderer. The capture script
+checks that the colored surfaces are visible as well as checking matching
+sequential and parallel output. The existing `math` examples include polynomial
+surfaces of degree greater than two; those require the later quartic/polynomial
+catalog work and are not represented as quadrics.
+
+Validation: all VITRAL examples built; 163 enabled VITRAL tests and 164 enabled
+POV tests passed. The 30 existing example captures and ten checked ShadersExample
+CPU/OpenGL shading images matched their references. Both new quadric fixtures
+rendered visibly and matched between sequential and parallel execution.
+`renderAll.sh` produced 108 baseline-identical images in 115.07 seconds
+(1305.42 user CPU seconds), compared with 113.51 seconds (1294.70 user CPU
+seconds) in the preceding iteration. Roth retained the seven accepted
+RMSE discrepancies without new ones. All 161 copied local base files match VITRAL.
+
+### Shared quadric geometry and solid intervals
+
+POV's quadric adapter now owns the VITRAL `QuadricSurface` as its sole storage
+for the ten mathematical coefficients. Both consumers use the same implicit
+function, gradient and quadratic/linear solver; POV retains only its tracing
+policy, viewpoint cache and existing bounding optimization. Its typed first hit,
+crossings, point classification, solid intervals and deferred detail delegate
+to the VITRAL object, whose identity is carried as boundary provenance.
+
+`QuadricSurface::classifyRay` provides ordered solid boundaries and segment
+membership for quadratic and linear rays, complements, clipped intervals and
+tangencies. Coincident rays, arithmetic failures and unsupported query policies
+remain explicit, with no partial solid result. Deferred normals respect reversed
+boundary orientation. Tests cover ellipsoids, transformed instances, provenance,
+paraboloids, complemented solids, endpoints and tangencies. General positive
+world-space containment tolerance remains stage E work; it is not approximated
+using the value of the implicit polynomial.
+
+Three further offline examples show a cylinder, hyperboloid and saddle, in
+addition to the elipsoid and paraboloid. Their sequential and parallel renders
+are checked for visible surfaces. Quadric bounds remain conservative and
+unbounded in the shared mathematical contract; the existing POV finite-bound
+optimization is still application-specific. Other phase D scene and CSG
+convergence work remains open.
+
+Validation: all VITRAL examples built; 166 enabled VITRAL tests and 167 enabled
+POV tests passed. The 34 previously captured example images and ten checked
+ShadersExample CPU/OpenGL images matched their references; the three additional
+quadric fixtures rendered visibly and identically in sequential and parallel
+modes. `renderAll.sh` produced 108 baseline-identical images in 113.49 seconds
+(1295.04 user CPU seconds), compared with 115.07 seconds (1305.42 user CPU
+seconds) in the preceding iteration. Roth retained exactly the seven accepted
+RMSE discrepancies. All 161 copied local base files match VITRAL.
+
+### Shared finite bounds for quadrics
+
+VITRAL's `QuadricSurface::getBounds` now owns the positive-definite ellipsoid
+bound adopted from POV, including mixed coefficients and translated centers.
+The POV acceleration adapter consumes this same result; the second copy of the
+bound calculation has been removed. The legacy `getMinMax` also uses the shared
+bound. Complements, indefinite, singular, near-singular and degenerate cases
+that this calculation cannot safely bound remain unbounded. Non-finite input or
+arithmetic is reported as indeterminate, and POV's acceleration falls back to an
+unbounded volume. This preserves the historical numerical thresholds; it does
+not claim a rigorous floating-point outward-rounding guarantee.
+
+Analytical tests cover a shifted ellipsoid with mixed terms, transformed
+instances, the POV acceleration adapter, inverted and unbounded solids, tiny
+coefficients and non-finite arithmetic. Solid interval tests also exercise the
+mixed-term equation. Two additional offline fixtures show a rotated ellipsoid
+and a pair of ellipsoids. General positive containment tolerance remains stage E
+work; the zero-tolerance and ray interval operations are covered here.
+
+Validation: all VITRAL examples built; 169 enabled VITRAL tests and 170 enabled
+POV tests passed. The 40 prior example captures and ten checked ShadersExample
+CPU/OpenGL images matched their references. Both new quadric fixtures rendered
+visibly and identically in sequential and parallel modes. `renderAll.sh`
+produced 108 baseline-identical images in 113.98 seconds (1309.44 user CPU
+seconds), compared with 113.49 seconds (1295.04 user CPU seconds) in the
+preceding iteration. Roth retained exactly the seven accepted RMSE discrepancies.
+All 161 copied local base files match VITRAL.
+
+### Shared box geometry and offline half-spaces
+
+VITRAL `Box` now owns its two arbitrary axis-aligned corners, supporting the
+POV box representation and the centered constructor already used by VITRAL.
+Typed first-hit, crossings, solid intervals, containment, finite bounds, copying
+and deferred surface detail operate on that same box. POV's `RayCastingBox`
+owns the VITRAL box rather than another set of geometric coefficients, retaining
+its historical hit thresholds, statistics and traversal policy. Complemented
+POV boxes reverse typed crossing orientation, segment membership and boundary
+normal orientation. The mutable corners remain available for the existing
+heightfield water-level parser, and subsequent queries use the changed values.
+
+`InfinitePlane` and `PlanarHalfSpace` now provide deferred detail with explicit
+boundary identity and normal reversal; the POV plane adapter delegates to the
+native half-space. The MIT reader accepts `box min-x min-y min-z max-x max-y
+max-z` and `halfspace a b c d` (the solid is `ax+by+cz+d <= 0`), with invalid
+inputs rejected. New offline scenes exercise offset boxes and a sloped
+half-space. Tests query the actual parsed solids, including their ray intervals,
+as well as independent copying, inversion and deferred normals.
+
+The plan now defers only stage D work that actually depends on stage E's
+world-space tolerance semantics to the new stage F. Zero-tolerance primitive,
+placement and structural composition work remains in D and must be reviewed
+before starting E; the former F–I stages are now G–J. Application traversal and
+baked policies remain adapters until the scene/CSG and removal stages.
+
+Validation: all VITRAL examples built; 172 enabled VITRAL tests and 173 enabled
+POV tests passed. The 44 preceding example captures and all ten checked
+ShadersExample CPU/OpenGL images matched their references. Both new fixtures
+rendered visibly and identically in sequential and parallel modes. The full
+`renderAll.sh` run produced 108 baseline-identical images in 115.39 seconds
+(1317.65 user CPU seconds), compared with 113.98 seconds (1309.44 user CPU
+seconds) in the preceding iteration. Roth retained exactly the seven accepted
+RMSE discrepancies. All 161 copied local base files match VITRAL.
+
+### Common structural CSG contract
+
+VITRAL now defines the shared ordered `CsgExpression`/`CsgOperandView`
+contract and the `CsgOperation` enumeration. Difference keeps operand zero as
+the minuend and the remaining operands as subtractors. `CsgTree` provides a
+borrowed-operand construction scaffold, checks visible cycles on insertion and
+can itself be a nested operand; `CsgBodyOperand` exposes an existing body's
+geometry and canonical affine placement without cloning it. Referenced operands
+and bodies must outlive their containing expressions; mutation by an external
+implementation remains subject to that implementation's lifetime and cycle
+rules.
+
+POV's existing CSG node and operands implement the same contract directly over
+their existing storage and transform state. Its former operation type is an
+alias of the common enumeration, so both existing evaluators retain their
+behavior and operation identifiers without a parallel expression graph. Tests
+exercise union, intersection, ordered difference, nested nodes, placement,
+identity, live body updates, invalid indices and cycle rejection.
+
+The stage D structural scaffold is complete at the requested scope. It is not
+a ray evaluator or an offline-renderable geometry: the shared expression still
+needs the G evaluators and scene/reader integration. The plan records the
+union, intersection and difference sphere scenes as stage G deliverables,
+rather than adding `.ray` files whose CSG content the reader would ignore.
+
+Validation: all VITRAL examples built; 173 enabled VITRAL tests and 174 enabled
+POV tests passed. The 48 example captures and ten checked ShadersExample
+CPU/OpenGL shading images matched their references. `renderAll.sh` produced
+108 baseline-identical images in 114.83 seconds (1306.11 user CPU seconds),
+compared with 115.39 seconds (1317.65 user CPU seconds) in the preceding
+iteration. Roth retained exactly the seven accepted RMSE discrepancies. All
+161 copied local base files match VITRAL.
+
+### Shared affine placement queries and zero-tolerance solid paths
+
+VITRAL now exposes a validated geometry-to-parent affine pair through
+`SimpleBody::queryAffinePlacement`. The common validation checks finite affine
+matrices, the inverse in both composition orders and explicit singular or
+indeterminate cases. The existing decomposed VITRAL controls retain their
+established validation. POV supplies the same contract by composing and
+converting its object and geometry placement layers, including shear, without
+normalizing ray directions.
+
+`SimpleBody::classifyRay` and zero-tolerance `classifyPoint` now consume this
+shared pair. The POV native-geometry binding implements typed containment and
+solid classification, including complement membership and boundary orientation,
+so these queries work on a placed POV sphere as well as the other supported
+primitives. Positive tolerance on POV affine placement remains explicitly
+indeterminate for stage E/F. CSG operand views expose the same validated pair.
+Tests cover a sheared, nonuniformly scaled two-layer POV instance, affine ray
+parameters, complement, provenance, singular matrices and inconsistent pairs.
+
+VITRAL's `SimpleBody::emitRayCrossings` now performs the same affine conversion
+and appends instance provenance. It buffers results until the geometry query
+succeeds, so a failed source query cannot leak partial events. Tests exercise a
+reflected instance and the ordered crossing kinds and original ray parameter.
+
+Stage D is still partial: this change unifies the query contract, not the
+underlying authoritative placement storage. VITRAL's decomposed editing/render
+state and POV's two matrix layers remain separately maintained, and POV's
+legacy crossing emission has not yet been replaced by the common typed path.
+Stage G still owns the CSG evaluators and the corresponding offline examples;
+positive world-space tolerance remains in E/F.
+
+Validation: all VITRAL examples built; 175 enabled VITRAL tests and 176 enabled
+POV tests passed. The 48 example captures and ten checked ShadersExample
+CPU/OpenGL shading images matched their references. `renderAll.sh` produced
+108 baseline-identical images in 114.13 seconds (1308.44 user CPU seconds),
+compared with 114.83 seconds (1306.11 user CPU seconds) in the preceding
+iteration. Roth retained exactly the seven accepted RMSE discrepancies. All
+161 copied local base files match VITRAL.
+
+### Stage D closure: affine placement, crossings and basic bounds
+
+`SimpleBody` now stores the validated forward/inverse `AffinePlacement` pair;
+TRS edits update that pair and retain their existing optimized rendering caches.
+A caller can set an arbitrary affine pair, including shear, and the regular
+raytracer, bounds, zero-tolerance classification and crossings use that same
+placement. Non-decomposable affine placements explicitly reject TRS rotation or
+scale editing; translation and resetting to identity remain available. Tests
+cover an explicitly sheared body, its ray parameter, point, transformed normal,
+classification, translation and invalid-pair handling.
+
+POV exposes the same canonical column-vector placement and accepts an affine
+assignment while preserving its separate object and geometry layers. The
+assignment updates the matrices actually used by tracing and disables TRS-step
+coefficient folding for that body, avoiding a stale optimized representation.
+Tests cover two layers, inversion, native crossing provenance and a baked quadric
+after explicit shear. POV objects with separately owned bounding/clipping
+regions currently reject arbitrary affine assignment; their ownership and editor
+policies are explicitly deferred to F.
+
+For unbounded/unclipped basic POV leaves, typed zero-tolerance crossings now go
+through the common instance query, preserving the original affine parameter,
+leaf identity, instance path and orientation. Projected triangles retain their
+historical projected traversal as a policy; normal projected meshes expose their
+finite shared bounds, while inverted projected faces are unbounded, including in
+acceleration. Bodies with explicit bounding or clipping regions retain the
+historical traversal until the scene-policy integration in F. VITRAL's existing
+primitives provide ordinary shared bounds; the future geometry catalog is covered
+in F/H as requested. The CSG structure remains the completed D scaffold, with
+actual evaluators and offline CSG examples in G.
+
+D is complete under the requested basic-primitive scope. Positive world-space
+tolerance, region-specific typed traversal/affine editing and future geometry
+families remain explicitly listed in F; they are not represented as completed.
+Validation: all VITRAL examples built; 176 enabled VITRAL tests and 177 enabled
+POV tests passed. The 48 existing example captures and ten checked ShadersExample
+CPU/OpenGL images matched their references. `renderAll.sh` produced 108
+baseline-identical images in 116.41 seconds (1317.92 user CPU seconds), compared
+with 114.13 seconds (1308.44 user CPU seconds) in the preceding iteration. Roth
+retained exactly the seven accepted RMSE discrepancies. All 161 copied local
+base files match VITRAL.
+
+### Stage E start: ellipsoid regression
+
+Added world-space tolerance assertions for an ellipsoid with semi-axes 3, 2 and
+1, including points on both sides of the tolerance band on two axes. The first
+run failed all nine assertions because the current nonuniform placement returns
+`Indeterminate`. Added a second regression for a sheared ellipsoid, using a
+surface point with an analytically known world normal; it also fails for the
+same reason. The assertions are retained and temporarily disabled in the normal
+suite. Explicitly execute them with
+`vitral_base_tests --gtest_also_run_disabled_tests --gtest_filter='GeometryQueryContract.DISABLED_*Ellipsoid*'`.
+They must be enabled again once the implementation passes them.
+
+The existing enabled VITRAL suite passed 175 tests. No production geometry or
+rendering code changed in this step; the containment solver and the remaining
+stage E numerical coverage are still pending.
+
+### Stage E: conservative affine-sphere certificates
+
+`SimpleBody` now uses the shared affine placement to classify certain positive
+world-tolerance queries on nonuniformly scaled or sheared spheres. An enclosure
+of the implicit quadratic certifies inside/outside, and an explicit transformed
+surface witness certifies boundary proximity. Inconclusive queries return
+`Indeterminate`; no estimate is treated as a complete nearest-distance solver.
+The unchanged ellipsoid and shear regressions now pass and are enabled. Added
+reflection, rotation, tolerance-threshold, singular and ill-conditioned cases.
+The existing uniform-scale and zero-tolerance paths remain in place.
+
+The arithmetic uses conservative bounds in exact arithmetic and a floating-point
+guard, not a proven roundoff bound. A complete solver, a defensible numerical
+error analysis, and independent numerical cross-checks remain open in E. The
+certificates do not yet provide all results required by the CSG evaluators.
+
+Validation for this increment: all configured VITRAL examples built; 178 enabled
+VITRAL tests passed, followed by the updated focused ellipsoid tests. The POV
+environment tests passed. All 48 captured examples and the ten CPU/OpenGL
+shading-mode images matched their preceding references. `renderAll.sh` produced
+108 baseline-identical images in 115.22 seconds (1314.33 user CPU seconds),
+compared with 116.41 seconds (1317.92 user CPU seconds) in the preceding run.
+The local VITRAL base mirror still matches all 161 copied files.
+The Roth render completed all 108 scenes and its regression check retained
+exactly the seven previously accepted RMSE discrepancies, with no new ones.
+
+### Stage E: oblique ellipsoid witnesses
+
+Added a regression derived from a known point and normal of an ellipsoid. The
+previous implementation returned `Indeterminate` for points at signed normal
+offsets of 0.095 with a tolerance of 0.1. It now searches the source sphere for
+an explicit transformed surface witness; any successful witness is sufficient,
+even when it is not the nearest surface point. The same regression also covers
+an exterior point at offset 0.101: a supporting-plane lower bound now proves
+that it is outside the tolerance band. Both assertions failed before their
+respective changes and pass afterward.
+
+The iterative search is bounded and cannot establish that a missing witness
+does not exist. The supporting plane and existing quadratic enclosure are also
+only sufficient certificates. Inconclusive inputs remain `Indeterminate`.
+Formal floating-point bounds, independently computed numerical comparisons and
+a complete distance query remain open in E.
+
+An additional analytic normal test covers an oblique point under shear. All
+180 enabled VITRAL tests passed, as did the POV environment tests. All 48
+captured example images and ten CPU/OpenGL shading-mode images match the
+preceding references. `renderAll.sh` reproduced all 108 reference images in
+114.72 seconds (1297.38 user CPU seconds), compared with 115.22 seconds
+(1314.33 user CPU seconds) in the previous run.
+The Roth regression check again reports only the seven previously accepted
+RMSE discrepancies, with no additional scenes.
+
+### Stage E: interior quadratic bound and independent sampling
+
+An ellipsoid interior point at world distance 0.2 from the surface, queried with
+tolerance 0.19, initially returned `Indeterminate`. A quadratic upper bound
+obtained by completing the square now certifies that case as inside. The bound
+uses positive definite systems and remains a sufficient test: inconclusive or
+numerically unsafe systems do not force a result.
+
+Added an independent surface-grid comparison for five points on both sides of a
+sheared ellipsoid. A geometric bound on grid spacing separates the chosen query
+tolerances from the sampled distance. The test permits `Indeterminate` but
+rejects definite results that contradict the grid bounds. This begins numerical
+cross-checking; broader cases and rigorous floating-point error bounds remain
+open, as does a complete nearest-distance solver.
+
+Validation: all configured VITRAL examples built; 182 enabled VITRAL tests and
+the POV environment tests passed. All 48 example captures and ten CPU/OpenGL
+shading modes matched their previous references. `renderAll.sh` reproduced all
+108 reference images in 113.58 seconds (1306.94 user CPU seconds), compared
+with 114.72 seconds (1297.38 user CPU seconds) in the preceding run. The local
+base mirror audit still reports 161 identical files.
+The Roth regression check retained exactly the seven previously accepted RMSE
+discrepancies, with no additional scenes.
+
+### Stage E: centre witness and wider numerical checks
+
+An ellipsoid queried at its centre previously returned `Indeterminate` even
+when the tolerance reached an obvious surface point. The implementation now
+tries source-axis surface witnesses when the radial seed is undefined; it
+retains `Indeterminate` when a witness lies at the floating-point threshold.
+The new centre regression was run and failed before this change, then passed.
+
+Expanded the independent surface-grid comparison to combined translation,
+rotation, reflection and shear at scale factors 0.01, 1 and 100, using a conservative
+geometric grid-spacing bound. Added a test for a 1e-12 affine scale that keeps
+an uncertain near-boundary query explicitly indeterminate. The grid test is a
+numerical cross-check, not a proof of the floating-point guards or a complete
+distance solver; these requirements remain open in E.
+
+Validation: all configured VITRAL examples built; 185 enabled VITRAL tests and
+the POV environment tests passed. All 48 example captures and ten CPU/OpenGL
+shading modes matched their previous references. `renderAll.sh` reproduced all
+108 reference images in 114.65 seconds (1308.83 user CPU seconds), compared
+with 113.58 seconds (1306.94 user CPU seconds) in the preceding run. The local
+base mirror audit reported 161 identical files. The Roth regression check
+retained the seven known RMSE discrepancies and reported no additional scenes.
+
+### Stage E: tighter exterior distance certificates
+
+A normal-offset regression for a sheared ellipsoid initially returned
+`Indeterminate` for a point at distance 0.1001 with a tolerance of 0.1. The
+bounded surface-witness iteration now also tries the supporting plane at each
+candidate surface point. A witness gives an upper distance bound, and any
+supporting plane gives an exterior lower bound. The unchanged regression passes;
+additional analytic normal offsets on both sides of the band reject incorrect
+definite classifications. An exhausted or numerically uncertain search still
+returns `Indeterminate`. This starts tighter distance bracketing, but does not
+yet provide a complete nearest-distance query or proven floating-point bounds.
+
+Validation: all configured VITRAL examples built; 187 enabled VITRAL tests and
+the POV environment tests passed. All 48 example captures and ten CPU/OpenGL
+shading modes matched their previous references. `renderAll.sh` reproduced all
+108 reference images in 112.92 seconds (1302.36 user CPU seconds), compared
+with 114.65 seconds (1308.83 user CPU seconds) in the preceding run. The local
+base mirror audit still reports 161 identical files.
+The Roth regression check retained exactly the seven previously accepted RMSE
+discrepancies, with no additional scenes.
+
+### Stage E: explicit affine ellipsoid distance
+
+Added an explicit numerical distance query for affine sphere instances.
+`OrthogonalEllipsoidDistance` solves the nearest-point secular equation,
+including centre, repeated-axis and interior hard cases. For sheared instances,
+`AffineEllipsoidDistance` computes principal axes from the symmetric
+transformation covariance with a Jacobi iteration and checks its reconstruction
+residual. Invalid, unsupported and numerically indeterminate cases return
+explicit statuses without changing output arguments. `SimpleBody` exposes the
+estimate for a placed sphere and reports other geometries as unsupported.
+
+The query reports an estimated numerical guard, not a proven error interval;
+containment and CSG do not consume it as a certified result. Tests compare
+analytic normals and hard cases, a sampled surface, and twelve reference values
+from independent multi-start constrained minimization, repeated with rotation,
+translation and multiple scales. Singular and highly ill-conditioned transforms
+are checked explicitly. Formal rounding bounds, more conditioning coverage and
+safe integration with both CSG evaluators remain open.
+
+The independent fixture generator is
+`base/src/test/generate_ellipsoid_distance_reference.py` in VITRAL. It uses
+multi-start constrained SLSQP and is not required by the C++ build or test suite.
+
+Validation: all configured VITRAL examples built, 197 enabled VITRAL tests and
+the POV environment tests passed, and all 48 example captures and ten CPU/GPU
+shading-mode images matched their previous references. `renderAll.sh` produced
+108 baseline-identical images in 114.47 seconds (1302.99 user CPU seconds),
+compared with 112.92 seconds (1302.36 user CPU seconds) in the previous run.
+The local base mirror audit reports 161 identical files.
+The final Roth regression check retained exactly the seven accepted RMSE
+discrepancies, with no additional scenes.
+
+### Stage E: interval-verified scene-sphere containment
+
+Added outward-rounded binary64 interval arithmetic and a certified distance
+enclosure for affine spheres. The enclosure evaluates a surface witness, two
+support-plane directions and interval cofactors of the stored forward matrix.
+Interior lower bounds use the inverse norm, a quadratic spectral bound and a
+residual-verified dual bound. The numerical method proposing a witness or dual
+candidate is not trusted: every decision uses the interval result instead.
+
+`SimpleBody::classifyPointCertified` returns inside, outside or boundary only
+when the enclosure separates the answer from the tolerance, and otherwise
+returns `Indeterminate`. Positive-tolerance scene-sphere containment now uses
+that path instead of the earlier heuristic implementation, which was removed;
+the zero-tolerance path is unchanged. Unsupported rounding environments,
+overflow, uncertain singularity and invalid input retain explicit statuses.
+The derivation and platform assumptions are recorded in
+`doc/vitralCertifiedEllipsoidBounds.md`.
+
+Tests cover the original ellipsoid expectations, shear and reflection, interior
+and exterior near-threshold cases, independently generated constrained
+minimization references, exact-rational binary64 interval cases, subnormals,
+overflow and non-default rounding modes. Other primitives and CSG propagation
+remain open in F/G. The nearest-distance estimator still returns an estimated,
+not certified, error and is not used to force classification.
+
+The independent comparison was extended to 24 additional points over three
+distinct affine matrices; `base/src/test/generate_certified_bounds_reference.py`
+in VITRAL regenerates the multi-start constrained-minimization fixtures. A
+separate standard-library-only generator, `generate_interval_reference.py`,
+recreates the exact rational arithmetic fixtures. The final suite passed 204
+enabled VITRAL tests.
+
+The placed-sphere query now decides all 84 near-band and separated cases in the
+two independent affine fixture sets. At the ellipsoid centre, it tries and
+refines multiple surface directions, but still accepts only interval-verified
+decisions. A further exact-rational stress set covers 64 binary64 arithmetic
+cases, regenerated by `generate_interval_stress_reference.py`.
+
+Intrinsic `Sphere::classifyPoint` now uses outward intervals for positive
+tolerance. A regression at the represented threshold was run before this change
+and exposed an incorrect boundary result; it now returns `Indeterminate`.
+Because the legacy integer adapter has no uncertainty value, it throws an
+explicit `IllegalStateException` rather than mapping a failed or indeterminate
+query to outside. Its zero-tolerance path is unchanged. POV's separate legacy
+heuristic and composed CSG propagation remain F/G work.
+
+Validation: all configured VITRAL examples built; 203 enabled VITRAL tests and
+the POV environment tests passed. All 48 example captures and ten CPU/GPU
+shading modes matched their references. `renderAll.sh` produced 108 identical
+images in 112.60 seconds (1305.32 user CPU seconds), versus 114.47 seconds
+(1302.99 user CPU seconds) in the preceding run. The local mirror audit reports
+161 identical base files. The interval class was compiled with fast-math and
+floating-point contraction disabled.
+The final Roth regression check retained exactly the seven previously accepted
+RMSE discrepancies and reported no additional scenes.
+
+After the centre-search and intrinsic-sphere changes, the final VITRAL suite
+passed 207 enabled tests and all configured examples built. The POV environment
+tests passed; `renderAll.sh` produced 108 baseline-identical images in 113.85
+seconds (1310.27 user CPU seconds), compared with 114.47 seconds (1302.99 user
+CPU seconds) before this interval work. All 48 example captures and ten checked
+CPU/OpenGL shading images matched their references. The base mirror audit
+reported 161 identical copied files.
+The final Roth regression check retained the seven accepted RMSE discrepancies
+and reported no additional scenes.
+
+### Stage E: certified minimum-distance enclosure
+
+`AffineEllipsoidMinimumDistance` and `SimpleBody::encloseMinimumBoundaryDistance`
+now return a world-space surface-distance enclosure with a caller-selected
+maximum absolute width. The existing numerical solver provides only a candidate
+witness. An interval-verified supporting bound and a Lagrange-dual certificate
+bound the minimum independently of that estimate; positive definiteness is
+verified using interval principal minors, and the residual is bounded using an
+interval eigenvalue lower bound. `Valid` is returned only if the verified width
+meets the request. Invalid, unsupported or inconclusive queries leave outputs
+unchanged. The scene containment path uses the certified enclosure if its
+initial witness search cannot decide.
+
+Tests cover the interior hard case, centre, exterior, surface points, shear,
+reflection, rotation, translation, non-unit radius, scales from 0.01 to 100,
+wrong inverse hints, non-default rounding and 24 independent minimization
+fixtures. The POV typed native sphere binding is also checked to preserve
+`Indeterminate` through inversion. The original POV integer heuristic and CSG
+composition remain integration work in F/G; the optional approximate solver's
+own error value remains an estimate and is not used as a certificate.
+
+POV's `RayCastingBody` now exposes the same estimated and certified queries
+for native sphere leaves through the shared `SimpleBody` API. The adapter uses
+the full layered affine placement, reverses certified inside/outside for an
+inverted leaf, and explicitly rejects bodies with owned clipping or bounding
+regions. Tests exercise virtual dispatch, layered transforms, inversion,
+uncertain boundaries and unchanged outputs on unsupported regions. POV's
+existing integer CSG traversal is unchanged; integrating the new typed outcomes
+into that traversal remains F/G.
+
+Adversarial validation also caught a nonzero transform column whose squared
+length underflows. The orthogonal estimator now reports `Indeterminate` rather
+than incorrectly declaring that transformation singular; outputs remain
+unchanged. This failure remains explicit in the certified query as well.
+
+The 24 independent affine fixtures now require a certified minimum enclosure of
+width at most 1e-5, in addition to containment checks. Tests also cover
+different scales, non-unit radius, a deliberately wrong inverse hint, an exact
+surface point, an excessively narrow requested width and unsupported rounding.
+The off-axis interior hard case is used by certified scene classification when
+its initial witness search cannot decide.
+
+Final validation: all configured VITRAL examples built, 212 enabled VITRAL
+tests and the POV environment tests passed. All 48 example captures and ten
+checked CPU/OpenGL shading images matched their previous references.
+`renderAll.sh` produced 108 baseline-identical images in 113.69 seconds
+(1318.55 user CPU seconds), compared with 113.85 seconds (1310.27 user CPU
+seconds) in the previous run. The mirror audit reported 161 identical files.
+The final Roth regression check retained exactly the seven accepted RMSE
+discrepancies, with no additional scenes. Stage E meets its affine-sphere
+distance/tolerance exit conditions; the scene-policy and CSG adoption cases
+described above remain in F/G.

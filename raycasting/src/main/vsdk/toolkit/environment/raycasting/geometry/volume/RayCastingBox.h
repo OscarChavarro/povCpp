@@ -2,6 +2,7 @@
 #define __POV_BOX__
 
 #include "vsdk/toolkit/environment/raycasting/geometry/RayCastingGeometry.h"
+#include "vsdk/toolkit/environment/geometry/volume/Box.h"
 
 class RayCastingBox : public RayCastingGeometry {
   public:
@@ -11,14 +12,26 @@ class RayCastingBox : public RayCastingGeometry {
     RayCastingBox(const RayCastingBox &other);
     ~RayCastingBox() override;
 
-    Vector3Dd* getBounds() { return bounds; }
-    const Vector3Dd* getBounds() const { return bounds; }
+    Vector3Dd* getBounds() { return box.getRawBounds(); }
+    const Vector3Dd* getBounds() const { return box.getRawBounds(); }
+    const Geometry* getIntrinsicGeometry() const override { return &box; }
+    Geometry* copyGeometry() const override { return box.copyGeometry(); }
+    GeometryContainment classifyPoint(const Vector3Dd& point, double tolerance) const override;
+    RayCrossingSupport emitRayCrossings(const Ray& ray, const RayCrossingQuery& query,
+        RayCrossingSink& sink) const override;
+    RayFirstHitStatus queryFirstHit(const Ray& ray, const RayCrossingQuery& query,
+        RayHit* hit, RayBoundary* boundary = nullptr) const override;
+    RayFirstHitStatus querySurfaceDetail(const Ray& ray, const RayBoundary& boundary,
+        RayHit* hit) const override;
+    RaySolidQueryStatus classifyRay(const Ray& ray, const RayCrossingQuery& query,
+        RaySolidClassification& result) const override;
     bool isInverted() const { return inverted; }
     void setInverted(bool value) { inverted = value; }
 
     static int intersectBoxx(const RayWithTracingState *ray, const RayCastingBox *box,
         double *depth1, double *depth2);
 
+    void getBounds(GeometryBounds& result) const override;
     BoundingVolumeHierarchy *createBoundingVolume() const override;
 
     int doIntersectionForAllRayCrossings(
@@ -42,10 +55,9 @@ class RayCastingBox : public RayCastingGeometry {
     void computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
 
   private:
-    Vector3Dd bounds[2];
+    Box box;
     bool inverted;
 
-    static int closeTo(double x, double y);
 };
 
 #endif
