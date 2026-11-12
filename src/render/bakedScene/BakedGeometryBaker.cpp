@@ -105,17 +105,18 @@ BakedGeometryBaker::bakePlane(
             Matrix4x4d transformationInverse;
             Vector3Dd vector = step.getVector();
             transformation.axisRotationRodrigues(&transformationInverse, &vector);
-            baked.getNormalVector() =
-                transformation.transpose().multiply(baked.getNormalVector());
+            baked.setNormalVector(
+                transformation.transpose().multiply(baked.getNormalVector()));
             break;
         }
         case TransformStep::Kind::Scale:
         {
-            Vector3Dd &n = baked.getNormalVector();
+            Vector3Dd n = baked.getNormalVector();
             n = Vector3Dd(n.x() / step.getVector().x(), n.y() / step.getVector().y(),
                 n.z() / step.getVector().z());
             const double length = n.length();
             n = n.multiply(1.0 / length);
+            baked.setNormalVector(n);
             baked.setDistance(baked.getDistance() / length);
             break;
         }

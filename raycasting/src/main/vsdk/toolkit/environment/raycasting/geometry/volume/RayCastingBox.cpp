@@ -3,6 +3,12 @@
 #include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/element/IntersectionCandidate.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/RayCastingBox.h"
+#include "vsdk/toolkit/environment/geometry/volume/Box.h"
+#include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
+#include "vsdk/toolkit/environment/geometry/element/RayHit.h"
+#include "vsdk/toolkit/environment/geometry/element/RaySolidClassification.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/BoxInvertedCrossingSink.h"
+#include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 
 RayCastingBox::RayCastingBox() :
@@ -11,13 +17,13 @@ RayCastingBox::RayCastingBox() :
 }
 
 RayCastingBox::RayCastingBox(const Vector3Dd &minBounds, const Vector3Dd &maxBounds, bool inverted) :
-    bounds{minBounds, maxBounds},
+    box(minBounds, maxBounds),
     inverted(inverted)
 {
 }
 
 RayCastingBox::RayCastingBox(const RayCastingBox &other) :
-    RayCastingBox(other.bounds[0], other.bounds[1], other.inverted)
+    RayCastingBox(other.getBounds()[0], other.getBounds()[1], other.inverted)
 {
 }
 
@@ -25,12 +31,6 @@ RayCastingBox::~RayCastingBox()
 {
 }
 
-
-int
-RayCastingBox::closeTo(double x, double y)
-{
-    return java::Math::abs(x - y) < GeometryConfig::INTERSECTION_EPSILON ? 1 : 0;
-}
 
 int
 RayCastingBox::doIntersectionForAllRayCrossings(
@@ -129,124 +129,15 @@ int
 RayCastingBox::intersectBoxx(
     const RayWithTracingState *ray, const RayCastingBox *box, double *depth1, double *depth2)
 {
-    double t;
-    double tmin;
-    double tmax;
-    Vector3Dd p;
-    Vector3Dd d;
     GeometryStatistics &stats = *ray->getGeometryStatistics();
-
     stats.incrementRayBoxTests();
-
-    p = Vector3Dd(ray->getOrigin().x(), ray->getOrigin().y(), ray->getOrigin().z());
-    d = Vector3Dd(ray->getDirection().x(), ray->getDirection().y(), ray->getDirection().z());
-
-    tmin = 0.0;
-    tmax = HUGE_VAL;
-
-    // Sides first
-    if (d.x() < -GeometryConfig::INTERSECTION_EPSILON) {
-        t = (box->bounds[0].x() - p.x()) / d.x();
-        if (t < tmin) {
-            return 0;
-        }
-        if (t <= tmax) {
-            tmax = t;
-        }
-        t = (box->bounds[1].x() - p.x()) / d.x();
-        if (t >= tmin) {
-            if (t > tmax) {
-                return 0;
-            }
-            tmin = t;
-        }
-    } else if (d.x() > GeometryConfig::INTERSECTION_EPSILON) {
-        t = (box->bounds[1].x() - p.x()) / d.x();
-        if (t < tmin) {
-            return 0;
-        }
-        if (t <= tmax) {
-            tmax = t;
-        }
-        t = (box->bounds[0].x() - p.x()) / d.x();
-        if (t >= tmin) {
-            if (t > tmax) {
-                return 0;
-            }
-            tmin = t;
-        }
-    } else if (p.x() < box->bounds[0].x() || p.x() > box->bounds[1].x()) {
-        return 0;
-    }
-
-    // Check Top/Bottom
-    if (d.y() < -GeometryConfig::INTERSECTION_EPSILON) {
-        t = (box->bounds[0].y() - p.y()) / d.y();
-        if (t < tmin) {
-            return 0;
-        }
-        if (t <= tmax) {
-            tmax = t;
-        }
-        t = (box->bounds[1].y() - p.y()) / d.y();
-        if (t >= tmin) {
-            if (t > tmax) {
-                return 0;
-            }
-            tmin = t;
-        }
-    } else if (d.y() > GeometryConfig::INTERSECTION_EPSILON) {
-        t = (box->bounds[1].y() - p.y()) / d.y();
-        if (t < tmin) {
-            return 0;
-        }
-        if (t <= tmax) {
-            tmax = t;
-        }
-        t = (box->bounds[0].y() - p.y()) / d.y();
-        if (t >= tmin) {
-            if (t > tmax) {
-                return 0;
-            }
-            tmin = t;
-        }
-    } else if (p.y() < box->bounds[0].y() || p.y() > box->bounds[1].y()) {
-        return 0;
-    }
-
-    // Now front/back
-    if (d.z() < -GeometryConfig::INTERSECTION_EPSILON) {
-        t = (box->bounds[0].z() - p.z()) / d.z();
-        if (t < tmin) {
-            return 0;
-        }
-        if (t <= tmax) {
-            tmax = t;
-        }
-        t = (box->bounds[1].z() - p.z()) / d.z();
-        if (t >= tmin) {
-            if (t > tmax) {
-                return 0;
-            }
-            tmin = t;
-        }
-    } else if (d.z() > GeometryConfig::INTERSECTION_EPSILON) {
-        t = (box->bounds[1].z() - p.z()) / d.z();
-        if (t < tmin) {
-            return 0;
-        }
-        if (t <= tmax) {
-            tmax = t;
-        }
-        t = (box->bounds[0].z() - p.z()) / d.z();
-        if (t >= tmin) {
-            if (t > tmax) {
-                return 0;
-            }
-            tmin = t;
-        }
-    } else if (p.z() < box->bounds[0].z() || p.z() > box->bounds[1].z()) {
-        return 0;
+    double tmin = 0.0;
+    double tmax = HUGE_VAL;
+    bool faceOverlap = false;
+    if (Box::intersectBounds(ray->getOrigin(), ray->getDirection(),
+            box->getBounds()[0], box->getBounds()[1], GeometryConfig::INTERSECTION_EPSILON,
+            false, tmin, tmax, faceOverlap) != RayFirstHitStatus::Hit) {
+        return false;
     }
 
     *depth1 = tmin;
@@ -270,50 +161,17 @@ int
 RayCastingBox::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
 {
     (void)distanceTolerance;
-    Vector3Dd newPoint;
-    const RayCastingBox *box = this;
-
-    newPoint = testPoint;
-
-    // Test to see if we are inside the box
-    if (newPoint.x() < box->bounds[0].x() || newPoint.x() > box->bounds[1].x()) {
-        return box->inverted ? INSIDE : OUTSIDE;
-    }
-    if (newPoint.y() < box->bounds[0].y() || newPoint.y() > box->bounds[1].y()) {
-        return box->inverted ? INSIDE : OUTSIDE;
-    }
-    if (newPoint.z() < box->bounds[0].z() || newPoint.z() > box->bounds[1].z()) {
-        return box->inverted ? INSIDE : OUTSIDE;
-    }
-    // Inside the box
-    return box->inverted ? OUTSIDE : INSIDE;
+    const bool inside = Box::containsBounds(testPoint, box.getRawBounds()[0], box.getRawBounds()[1]);
+    return inside != inverted ? INSIDE : OUTSIDE;
 }
 
 void
 RayCastingBox::computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
-    Vector3Dd newPoint;
-    const RayCastingBox *box = this;
-
-    newPoint = Vector3Dd(
-        intersectionPoint->x(), intersectionPoint->y(), intersectionPoint->z());
-
-    *result = Vector3Dd(0.0, 0.0, 0.0);
-    if (RayCastingBox::closeTo(newPoint.x(), box->bounds[1].x())) {
-        *result = result->withX(1.0);
-    } else if (RayCastingBox::closeTo(newPoint.x(), box->bounds[0].x())) {
-        *result = result->withX(-1.0);
-    } else if (RayCastingBox::closeTo(newPoint.y(), box->bounds[1].y())) {
-        *result = result->withY(1.0);
-    } else if (RayCastingBox::closeTo(newPoint.y(), box->bounds[0].y())) {
-        *result = result->withY(-1.0);
-    } else if (RayCastingBox::closeTo(newPoint.z(), box->bounds[1].z())) {
-        *result = result->withZ(1.0);
-    } else if (closeTo(newPoint.z(), box->bounds[0].z())) {
-        *result = result->withZ(-1.0);
-    } else {
-        // Bad result, should we do something with it?
-        *result = result->withX(1.0);
+    *result = Box::normalForBounds(*intersectionPoint, box.getRawBounds()[0], box.getRawBounds()[1],
+        GeometryConfig::INTERSECTION_EPSILON);
+    if (result->x() == 0 && result->y() == 0 && result->z() == 0) {
+        *result = Vector3Dd(1,0,0);
     }
 }
 
@@ -332,5 +190,55 @@ RayCastingBox::invertGeometry()
 BoundingVolumeHierarchy *
 RayCastingBox::createBoundingVolume() const
 {
-    return new AabbBoundingVolume(bounds[0], bounds[1]);
+    return new AabbBoundingVolume(box.getRawBounds()[0], box.getRawBounds()[1]);
+}
+
+void RayCastingBox::getBounds(GeometryBounds& result) const
+{
+    if (inverted) result.setUnbounded();
+    else box.getBounds(result);
+}
+
+GeometryContainment RayCastingBox::classifyPoint(const Vector3Dd& point, double tolerance) const
+{
+    const GeometryContainment result = box.classifyPoint(point, tolerance);
+    if (!inverted) return result;
+    if (result == GeometryContainment::Inside) return GeometryContainment::Outside;
+    if (result == GeometryContainment::Outside) return GeometryContainment::Inside;
+    return result;
+}
+RayCrossingSupport RayCastingBox::emitRayCrossings(const Ray& ray,
+    const RayCrossingQuery& query, RayCrossingSink& sink) const
+{
+    if (!inverted) return box.emitRayCrossings(ray, query, sink);
+    BoxInvertedCrossingSink reversed(sink);
+    return box.emitRayCrossings(ray, query, reversed);
+}
+RayFirstHitStatus RayCastingBox::queryFirstHit(const Ray& ray, const RayCrossingQuery& query,
+    RayHit* hit, RayBoundary* boundary) const
+{
+    const RayFirstHitStatus status = box.queryFirstHit(ray, query, hit, boundary);
+    if (status == RayFirstHitStatus::Hit && inverted) {
+        if (boundary) boundary->normalReversed = !boundary->normalReversed;
+        if (hit && hit->needsNormal() && (hit->getAvailableDetailMask() & RayHit::DETAIL_NORMAL))
+            hit->normal = hit->normal.multiply(-1);
+    }
+    return status;
+}
+RayFirstHitStatus RayCastingBox::querySurfaceDetail(const Ray& ray,
+    const RayBoundary& boundary, RayHit* hit) const
+{
+    return box.querySurfaceDetail(ray, boundary, hit);
+}
+RaySolidQueryStatus RayCastingBox::classifyRay(const Ray& ray,
+    const RayCrossingQuery& query, RaySolidClassification& result) const
+{
+    const RaySolidQueryStatus status = box.classifyRay(ray, query, result);
+    if (status == RaySolidQueryStatus::Supported && inverted) {
+        for (long int i=0; i<result.insideSegments.size(); ++i)
+            result.insideSegments[i] = !result.insideSegments[i];
+        for (long int i=0; i<result.boundaries.size(); ++i)
+            result.boundaries[i].normalReversed = !result.boundaries[i].normalReversed;
+    }
+    return status;
 }

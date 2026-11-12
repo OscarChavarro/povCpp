@@ -138,7 +138,7 @@ scales, parallel rays, and singular matrices. Separate geometric tolerance,
 solver tolerance, and query limits: they are not interchangeable.
 
 World-space containment tolerance under nonuniform affine transforms is addressed
-in stage E before the CSG evaluators in F. A scalar world-space tolerance generally
+in stage E before the CSG evaluators in G. A scalar world-space tolerance generally
 cannot be converted to an equivalent scalar object-space tolerance. Until E provides
 an appropriate operation and policy, `Indeterminate` must be propagated; it is
 never implicitly converted into inside or outside.
@@ -323,12 +323,60 @@ duplicated algorithms and will have an explicit removal stage.
 | A. Specification and baselines | Complete inventory of types/operations and consumers; mapping of every `raycasting` file to VITRAL or PovRay; numerical corpus and baselines for all three programs | Every component has a unique destination, an identified policy, and an acceptance test |
 | B. Mathematical contracts | Minimal API for hits, events, solid classification, containment, available detail, bounds, and workspace; provenance model | Interior, boundary, tangency, degeneracy, and transform cases defined and tested without depending on PovRay |
 | C. First vertical slice | A single VITRAL sphere used by ShadersExample, the offline example, and PovRay; sufficient scene support and bindings for all three | The `raycasting` sphere variant disappears; first hit and crossings share a kernel, and both ShadersExample backends work |
-| D. Basic primitives and composition | Unique box, plane/half-space, triangle, and quadric implementations; shared placement and bounds; common CSG model | The same objects can be queried by both evaluators without application-specific geometry adaptations |
-| E. Containment tolerance under affine transforms | First add a failing unit regression test for a scene containing ellipsoids, demonstrating the current `Indeterminate` result for positive world-space tolerance under nonuniform scale. Then define and implement world-space boundary-distance/tolerance queries, including numerical guarantees, explicit failure cases and an efficient zero-tolerance path | The initial ellipsoid regression passes without weakening its expected results. Analytical and independent numerical tests cover inside, outside and near-boundary points under uniform/nonuniform/negative scales and shear, including singular and ill-conditioned transforms. The operations needed by both CSG evaluators are available without treating `Indeterminate` as inside or outside |
-| F. CSG evaluators | Documented heuristic and Roth classification/combination over shared operations, including stage E's tolerance semantics, provenance and boundary policies | Tests cover both algorithms and their legitimate differences; no primitive requires an implementation per strategy. Any indeterminate result is propagated or handled by an explicitly specified alternative, never silently classified |
-| G. Complete catalog | Generic blobs, heightfields, quartics/polynomials, meshes, and patches; fixtures and visualization representations | All POV objects available in VITRAL and consumed by examples without a PovRay dependency |
-| H. Final scene model and consumers | Scene contract, minimal specializations, separate materials, adapted snapshots, parser, renderers, and bake | A single geometric graph, consistent placement, and shared kernels in optimized paths as well |
-| I. Removal and completion | Relocate remaining components; remove transitional wrappers, algorithm copies, and the `raycasting` target/directory | Full gates and uniqueness/dependency audit pass, with no components awaiting a destination |
+| D. Basic primitives and composition | Unique box, plane/half-space, triangle, and quadric implementations; authoritative affine placement, ordinary bounds, common CSG structure and zero-tolerance primitive crossings | The basic primitive paths and their placements are shared and tested, including provenance and explicit indeterminate states. The remaining scene-policy and catalog cases are recorded in F and do not block this stage |
+| E. Containment tolerance under affine transforms | Certified world-space distance and containment operations for affine spheres, with explicit failure states and an efficient zero-tolerance path; expose the operations needed by both CSG strategies on VITRAL and supported POV sphere leaves | The original ellipsoid regression passes unchanged; analytical and independent numerical tests cover placement and numerical edge cases. Typed operations preserve uncertainty and are available to both strategies; full composition and evaluator adoption belong to F/G |
+| F. Finish tolerance and scene-policy integration | Extend E's certified operations to remaining primitives and scene policies, and propagate typed results, attribution and conservative bounds through composed scene structures | The affected scene paths preserve unsupported, indeterminate and singular states, provenance and zero-tolerance behavior; future geometries meet these contracts as introduced in H |
+| G. CSG evaluators | Adopt the shared composition and query contracts in the POV heuristic and Roth evaluators, including their distinct classification, provenance and boundary policies | Tests cover both algorithms and their legitimate differences; no primitive requires an implementation per strategy. Any indeterminate result is propagated or handled by an explicitly specified alternative, never silently classified |
+| H. Complete catalog | Generic blobs, heightfields, quartics/polynomials, meshes, and patches; fixtures and visualization representations | All POV objects available in VITRAL and consumed by examples without a PovRay dependency |
+| I. Final scene model and consumers | Scene contract, minimal specializations, separate materials, adapted snapshots, parser, renderers, and bake | A single geometric graph, consistent placement, and shared kernels in optimized paths as well |
+| J. Removal and completion | Relocate remaining components; remove transitional wrappers, algorithm copies, and the `raycasting` target/directory | Full gates and uniqueness/dependency audit pass, with no components awaiting a destination |
+
+Stage D is complete for the basic-primitive scope above. The explicitly listed
+scene-policy and future-catalog follow-ups remain open in F; the evaluators and
+their offline CSG examples remain in G.
+
+CSG adoption is divided by responsibility; completion of an earlier subphase
+does not imply that a later evaluator is already operational:
+
+| Subphase | Scope | Status and exit condition |
+|---|---|---|
+| E.1 — Primitive query contract | Provide certified distance and containment operations, explicit uncertainty, and the zero-tolerance path for affine spheres. Make these operations available through VITRAL scene bodies and supported POV sphere leaves, including placement and inversion. | **Complete.** The original ellipsoid regression and independent numerical tests pass; unsupported or indeterminate cases remain explicit. This subphase supplies the operations, not composite evaluation. |
+| F.1 — Composition and scene policies | Extend the shared operations to other placed primitives and POV clipping/bounding policies. Propagate typed results through scene instances and CSG composition, including attribution, difference orientation and conservative tolerance-aware culling. Audit legacy integer adapters and prevent silent conversion of uncertainty. | **Pending.** Composition and scene-policy paths preserve the contract end to end; unsupported and indeterminate cases are explicit. |
+| G.1 — Evaluator adoption | Integrate the shared composition and typed queries into both the original POV heuristic and Roth evaluator, with their respective event combination, boundary, provenance and uncertainty policies. | **Pending.** Both evaluators are exercised against shared primitives and compositions, with their documented differences and no silent classification of uncertainty. |
+
+Stage E is complete. The optional numerical estimator remains explicitly
+approximate; certifying or using its error as a guarantee is an F follow-up,
+not a condition for the already-certified enclosure delivered in E.
+
+The partially completed D work deferred specifically to F consists of:
+
+- Positive world-space tolerance for the shared box, half-space and quadric
+  containment paths when placement is nonuniform or sheared, and for POV sphere
+  bodies with clipping or owned bounds. Unclipped native-sphere scene queries
+  are covered by E. Quadric point containment currently supports zero tolerance only.
+- Propagating that tolerance and its indeterminate outcomes through instance and
+  common CSG composition, including difference orientation and provenance.
+- Conservative bounds and culling decisions that depend on the same world-space
+  tolerance after affine placement; uncertain cases must not be culled.
+- Applying the placement, bounds and query contracts to future geometry families;
+  complete each family as it is introduced in H, without blocking D on objects
+  that are not yet part of its basic primitive catalog.
+- Complete typed crossing and clipping/bounding-region policies for POV bodies
+  that still use the historical scene traversal, preserving attribution and
+  explicit failure states. Integrate those results with the G evaluators.
+- Support arbitrary affine edits of POV bodies with separately owned bounding or
+  clipping regions, and richer decomposed editing of arbitrary affine placements,
+  once ownership and editor semantics are defined. The current APIs explicitly
+  reject these unsupported edits rather than silently changing only part of a scene.
+- Audit the optional approximate nearest-distance estimator's fixed error value
+  before using it as a guarantee. Certified queries instead use interval-verified
+  bounds and return an explicit indeterminate or unsupported result when needed.
+
+Continue and close all independent D work before E: primitive uniqueness,
+zero-tolerance solid queries, authoritative affine placement and inverse,
+ordinary shared bounds, structural scene/CSG composition, and their tests.
+Before starting E, review the remaining D items and finish anything that does not
+actually require E. Do not defer an item to F merely because it is incomplete.
 
 Begin stage E by constructing an ellipsoid as a nonuniformly scaled sphere in a
 scene and writing a unit test against independently established world-space
@@ -339,9 +387,61 @@ axes and an anisotropic scale so the test cannot pass by dividing the tolerance 
 one arbitrary scale component. Follow with rotated, reflected and sheared cases,
 and explicitly test singular and numerically indeterminate placements.
 
-The scene foundations of stage C are consolidated in H; scene adaptation is not
-entirely deferred until the end. Each family in G will be integrated individually
+Stage E is complete for its stated affine-sphere distance and tolerance scope.
+The original ellipsoid regression was observed failing before the fix; its
+unchanged assertions now pass. Positive-tolerance intrinsic and placed-sphere
+queries use outward-rounded interval certificates and explicitly preserve
+`Indeterminate`, invalid and unsupported cases. The legacy integer sphere
+adapter raises an explicit error when a typed result cannot be represented.
+The existing zero-tolerance fast path remains unchanged.
+
+`AffineEllipsoidMinimumDistance` and
+`SimpleBody::encloseMinimumBoundaryDistance` provide a certified world-space
+distance enclosure with a caller-requested maximum width. Approximate nearest
+points only propose candidates; verified surface-witness and Lagrange-dual
+bounds determine the result. The numerical environment assumptions, derivation,
+and failure semantics are recorded in `doc/vitralCertifiedEllipsoidBounds.md`.
+An inconclusive computation returns `Indeterminate` without changing outputs.
+
+Analytical normals, interior hard cases, repeated axes, singular and
+ill-conditioned transforms, and independent surface sampling and constrained
+minimization tests cover rotations, reflections, shear and different scales.
+The unchanged ellipsoid regression and the POV typed-binding tests preserve
+uncertainty explicitly. Unclipped and unbounded POV native-sphere leaves expose
+the same operations through the shared scene API, including layered placement
+and inversion. Their legacy integer CSG traversal is not switched to the typed
+contract in E: clipped/bounded bodies, other primitives, CSG propagation and
+policy selection remain explicitly in F/G.
+
+The optional `estimateBoundaryDistance` API still reports an *estimated*, not
+certified, error. It is never used to force a containment or CSG decision; any
+future use as a guarantee requires the F audit above. Further portability and
+adversarial testing are valuable ongoing validation and do not turn an
+indeterminate result into a definite one.
+
+The scene foundations of stage C are consolidated in I; scene adaptation is not
+entirely deferred until the end. Each family in H will be integrated individually
 with its tests. Do not move all of `raycasting` as a block and call that convergence.
+
+The stage D CSG structural scaffold does not itself evaluate expressions or
+render them. In stage G, connect the shared expression to the evaluators and the
+offline reader/renderer, and add `.ray` scenes demonstrating union,
+intersection and difference of spheres. Verify the actual surfaces and boundary
+orientation, including sequential and parallel renders; do not count silently
+ignored CSG syntax or placeholder primitive renders as these examples.
+
+During stages H–I, investigate and correct the currently failing special cases in
+`RaytracingOfflineExample`: textures, bump mapping and `PolyhedralBoundedSolid`.
+The `runAll.sh` script may already have been broken before this plan began and
+has since been corrected. The examples themselves remain broken: scene content
+appears not to be processed completely. Investigate the reader and rendering
+pipeline, establish the missing behavior, and restore the examples rather than
+assuming that successful script execution implies correct output.
+Run `./runAll.sh --parallel` from
+`testsuite/OfflineExamples/RaytracingOfflineExample` and verify those cases
+visually and with focused checks. These known issues may be addressed when their
+geometry, scene or render integration is reworked, but must be resolved before
+the final gate.
 
 ## 9. Verification and gates
 
@@ -368,7 +468,7 @@ with its tests. Do not move all of `raycasting` as a block and call that converg
 | PovRay | Complete `./scripts/renderAll.sh`, with no omitted scenes or failures and no degradation from baseline performance; compare before/after images |
 | PovRay CSG | Explicit corpus using both strategies, including CSG/Roth scripts and degenerate cases. Preserve normal-flow references. The seven recorded Roth RMSE exceptions are accepted starting conditions; reject any additional discrepant scene, missing output, or render failure |
 | VITRAL | Build testsuite consumers and run relevant base tests. VGA programs depend on base and do not require a separate autonomous validation campaign |
-| RaytracingOfflineExample | MIT corpus and new fixtures in sequential/parallel execution, with verified images and geometric queries |
+| RaytracingOfflineExample | MIT corpus and new fixtures in sequential/parallel execution, including `./runAll.sh --parallel`; verify images and geometric queries, especially textures, bump mapping and `PolyhedralBoundedSolid` |
 | ShadersExample | Software and OpenGL execution, material/bump controls, new geometries, and representation checks; record graphics environment limitations separately |
 
 Establish baselines from the starting state before implementation. Record commands,

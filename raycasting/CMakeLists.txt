@@ -11,13 +11,13 @@ add_library(vitral_raycasting STATIC
     src/main/vsdk/toolkit/environment/raycasting/geometry/element/RayWithTracingState.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/element/SphereTrace.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingInfinitePlane.cpp
-    src/main/vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingTriangleMesh.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricBiCubicIntersection.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricBiCubicSolver.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricPatch.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/volume/Blob.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/volume/HeightField.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.cpp
+    src/main/vsdk/toolkit/environment/raycasting/geometry/volume/BoxInvertedCrossingSink.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/volume/RayCastingBox.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByMorganRules.cpp
@@ -28,6 +28,7 @@ add_library(vitral_raycasting STATIC
     src/main/vsdk/toolkit/environment/raycasting/scene/RayCastingBody.cpp
     src/main/vsdk/toolkit/environment/raycasting/scene/NativeGeometryBinding.cpp
     src/main/vsdk/toolkit/environment/raycasting/scene/NativeGeometryCrossingSink.cpp
+    src/main/vsdk/toolkit/environment/raycasting/scene/ProjectedTriangleTraversal.cpp
     src/main/vsdk/toolkit/environment/raycasting/scene/RayCastingComposite.cpp
 )
 target_compile_features(vitral_raycasting PUBLIC cxx_std_11)

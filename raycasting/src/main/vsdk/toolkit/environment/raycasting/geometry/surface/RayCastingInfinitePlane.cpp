@@ -1,6 +1,8 @@
 #include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/element/IntersectionCandidate.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingInfinitePlane.h"
+#include "vsdk/toolkit/environment/geometry/surface/InfinitePlane.h"
+#include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
 #include "java/util/PriorityQueue.txx"
 
 RayCastingInfinitePlane::RayCastingInfinitePlane() :
@@ -15,11 +17,39 @@ RayCastingInfinitePlane::RayCastingInfinitePlane(const Vector3Dd &normalVector, 
 
 RayCastingInfinitePlane::RayCastingInfinitePlane(const Vector3Dd &normalVector, double distance,
     double vpNormDotOrigin, bool vpCached) :
-    normalVector(normalVector),
-    distance(distance),
+    halfSpace(normalVector.x(), normalVector.y(), normalVector.z(), distance),
     vpNormDotOrigin(vpNormDotOrigin),
     vpCached(vpCached)
 {
+}
+
+void RayCastingInfinitePlane::getBounds(GeometryBounds& result) const
+{
+    halfSpace.getBounds(result);
+}
+
+GeometryContainment RayCastingInfinitePlane::classifyPoint(const Vector3Dd& point,
+    double tolerance) const
+{
+    return halfSpace.classifyPoint(point, tolerance);
+}
+
+RayCrossingSupport RayCastingInfinitePlane::emitRayCrossings(const Ray& ray,
+    const RayCrossingQuery& query, RayCrossingSink& sink) const
+{
+    return halfSpace.emitRayCrossings(ray, query, sink);
+}
+
+RayFirstHitStatus RayCastingInfinitePlane::queryFirstHit(const Ray& ray,
+    const RayCrossingQuery& query, RayHit* hit, RayBoundary* boundary) const
+{
+    return halfSpace.queryFirstHit(ray, query, hit, boundary);
+}
+
+RaySolidQueryStatus RayCastingInfinitePlane::classifyRay(const Ray& ray,
+    const RayCrossingQuery& query, RaySolidClassification& result) const
+{
+    return halfSpace.classifyRay(ray, query, result);
 }
 
 int
@@ -84,37 +114,29 @@ RayCastingInfinitePlane::intersectPlane(
     if (ray->isPrimaryRayEnabled()) {
         if (!plane->vpCached) {
             plane->vpNormDotOrigin =
-                plane->normalVector.dotProduct(ray->getOrigin());
-            plane->vpNormDotOrigin += plane->distance;
+                plane->getNormalVector().dotProduct(ray->getOrigin());
+            plane->vpNormDotOrigin += plane->getDistance();
             plane->vpNormDotOrigin *= -1.0;
             plane->vpCached = true;
         }
 
-        normalDotDirection = plane->normalVector.dotProduct(ray->getDirection());
-        if ((normalDotDirection < GeometryConfig::SMALL_TOLERANCE) &&
-            (normalDotDirection > -GeometryConfig::SMALL_TOLERANCE)) {
-            return (false);
-        }
-
-        *depth = plane->vpNormDotOrigin / normalDotDirection;
-        if ((*depth >= GeometryConfig::SMALL_TOLERANCE) && (*depth <= GeometryConfig::MAX_DISTANCE)) {
+        normalDotDirection = plane->getNormalVector().dotProduct(ray->getDirection());
+        if (InfinitePlane::intersectionDepth(plane->vpNormDotOrigin, normalDotDirection,
+                GeometryConfig::SMALL_TOLERANCE, GeometryConfig::SMALL_TOLERANCE,
+                GeometryConfig::MAX_DISTANCE, false, *depth) == RayFirstHitStatus::Hit) {
             stats.incrementRayPlaneTestsSucceeded();
             return (true);
         }
         return (false);
     }
-    normalDotOrigin = plane->normalVector.dotProduct(ray->getOrigin());
-    normalDotOrigin += plane->distance;
+    normalDotOrigin = plane->getNormalVector().dotProduct(ray->getOrigin());
+    normalDotOrigin += plane->getDistance();
     normalDotOrigin *= -1.0;
 
-    normalDotDirection = plane->normalVector.dotProduct(ray->getDirection());
-    if ((normalDotDirection < GeometryConfig::SMALL_TOLERANCE) &&
-        (normalDotDirection > -GeometryConfig::SMALL_TOLERANCE)) {
-        return (false);
-    }
-
-    *depth = normalDotOrigin / normalDotDirection;
-    if ((*depth >= GeometryConfig::SMALL_TOLERANCE) && (*depth <= GeometryConfig::MAX_DISTANCE)) {
+    normalDotDirection = plane->getNormalVector().dotProduct(ray->getDirection());
+    if (InfinitePlane::intersectionDepth(normalDotOrigin, normalDotDirection,
+            GeometryConfig::SMALL_TOLERANCE, GeometryConfig::SMALL_TOLERANCE,
+            GeometryConfig::MAX_DISTANCE, false, *depth) == RayFirstHitStatus::Hit) {
         stats.incrementRayPlaneTestsSucceeded();
         return (true);
     }
@@ -126,14 +148,14 @@ RayCastingInfinitePlane::doContainmentTest(const Vector3Dd &testPoint, double di
 {
     const RayCastingInfinitePlane *plane = this;
 
-    double temp = testPoint.dotProduct(plane->normalVector);
-    return ((temp + plane->distance) <= distanceTolerance) ? INSIDE : OUTSIDE;
+    double temp = testPoint.dotProduct(plane->getNormalVector());
+    return ((temp + plane->getDistance()) <= distanceTolerance) ? INSIDE : OUTSIDE;
 }
 
 void
 RayCastingInfinitePlane::computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
-    *result = normalVector;
+    *result = getNormalVector();
 }
 
 void *
@@ -147,6 +169,8 @@ RayCastingInfinitePlane::invertGeometry()
 {
     RayCastingInfinitePlane * const plane = this;
 
-    plane->normalVector = plane->normalVector.multiply(-1.0);
-    plane->distance *= -1.0;
+    const Vector3Dd normal = plane->getNormalVector().multiply(-1.0);
+    const double distance = -plane->getDistance();
+    plane->halfSpace.getBoundaryPlane().setCoefficients(normal, distance);
+    plane->vpCached = false;
 }

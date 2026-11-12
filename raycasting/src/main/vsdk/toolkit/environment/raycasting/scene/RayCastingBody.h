@@ -9,6 +9,8 @@
 #include "vsdk/toolkit/environment/material/Material.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/element/TransformStep.h"
 
+class Sphere;
+
 class RayCastingBody : public SimpleBody, public PostRayHitElement {
   public:
     RayCrossingSupport emitRayCrossings(const Ray& ray,
@@ -20,6 +22,9 @@ class RayCastingBody : public SimpleBody, public PostRayHitElement {
     using MaterialReleaser = void (*)(Material *);
 
   protected:
+    GeometryDistanceStatus queryCertifiedSphere(const Sphere*& sphere, bool& inverted,
+        Matrix4x4d& forward, Matrix4x4d& inverse) const;
+    static GeometryContainment orientCertifiedSide(GeometryContainment side, bool inverted);
     java::ArrayList<RayCastingBody*> boundingShapes{4};
     java::ArrayList<RayCastingBody*> clippingShapes{4};
     Material *geometryMaterial;
@@ -34,6 +39,7 @@ class RayCastingBody : public SimpleBody, public PostRayHitElement {
     java::ArrayList<TransformStep> bodySteps{4};
     java::ArrayList<TransformStep> geometrySteps{4};
     bool bakedTransformFolded = false;
+    bool arbitraryAffineTransform = false;
 
   public:
     RayCastingBody(
@@ -73,7 +79,7 @@ class RayCastingBody : public SimpleBody, public PostRayHitElement {
     }
     SimpleMaterial* getMaterial() const override;
     bool supportsDecomposedPlacement() const override { return false; }
-    Vector3Dd getPosition() const override { return getTransformationMatrix().transformPoint(Vector3Dd()); }
+    Vector3Dd getPosition() const override { return getAffinePlacement().multiply(Vector3Dd()); }
     void setPosition(const Vector3Dd& position) override;
     Vector3Dd getScale() const override;
     Matrix4x4d getRotation() const override;
@@ -104,10 +110,8 @@ class RayCastingBody : public SimpleBody, public PostRayHitElement {
     const java::ArrayList<RayCastingBody*>& getBoundingShapes() const { return boundingShapes; }
     java::ArrayList<RayCastingBody*>& getClippingShapes() { return clippingShapes; }
     const java::ArrayList<RayCastingBody*>& getClippingShapes() const { return clippingShapes; }
-    Matrix4x4d getTransformationMatrix() const override {
-        const Matrix4x4d outer = transformation ? *transformation : Matrix4x4d::identityMatrix();
-        return geometryTransformation ? outer.multiply(*geometryTransformation) : outer;
-    }
+    Matrix4x4d getTransformationMatrix() const override { return getAffinePlacement(); }
+    bool hasArbitraryAffineTransform() const { return arbitraryAffineTransform; }
     RayCastingGeometry *getGeometry() const override { return static_cast<RayCastingGeometry*>(geometry); }
     Material *getGeometryMaterial() const { return geometryMaterial; }
     Matrix4x4d *getTransformation() const { return transformation; }
@@ -123,6 +127,17 @@ class RayCastingBody : public SimpleBody, public PostRayHitElement {
     Material *getObjectTexture() const { return objectTexture; }
     Vector3Dd worldPointToLocal(const Vector3Dd &point) const;
 
+    Matrix4x4d getAffinePlacement() const override;
+    AffinePlacementStatus setAffinePlacement(const Matrix4x4d& forward, const Matrix4x4d& inverse) override;
+    void resetAffinePlacement() override;
+    AffinePlacementStatus queryAffinePlacement(Matrix4x4d& forward, Matrix4x4d& inverse) const override;
+    GeometryDistanceStatus encloseMinimumBoundaryDistance(const Vector3Dd& point, double maxWidth,
+        GeometryContainment& side, double& lower, double& upper) const override;
+    GeometryDistanceStatus encloseBoundaryDistance(const Vector3Dd& point, const Vector3Dd& localDirection,
+        GeometryContainment& side, double& lower, double& upper) const override;
+    GeometryDistanceStatus estimateBoundaryDistance(const Vector3Dd& point,
+        double& distance, double& estimatedError) const override;
+    GeometryContainment classifyPointCertified(const Vector3Dd& point, double distanceTolerance) const override;
     AxisAlignedBoundingBox getAABB() const;
 
     virtual bool doIntersectionFirstHitViaCrossings(RayWithTracingState *ray, IntersectionCandidate &out);

@@ -1,7 +1,9 @@
 
 #include "vsdk/toolkit/common/logging/Logger.h"
 
-#include "vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingTriangleMesh.h"
+#include "vsdk/toolkit/environment/geometry/surface/TriangleMesh.h"
+#include "vsdk/toolkit/environment/raycasting/scene/NativeGeometryBinding.h"
+#include "vsdk/toolkit/environment/raycasting/scene/ProjectedTriangleTraversal.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/pov/geometry/TriangleParser.h"
@@ -17,7 +19,7 @@ SimpleBodyBuilder *
 TriangleParser::parseTriangle(ParserContext &ctx)
 {
     SimpleBodyBuilder *body = nullptr;
-    RayCastingTriangleMesh *localMesh = nullptr;
+    ProjectedTriangleTraversal *localMesh = nullptr;
     int localTriangleIndex = -1;
 
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
@@ -37,9 +39,11 @@ TriangleParser::parseTriangle(ParserContext &ctx)
                 PrimitiveParser::parseVector(&p1, ctx);
                 PrimitiveParser::parseVector(&p2, ctx);
                 PrimitiveParser::parseVector(&p3, ctx);
-                localMesh = new RayCastingTriangleMesh();
+                NativeGeometryBinding *binding = new NativeGeometryBinding(new TriangleMesh());
+                binding->enableProjectedTriangleTraversal();
+                localMesh = binding->getProjectedTriangleTraversal();
                 localTriangleIndex = localMesh->addTriangle(p1, p2, p3);
-                body = SceneBuilder::wrap(localMesh);
+                body = SceneBuilder::wrap(binding);
                 if (localMesh->isDegenerate(localTriangleIndex)) {
                     {
                         char _logMsg[1024];
@@ -61,7 +65,8 @@ TriangleParser::parseTriangle(ParserContext &ctx)
                         body = new SimpleBodyBuilder(
                                 *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
                                     .getConstantData());
-                        localMesh = (RayCastingTriangleMesh *)body->getGeometry();
+                        localMesh = static_cast<NativeGeometryBinding *>(body->getGeometry())
+                            ->getProjectedTriangleTraversal();
                         localTriangleIndex = 0;
                     } else {
                         ParseErrorReporter::typeError(ctx);

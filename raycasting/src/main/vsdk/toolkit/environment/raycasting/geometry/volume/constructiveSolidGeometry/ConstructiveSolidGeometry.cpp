@@ -1,5 +1,6 @@
 #include "vsdk/toolkit/environment/raycasting/geometry/boundingVolumeHierarchy/AabbBoundingVolume.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+#include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
 #include "java/util/ArrayList.txx"
 
 ConstructiveSolidGeometry::ConstructiveSolidGeometry(BooleanSetOperations initialGeometryType) :
@@ -42,6 +43,23 @@ void
 ConstructiveSolidGeometry::invert()
 {
     invertGeometry();
+}
+
+void ConstructiveSolidGeometry::getBounds(GeometryBounds& result) const
+{
+    if (operands.size() == 0) { result.setUnsupported(); return; }
+    result.setEmpty();
+    for (long int i = 0; i < operands.size(); ++i) {
+        const CsgOperand* operand = operands[i];
+        if (operand == nullptr || operand->getGeometry() == nullptr) {
+            result.setIndeterminate(); return;
+        }
+        GeometryBounds child;
+        operand->getGeometry()->getBounds(child);
+        if (operand->getTransformation() != nullptr)
+            child = child.transformed(operand->getTransformation()->transpose());
+        result = result.enclosing(child);
+    }
 }
 
 BoundingVolumeHierarchy *

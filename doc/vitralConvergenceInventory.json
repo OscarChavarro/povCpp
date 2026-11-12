@@ -271,20 +271,20 @@
       "policy": "Separate plane surface events from half-space membership."
     },
     {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingTriangleMesh.cpp",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "surface/TriangleMesh",
+      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/ProjectedTriangleTraversal.cpp",
+      "destination": "PovRay",
+      "action": "move",
+      "target": "render projected triangle traversal",
       "acceptance": "G2",
-      "policy": "Unify triangle data/intersection; retain interpolated normals without inventing an interior."
+      "policy": "Keep POV inversion, primary-ray caching and projected traversal while mathematical mesh data and kernels remain in VITRAL."
     },
     {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingTriangleMesh.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "surface/TriangleMesh",
+      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/ProjectedTriangleTraversal.h",
+      "destination": "PovRay",
+      "action": "move",
+      "target": "render projected triangle traversal",
       "acceptance": "G2",
-      "policy": "Unify triangle data/intersection; retain interpolated normals without inventing an interior."
+      "policy": "Keep POV inversion, primary-ray caching and projected traversal while mathematical mesh data and kernels remain in VITRAL."
     },
     {
       "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricBiCubicIntersection.cpp",
@@ -621,6 +621,22 @@
       "target": "base tests",
       "acceptance": "G1",
       "policy": "Keep generic queries as VITRAL tests; POV interoperability assertions go to PovRay tests."
+    },
+    {
+      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/BoxInvertedCrossingSink.h",
+      "destination": "PovRay",
+      "action": "move",
+      "target": "scene complement event policy",
+      "acceptance": "G2",
+      "policy": "Adapt oriented events for the complemented POV solid while VITRAL owns the box geometry."
+    },
+    {
+      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/BoxInvertedCrossingSink.cpp",
+      "destination": "PovRay",
+      "action": "move",
+      "target": "scene complement event policy",
+      "acceptance": "G2",
+      "policy": "Adapt oriented events for the complemented POV solid while VITRAL owns the box geometry."
     }
   ]
 }

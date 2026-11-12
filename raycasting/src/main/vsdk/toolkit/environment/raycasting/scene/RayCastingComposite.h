@@ -31,6 +31,7 @@ class RayCastingComposite : public RayCastingBody {
     }
     RayCastingComposite(const RayCastingComposite &other);
     ~RayCastingComposite() override;
+    void getWorldBounds(GeometryBounds& result) const override;
     void detachOwnership() override;
 
     java::ArrayList<RayCastingBody*> &getSimpleBodies();

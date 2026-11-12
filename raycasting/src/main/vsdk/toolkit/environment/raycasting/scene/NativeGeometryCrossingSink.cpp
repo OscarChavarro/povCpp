@@ -1,6 +1,7 @@
 #include "vsdk/toolkit/environment/raycasting/scene/NativeGeometryCrossingSink.h"
 #include "vsdk/toolkit/environment/raycasting/scene/NativeGeometryBinding.h"
 #include "java/lang/UnsupportedOperationException.h"
+#include "java/lang/Integer.h"
 #include "java/util/PriorityQueue.txx"
 
 NativeGeometryCrossingSink::NativeGeometryCrossingSink(NativeGeometryBinding* binding,
@@ -13,12 +14,14 @@ void NativeGeometryCrossingSink::crossing(const RayCrossing& event)
     // The old candidate cannot represent a nested leaf, instance path or a
     // reversed boundary; reject these rather than silently losing provenance.
     if (event.geometry != binding->getIntrinsicGeometry() || event.normalReversed ||
-        event.getInstanceCount() != 0)
+        event.getInstanceCount() != 0 || event.surfaceIndex < -1 ||
+        event.surfaceIndex > java::Integer::MAX_VALUE)
         throw java::UnsupportedOperationException("Nested crossing provenance is not representable");
     IntersectionCandidate candidate;
     candidate.getIntersection().t = event.t;
     candidate.getIntersection().point = ray->getDirection().multiply(event.t).add(ray->getOrigin());
     candidate.getAttributes().setHitGeometry(binding);
+    candidate.getAttributes().setSurfaceIndex((int)event.surfaceIndex);
     candidate.getAttributes().setMaterial(context.getMaterialOverride());
     candidate.getAttributes().pushDetailOwner(context.getDetailOwner());
     candidate.getAttributes().setMaterialUsesObjectLocalPoint(context.getMaterialUsesObjectLocalPoint());

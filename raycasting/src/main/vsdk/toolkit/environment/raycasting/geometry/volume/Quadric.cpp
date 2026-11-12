@@ -3,6 +3,8 @@
 #include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/element/IntersectionCandidate.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.h"
+#include "vsdk/toolkit/environment/geometry/volume/QuadricSurface.h"
+#include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
 #include "java/util/PriorityQueue.txx"
 
 Quadric::Quadric() :
@@ -24,10 +26,7 @@ Quadric::Quadric(const Vector3Dd &object2Terms,
     const Vector3Dd &objectMixedTerms,
     const Vector3Dd &objectTerms, double objectConstant,
     double objectVpConstant, bool constantCached, bool nonZeroSquareTerm) :
-    object2Terms(object2Terms),
-    objectMixedTerms(objectMixedTerms),
-    objectTerms(objectTerms),
-    objectConstant(objectConstant),
+    surface(object2Terms, objectMixedTerms, objectTerms, objectConstant),
     objectVpConstant(objectVpConstant),
     constantCached(constantCached),
     nonZeroSquareTerm(nonZeroSquareTerm)
@@ -38,12 +37,12 @@ void
 Quadric::updateSquareTermFlag()
 {
     nonZeroSquareTerm =
-        !((object2Terms.x() == 0.0) &&
-            (object2Terms.y() == 0.0) &&
-            (object2Terms.z() == 0.0) &&
-            (objectMixedTerms.x() == 0.0) &&
-            (objectMixedTerms.y() == 0.0) &&
-            (objectMixedTerms.z() == 0.0));
+        !((surface.squareCoefficients().x() == 0.0) &&
+            (surface.squareCoefficients().y() == 0.0) &&
+            (surface.squareCoefficients().z() == 0.0) &&
+            (surface.mixedCoefficients().x() == 0.0) &&
+            (surface.mixedCoefficients().y() == 0.0) &&
+            (surface.mixedCoefficients().z() == 0.0));
 }
 
 int
@@ -152,10 +151,6 @@ Quadric::intersectQuadric(
     double linearTerm;
     double constantTerm;
     double tempTerm;
-    double determinant;
-    double determinant2;
-    double a2;
-    double bMinus;
     GeometryStatistics &stats = *ray->getGeometryStatistics();
 
     stats.incrementRayQuadricTests();
@@ -164,65 +159,43 @@ Quadric::intersectQuadric(
     }
 
     if (shape->nonZeroSquareTerm) {
-        squareTerm = shape->object2Terms.dotProduct(ray->getDirection2());
+        squareTerm = shape->surface.squareCoefficients().dotProduct(ray->getDirection2());
         tempTerm =
-            shape->objectMixedTerms.dotProduct(ray->getMixedDirectionDirection());
+            shape->surface.mixedCoefficients().dotProduct(ray->getMixedDirectionDirection());
         squareTerm += tempTerm;
     } else {
         squareTerm = 0.0;
     }
 
-    linearTerm = shape->object2Terms.dotProduct(ray->getPositionDirection());
+    linearTerm = shape->surface.squareCoefficients().dotProduct(ray->getPositionDirection());
     linearTerm *= 2.0;
-    tempTerm = shape->objectTerms.dotProduct(ray->getDirection());
+    tempTerm = shape->surface.linearCoefficients().dotProduct(ray->getDirection());
     linearTerm += tempTerm;
     tempTerm =
-        shape->objectMixedTerms.dotProduct(ray->getMixedPositionDirection());
+        shape->surface.mixedCoefficients().dotProduct(ray->getMixedPositionDirection());
     linearTerm += tempTerm;
 
     if (ray->isPrimaryRayEnabled()) {
         if (!shape->constantCached) {
-            constantTerm = shape->object2Terms.dotProduct(ray->getPosition2());
-            tempTerm = shape->objectTerms.dotProduct(ray->getOrigin());
-            constantTerm += tempTerm + shape->objectConstant;
+            constantTerm = shape->surface.squareCoefficients().dotProduct(ray->getPosition2());
+            tempTerm = shape->surface.linearCoefficients().dotProduct(ray->getOrigin());
+            constantTerm += tempTerm + shape->surface.constantCoefficient();
             shape->objectVpConstant = constantTerm;
             shape->constantCached = true;
         } else {
             constantTerm = shape->objectVpConstant;
         }
     } else {
-        constantTerm = shape->object2Terms.dotProduct(ray->getPosition2());
-        tempTerm = shape->objectTerms.dotProduct(ray->getOrigin());
-        constantTerm += tempTerm + shape->objectConstant;
+        constantTerm = shape->surface.squareCoefficients().dotProduct(ray->getPosition2());
+        tempTerm = shape->surface.linearCoefficients().dotProduct(ray->getOrigin());
+        constantTerm += tempTerm + shape->surface.constantCoefficient();
     }
 
-    tempTerm = shape->objectMixedTerms.dotProduct(ray->getMixedPositionPosition());
+    tempTerm = shape->surface.mixedCoefficients().dotProduct(ray->getMixedPositionPosition());
     constantTerm += tempTerm;
 
-    if (squareTerm != 0.0) {
-        // The equation is quadratic - find its roots
-
-        determinant2 =
-            linearTerm * linearTerm - 4.0 * squareTerm * constantTerm;
-
-        if (determinant2 < 0.0) {
-            return (false);
-        }
-
-        determinant = java::Math::sqrt(determinant2);
-        a2 = squareTerm * 2.0;
-        bMinus = linearTerm * -1.0;
-
-        *depth1 = (bMinus + determinant) / a2;
-        *depth2 = (bMinus - determinant) / a2;
-    } else {
-        // There are no quadratic terms.  Solve the linear equation instead
-        if (linearTerm == 0.0) {
-            return (false);
-        }
-
-        *depth1 = constantTerm * -1.0 / linearTerm;
-        *depth2 = *depth1;
+    if (!QuadricSurface::solve(squareTerm, linearTerm, constantTerm, *depth1, *depth2)) {
+        return false;
     }
 
     if ((*depth1 < GeometryConfig::SMALL_TOLERANCE) || (*depth1 > GeometryConfig::MAX_DISTANCE)) {
@@ -242,43 +215,13 @@ Quadric::intersectQuadric(
 int
 Quadric::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
 {
-    const Quadric *shape = this;
-    const double linearTerm = testPoint.dotProduct(shape->objectTerms);
-    double result = linearTerm + shape->objectConstant;
-    const Vector3Dd newPoint = testPoint.multiply(testPoint);
-    const double squareTerm = newPoint.dotProduct(shape->object2Terms);
-    result += squareTerm;
-    result += shape->objectMixedTerms.x() * (testPoint.x()) * (testPoint.y()) +
-              shape->objectMixedTerms.y() * (testPoint.x()) * (testPoint.z()) +
-              shape->objectMixedTerms.z() * (testPoint.y()) * (testPoint.z());
-
-    if (result < distanceTolerance) {
-        return INSIDE;
-    }
-
-    return OUTSIDE;
+    return surface.evaluate(testPoint) < distanceTolerance ? INSIDE : OUTSIDE;
 }
 
 void
 Quadric::computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
-    const Quadric *intersectionShape = this;
-    Vector3Dd derivativeLinear;
-
-    derivativeLinear = intersectionShape->object2Terms.multiply(2.0);
-    *result = derivativeLinear.multiply(*intersectionPoint);
-    *result = result->add(intersectionShape->objectTerms);
-
-    const double nx = result->x() +
-        intersectionShape->objectMixedTerms.x() * intersectionPoint->y() +
-        intersectionShape->objectMixedTerms.y() * intersectionPoint->z();
-    const double ny = result->y() +
-        intersectionShape->objectMixedTerms.x() * intersectionPoint->x() +
-        intersectionShape->objectMixedTerms.z() * intersectionPoint->z();
-    const double nz = result->z() +
-        intersectionShape->objectMixedTerms.y() * intersectionPoint->x() +
-        intersectionShape->objectMixedTerms.z() * intersectionPoint->y();
-    *result = Vector3Dd(nx, ny, nz);
+    *result = surface.gradient(*intersectionPoint);
 
     const double len = java::Math::sqrt(result->x() * result->x() +
         result->y() * result->y() + result->z() * result->z());
@@ -302,53 +245,11 @@ Quadric::copy()
 BoundingVolumeHierarchy *
 Quadric::createBoundingVolume() const
 {
-    const double a11 = object2Terms.x();
-    const double a22 = object2Terms.y();
-    const double a33 = object2Terms.z();
-    const double a12 = objectMixedTerms.x() * 0.5;
-    const double a13 = objectMixedTerms.y() * 0.5;
-    const double a23 = objectMixedTerms.z() * 0.5;
-
-    const double minor1 = a11;
-    const double minor2 = a11 * a22 - a12 * a12;
-    const double det =
-        a11 * (a22 * a33 - a23 * a23) -
-        a12 * (a12 * a33 - a23 * a13) +
-        a13 * (a12 * a23 - a22 * a13);
-    if (minor1 <= 1e-12 || minor2 <= 1e-12 || det <= 1e-12) {
-        return new AabbBoundingVolume(AxisAlignedBoundingBox::unbounded());
-    }
-
-    const double invDet = 1.0 / det;
-    const double inv11 = (a22 * a33 - a23 * a23) * invDet;
-    const double inv12 = (a13 * a23 - a12 * a33) * invDet;
-    const double inv13 = (a12 * a23 - a13 * a22) * invDet;
-    const double inv22 = (a11 * a33 - a13 * a13) * invDet;
-    const double inv23 = (a12 * a13 - a11 * a23) * invDet;
-    const double inv33 = (a11 * a22 - a12 * a12) * invDet;
-
-    const Vector3Dd linear = objectTerms;
-    const Vector3Dd center(
-        -0.5 * (inv11 * linear.x() + inv12 * linear.y() + inv13 * linear.z()),
-        -0.5 * (inv12 * linear.x() + inv22 * linear.y() + inv23 * linear.z()),
-        -0.5 * (inv13 * linear.x() + inv23 * linear.y() + inv33 * linear.z()));
-    const Vector3Dd aCenter(
-        a11 * center.x() + a12 * center.y() + a13 * center.z(),
-        a12 * center.x() + a22 * center.y() + a23 * center.z(),
-        a13 * center.x() + a23 * center.y() + a33 * center.z());
-    const double radiusSquared = center.dotProduct(aCenter) - objectConstant;
-    if (radiusSquared <= 1e-12 ||
-        inv11 <= 0.0 || inv22 <= 0.0 || inv33 <= 0.0) {
-        return new AabbBoundingVolume(AxisAlignedBoundingBox::unbounded());
-    }
-
-    const Vector3Dd extent(
-        java::Math::sqrt(radiusSquared * inv11),
-        java::Math::sqrt(radiusSquared * inv22),
-        java::Math::sqrt(radiusSquared * inv33));
-    return new AabbBoundingVolume(
-        center.subtract(extent),
-        center.add(extent));
+    GeometryBounds bounds;
+    surface.getBounds(bounds);
+    if (bounds.getKind() == GeometryBounds::Kind::Finite)
+        return new AabbBoundingVolume(bounds.getMinimum(), bounds.getMaximum());
+    return new AabbBoundingVolume(AxisAlignedBoundingBox::unbounded());
 }
 
 void
@@ -356,8 +257,9 @@ Quadric::invertGeometry()
 {
     Quadric * const shape = this;
 
-    shape->object2Terms = shape->object2Terms.multiply(-1.0);
-    shape->objectMixedTerms = shape->objectMixedTerms.multiply(-1.0);
-    shape->objectTerms = shape->objectTerms.multiply(-1.0);
-    shape->objectConstant *= -1.0;
+    shape->surface.squareCoefficients() = shape->surface.squareCoefficients().multiply(-1.0);
+    shape->surface.mixedCoefficients() = shape->surface.mixedCoefficients().multiply(-1.0);
+    shape->surface.linearCoefficients() = shape->surface.linearCoefficients().multiply(-1.0);
+    shape->surface.constantCoefficient() *= -1.0;
+    shape->constantCached = false;
 }

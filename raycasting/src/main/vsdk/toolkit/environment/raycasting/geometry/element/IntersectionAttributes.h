@@ -27,6 +27,7 @@ class IntersectionAttributes {
     PostRayHitElement *hitBody = nullptr;
     PostRayHitElement *detailOwners[MAX_DETAIL_OWNERS] = {};
     int detailOwnerCount = 0;
+    int surfaceIndex = -1;
     Material *material = nullptr;
     Material *objectTexture = nullptr;
     ColorRgba *objectColor = nullptr;
@@ -38,6 +39,8 @@ class IntersectionAttributes {
     void setHitGeometry(PostRayHitElement *value);
     PostRayHitElement *getHitBody() const;
     void setHitBody(PostRayHitElement *value);
+    int getSurfaceIndex() const;
+    void setSurfaceIndex(int value);
     int getDetailOwnerCount() const;
     PostRayHitElement *getDetailOwnerAt(int index) const;
     void pushDetailOwner(PostRayHitElement *value);
@@ -76,6 +79,9 @@ IntersectionAttributes::setHitBody(PostRayHitElement *value)
 {
     hitBody = value;
 }
+
+inline int IntersectionAttributes::getSurfaceIndex() const { return surfaceIndex; }
+inline void IntersectionAttributes::setSurfaceIndex(int value) { surfaceIndex = value; }
 
 inline int
 IntersectionAttributes::getDetailOwnerCount() const

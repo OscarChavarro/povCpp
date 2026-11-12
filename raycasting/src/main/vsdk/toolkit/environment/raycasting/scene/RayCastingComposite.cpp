@@ -1,10 +1,26 @@
 #include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/element/IntersectionCandidate.h"
 #include "vsdk/toolkit/environment/raycasting/scene/RayCastingComposite.h"
+#include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
 #include "vsdk/toolkit/environment/raycasting/geometry/element/PriorityQueuePool.txx"
+
+void RayCastingComposite::getWorldBounds(GeometryBounds& result) const
+{
+    result.setEmpty();
+    for (long int i = 0; i < simpleBodies.size(); ++i) {
+        if (simpleBodies[i] == nullptr) { result.setIndeterminate(); return; }
+        GeometryBounds child;
+        simpleBodies[i]->getWorldBounds(child);
+        result = result.enclosing(child);
+    }
+    // Child bounds are in composite-local coordinates. Only the composite's
+    // outer layer is applied by its traversal; geometry placement belongs to
+    // individual children and must not be applied a second time.
+    if (transformation != nullptr) result = result.transformed(transformation->transpose());
+}
 
 int
 RayCastingComposite::doIntersectionForAllRayCrossings(

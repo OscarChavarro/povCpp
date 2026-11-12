@@ -24,7 +24,9 @@ environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryB
 #include "io/pov/geometry/QuadricParser.h"
 #include "io/pov/geometry/SphereParser.h"
 #include "io/pov/geometry/TriangleParser.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingTriangleMesh.h"
+#include "vsdk/toolkit/environment/geometry/surface/TriangleMesh.h"
+#include "vsdk/toolkit/environment/raycasting/scene/NativeGeometryBinding.h"
+#include "vsdk/toolkit/environment/raycasting/scene/ProjectedTriangleTraversal.h"
 #include "io/pov/light/LightGeometryAdapter.h"
 #include "io/pov/light/LightSourceParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
@@ -78,11 +80,12 @@ flushPendingTriangles(
         return;
     }
 
-    RayCastingTriangleMesh *mergedMesh = new RayCastingTriangleMesh();
+    NativeGeometryBinding *mergedMesh = new NativeGeometryBinding(new TriangleMesh());
+    mergedMesh->enableProjectedTriangleTraversal();
     for (long int i = 0; i < pendingTriangles.size(); i++) {
-        RayCastingTriangleMesh *source =
-            static_cast<RayCastingTriangleMesh *>(pendingTriangles[i]->getGeometry());
-        mergedMesh->appendFrom(*source, 0);
+        NativeGeometryBinding *source =
+            static_cast<NativeGeometryBinding *>(pendingTriangles[i]->getGeometry());
+        mergedMesh->getProjectedTriangleTraversal()->appendFrom(*source->getProjectedTriangleTraversal(), 0);
     }
 
     for (long int i = 1; i < pendingTriangles.size(); i++) {
