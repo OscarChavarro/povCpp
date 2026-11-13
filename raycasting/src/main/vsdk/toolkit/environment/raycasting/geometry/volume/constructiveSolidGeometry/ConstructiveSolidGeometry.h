@@ -9,6 +9,7 @@ class ConstructiveSolidGeometry : public RayCastingGeometry, public CsgExpressio
   private:
     BooleanSetOperations geometryType;
     java::ArrayList<CsgOperand*> operands{4};
+    long long structureVersion = 0;
 
   public:
     explicit ConstructiveSolidGeometry(BooleanSetOperations initialGeometryType = BooleanSetOperations::UNION);
@@ -19,6 +20,10 @@ class ConstructiveSolidGeometry : public RayCastingGeometry, public CsgExpressio
     const CsgOperandView* getOperand(long int index) const override {
         return index < 0 || index >= operands.size() ? nullptr : operands[index];
     }
+    // The POV evaluators share the Boolean solid of operation and operands;
+    // their surface policies are evaluator choices, not a different solid.
+    bool isStructuralTraversalSafe() const override;
+    bool queryStructureVersion(long long& version) const override { version = structureVersion; return true; }
     BooleanSetOperations getGeometryType() const;
     void setGeometryType(BooleanSetOperations value);
     void addShape(RayCastingGeometry *shape, Material *material);
@@ -63,12 +68,14 @@ inline void
 ConstructiveSolidGeometry::setGeometryType(BooleanSetOperations value)
 {
     geometryType = value;
+    ++structureVersion;
 }
 
 inline void
 ConstructiveSolidGeometry::addShape(RayCastingGeometry *shape, Material *material)
 {
     operands.add(new CsgOperand(shape, material));
+    ++structureVersion;
 }
 
 inline void
@@ -79,6 +86,7 @@ ConstructiveSolidGeometry::addShape(
     Matrix4x4d *transformationInverse)
 {
     operands.add(new CsgOperand(shape, material, transformation, transformationInverse));
+    ++structureVersion;
 }
 
 inline void
@@ -90,12 +98,14 @@ ConstructiveSolidGeometry::addShape(
     const java::ArrayList<TransformStep> &steps)
 {
     operands.add(new CsgOperand(shape, material, transformation, transformationInverse, steps));
+    ++structureVersion;
 }
 
 inline void
 ConstructiveSolidGeometry::addOperand(CsgOperand *operand)
 {
     operands.add(operand);
+    ++structureVersion;
 }
 
 inline java::ArrayList<CsgOperand*> &

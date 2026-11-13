@@ -19,7 +19,7 @@ class ConstructiveSolidGeometryByRaySegment : public ConstructiveSolidGeometry {
     static RaySegments mergeByMembership(
         const RaySegments &left,
         const RaySegments &right,
-        bool (*combine)(bool insideLeft, bool insideRight));
+        BooleanSetOperations operation);
 
     bool topLevel = false;
 

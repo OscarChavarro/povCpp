@@ -5,7 +5,13 @@ RayInstancePath::RayInstancePath(const RayInstancePath& other)
     : surfaceIndex(other.surfaceIndex), instances(other.instances) {}
 RayInstancePath& RayInstancePath::operator=(const RayInstancePath& other)
 {
-    if (this != &other) { surfaceIndex = other.surfaceIndex; instances = other.instances; }
+    // Reuses the existing storage: assignment of query results must not
+    // allocate once a workspace has reached its working size.
+    if (this != &other) {
+        surfaceIndex = other.surfaceIndex;
+        instances.clear();
+        for (long i = 0; i < other.instances.size(); i++) instances.add(other.instances[i]);
+    }
     return *this;
 }
 RayInstancePath::~RayInstancePath() {}

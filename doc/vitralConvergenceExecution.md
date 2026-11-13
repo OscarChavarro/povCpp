@@ -1668,3 +1668,175 @@ All 48 example captures matched their references. `renderAll.sh` produced all
 Roth rendered all 108 scenes and retained the seven accepted RMSE
 discrepancies, with no new scenes. The audit mapped 81 raycasting files and
 found all 161 copied base files identical to VITRAL.
+
+### Roth gate re-rendering
+
+`checkVitralConvergenceRoth.py` compares the images already present in
+`outputCsgByRaySegments`; it does not render them. The images used by the
+stage F gates dated from 2026-11-09. A fresh `renderCsgByRaySegments.sh` run on
+the closed F code rendered all 108 scenes in 206 seconds and kept exactly the
+seven accepted discrepancies, so the F result holds. The gate now re-renders
+the Roth outputs before comparing them. With `-parallel`, 28 scenes that use
+`rand()` textures differ between runs; the remaining 80 are byte-deterministic
+and serve as the byte-identity check for Roth changes.
+
+### Stage G: shared CSG evaluators
+
+`CsgRothRayClassifier` classifies a shared expression along a ray from the leaf
+batch of `CsgRayLeafQuery` and the exact-parameter groups of
+`CsgRayEventQuery`, applying each group before evaluating Table 3 over the
+expression. `CsgRayClassification` keeps the leaf snapshots, the combined
+`RaySolidClassification` and one owner group per boundary.
+`CsgCrossingMembershipFilter` selects leaf events with the POV membership
+rules and certified sibling classification; `CsgRaySurfaceEvents` keeps them
+ordered by parameter and leaf. `CsgMembershipRule` holds the Table 3 fold and
+the heuristic's containment requirement.
+
+`CsgRothRayClassifierContract` covers the three operators with owners,
+touching and coincident boxes, interior starts, a half-space operand, failure
+propagation and placed nested differences. A random-tree test compares every
+segment with certified point classification at its midpoint on 200 trees of
+spheres and boxes; replacing the difference rule with a union made it report
+125 failures. `CsgCrossingMembershipFilterContract` shows the heuristic's
+internal union surfaces and duplicate coincident faces, and that an uncertain
+sibling fails the query unless another sibling proves exclusion.
+
+The POV `ConstructiveSolidGeometryByRaySegment` merge and point containment use
+`CsgMembershipRule`. `RayCastingBody::classifyRay` classifies verified
+`bounded_by` bodies by their core and `clipped_by` bodies with the Roth
+classifier over `RayCastingCoreOperand` and the clips; integration tests cover
+clipped, hollow, verified-bound and unverified-bound spheres. After the change
+the 80 deterministic `-csgRoth` renders were byte-identical to the fresh
+baseline and the Roth check kept the seven accepted discrepancies.
+
+Validation: VITRAL built all configured examples and passed 286 base tests, with
+one pre-existing disabled test; the new evaluator tests are clean under
+AddressSanitizer and UndefinedBehaviorSanitizer. POV passed 287 tests. All 48
+example captures matched their references. `renderAll.sh` produced all 108
+baseline-identical images in 115.07 seconds and 1316.33 user CPU seconds,
+measured without concurrent load. The re-rendered Roth outputs kept the seven
+accepted discrepancies, and the audit found all 161 copied base files identical
+to VITRAL.
+
+### Stage G: result versions and workspaces (G-5)
+
+`CsgVersionStamp` captures the structure version of every expression node and
+the modification version of every operand reachable from a root, and reports a
+result current only when every node and operand tracks its edits and none has
+changed. `CsgTree`, `CsgPlacedExpression`, `CsgBodyOperand` and
+`RayCastingCoreOperand` report versions. `CsgRayClassification`,
+`CsgRaySurfaceEvents`, `CsgPointProof` and `CsgPointAttribution` capture a
+stamp when they are built. `CsgVersionStampContract` checks that a body edit, a
+placement edit and an added operand each make Roth results, heuristic events
+and point proofs stale, and that an untracked operand gives an incomplete
+stamp.
+
+`CsgRayWorkspace` holds the traversal path, event cursors, the current event
+group and the per-leaf states. `CsgRayLeafQuery` fills a pooled
+`CsgRayLeafBatch` in place, `CsgRayEventQuery` streams exact-parameter groups,
+and `CsgRayClassification` stores owners as one flat list. Assignments of
+`RayInstancePath`, `CsgPointWitness`, `RaySolidClassification` and
+`CsgRayLeaf` reuse their storage. Measured with valgrind on a three-leaf
+difference of a union: the original classifier made about 297 allocations per
+query; with a reused result and workspace a run of 1, 101 or 1,001 queries makes
+the same 126 allocations in total, so a query allocates nothing after warm-up.
+A query takes about 5.5 microseconds with or without the workspace.
+`CsgRayWorkspaceContract` checks that reused storage gives the same results as
+fresh queries across alternating expressions and that a failure leaves the
+result empty. The typed heuristic still makes about 3,600 allocations per query
+on the same tree, almost all inside certified point classification.
+
+Sanitizer builds of VITRAL must not use the full `cpp` tree:
+`SceneEditorApplication` redirects `vitral_base` into its source-tree output
+directory, which the regular test binaries load, so a sanitizer build replaces
+that library. The library was rebuilt in Release after the sanitizer run.
+
+### Stage G: POV evaluators against the shared evaluators (G-7)
+
+POV `CsgOperand` now implements typed ray and certified point classification
+for its leaf, through the shared solid of its POV wrapper and the shared
+placed-solid certificate, which `SimpleBody` exposes publicly for this purpose.
+`CsgOperand` reports a modification version that its transforms and inversion
+advance, and `ConstructiveSolidGeometry` reports a structure version and opts
+into structural traversal for its Morgan and Roth subclasses. The shared
+evaluators therefore run on the expressions the POV parser builds.
+
+`vitral_raycasting_tests` compares them on four fixtures along one ray. For
+two overlapping spheres, the Roth render's crossings equal the
+`CsgRothRayClassifier` boundaries and the Morgan render's four crossings equal
+the `CsgCrossingMembershipFilter` events. For a Morgan difference built as the
+parser does, an intersection with an inverted subtrahend, the render and both
+shared evaluators give the same four parameters. Two touching boxes show the
+POV Roth tie policy, which reports the shared face twice, against the
+regularized single segment of the grouped policy. Two coincident spheres show
+the boundary-inclusive heuristic keeping both faces, as the Morgan render does,
+against one Roth boundary with two joint owners. Changing one expected value
+made the test fail at that check.
+
+### Stage G: offline CSG examples (G-6)
+
+`CsgBody` is a VITRAL `SimpleBody` whose solid is a shared expression over the
+leaf bodies it owns: node 0 is the root and nested nodes are identity-placed
+`CsgTree` operands. It evaluates rays with `CsgRothRayClassifier` or
+`CsgCrossingMembershipFilter`, as selected by `CsgBodyEvaluator`, after a slab
+test against the conservative `CsgSolidBounds`. The hit is the first boundary
+or selected event beyond `VSDK::EPSILON`. Detail comes from the leaf body named
+by the boundary provenance; because `SimpleBody::doExtraInformation` reads the
+ray stored in the hit, the local ray is stored there before the call. The normal
+is reversed for reversed boundaries and mapped with the body's placement.
+`ReaderMitScene` reads `csg union|intersection|difference [roth|pov]` … `end`
+blocks, which nest and take `sphere`, `box`, `halfspace` and `quadric` operands
+with the current surface. It rejects unknown operations, unterminated blocks,
+an evaluator on a nested block and triangles inside a block.
+
+Four scenes were added to `etc/geometry/mitscenes`. `csg_sculpture.ray` is a
+box intersected with a sphere, minus a union of three axis cylinders;
+`csg_sculpture_pov.ray` is the same solid with the heuristic, at 320×240.
+`csg_lens.ray` holds an intersection of two spheres and a sphere with a
+spherical bite, and `csg_union_pov.ray` holds two overlapping spheres with the
+heuristic. The surfaces, holes, bite and shadows are as expected. With the
+other evaluator `csg_lens.ray` and `csg_union_pov.ray` render pixel-identically.
+The heuristic sculpture differs in 15,933 pixels at 640×480: the nested union
+keeps the internal cylinder surfaces, which are visible inside the holes and
+block the light through the vertical hole. `SimpleRaytracer` has no refraction,
+so a transmissive union looks the same with either evaluator.
+
+`runAll.sh` and `runAll.sh --parallel` rendered all 25 scenes. The sequential
+and parallel images are byte-identical, and the 21 existing scenes are
+byte-identical to their previous renders. Single-scene times at 640×480,
+sequential and parallel: `box_offsets` 0.72 and 0.05 seconds, `csg_lens` 14.51
+and 0.65, `csg_sculpture` 13.91 and 0.91, `csg_union_pov` 8.81 and 0.51; the
+heuristic sculpture took 189.88 and 5.67 seconds before it was reduced to
+320×240.
+
+`CsgBodyContract` checks a difference's entry and hole hits, with distances,
+outward normals, leaf materials, body placement, world bounds, certified point
+classification and Roth ray classification. It also checks that, from inside
+a hole made by a nested union, Roth reports the far wall and the heuristic the
+internal union surface. `ReaderMitCsg` checks both sculpture scenes (structure,
+evaluator, materials, the axis ray of the vertical hole, which only the
+heuristic hits, and a top-face hit) and the rejected malformed blocks. Removing
+the reversed-boundary normal flip made both `CsgBodyContract` tests fail.
+
+### Stage G closure
+
+All G exit-checklist items hold. VITRAL built all configured examples and passed
+292 base tests, with one pre-existing disabled test; POV, rebuilt against the
+same VITRAL base, passed 293 tests. The example capture produced 56 images,
+eight more than before from the four CSG scenes, and all 48 with references
+matched them. `renderAll.sh` produced all 108 baseline-identical images in 116
+seconds and 1311.58 user CPU seconds. The re-rendered Roth outputs kept the
+seven accepted discrepancies, with no new scenes, and the audit mapped 81
+raycasting files and found all 161 copied base files identical to VITRAL.
+
+The 56 images of that capture are the capture references for later gates. The
+new CSG images are byte-identical sequentially and in parallel, with SHA-256
+`e6f9ae64d97a4a002cc7706e5a9fb85f8d1bcf7ba9a1b15e603fe0a2abce8313`
+(`csg_lens`), `dfcec95ac6a3bb50bc9e258bbe821db6018105186681494496962feb234a8e36`
+(`csg_sculpture`), `82308884072e1ad5044049fa6eee319695a55bda1775af5961b8cda4ae2b26af`
+(`csg_sculpture_pov`) and
+`b6795e5dd101588ab37f9c80672280011eb88d73d480fc5fffe5a6aab15ae450`
+(`csg_union_pov`). A standalone AddressSanitizer and UndefinedBehaviorSanitizer
+build of `cpp/base` with isolated output ran the 15 CSG evaluator, version,
+workspace, `CsgBody` and MIT reader tests without errors or leaks, and left the
+shared `vitral_base` library unchanged.

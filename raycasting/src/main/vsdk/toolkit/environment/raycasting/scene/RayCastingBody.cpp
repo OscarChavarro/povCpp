@@ -1,5 +1,7 @@
 #include "vsdk/toolkit/environment/scene/csg/CsgPointClassification.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgTree.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgRayClassification.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgRothRayClassifier.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgBodyOperand.h"
 #include "vsdk/toolkit/environment/raycasting/scene/RayCastingCoreOperand.h"
 #include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
@@ -788,7 +790,12 @@ bool RayCastingBody::queryCoreSolid(const Geometry*& intrinsic, bool& inverted) 
 {
     intrinsic=nullptr; inverted=false;
     if (typeid(*this)!=typeid(RayCastingBody)) return false;
-    const RayCastingGeometry* wrapper=getGeometry();
+    return queryWrappedSolid(getGeometry(),intrinsic,inverted);
+}
+
+bool RayCastingBody::queryWrappedSolid(const RayCastingGeometry* wrapper, const Geometry*& intrinsic, bool& inverted)
+{
+    intrinsic=nullptr; inverted=false;
     if (!wrapper) return false;
     const NativeGeometryBinding* native=dynamic_cast<const NativeGeometryBinding*>(wrapper);
     if (native && typeid(*native)==typeid(NativeGeometryBinding)) {
@@ -999,21 +1006,26 @@ GeometryContainment RayCastingBody::classifyPointCertified(const Vector3Dd& poin
     if (clippingShapes.isEmpty()) return classifyCoreCertified(point,tolerance);
     // clipped_by keeps the core material inside every clip region: the shared
     // conservative intersection decides, including exposed clip boundaries.
-    for (long int i=0;i<clippingShapes.size();++i)
-        if (!clippingShapes[i]) return GeometryContainment::Unsupported;
     RayCastingCoreOperand core(*this);
-    java::ArrayList<CsgBodyOperand*> clips(clippingShapes.size());
     CsgTree clipped(CsgOperation::INTERSECTION);
-    GeometryContainment result=clipped.addOperand(core) ? GeometryContainment::Indeterminate : GeometryContainment::Unsupported;
-    for (long int i=0;result!=GeometryContainment::Unsupported && i<clippingShapes.size();++i) {
-        CsgBodyOperand* view=new CsgBodyOperand(*clippingShapes[i]);
-        if (!clips.add(view)) { delete view; result=GeometryContainment::Indeterminate; break; }
-        if (!clipped.addOperand(*view)) result=GeometryContainment::Unsupported;
-    }
-    if (result==GeometryContainment::Indeterminate && clips.size()==clippingShapes.size())
-        result=CsgPointClassification::classify(clipped,point,tolerance);
-    for (long int i=0;i<clips.size();++i) delete clips[i];
+    java::ArrayList<CsgBodyOperand*> views(clippingShapes.size());
+    const GeometryContainment result=buildClippedExpression(core,clipped,views) ?
+        CsgPointClassification::classify(clipped,point,tolerance) : GeometryContainment::Unsupported;
+    for (long int i=0;i<views.size();++i) delete views[i];
     return result;
+}
+
+bool RayCastingBody::buildClippedExpression(const CsgOperandView& core, CsgTree& expression,
+    java::ArrayList<CsgBodyOperand*>& views) const
+{
+    if (!expression.addOperand(core)) return false;
+    for (long int i=0;i<clippingShapes.size();++i) {
+        if (!clippingShapes[i]) return false;
+        CsgBodyOperand* view=new CsgBodyOperand(*clippingShapes[i]);
+        if (!views.add(view)) { delete view; return false; }
+        if (!expression.addOperand(*view)) return false;
+    }
+    return true;
 }
 
 AxisAlignedBoundingBox
@@ -1077,14 +1089,31 @@ void RayCastingBody::doExtraInformation(const Ray& source, double t, RayHit* out
     RayCastingQueryAdapter::exportHit(source, detail, out);
 }
 
+RaySolidQueryStatus RayCastingBody::classifyCoreRay(const Ray& ray,
+    const RayCrossingQuery& query, RaySolidClassification& result) const
+{
+    return SimpleBody::classifyRay(ray,query,result);
+}
+
 RaySolidQueryStatus RayCastingBody::classifyRay(const Ray& ray,
     const RayCrossingQuery& query, RaySolidClassification& result) const
 {
-    if (!boundingShapes.isEmpty() || !clippingShapes.isEmpty()) {
-        result.clear();
-        return RaySolidQueryStatus::Unsupported;
+    result.clear();
+    // bounded_by never changes membership once certified to contain the core;
+    // clipped_by is the Roth combination of the core and its clip regions.
+    if (!boundingRegionsVerified()) return RaySolidQueryStatus::Unsupported;
+    if (clippingShapes.isEmpty()) return classifyCoreRay(ray,query,result);
+    RayCastingCoreOperand core(*this);
+    CsgTree clipped(CsgOperation::INTERSECTION);
+    java::ArrayList<CsgBodyOperand*> views(clippingShapes.size());
+    RaySolidQueryStatus status=RaySolidQueryStatus::Unsupported;
+    if (buildClippedExpression(core,clipped,views)) {
+        CsgRayClassification combined;
+        status=CsgRothRayClassifier::classify(clipped,ray,query,combined);
+        if (status==RaySolidQueryStatus::Supported) result=combined.getSolid();
     }
-    return SimpleBody::classifyRay(ray,query,result);
+    for (long int i=0;i<views.size();++i) delete views[i];
+    return status;
 }
 
 RayCrossingSupport RayCastingBody::emitRayCrossings(const Ray& source,

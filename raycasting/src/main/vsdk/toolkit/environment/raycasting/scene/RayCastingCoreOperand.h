@@ -15,5 +15,8 @@ public:
     AffinePlacementStatus queryAffinePlacement(Matrix4x4d& forward, Matrix4x4d& inverse) const override;
     GeometryContainment classifyPointCertified(const Vector3Dd& point, double tolerance) const override;
     void getSolidBounds(GeometryBounds& result) const override;
+    RaySolidQueryStatus classifyRay(const Ray& ray, const RayCrossingQuery& query,
+        RaySolidClassification& result) const override;
+    bool queryModificationVersion(long long& version) const override;
 };
 #endif
