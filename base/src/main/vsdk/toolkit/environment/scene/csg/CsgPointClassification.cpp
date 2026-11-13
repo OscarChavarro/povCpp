@@ -37,7 +37,9 @@ GeometryContainment CsgPointClassification::classifyWithProof(const CsgExpressio
         !java::Double::isFinite(point.z()) || !java::Double::isFinite(tolerance) || tolerance<0)
         return GeometryContainment::InvalidInput;
     java::ArrayList<const CsgExpression*> path;
-    return classifyExpression(expression,point,tolerance,path,nullptr,&proof,nullptr);
+    const GeometryContainment result=classifyExpression(expression,point,tolerance,path,nullptr,&proof,nullptr);
+    if (proof.isAvailable() && !proof.getVersions().capture(expression)) proof.clear();
+    return result;
 }
 
 GeometryContainment CsgPointClassification::classifyWithAttribution(const CsgExpression& expression,
@@ -48,7 +50,9 @@ GeometryContainment CsgPointClassification::classifyWithAttribution(const CsgExp
         !java::Double::isFinite(point.z()) || !java::Double::isFinite(tolerance) || tolerance<0)
         return GeometryContainment::InvalidInput;
     java::ArrayList<const CsgExpression*> path;
-    return classifyExpression(expression,point,tolerance,path,nullptr,nullptr,&attribution);
+    const GeometryContainment result=classifyExpression(expression,point,tolerance,path,nullptr,nullptr,&attribution);
+    if (attribution.isComplete() && !attribution.getVersions().capture(expression)) attribution.clear();
+    return result;
 }
 
 GeometryContainment CsgPointClassification::classifyExpression(const CsgExpression& expression,

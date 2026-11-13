@@ -3,7 +3,7 @@
 #include "vsdk/toolkit/environment/scene/csg/CsgTree.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgExpressionEquivalence.h"
 
-CsgTree::CsgTree(CsgOperation value) : operation(value), operands(4) {}
+CsgTree::CsgTree(CsgOperation value) : operation(value), operands(4), structureVersion(0) {}
 CsgTree::~CsgTree() {}
 CsgOperation CsgTree::getOperation() const { return operation; }
 long int CsgTree::getOperandCount() const { return operands.size(); }
@@ -34,7 +34,13 @@ bool CsgTree::canAttach(const CsgOperandView& operand) const
     return true;
 }
 bool CsgTree::addOperand(const CsgOperandView& operand)
-{ return canAttach(operand) && operands.add(&operand); }
+{
+    if (!canAttach(operand) || !operands.add(&operand)) return false;
+    ++structureVersion;
+    return true;
+}
+bool CsgTree::queryStructureVersion(long long& version) const { version=structureVersion; return true; }
+bool CsgTree::queryModificationVersion(long long& version) const { version=structureVersion; return true; }
 const Geometry* CsgTree::getGeometry() const { return nullptr; }
 Matrix4x4d CsgTree::getAffinePlacement() const { return Matrix4x4d::identityMatrix(); }
 AffinePlacementStatus CsgTree::queryAffinePlacement(Matrix4x4d& forward, Matrix4x4d& inverse) const

@@ -67,6 +67,7 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/environment/scene/csg/CsgExpression.cpp
     src/main/vsdk/toolkit/environment/scene/csg/CsgExpressionEquivalence.cpp
     src/main/vsdk/toolkit/environment/scene/csg/CsgOperandView.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgBody.cpp
     src/main/vsdk/toolkit/environment/scene/csg/CsgBodyOperand.cpp
     src/main/vsdk/toolkit/environment/scene/csg/CsgExactArithmetic.cpp
     src/main/vsdk/toolkit/environment/scene/csg/CsgDyadic.cpp
@@ -93,6 +94,12 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/environment/scene/csg/CsgRayEventBatch.cpp
     src/main/vsdk/toolkit/environment/scene/csg/CsgRayEventQuery.cpp
     src/main/vsdk/toolkit/environment/scene/csg/CsgRayEventCursor.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgRayWorkspace.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgVersionStamp.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgRayClassification.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgRothRayClassifier.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgRaySurfaceEvents.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgCrossingMembershipFilter.cpp
     src/main/vsdk/toolkit/environment/scene/AffineToleranceMap.cpp
     src/main/vsdk/toolkit/environment/scene/csg/CsgPlacedExpression.cpp
     src/main/vsdk/toolkit/environment/geometry/element/GeometryBounds.cpp
@@ -529,6 +536,7 @@ if(VITRAL_BUILD_TESTS)
     src/test/CsgOpaqueTestExpression.cpp
     src/test/csg_placement_tests.cpp
     src/test/certified_containment_tests.cpp
+    src/test/csg_evaluator_tests.cpp
     src/test/microfaceted_material_csv_tests.cpp
     src/test/ray_affine_contract_tests.cpp
     src/test/ray_crossing_tests.cpp

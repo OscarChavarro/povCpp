@@ -1,8 +1,10 @@
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/environment/scene/csg/CsgPointProof.h"
 CsgPointProof::CsgPointProof() : evidence(4), available(false) {}
-void CsgPointProof::clear() { evidence.clear(); available=false; }
-void CsgPointProof::begin() { evidence.clear(); available=true; }
+void CsgPointProof::clear() { evidence.clear(); available=false; versions.clear(); }
+void CsgPointProof::begin() { evidence.clear(); available=true; versions.clear(); }
+CsgVersionStamp& CsgPointProof::getVersions() { return versions; }
+const CsgVersionStamp& CsgPointProof::getVersions() const { return versions; }
 bool CsgPointProof::add(const CsgPointEvidence& value)
 { if (!available || !evidence.add(value)) { clear(); return false; } return true; }
 bool CsgPointProof::append(const CsgPointProof& other)

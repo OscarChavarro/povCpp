@@ -14,5 +14,8 @@ public:
     virtual CsgOperation getOperation() const = 0;
     virtual long int getOperandCount() const = 0;
     virtual const CsgOperandView* getOperand(long int index) const = 0;
+    // Counter that changes whenever operation or operand list changes; false
+    // when this expression does not track its edits.
+    virtual bool queryStructureVersion(long long& version) const;
 };
 #endif

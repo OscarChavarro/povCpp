@@ -10,6 +10,9 @@
 #include "vsdk/toolkit/environment/raycasting/geometry/element/TransformStep.h"
 
 class Sphere;
+class CsgOperandView;
+class CsgTree;
+class CsgBodyOperand;
 
 class RayCastingBody : public SimpleBody, public PostRayHitElement {
   public:
@@ -33,6 +36,10 @@ class RayCastingBody : public SimpleBody, public PostRayHitElement {
     // True when every bounding region is certified to contain the core solid,
     // so the bounded_by hint cannot change membership.
     bool boundingRegionsVerified() const;
+    // Builds clipped_by as the shared intersection of the core and every clip.
+    // Views are owned by the caller and must be deleted even on failure.
+    bool buildClippedExpression(const CsgOperandView& core, CsgTree& expression,
+        java::ArrayList<CsgBodyOperand*>& views) const;
     // Owned regions live in this body's outer frame and follow its object-level
     // edits. The check validates the complete region tree before any change.
     bool canMoveRegions(const Matrix4x4d& delta, const Matrix4x4d& deltaInverse) const;
@@ -133,7 +140,12 @@ class RayCastingBody : public SimpleBody, public PostRayHitElement {
     // The core solid ignores bounding and clipping regions; it is the shared
     // geometry under this body's placement and binding inversion.
     bool queryCoreSolid(const Geometry*& intrinsic, bool& inverted) const;
+    // The shared solid and binding inversion of a POV geometry wrapper whose
+    // own policies do not change that solid; false otherwise.
+    static bool queryWrappedSolid(const RayCastingGeometry* wrapper, const Geometry*& intrinsic, bool& inverted);
     GeometryContainment classifyCoreCertified(const Vector3Dd& point, double tolerance) const;
+    RaySolidQueryStatus classifyCoreRay(const Ray& ray, const RayCrossingQuery& query,
+        RaySolidClassification& result) const;
     void getCoreSolidWorldBounds(GeometryBounds& result) const;
     Material *getGeometryMaterial() const { return geometryMaterial; }
     Matrix4x4d *getTransformation() const { return transformation; }

@@ -18,6 +18,8 @@ public:
     CsgRayLeaf(const CsgRayLeaf& other);
     CsgRayLeaf& operator=(const CsgRayLeaf& other);
     ~CsgRayLeaf();
+    // Empties the leaf and keeps its storage for reuse.
+    void reset();
     CsgPointWitness& getPath();
     const CsgPointWitness& getPath() const;
     RaySolidClassification& getClassification();

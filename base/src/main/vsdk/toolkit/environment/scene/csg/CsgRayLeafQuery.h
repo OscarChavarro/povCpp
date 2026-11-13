@@ -4,6 +4,7 @@
 #include "vsdk/toolkit/environment/geometry/element/RaySolidQueryStatus.h"
 class CsgExpression;
 class CsgRayLeafBatch;
+class CsgRayWorkspace;
 class Ray;
 class RayCrossingQuery;
 // Collects typed leaf intervals, preserving ties; it does not combine them into
@@ -16,5 +17,8 @@ private:
 public:
     static RaySolidQueryStatus query(const CsgExpression& expression, const Ray& ray,
         const RayCrossingQuery& query, CsgRayLeafBatch& result);
+    // Same query with caller-owned scratch storage.
+    static RaySolidQueryStatus query(const CsgExpression& expression, const Ray& ray,
+        const RayCrossingQuery& query, CsgRayWorkspace& workspace, CsgRayLeafBatch& result);
 };
 #endif

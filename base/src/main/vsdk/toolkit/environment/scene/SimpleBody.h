@@ -59,11 +59,12 @@ private:
 
 protected:
     void markModified();
+public:
     // The single certified world-space point classification for an intrinsic
     // solid under a validated affine pair. Spheres use the ellipsoid distance
     // certificates; other solids map the tolerance ball to local inner and outer
     // balls. An inverted binding swaps Inside and Outside. Scene specializations
-    // reuse this routine rather than reimplementing a certificate.
+    // and CSG operands reuse this routine rather than reimplementing a certificate.
     static GeometryContainment classifyPlacedBoxCertified(const Geometry& geometry,
         bool inverted, const Matrix4x4d& inverse, const GeometryBounds& box);
     static GeometryContainment classifyPlacedPointCertified(const Geometry& geometry,

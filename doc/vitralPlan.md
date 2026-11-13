@@ -299,7 +299,10 @@ equality between rasterization and ray tracing.
 
 Preserve MIT scenes and both offline execution paths. Provide fixtures or
 programmatic scene selection for the expanded catalog; extend MIT only if its
-format warrants it, without making the example depend on `.pov`.
+format warrants it, without making the example depend on `.pov`. The MIT format
+has CSG blocks, `csg union|intersection|difference [roth|pov]` … `end`, which
+nest and take `sphere`, `box`, `halfspace` and `quadric` operands; they build a
+`CsgBody` (see the G status).
 
 The POV parser will directly construct VITRAL geometries and compatible scene
 instances. It will resolve materials, defaults, and language decisions outside
@@ -332,8 +335,8 @@ duplicated algorithms and will have an explicit removal stage.
 | J. Removal and completion | Relocate remaining components; remove transitional wrappers, algorithm copies, and the `raycasting` target/directory | Full gates and uniqueness/dependency audit pass, with no components awaiting a destination |
 
 Stage D is complete for the basic-primitive scope above. The explicitly listed
-scene-policy and future-catalog follow-ups remain open in F; the evaluators and
-their offline CSG examples remain in G.
+scene-policy and future-catalog follow-ups are handled in F; the evaluators and
+their offline CSG examples are delivered in G.
 
 CSG adoption is divided by responsibility; completion of an earlier subphase
 does not imply that a later evaluator is already operational:
@@ -342,7 +345,7 @@ does not imply that a later evaluator is already operational:
 |---|---|---|
 | E.1 — Primitive query contract | Provide certified distance and containment operations, explicit uncertainty, and the zero-tolerance path for affine spheres. Make these operations available through VITRAL scene bodies and supported POV sphere leaves, including placement and inversion. | **Complete.** The original ellipsoid regression and independent numerical tests pass; unsupported or indeterminate cases remain explicit. This subphase supplies the operations, not composite evaluation. |
 | F.1 — Composition and scene policies | Extend the shared operations to other placed primitives and POV clipping/bounding policies. Propagate typed results through scene instances and CSG composition, including attribution, difference orientation and conservative tolerance-aware culling. Audit legacy integer adapters and prevent silent conversion of uncertainty. | **Complete.** Sphere, box, half-space and quadric leaves are certified at zero and positive world tolerance under any valid affine placement, through one shared placed-solid routine used by VITRAL bodies, POV leaves and CSG leaves. CSG expressions have conservative solid bounds and cull only proven-disjoint leaves. POV `clipped_by` point queries are a shared intersection; `bounded_by` is used only when certified to contain the body. Affine edits move owned regions atomically or are rejected. Legacy integer adapters are documented or throw. Ray classification of clipped or bounded bodies remains `Unsupported` until the G Boolean event combiner exists. |
-| G.1 — Evaluator adoption | Integrate the shared composition and typed queries into both the original POV heuristic and Roth evaluator, with their respective event combination, boundary, provenance and uncertainty policies, including ray classification of POV bodies with `clipped_by`/`bounded_by` regions. | **Pending.** Both evaluators are exercised against shared primitives and compositions, with their documented differences and no silent classification of uncertainty. |
+| G.1 — Evaluator adoption | Integrate the shared composition and typed queries into both the original POV heuristic and Roth evaluator, with their respective event combination, boundary, provenance and uncertainty policies, including ray classification of POV bodies with `clipped_by`/`bounded_by` regions. | **Complete.** VITRAL provides `CsgRothRayClassifier` and `CsgCrossingMembershipFilter` over the shared expression, with the shared Boolean rules in `CsgMembershipRule`; the POV Roth evaluator uses those rules, POV region ray classification uses the Roth classifier, results carry version stamps, and `CsgBody` renders either evaluator in `RaytracingOfflineExample`. Moving the POV render paths onto the typed evaluators belongs to I. |
 
 Stage F status (complete):
 
@@ -433,8 +436,8 @@ A code audit of both projects at the start of the remaining F work found:
 | F-NC5 | `GeometryBounds::transformed` rounds to nearest, so a placed bound can shrink by an ulp. There is no tolerance inflation and no bounds query for CSG expressions, so "conservative culling" has no certified primitive. | F-3 |
 | F-NC6 | The execution record still used the stage letters from before E/F were inserted (evaluators in "F", scene in "H", removal in "I"). | Corrected |
 | F-R1 | The equivalence work (dyadic arithmetic, more than 1,300 rational fixtures, structural regrouping) grew faster than the basic per-family contract. | Frozen above |
-| F-R2 | Proofs, witnesses and attributions borrow scene identities without recording `modificationVersion`; stale use after an edit is detectable only by convention. | G: record versions before evaluators cache proofs |
-| F-R3 | CSG point/ray queries allocate `java::ArrayList` storage per node. Putting them on the per-ray path in G without workspace reuse risks the `renderAll.sh` performance gate. | G: use caller-owned workspaces and measure before adoption |
+| F-R2 | Proofs, witnesses and attributions borrow scene identities without recording `modificationVersion`; stale use after an edit is detectable only by convention. | G-5: `CsgVersionStamp` on every cached result |
+| F-R3 | CSG point/ray queries allocate `java::ArrayList` storage per node. Putting them on the per-ray path in G without workspace reuse risks the `renderAll.sh` performance gate. | G-5: `CsgRayWorkspace` makes Roth queries allocation-free; point classification still allocates (I) |
 
 #### Stage F exit checklist
 
@@ -469,6 +472,100 @@ mirror audit):
   certified placed-sphere classification routine.
 - [x] **F-7 Estimator audit.** `estimateBoundaryDistance` is never used to decide
   containment or CSG results; its error remains documented as an estimate.
+
+#### Stage G status
+
+- **Complete:** `CsgRothRayClassifier` implements [ROTH1982] §3.3 over the
+  shared expression. It classifies every leaf with `CsgRayLeafQuery`, groups
+  events with exactly equal parameters with `CsgRayEventQuery` and applies each
+  group before reading the combined membership, so touching operands and
+  coincident faces give the regularized result and point contacts produce no
+  boundary. Each combined boundary records its owners: the leaves whose
+  transition alone changes membership or, when none does, every changed leaf
+  oriented like the change. Difference parity, placement snapshots and leaf
+  paths come from the leaf batch. The §6.1 ON extension is not modelled.
+- **Complete:** `CsgCrossingMembershipFilter` is the typed POV heuristic: union
+  keeps every operand event, an intersection keeps events contained by every
+  sibling, and a difference keeps minuend events outside every subtrahend and
+  subtrahend events inside the minuend and outside the other subtrahends.
+  Membership is the certified classification of a tolerance ball measured in
+  the coordinates of the node being filtered; `Boundary` counts as contained.
+  An event is dropped when one sibling proves exclusion and kept only when
+  every sibling proves membership; otherwise the query fails explicitly.
+- **Complete:** `CsgMembershipRule` holds Table 3 and the heuristic's
+  containment requirement. Both VITRAL evaluators and the POV
+  `ConstructiveSolidGeometryByRaySegment` (merge and point containment) use it.
+  The POV Roth merge keeps its historical left-first sequential tie policy,
+  which differs from the grouped policy at exactly equal parameters.
+- **Complete:** `RayCastingBody::classifyRay` supports regions: a verified
+  `bounded_by` leaves the core classification unchanged, and `clipped_by` is the
+  Roth classification of the shared intersection of the core
+  (`RayCastingCoreOperand`) and each clip. Unverified bounds stay `Unsupported`.
+- **Complete:** result versions and workspaces. Expressions report a
+  structure version (`CsgTree` counts operand changes) and operand views a
+  modification version (`CsgBodyOperand` and `RayCastingCoreOperand` use the
+  body's, `CsgPlacedExpression` counts placement edits). Views that do not
+  track their edits make a stamp incomplete, so their results are never
+  reported current. Edits of geometry parameters behind a body are not
+  observed. Leaf batches pool their leaves, and assignments of instance paths,
+  witnesses and classifications reuse storage.
+- **Complete:** POV CSG expressions are shared expressions for the typed
+  evaluators. `CsgOperand` classifies its leaf by ray and by certified point
+  through its wrapper's shared solid (`RayCastingBody::queryWrappedSolid`) and
+  `SimpleBody::classifyPlacedPointCertified`, reports a modification version,
+  and opts into structural traversal together with the Morgan and Roth
+  `ConstructiveSolidGeometry` nodes, which report a structure version.
+- **Render policy:** the POV render paths keep their integer containment and
+  crossing queues, which are byte-identical to the baseline. Moving them onto
+  the typed evaluators changes per-ray cost and belongs to the consumer work
+  in I. The typed heuristic still allocates inside certified point
+  classification (about 3,600 allocations per query on a three-leaf tree), so
+  point classification needs a workspace before the heuristic is used per ray.
+- **Complete:** `CsgBody` is a VITRAL scene body whose solid is a shared
+  expression over leaf bodies it owns, evaluated by `CsgRothRayClassifier` or
+  `CsgCrossingMembershipFilter` (`CsgBodyEvaluator`). The visible hit is the
+  first boundary or selected event beyond `VSDK::EPSILON`; surface detail comes
+  from the owning leaf, with the normal turned outward of the combined solid and
+  the body's placement applied. Rays outside the conservative solid bounds are
+  culled; failed evaluations report no hit. `ReaderMitScene` builds it from MIT
+  CSG blocks. With opaque first-hit shading both evaluators render
+  `csg_lens.ray` and `csg_union_pov.ray` identically; `csg_sculpture.ray` and
+  `csg_sculpture_pov.ray` differ where the heuristic keeps the internal
+  surfaces of a union nested under a difference. `CsgBody` evaluates once for
+  the hit and again for its detail, without a workspace: at 640×480 the Roth
+  scenes take about twenty times as long as `box_offsets.ray`, and the
+  heuristic sculpture about fourteen times the Roth one, so
+  `csg_sculpture_pov.ray` is rendered at 320×240.
+
+#### Stage G exit checklist
+
+- [x] **G-1 Shared Roth classifier** with exact-tie grouping, owners,
+  difference orientation, interior starts, unbounded operands and explicit
+  failures; checked against certified point classification on random trees.
+- [x] **G-2 Shared POV heuristic** with explicit membership policy and
+  uncertainty handling; tests show its legitimate differences from Roth
+  (internal union surfaces, both coincident faces kept).
+- [x] **G-3 Shared Boolean rules** used by both VITRAL evaluators and the POV
+  Roth evaluator, with deterministic `-csgRoth` renders byte-identical.
+- [x] **G-4 POV region ray classification** through the Roth classifier.
+- [x] **G-5 Proof versions and workspaces.** `CsgVersionStamp` records the
+  structure and modification versions of every node and operand a result
+  borrows; Roth classifications, heuristic events, point proofs and
+  attributions carry one, and only a complete, unchanged stamp is current
+  (F-R2). `CsgRothRayClassifier` accepts a `CsgRayWorkspace` and fills a reused
+  result in place, allocating nothing per query after warm-up (F-R3).
+- [x] **G-6 Offline CSG examples.** `RaytracingOfflineExample` reads and renders
+  union, intersection and difference of spheres, boxes and quadrics through
+  both shared evaluators, sequentially and in parallel with identical images;
+  tests check hit distances, outward normals, leaf materials, placement and the
+  evaluators' difference on nested unions.
+- [x] **G-7 Evaluator corpus.** The POV render evaluators and the shared
+  evaluators run on the same POV expressions: the Roth render matches
+  `CsgRothRayClassifier` and the Morgan render matches
+  `CsgCrossingMembershipFilter` for overlapping unions and parser-built
+  differences; touching boxes show the Roth render's sequential tie policy
+  against the grouped policy, and coincident spheres show the
+  boundary-inclusive heuristic against Roth.
 
 Stage E is complete. The optional numerical estimator remains explicitly
 approximate and is never used as a guarantee.
@@ -615,3 +712,28 @@ The plan is complete only when:
 7. ShadersExample, RaytracingOfflineExample, all examples, and the POV gates meet
    the criteria above; public APIs and their correspondence to algorithms in the
    literature are documented.
+
+## 11. VITRAL refraction
+
+`SimpleRaytracer` and `ParallelRaytracer` shade local illumination, shadows and
+mirror reflection only. `ReaderMitScene` reads the transmission coefficient and
+refraction index of each `surface`, and `sboard.ray` and `test.ray` declare
+transmissive materials, but the renderers ignore them. Refraction is renderer
+work, outside the geometric convergence, and is done after the plan stages:
+
+- Transmitted rays use Snell's law with total internal reflection, and a ray
+  that leaves a solid uses the inverse index ratio, so the renderer tracks
+  whether the ray is inside. Nested transmissive solids need an index stack.
+- Rays starting on a surface use the existing `VSDK::EPSILON` offset policy.
+  A `CsgBody` ray that starts inside the solid gets its next boundary from the
+  evaluator, as the Roth and hole tests already check.
+- The existing recursion limit bounds reflection and transmission together;
+  the reflected and transmitted contributions follow the material
+  coefficients.
+- Images of `sboard.ray`, `test.ray` and any other transmissive scene change,
+  so their capture references are rebaselined as a deliberate change, apart
+  from any migration change.
+- With a transmissive material, `csg_union_pov.ray` and its Roth counterpart
+  must show the internal union surfaces only with the heuristic. That is the
+  visual check of the evaluator difference that opaque first-hit shading
+  cannot show.

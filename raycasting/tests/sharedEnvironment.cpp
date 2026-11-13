@@ -6,6 +6,10 @@
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByMorganRules.h"
 #include "java/util/ArrayList.txx"
+#include "vsdk/toolkit/environment/scene/csg/CsgCrossingMembershipFilter.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgRayClassification.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgRaySurfaceEvents.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgRothRayClassifier.h"
 #include "vsdk/toolkit/environment/geometry/volume/Sphere.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 #include "vsdk/toolkit/environment/geometry/element/RayHit.h"
@@ -610,5 +614,88 @@ int main() {
     }
     delete snapshot;
     if (!differentFromCorner) { std::fprintf(stderr,"Shared sphere was not rendered\n"); return 3; }
+    // Stage G-7: the POV render evaluators against the shared evaluators on
+    // the same expressions. Agreement is required where the policies are the
+    // same; documented policy differences are asserted explicitly.
+    {
+        const Ray xRay=Ray::fromAffine(Vector3Dd(-5,0,0),Vector3Dd(1,0,0));
+        const RayCrossingQuery window(0.001,20);
+        Matrix4x4d* shiftA=new Matrix4x4d(Matrix4x4d().translation(1.5,0,0).transpose());
+        Matrix4x4d* shiftAInverse=new Matrix4x4d(Matrix4x4d().translation(-1.5,0,0).transpose());
+        Matrix4x4d* shiftB=new Matrix4x4d(Matrix4x4d().translation(1.5,0,0).transpose());
+        Matrix4x4d* shiftBInverse=new Matrix4x4d(Matrix4x4d().translation(-1.5,0,0).transpose());
+        ConstructiveSolidGeometryByRaySegment rothUnion(BooleanSetOperations::UNION);
+        rothUnion.addShape(new NativeGeometryBinding(new Sphere(1)),nullptr);
+        rothUnion.addShape(new NativeGeometryBinding(new Sphere(1)),nullptr,shiftA,shiftAInverse);
+        ConstructiveSolidGeometryByMorganRules morganUnion(BooleanSetOperations::UNION);
+        morganUnion.addShape(new NativeGeometryBinding(new Sphere(1)),nullptr);
+        morganUnion.addShape(new NativeGeometryBinding(new Sphere(1)),nullptr,shiftB,shiftBInverse);
+        TestCrossingCollector rothRender, morganRender;
+        if (static_cast<Geometry*>(&rothUnion)->emitRayCrossings(xRay,window,rothRender)!=RayCrossingSupport::Supported ||
+            static_cast<Geometry*>(&morganUnion)->emitRayCrossings(xRay,window,morganRender)!=RayCrossingSupport::Supported) return 200;
+        CsgRayClassification sharedRoth;
+        CsgRaySurfaceEvents sharedHeuristic;
+        if (CsgRothRayClassifier::classify(rothUnion,xRay,window,sharedRoth)!=RaySolidQueryStatus::Supported ||
+            CsgCrossingMembershipFilter::select(morganUnion,xRay,window,1e-6,sharedHeuristic)!=RaySolidQueryStatus::Supported) return 201;
+        // Roth: one entry and one exit; the heuristic keeps internal surfaces.
+        if (rothRender.hits.size()!=2 || sharedRoth.getSolid().boundaries.size()!=2) return 202;
+        for (long int i=0;i<2;++i)
+            if (std::abs(rothRender.hits[i]->t-sharedRoth.getSolid().boundaries[i].t)>1e-12) return 203;
+        if (morganRender.hits.size()!=4 || sharedHeuristic.size()!=4) return 204;
+        for (long int i=0;i<4;++i)
+            if (std::abs(morganRender.hits[i]->t-sharedHeuristic.getT(i))>1e-12) return 205;
+        if (!sharedRoth.getVersions().isCurrent()) return 206;
+        rothUnion.getOperands()[1]->translate(new Vector3Dd(0.1,0,0));
+        if (sharedRoth.getVersions().isCurrent()) return 207;
+
+        // Morgan difference as the parser builds it: an intersection with an
+        // inverted subtrahend. Both shared evaluators agree with the render.
+        ConstructiveSolidGeometryByMorganRules shell(BooleanSetOperations::INTERSECTION);
+        shell.addShape(new NativeGeometryBinding(new Sphere(2)),nullptr);
+        NativeGeometryBinding* hole=new NativeGeometryBinding(new Sphere(1));
+        hole->invertGeometry();
+        shell.addShape(hole,nullptr);
+        TestCrossingCollector shellRender;
+        CsgRayClassification shellRoth;
+        CsgRaySurfaceEvents shellHeuristic;
+        if (static_cast<Geometry*>(&shell)->emitRayCrossings(xRay,window,shellRender)!=RayCrossingSupport::Supported ||
+            CsgRothRayClassifier::classify(shell,xRay,window,shellRoth)!=RaySolidQueryStatus::Supported ||
+            CsgCrossingMembershipFilter::select(shell,xRay,window,1e-6,shellHeuristic)!=RaySolidQueryStatus::Supported) return 208;
+        const double shellT[4]={3,4,6,7};
+        if (shellRender.hits.size()!=4 || shellRoth.getSolid().boundaries.size()!=4 || shellHeuristic.size()!=4) return 209;
+        for (int i=0;i<4;++i) {
+            if (std::abs(shellRender.hits[i]->t-shellT[i])>1e-12 ||
+                std::abs(shellRoth.getSolid().boundaries[i].t-shellT[i])>1e-12 ||
+                std::abs(shellHeuristic.getT(i)-shellT[i])>1e-12) return 210;
+        }
+
+        // Touching boxes: the POV Roth merge processes the left exit before
+        // the right entry and reports a zero-length gap; the shared grouped
+        // policy gives the regularized single segment.
+        ConstructiveSolidGeometryByRaySegment touching(BooleanSetOperations::UNION);
+        touching.addShape(new RayCastingBox(Vector3Dd(-1,-1,-1),Vector3Dd(1,1,1)),nullptr);
+        touching.addShape(new RayCastingBox(Vector3Dd(1,-1,-1),Vector3Dd(3,1,1)),nullptr);
+        TestCrossingCollector touchingRender;
+        CsgRayClassification touchingRoth;
+        if (static_cast<Geometry*>(&touching)->emitRayCrossings(xRay,window,touchingRender)!=RayCrossingSupport::Supported ||
+            CsgRothRayClassifier::classify(touching,xRay,window,touchingRoth)!=RaySolidQueryStatus::Supported) return 211;
+        if (touchingRender.hits.size()!=4 || touchingRender.hits[1]->t!=6 || touchingRender.hits[2]->t!=6) return 212;
+        if (touchingRoth.getSolid().boundaries.size()!=2 || touchingRoth.getSolid().boundaries[0].t!=4 ||
+            touchingRoth.getSolid().boundaries[1].t!=8) return 213;
+
+        // Coincident spheres: the boundary-inclusive heuristic keeps both
+        // faces, as the Morgan render does; Roth reports one face each.
+        ConstructiveSolidGeometryByMorganRules same(BooleanSetOperations::INTERSECTION);
+        same.addShape(new NativeGeometryBinding(new Sphere(1)),nullptr);
+        same.addShape(new NativeGeometryBinding(new Sphere(1)),nullptr);
+        TestCrossingCollector sameRender;
+        CsgRaySurfaceEvents sameHeuristic;
+        CsgRayClassification sameRoth;
+        if (static_cast<Geometry*>(&same)->emitRayCrossings(xRay,window,sameRender)!=RayCrossingSupport::Supported ||
+            CsgCrossingMembershipFilter::select(same,xRay,window,1e-6,sameHeuristic)!=RaySolidQueryStatus::Supported ||
+            CsgRothRayClassifier::classify(same,xRay,window,sameRoth)!=RaySolidQueryStatus::Supported) return 214;
+        if (sameRender.hits.size()!=4 || sameHeuristic.size()!=4 || sameRoth.getSolid().boundaries.size()!=2) return 215;
+        if (sameRoth.getOwnerCount(0)!=2) return 216;
+    }
     return 0;
 }

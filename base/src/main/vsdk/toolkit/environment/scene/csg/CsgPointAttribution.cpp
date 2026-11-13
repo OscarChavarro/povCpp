@@ -1,12 +1,15 @@
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/environment/scene/csg/CsgPointAttribution.h"
 CsgPointAttribution::CsgPointAttribution() : owners(4), complete(false) {}
-CsgPointAttribution::CsgPointAttribution(const CsgPointAttribution& other) : owners(other.owners), complete(other.complete) {}
+CsgPointAttribution::CsgPointAttribution(const CsgPointAttribution& other)
+    : owners(other.owners), complete(other.complete), versions(other.versions) {}
 CsgPointAttribution& CsgPointAttribution::operator=(const CsgPointAttribution& other)
-{ if (this!=&other) { owners=other.owners; complete=other.complete; } return *this; }
+{ if (this!=&other) { owners=other.owners; complete=other.complete; versions=other.versions; } return *this; }
+CsgVersionStamp& CsgPointAttribution::getVersions() { return versions; }
+const CsgVersionStamp& CsgPointAttribution::getVersions() const { return versions; }
 CsgPointAttribution::~CsgPointAttribution() {}
-void CsgPointAttribution::clear() { owners.clear(); complete=false; }
-void CsgPointAttribution::begin() { owners.clear(); complete=true; }
+void CsgPointAttribution::clear() { owners.clear(); complete=false; versions.clear(); }
+void CsgPointAttribution::begin() { owners.clear(); complete=true; versions.clear(); }
 bool CsgPointAttribution::add(const CsgPointWitness& owner)
 { if (!complete || !owner.isAvailable() || !owners.add(owner)) { clear(); return false; } return true; }
 bool CsgPointAttribution::append(const CsgPointAttribution& other)

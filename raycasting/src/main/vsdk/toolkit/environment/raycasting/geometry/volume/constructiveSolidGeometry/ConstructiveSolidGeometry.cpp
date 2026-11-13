@@ -73,3 +73,14 @@ ConstructiveSolidGeometry::createBoundingVolume() const
     }
     return new AabbBoundingVolume(result);
 }
+
+#include <typeinfo>
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByMorganRules.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
+
+bool
+ConstructiveSolidGeometry::isStructuralTraversalSafe() const
+{
+    return typeid(*this) == typeid(ConstructiveSolidGeometryByMorganRules) ||
+        typeid(*this) == typeid(ConstructiveSolidGeometryByRaySegment);
+}

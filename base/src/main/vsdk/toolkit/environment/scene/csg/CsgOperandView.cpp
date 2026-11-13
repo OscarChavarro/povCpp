@@ -23,4 +23,6 @@ RaySolidQueryStatus CsgOperandView::classifyRay(const Ray&, const RayCrossingQue
 
 bool CsgOperandView::isStructuralTraversalSafe() const { return false; }
 
+bool CsgOperandView::queryModificationVersion(long long&) const { return false; }
+
 void CsgOperandView::getSolidBounds(GeometryBounds& result) const { result.setUnsupported(); }

@@ -8,6 +8,7 @@ class CsgPlacedExpression : public CsgOperandView {
 private:
     const CsgExpression& child;
     AffinePlacement placement;
+    long long modificationVersion;
 public:
     explicit CsgPlacedExpression(const CsgExpression& child);
     AffinePlacementStatus setAffinePlacement(const Matrix4x4d& forward, const Matrix4x4d& inverse);
@@ -17,5 +18,6 @@ public:
     AffinePlacementStatus queryAffinePlacement(Matrix4x4d& forward, Matrix4x4d& inverse) const override;
     const CsgExpression* getChildExpression() const override;
     bool isStructuralTraversalSafe() const override;
+    bool queryModificationVersion(long long& version) const override;
 };
 #endif

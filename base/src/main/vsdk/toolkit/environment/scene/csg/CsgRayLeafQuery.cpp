@@ -6,9 +6,17 @@
 #include "vsdk/toolkit/environment/scene/csg/CsgOperandView.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgRayLeafBatch.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgRayLeafQuery.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgRayWorkspace.h"
 
 RaySolidQueryStatus CsgRayLeafQuery::query(const CsgExpression& expression, const Ray& ray,
     const RayCrossingQuery& query, CsgRayLeafBatch& result)
+{
+    CsgRayWorkspace workspace;
+    return CsgRayLeafQuery::query(expression,ray,query,workspace,result);
+}
+
+RaySolidQueryStatus CsgRayLeafQuery::query(const CsgExpression& expression, const Ray& ray,
+    const RayCrossingQuery& query, CsgRayWorkspace& workspace, CsgRayLeafBatch& result)
 {
     result.clear();
     const Vector3Dd& origin=ray.getOrigin();
@@ -20,10 +28,9 @@ RaySolidQueryStatus CsgRayLeafQuery::query(const CsgExpression& expression, cons
         java::Double::isNaN(query.minT) || java::Double::isNaN(query.maxT) || query.minT>=query.maxT ||
         query.minimumChordSquared!=0 || query.minimumExteriorApproach!=java::Double::NEGATIVE_INFINITY)
         return RaySolidQueryStatus::InvalidInput;
-    CsgRayLeafBatch temporary;
-    java::ArrayList<const CsgExpression*> path;
-    const RaySolidQueryStatus status=collect(expression,ray,query,path,temporary);
-    if (status==RaySolidQueryStatus::Supported) result=temporary;
+    workspace.path.clear();
+    const RaySolidQueryStatus status=collect(expression,ray,query,workspace.path,result);
+    if (status!=RaySolidQueryStatus::Supported) result.clear();
     return status;
 }
 
@@ -39,7 +46,7 @@ RaySolidQueryStatus CsgRayLeafQuery::collect(const CsgExpression& expression, co
     for (long int i=0;i<count;++i) {
         const CsgOperandView* operand=expression.getOperand(i);
         if (!operand) { path.remove(path.size()-1); return RaySolidQueryStatus::InvalidInput; }
-        CsgRayLeafBatch local;
+        const long int first=result.size();
         const CsgExpression* child=operand->getChildExpression();
         Matrix4x4d forward,inverse;
         RaySolidQueryStatus status=RaySolidQueryStatus::Supported;
@@ -57,14 +64,15 @@ RaySolidQueryStatus CsgRayLeafQuery::collect(const CsgExpression& expression, co
                     !java::Double::isFinite(direction.y()) || !java::Double::isFinite(direction.z()) ||
                     (direction.x()==0 && direction.y()==0 && direction.z()==0))
                     status=RaySolidQueryStatus::Indeterminate;
-                else status=collect(*child,Ray::fromAffine(origin,direction,ray.getT()),query,path,local);
+                else status=collect(*child,Ray::fromAffine(origin,direction,ray.getT()),query,path,result);
             }
         }
         else {
-            CsgRayLeaf leaf;
-            status=operand->classifyRay(ray,query,leaf.getClassification());
+            CsgRayLeaf* leaf=result.acquire();
+            if (!leaf) status=RaySolidQueryStatus::Indeterminate;
+            else status=operand->classifyRay(ray,query,leaf->getClassification());
             if (status==RaySolidQueryStatus::Supported) {
-                const RaySolidClassification& classification=leaf.getClassification();
+                const RaySolidClassification& classification=leaf->getClassification();
                 if (classification.insideSegments.size()!=classification.boundaries.size()+1)
                     status=RaySolidQueryStatus::Indeterminate;
                 for (long int k=0;status==RaySolidQueryStatus::Supported && k<classification.boundaries.size();++k) {
@@ -74,17 +82,15 @@ RaySolidQueryStatus CsgRayLeafQuery::collect(const CsgExpression& expression, co
                         classification.insideSegments[k]==classification.insideSegments[k+1])
                         status=RaySolidQueryStatus::Indeterminate;
                 }
-                if (status==RaySolidQueryStatus::Supported && !local.add(leaf)) status=RaySolidQueryStatus::Indeterminate;
             }
         }
         if (status!=RaySolidQueryStatus::Supported) { path.remove(path.size()-1); return status; }
-        for (long int j=0;j<local.size();++j) {
-            CsgRayLeaf* leaf=local.get(j);
+        for (long int j=first;j<result.size();++j) {
+            CsgRayLeaf* leaf=result.get(j);
             if (!leaf->prependOperand(operand) || (child && !leaf->appendPlacement(operand,forward,inverse))) {
                 path.remove(path.size()-1); return RaySolidQueryStatus::Indeterminate;
             }
             if (operation==CsgOperation::DIFFERENCE && i>0) leaf->reverseOrientation();
-            if (!result.add(*leaf)) { path.remove(path.size()-1); return RaySolidQueryStatus::Indeterminate; }
         }
     }
     path.remove(path.size()-1);

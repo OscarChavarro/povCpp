@@ -87,3 +87,52 @@ TEST(ReaderMitSolids, BoxAndHalfSpaceProduceActualSolidIntervals) {
     ASSERT_EQ(1,result.boundaries.size()); ASSERT_EQ(2,result.insideSegments.size());
     EXPECT_DOUBLE_EQ(2,result.boundaries[0].t); EXPECT_FALSE(result.insideSegments[0]); EXPECT_TRUE(result.insideSegments[1]);
 }
+
+#include <cmath>
+#include <cstdio>
+#include "java/lang/Exception.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgBody.h"
+TEST(ReaderMitCsg, SculptureBlocksBuildCsgBodiesWithTheirEvaluator) {
+    const char* files[2]={VITRAL_REPOSITORY_ROOT "/etc/geometry/mitscenes/csg_sculpture.ray",
+        VITRAL_REPOSITORY_ROOT "/etc/geometry/mitscenes/csg_sculpture_pov.ray"};
+    for (int i=0;i<2;++i) {
+        SimpleScene scene;
+        ReaderMitScene reader;
+        reader.importEnvironment(files[i],&scene);
+        java::ArrayList<SimpleBody*>& bodies=scene.getSimpleBodies();
+        ASSERT_EQ(2,bodies.size());
+        CsgBody* csg=dynamic_cast<CsgBody*>(bodies[1]);
+        ASSERT_NE(nullptr,csg);
+        EXPECT_EQ(i==0 ? CsgBodyEvaluator::ROTH : CsgBodyEvaluator::CROSSING_MEMBERSHIP,csg->getEvaluator());
+        EXPECT_EQ(3,csg->getNodeCount()); ASSERT_EQ(5,csg->getLeafCount());
+        EXPECT_NE(csg->getLeaf(0)->getMaterial(),csg->getLeaf(2)->getMaterial());
+        RayHit hit(RayHit::DETAIL_POINT|RayHit::DETAIL_NORMAL,false);
+        // Down the vertical hole: Roth sees no solid; the POV heuristic keeps the
+        // nested union's internal surface of the x-axis cylinder.
+        const bool axisHit=csg->doIntersectionFirstHit(Ray::fromAffine(Vector3Dd(0,0,3),Vector3Dd(0,0,-1)),&hit);
+        EXPECT_EQ(i==1,axisHit);
+        if (axisHit) EXPECT_NEAR(3-(0.8+std::sqrt(0.24)),hit.getHitDistance(),1e-12);
+        hit.reset(RayHit::DETAIL_POINT|RayHit::DETAIL_NORMAL);
+        ASSERT_TRUE(csg->doIntersectionFirstHit(Ray::fromAffine(Vector3Dd(0.6,0,3),Vector3Dd(0,0,-1)),&hit));
+        EXPECT_NEAR(1.45,hit.getHitDistance(),1e-12);
+        EXPECT_NEAR(1,hit.normal.z(),1e-12);
+        EXPECT_EQ(csg->getLeaf(0)->getMaterial(),hit.material);
+    }
+}
+
+TEST(ReaderMitCsg, MalformedBlocksAreRejected) {
+    const char* bodies[4]={"csg union\nsphere 0 0 0 1\n",
+        "csg xor\nsphere 0 0 0 1\nend\n",
+        "csg union roth\ncsg intersection pov\nend\nend\n",
+        "csg union\ntriangles\nend\nend\n"};
+    const std::string path=testing::TempDir()+"reader_mit_csg_malformed.ray";
+    for (int i=0;i<4;++i) {
+        FILE* file=fopen(path.c_str(),"w");
+        ASSERT_NE(nullptr,file);
+        fputs(bodies[i],file); fclose(file);
+        SimpleScene scene;
+        ReaderMitScene reader;
+        EXPECT_THROW(reader.importEnvironment(path.c_str(),&scene),java::Exception) << i;
+    }
+    std::remove(path.c_str());
+}

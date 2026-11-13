@@ -24,3 +24,6 @@ bool CsgBodyOperand::isSameSolid(const CsgOperandView& other) const
 RaySolidQueryStatus CsgBodyOperand::classifyRay(const Ray& ray, const RayCrossingQuery& query,
     RaySolidClassification& result) const
 { return body.classifyRay(ray,query,result); }
+
+bool CsgBodyOperand::queryModificationVersion(long long& version) const
+{ version=body.getModificationVersion(); return true; }

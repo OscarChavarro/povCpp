@@ -19,3 +19,10 @@ GeometryContainment RayCastingCoreOperand::classifyPointCertified(const Vector3D
 { return body.classifyCoreCertified(point,tolerance); }
 
 void RayCastingCoreOperand::getSolidBounds(GeometryBounds& result) const { body.getCoreSolidWorldBounds(result); }
+
+RaySolidQueryStatus RayCastingCoreOperand::classifyRay(const Ray& ray, const RayCrossingQuery& query,
+    RaySolidClassification& result) const
+{ return body.classifyCoreRay(ray,query,result); }
+
+bool RayCastingCoreOperand::queryModificationVersion(long long& version) const
+{ version=body.getModificationVersion(); return true; }

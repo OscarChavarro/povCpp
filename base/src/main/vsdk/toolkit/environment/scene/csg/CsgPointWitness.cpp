@@ -3,7 +3,15 @@
 CsgPointWitness::CsgPointWitness() : path(4), reversed(false) {}
 CsgPointWitness::CsgPointWitness(const CsgPointWitness& other) : path(other.path), reversed(other.reversed) {}
 CsgPointWitness& CsgPointWitness::operator=(const CsgPointWitness& other)
-{ if (this!=&other) { path=other.path; reversed=other.reversed; } return *this; }
+{
+    // Reuses the existing storage, see RayInstancePath.
+    if (this!=&other) {
+        path.clear();
+        for (long int i=0;i<other.path.size();++i) path.add(other.path[i]);
+        reversed=other.reversed;
+    }
+    return *this;
+}
 CsgPointWitness::~CsgPointWitness() {}
 void CsgPointWitness::clear() { path.clear(); reversed=false; }
 bool CsgPointWitness::prepend(const CsgOperandView* operand)

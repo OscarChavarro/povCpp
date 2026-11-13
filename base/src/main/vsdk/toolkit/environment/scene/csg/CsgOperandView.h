@@ -33,5 +33,8 @@ public:
     // Solid segments of a leaf in this operand's parent coordinates.
     virtual RaySolidQueryStatus classifyRay(const Ray& ray, const RayCrossingQuery& query,
         RaySolidClassification& result) const;
+    // Counter that changes whenever this view's solid or placement is edited
+    // through its API; false when the view does not track its edits.
+    virtual bool queryModificationVersion(long long& version) const;
 };
 #endif

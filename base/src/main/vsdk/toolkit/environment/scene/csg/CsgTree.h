@@ -12,6 +12,7 @@ class CsgTree : public CsgExpression, public CsgOperandView {
 private:
     CsgOperation operation;
     java::ArrayList<const CsgOperandView*> operands;
+    long long structureVersion;
     bool canAttach(const CsgOperandView& operand) const;
     CsgTree(const CsgTree&) = delete;
     CsgTree& operator=(const CsgTree&) = delete;
@@ -28,5 +29,7 @@ public:
     AffinePlacementStatus queryAffinePlacement(Matrix4x4d& forward, Matrix4x4d& inverse) const override;
     const CsgExpression* getChildExpression() const override;
     bool isStructuralTraversalSafe() const override;
+    bool queryStructureVersion(long long& version) const override;
+    bool queryModificationVersion(long long& version) const override;
 };
 #endif

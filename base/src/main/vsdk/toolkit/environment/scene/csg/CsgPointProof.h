@@ -2,6 +2,7 @@
 #define VSDK_CSG_POINT_PROOF_H
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgPointEvidence.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgVersionStamp.h"
 class CsgOperandView;
 // Sufficient leaf facts for a definite result, interpreted with the borrowed
 // expression tree. Empty/unavailable means the result has no collected proof.
@@ -9,6 +10,7 @@ class CsgPointProof {
 private:
     java::ArrayList<CsgPointEvidence> evidence;
     bool available;
+    CsgVersionStamp versions;
 public:
     CsgPointProof();
     void clear();
@@ -20,5 +22,8 @@ public:
     bool isAvailable() const;
     long int getCount() const;
     const CsgPointEvidence* getEvidence(long int index) const;
+    // Versions of the borrowed expression, captured by the top-level query.
+    CsgVersionStamp& getVersions();
+    const CsgVersionStamp& getVersions() const;
 };
 #endif

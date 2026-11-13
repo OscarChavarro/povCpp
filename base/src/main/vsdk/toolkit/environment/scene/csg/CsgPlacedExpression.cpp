@@ -1,12 +1,12 @@
 #include <typeinfo>
 #include "vsdk/toolkit/environment/scene/csg/CsgPlacedExpression.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgExpressionEquivalence.h"
-CsgPlacedExpression::CsgPlacedExpression(const CsgExpression& expression) : child(expression) {}
+CsgPlacedExpression::CsgPlacedExpression(const CsgExpression& expression) : child(expression), modificationVersion(0) {}
 AffinePlacementStatus CsgPlacedExpression::setAffinePlacement(const Matrix4x4d& forward, const Matrix4x4d& inverse)
 {
     AffinePlacement candidate;
     const AffinePlacementStatus status=candidate.assign(forward,inverse);
-    if (status==AffinePlacementStatus::Valid) placement=candidate;
+    if (status==AffinePlacementStatus::Valid) { placement=candidate; ++modificationVersion; }
     return status;
 }
 const Geometry* CsgPlacedExpression::getGeometry() const { return nullptr; }
@@ -17,5 +17,8 @@ const CsgExpression* CsgPlacedExpression::getChildExpression() const { return &c
 
 bool CsgPlacedExpression::isSameSolid(const CsgOperandView& other) const
 { return CsgExpressionEquivalence::same(*this,other); }
+
+bool CsgPlacedExpression::queryModificationVersion(long long& version) const
+{ version=modificationVersion; return true; }
 
 bool CsgPlacedExpression::isStructuralTraversalSafe() const { return typeid(*this)==typeid(CsgPlacedExpression); }

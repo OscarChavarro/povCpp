@@ -4,6 +4,7 @@
 
 #include "java/lang/String.h"
 #include "java/lang/Double.h"
+#include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/VSDKFatalException.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/common/color/ColorRgb.h"
@@ -20,6 +21,7 @@
 #include "vsdk/toolkit/environment/light/PointLight.h"
 #include "vsdk/toolkit/environment/scene/SimpleBody.h"
 #include "vsdk/toolkit/environment/scene/SimpleScene.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgBody.h"
 #include "vsdk/toolkit/io/geometry/ReaderMitScene.h"
 #include "vsdk/toolkit/io/geometry/ReaderMitTriangleGroup.h"
 ReaderMitScene::ReaderMitScene()
@@ -72,6 +74,20 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
     SimpleMaterial* currentMaterial = new SimpleMaterial();
     ReaderMitTriangleGroup triangleGroup;
     bool inTriangles = false;
+    // Open CSG body and its node stack; primitives inside become its leaves.
+    CsgBody* csgBody = nullptr;
+    java::ArrayList<long long> csgNodes;
+    auto fail = [&](const char* message) {
+        fclose(file);
+        delete currentMaterial;
+        delete csgBody;
+        throw VSDKFatalException(message);
+    };
+    auto attach = [&](SimpleBody* body) {
+        if (csgBody == nullptr) { outScene->addBody(body); return; }
+        if (!csgBody->addLeaf((long int)csgNodes[csgNodes.size()-1], body))
+            fail("ReaderMitScene: invalid csg operand");
+    };
 
     char lineBuf[1024];
     while ( fgets(lineBuf, sizeof(lineBuf), file) ) {
@@ -91,6 +107,7 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
         java::String cmd(cmdStr);
 
         if ( cmd == "triangles" ) {
+            if (csgBody) fail("ReaderMitScene: triangles cannot be csg operands");
             if (inTriangles) {
                 fclose(file);
                 delete currentMaterial;
@@ -119,6 +136,39 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
             triangleGroup.flush(outScene, currentMaterial);
             triangleGroup.reset();
             inTriangles = false;
+        }
+        else if ( cmd == "csg" ) {
+            char operationStr[256] = {0};
+            char evaluatorStr[256] = {0};
+            const int fields = sscanf(javaLine.toCString(), "%*s %255s %255s", operationStr, evaluatorStr);
+            java::String operationName(operationStr);
+            java::String evaluatorName(evaluatorStr);
+            CsgOperation operation = CsgOperation::UNION;
+            if ( operationName == "union" ) operation = CsgOperation::UNION;
+            else if ( operationName == "intersection" ) operation = CsgOperation::INTERSECTION;
+            else if ( operationName == "difference" ) operation = CsgOperation::DIFFERENCE;
+            else fail("ReaderMitScene: csg requires union, intersection or difference");
+            if ( csgBody == nullptr ) {
+                CsgBodyEvaluator evaluator = CsgBodyEvaluator::ROTH;
+                if ( fields == 2 && evaluatorName == "pov" ) evaluator = CsgBodyEvaluator::CROSSING_MEMBERSHIP;
+                else if ( fields == 2 && evaluatorName != "roth" ) fail("ReaderMitScene: csg evaluator must be roth or pov");
+                csgBody = new CsgBody(operation, evaluator);
+                csgBody->setMaterial(new SimpleMaterial(*currentMaterial));
+                csgNodes.add(0);
+            }
+            else {
+                if ( fields == 2 ) fail("ReaderMitScene: only the outermost csg selects an evaluator");
+                const long int node = csgBody->addNode((long int)csgNodes[csgNodes.size()-1], operation);
+                if ( node < 0 ) fail("ReaderMitScene: invalid csg node");
+                csgNodes.add(node);
+            }
+        }
+        else if ( cmd == "end" && csgBody ) {
+            csgNodes.remove(csgNodes.size()-1);
+            if ( csgNodes.size() == 0 ) {
+                outScene->addBody(csgBody);
+                csgBody = nullptr;
+            }
         }
         else if ( cmd == "viewport" ) {
             int w, h;
@@ -195,7 +245,7 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
             SimpleBody* b = new SimpleBody();
             b->setGeometry(new Box(Vector3Dd(xmin,ymin,zmin), Vector3Dd(xmax,ymax,zmax)));
             b->setMaterial(new SimpleMaterial(*currentMaterial));
-            outScene->addBody(b);
+            attach(b);
         }
         else if ( cmd == "halfspace" ) {
             double a, b, c, d;
@@ -209,7 +259,7 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
             SimpleBody* body = new SimpleBody();
             body->setGeometry(new PlanarHalfSpace(a,b,c,d));
             body->setMaterial(new SimpleMaterial(*currentMaterial));
-            outScene->addBody(body);
+            attach(body);
         }
         else if ( cmd == "quadric" ) {
             double xx, yy, zz, xy, xz, yz, x, y, z, c;
@@ -223,7 +273,7 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
             b->setGeometry(new QuadricSurface(Vector3Dd(xx,yy,zz), Vector3Dd(xy,xz,yz),
                 Vector3Dd(x,y,z), c));
             b->setMaterial(new SimpleMaterial(*currentMaterial));
-            outScene->addBody(b);
+            attach(b);
         }
         else if ( cmd == "sphere" ) {
             double x, y, z, r;
@@ -232,7 +282,7 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
                 b->setGeometry(new Sphere(r));
                 b->setPosition(Vector3Dd(x, y, z));
                 b->setMaterial(new SimpleMaterial(*currentMaterial));
-                outScene->addBody(b);
+                attach(b);
             }
         }
         else if ( cmd == "light" ) {
@@ -259,6 +309,7 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
         }
     }
 
+    if (csgBody) fail("ReaderMitScene: unterminated csg block");
     fclose(file);
     if (inTriangles) {
         delete currentMaterial;

@@ -452,10 +452,28 @@ int main() {
                 new NativeGeometryBinding(new Sphere(1.8)),nullptr,nullptr,nullptr,false,none,none));
             require(sphereBound.classifyPointCertified(Vector3Dd(0,0,0),0.1)==GeometryContainment::Inside,
                 "a spherical bounded_by region could not be certified");
+            // Stage G: region ray classification is the Roth combination of the
+            // core and its clips; a verified bounded_by leaves the core unchanged.
+            const Ray xRay=Ray::fromAffine(Vector3Dd(-5,0,0),Vector3Dd(1,0,0));
             RaySolidClassification clippedRay;
-            require(clippedSphere.classifyRay(Ray::fromAffine(Vector3Dd(-5,0,0),Vector3Dd(1,0,0)),
-                RayCrossingQuery(0,10),clippedRay)==RaySolidQueryStatus::Unsupported,
-                "clipped ray classification claimed a Boolean combination that belongs to stage G");
+            require(clippedSphere.classifyRay(xRay,RayCrossingQuery(0,10),clippedRay)==RaySolidQueryStatus::Supported &&
+                clippedRay.boundaries.size()==2 && clippedRay.boundaries[0].t==4 && clippedRay.boundaries[1].t==6 &&
+                !clippedRay.insideSegments[0] && clippedRay.insideSegments[1] && !clippedRay.insideSegments[2] &&
+                clippedRay.boundaries[0].geometry!=nullptr,
+                "clipped POV ray classification is not the intersection with its clip region");
+            RaySolidClassification hollowRay;
+            require(hollowSphere.classifyRay(xRay,RayCrossingQuery(0,10),hollowRay)==RaySolidQueryStatus::Supported &&
+                hollowRay.boundaries.size()==4 && hollowRay.boundaries[0].t==3 && hollowRay.boundaries[1].t==4 &&
+                hollowRay.boundaries[2].t==6 && hollowRay.boundaries[3].t==7 && hollowRay.insideSegments[1] &&
+                !hollowRay.insideSegments[2] && hollowRay.insideSegments[3],
+                "inverted POV clip region was not subtracted along the ray");
+            RaySolidClassification boundedRay, tightRay;
+            require(boundedSphere.classifyRay(xRay,RayCrossingQuery(0,10),boundedRay)==RaySolidQueryStatus::Supported &&
+                boundedRay.boundaries.size()==2 && boundedRay.boundaries[0].t==4 && boundedRay.boundaries[1].t==6,
+                "verified bounded_by changed the POV ray classification");
+            require(tightBound.classifyRay(xRay,RayCrossingQuery(0,10),tightRay)==RaySolidQueryStatus::Unsupported &&
+                tightRay.boundaries.size()==0 && tightRay.insideSegments.size()==0,
+                "an unverified bounded_by hint was given a typed ray classification");
             // Stage F-5: arbitrary affine edits move owned regions with the object.
             const Matrix4x4d moved=Matrix4x4d().translation(5,0,0).multiply(
                 Matrix4x4d::identityMatrix().withVal(0,1,0.5));

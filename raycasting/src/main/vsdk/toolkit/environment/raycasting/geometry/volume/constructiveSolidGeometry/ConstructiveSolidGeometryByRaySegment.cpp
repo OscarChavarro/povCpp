@@ -1,6 +1,7 @@
 #include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingInfinitePlane.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgMembershipRule.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 
@@ -84,31 +85,13 @@ ConstructiveSolidGeometryByRaySegment::buildRaySegments(
     return RaySegments(crossings, initialInside);
 }
 
-static bool
-combineUnion(bool insideLeft, bool insideRight)
-{
-    return insideLeft || insideRight;
-}
-
-static bool
-combineIntersection(bool insideLeft, bool insideRight)
-{
-    return insideLeft && insideRight;
-}
-
-static bool
-combineDifference(bool insideLeft, bool insideRight)
-{
-    return insideLeft && !insideRight;
-}
-
 // Merge/classify/simplify, the three-step process of [ROTH1982].3.3
 // ("Combining Left and Right Classifications", Figs. 8-9, Table 3).
 RaySegments
 ConstructiveSolidGeometryByRaySegment::mergeByMembership(
     const RaySegments &left,
     const RaySegments &right,
-    bool (*combine)(bool insideLeft, bool insideRight))
+    BooleanSetOperations operation)
 {
     const java::ArrayList<RaySegmentCrossing> &leftCrossings = left.getCrossings();
     const java::ArrayList<RaySegmentCrossing> &rightCrossings = right.getCrossings();
@@ -116,7 +99,7 @@ ConstructiveSolidGeometryByRaySegment::mergeByMembership(
     java::ArrayList<RaySegmentCrossing> outCrossings{leftCrossings.size() + rightCrossings.size()};
     bool insideLeft = left.isInitialInside();
     bool insideRight = right.isInitialInside();
-    const bool initialCombined = combine(insideLeft, insideRight);
+    const bool initialCombined = CsgMembershipRule::combine(operation, insideLeft, insideRight);
 
     bool previousCombined = initialCombined;
     long int i = 0;
@@ -142,7 +125,7 @@ ConstructiveSolidGeometryByRaySegment::mergeByMembership(
             j++;
         }
 
-        const bool newCombined = combine(insideLeft, insideRight);
+        const bool newCombined = CsgMembershipRule::combine(operation, insideLeft, insideRight);
         if (newCombined != previousCombined) {
             outCrossings.add(RaySegmentCrossing(event.getT(), newCombined, event.getHit()));
             previousCombined = newCombined;
@@ -154,19 +137,19 @@ ConstructiveSolidGeometryByRaySegment::mergeByMembership(
 RaySegments
 ConstructiveSolidGeometryByRaySegment::mergeUnion(const RaySegments &left, const RaySegments &right)
 {
-    return mergeByMembership(left, right, combineUnion);
+    return mergeByMembership(left, right, BooleanSetOperations::UNION);
 }
 
 RaySegments
 ConstructiveSolidGeometryByRaySegment::mergeIntersection(const RaySegments &left, const RaySegments &right)
 {
-    return mergeByMembership(left, right, combineIntersection);
+    return mergeByMembership(left, right, BooleanSetOperations::INTERSECTION);
 }
 
 RaySegments
 ConstructiveSolidGeometryByRaySegment::mergeDifference(const RaySegments &left, const RaySegments &right)
 {
-    return mergeByMembership(left, right, combineDifference);
+    return mergeByMembership(left, right, BooleanSetOperations::DIFFERENCE);
 }
 
 // RAYCAST descends the tree and combines left/right classifications on the
@@ -228,35 +211,16 @@ ConstructiveSolidGeometryByRaySegment::doContainmentTest(const Vector3Dd &point,
         return OUTSIDE;
     }
 
-    bool isInside;
-    switch (getGeometryType()) {
-    case BooleanSetOperations::DIFFERENCE:
-        // Table 3's "-" row in [ROTH1982].3.3.
-        isInside = children[0]->doContainmentTest(point, distanceTolerance) != OUTSIDE;
-        for (long int i = 1; isInside && (i < children.size()); i++) {
-            if (children[i]->doContainmentTest(point, distanceTolerance) != OUTSIDE) {
-                isInside = false;
-            }
+    // Table 3 of [ROTH1982].3.3 folded over the ordered operands, stopping as
+    // soon as the remaining operands cannot change the result.
+    const BooleanSetOperations operation = getGeometryType();
+    bool isInside = children[0]->doContainmentTest(point, distanceTolerance) != OUTSIDE;
+    for (long int i = 1; i < children.size(); i++) {
+        if (operation == BooleanSetOperations::UNION ? isInside : !isInside) {
+            break;
         }
-        break;
-
-    case BooleanSetOperations::INTERSECTION:
-        isInside = true;
-        for (long int i = 0; isInside && (i < children.size()); i++) {
-            if (children[i]->doContainmentTest(point, distanceTolerance) == OUTSIDE) {
-                isInside = false;
-            }
-        }
-        break;
-
-    default:
-        isInside = false;
-        for (long int i = 0; !isInside && (i < children.size()); i++) {
-            if (children[i]->doContainmentTest(point, distanceTolerance) != OUTSIDE) {
-                isInside = true;
-            }
-        }
-        break;
+        isInside = CsgMembershipRule::combine(operation, isInside,
+            children[i]->doContainmentTest(point, distanceTolerance) != OUTSIDE);
     }
     return isInside ? INSIDE : OUTSIDE;
 }

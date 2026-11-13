@@ -25,6 +25,7 @@ class CsgOperand : public PostRayHitElement, public CsgOperandView {
     mutable AxisAlignedBoundingBox bakedBounds = AxisAlignedBoundingBox::unbounded();
     mutable bool bakedBoundsBounded = false;
     mutable bool bakedBoundsCullSafe = false;
+    long long modificationVersion = 0;
 
     void ensureMatrices()
     {
@@ -243,6 +244,16 @@ class CsgOperand : public PostRayHitElement, public CsgOperandView {
     void translate(Vector3Dd *vector);
     void rotate(Vector3Dd *vector);
     void scale(Vector3Dd *vector);
+
+    // Typed views of this operand in its parent CSG coordinates. Leaves use
+    // the shared geometry of their POV wrapper and the shared placed-solid
+    // certificate; an operand holding a nested CSG is traversed structurally.
+    RaySolidQueryStatus classifyRay(const Ray& ray, const RayCrossingQuery& query,
+        RaySolidClassification& result) const override;
+    GeometryContainment classifyPointCertified(const Vector3Dd& point, double tolerance) const override;
+    bool isStructuralTraversalSafe() const override;
+    bool queryModificationVersion(long long& version) const override;
+
     void doExtraInformation(
         const RayWithTracingState &ray, double t, RayCastingHit *hit) override
     {
@@ -286,6 +297,7 @@ class CsgOperand : public PostRayHitElement, public CsgOperandView {
     void invert()
     {
         if (geometry != nullptr) {
+            ++modificationVersion;
             geometry->invertGeometry();
             steps.add(TransformStep(TransformStep::Kind::Invert, Vector3Dd(0.0, 0.0, 0.0)));
         }
