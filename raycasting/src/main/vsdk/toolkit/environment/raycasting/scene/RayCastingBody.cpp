@@ -1,4 +1,12 @@
+#include "vsdk/toolkit/environment/scene/csg/CsgPointClassification.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgTree.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgBodyOperand.h"
+#include "vsdk/toolkit/environment/raycasting/scene/RayCastingCoreOperand.h"
+#include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
+#include "vsdk/toolkit/environment/geometry/volume/Solid.h"
+#include <typeinfo>
 #include "vsdk/toolkit/environment/scene/AffinePlacement.h"
+#include "vsdk/toolkit/environment/geometry/element/RaySolidClassification.h"
 #include "java/lang/IllegalStateException.h"
 #include "java/lang/Double.h"
 #include <stdexcept>
@@ -727,11 +735,8 @@ AffinePlacementStatus RayCastingBody::setAffinePlacement(const Matrix4x4d& forwa
 {
     const AffinePlacementStatus input = AffinePlacement::validate(forward, inverse);
     if (input != AffinePlacementStatus::Valid) return input;
-    // Moving separately owned bounding or clipping regions requires the scene
-    // graph's ownership rules; do not change only one part of such an object.
-    if (boundingShapes.size() != 0 || clippingShapes.size() != 0)
-        return AffinePlacementStatus::Unsupported;
-    if ((geometryTransformation == nullptr) != (geometryTransformationInverse == nullptr))
+    if ((geometryTransformation == nullptr) != (geometryTransformationInverse == nullptr) ||
+        (transformation == nullptr) != (transformationInverse == nullptr))
         return AffinePlacementStatus::Indeterminate;
     const Matrix4x4d inner = geometryTransformation ? geometryTransformation->transpose() : Matrix4x4d::identityMatrix();
     const Matrix4x4d innerInverse = geometryTransformationInverse ? geometryTransformationInverse->transpose() : Matrix4x4d::identityMatrix();
@@ -739,6 +744,18 @@ AffinePlacementStatus RayCastingBody::setAffinePlacement(const Matrix4x4d& forwa
     const Matrix4x4d outerInverse = inner.multiply(inverse);
     const AffinePlacementStatus composed = AffinePlacement::validate(outer,outerInverse);
     if (composed != AffinePlacementStatus::Valid) return composed;
+    if (boundingShapes.size() != 0 || clippingShapes.size() != 0) {
+        // The object-level change in the outer frame, which POV also applies
+        // to owned regions for TRS edits. Reject before changing anything.
+        const Matrix4x4d current = transformation ? transformation->transpose() : Matrix4x4d::identityMatrix();
+        const Matrix4x4d currentInverse = transformationInverse ? transformationInverse->transpose() : Matrix4x4d::identityMatrix();
+        const Matrix4x4d delta = outer.multiply(currentInverse);
+        const Matrix4x4d deltaInverse = current.multiply(outerInverse);
+        const AffinePlacementStatus change = AffinePlacement::validate(delta,deltaInverse);
+        if (change != AffinePlacementStatus::Valid) return change;
+        if (!canMoveRegions(delta,deltaInverse)) return AffinePlacementStatus::Unsupported;
+        moveRegions(delta,deltaInverse);
+    }
     ensureMatrices();
     *transformation = outer.transpose();
     *transformationInverse = outerInverse.transpose();
@@ -765,6 +782,141 @@ AffinePlacementStatus RayCastingBody::queryAffinePlacement(Matrix4x4d& forward, 
     const Matrix4x4d inner = geometryTransformationInverse ? geometryTransformationInverse->transpose() : Matrix4x4d::identityMatrix();
     inverse = inner.multiply(outer);
     return AffinePlacement::validate(forward, inverse);
+}
+
+bool RayCastingBody::queryCoreSolid(const Geometry*& intrinsic, bool& inverted) const
+{
+    intrinsic=nullptr; inverted=false;
+    if (typeid(*this)!=typeid(RayCastingBody)) return false;
+    const RayCastingGeometry* wrapper=getGeometry();
+    if (!wrapper) return false;
+    const NativeGeometryBinding* native=dynamic_cast<const NativeGeometryBinding*>(wrapper);
+    if (native && typeid(*native)==typeid(NativeGeometryBinding)) {
+        intrinsic=native->getIntrinsicGeometry(); inverted=native->isInverted();
+        return intrinsic!=nullptr;
+    }
+    const RayCastingBox* box=dynamic_cast<const RayCastingBox*>(wrapper);
+    if (box && typeid(*box)==typeid(RayCastingBox)) {
+        intrinsic=box->getIntrinsicGeometry(); inverted=box->isInverted();
+        return true;
+    }
+    // Quadric and plane inversion is encoded in their coefficients.
+    const Quadric* quadric=dynamic_cast<const Quadric*>(wrapper);
+    if (quadric && typeid(*quadric)==typeid(Quadric)) { intrinsic=quadric->getIntrinsicGeometry(); return true; }
+    const RayCastingInfinitePlane* plane=dynamic_cast<const RayCastingInfinitePlane*>(wrapper);
+    if (plane && typeid(*plane)==typeid(RayCastingInfinitePlane)) { intrinsic=plane->getIntrinsicGeometry(); return true; }
+    return false;
+}
+
+bool RayCastingBody::querySolidCore(const Geometry*& intrinsic, bool& inverted) const
+{
+    if (!boundingShapes.isEmpty() || !clippingShapes.isEmpty()) { intrinsic=nullptr; inverted=false; return false; }
+    return queryCoreSolid(intrinsic,inverted);
+}
+
+void RayCastingBody::getCoreSolidWorldBounds(GeometryBounds& result) const
+{
+    const Geometry* intrinsic=nullptr; bool inverted=false;
+    Matrix4x4d forward,inverse;
+    if (!queryCoreSolid(intrinsic,inverted) || dynamic_cast<const Solid*>(intrinsic)==nullptr) {
+        result.setUnsupported(); return;
+    }
+    if (queryAffinePlacement(forward,inverse)!=AffinePlacementStatus::Valid) { result.setIndeterminate(); return; }
+    if (inverted) { result.setUnbounded(); return; }
+    GeometryBounds local;
+    intrinsic->getBounds(local);
+    result=local.transformed(forward);
+}
+
+bool RayCastingBody::canMoveRegions(const Matrix4x4d& delta, const Matrix4x4d& deltaInverse) const
+{
+    for (int list=0;list<2;++list) {
+        const java::ArrayList<RayCastingBody*>& regions=list==0 ? boundingShapes : clippingShapes;
+        for (long int i=0;i<regions.size();++i) {
+            const RayCastingBody* region=regions[i];
+            // Only plain bodies are known to apply a placement atomically.
+            if (!region || typeid(*region)!=typeid(RayCastingBody)) return false;
+            Matrix4x4d forward,inverse;
+            if (region->queryAffinePlacement(forward,inverse)!=AffinePlacementStatus::Valid ||
+                AffinePlacement::validate(delta.multiply(forward),inverse.multiply(deltaInverse))!=AffinePlacementStatus::Valid ||
+                !region->canMoveRegions(delta,deltaInverse)) return false;
+        }
+    }
+    return true;
+}
+
+void RayCastingBody::moveRegions(const Matrix4x4d& delta, const Matrix4x4d& deltaInverse)
+{
+    for (int list=0;list<2;++list) {
+        java::ArrayList<RayCastingBody*>& regions=list==0 ? boundingShapes : clippingShapes;
+        for (long int i=0;i<regions.size();++i) {
+            Matrix4x4d forward,inverse;
+            regions[i]->queryAffinePlacement(forward,inverse);
+            regions[i]->setAffinePlacement(delta.multiply(forward),inverse.multiply(deltaInverse));
+        }
+    }
+}
+
+bool RayCastingBody::boundingRegionsVerified() const
+{
+    if (boundingShapes.isEmpty()) return true;
+    GeometryBounds core;
+    getCoreSolidWorldBounds(core);
+    if (core.getKind()==GeometryBounds::Kind::Empty) return true;
+    if (core.getKind()!=GeometryBounds::Kind::Finite) return false;
+    for (long int i=0;i<boundingShapes.size();++i) {
+        if (!boundingShapes[i] || boundingShapes[i]->classifyWorldBoxCertified(core)!=GeometryContainment::Inside)
+            return false;
+    }
+    return true;
+}
+
+GeometryContainment RayCastingBody::classifyCoreCertified(const Vector3Dd& point, double tolerance) const
+{
+    if (!java::Double::isFinite(point.x()) || !java::Double::isFinite(point.y()) ||
+        !java::Double::isFinite(point.z()) || !java::Double::isFinite(tolerance) || tolerance<0)
+        return GeometryContainment::InvalidInput;
+    const Geometry* intrinsic=nullptr; bool inverted=false;
+    if (!queryCoreSolid(intrinsic,inverted)) return GeometryContainment::Unsupported;
+    Matrix4x4d forward,inverse;
+    const AffinePlacementStatus placement=queryAffinePlacement(forward,inverse);
+    if (placement==AffinePlacementStatus::Invalid) return GeometryContainment::InvalidInput;
+    if (placement==AffinePlacementStatus::Unsupported) return GeometryContainment::Unsupported;
+    if (placement==AffinePlacementStatus::Indeterminate) return GeometryContainment::Indeterminate;
+    return classifyPlacedPointCertified(*intrinsic,inverted,forward,inverse,point,tolerance);
+}
+
+GeometryContainment RayCastingBody::classifyWorldBoxCertified(const GeometryBounds& box) const
+{
+    const Geometry* intrinsic=nullptr; bool inverted=false;
+    if (!querySolidCore(intrinsic,inverted)) return GeometryContainment::Unsupported;
+    Matrix4x4d forward,inverse;
+    const AffinePlacementStatus placement=queryAffinePlacement(forward,inverse);
+    if (placement==AffinePlacementStatus::Invalid) return GeometryContainment::InvalidInput;
+    if (placement==AffinePlacementStatus::Unsupported) return GeometryContainment::Unsupported;
+    if (placement==AffinePlacementStatus::Indeterminate) return GeometryContainment::Indeterminate;
+    return classifyPlacedBoxCertified(*intrinsic,inverted,inverse,box);
+}
+
+void RayCastingBody::getSolidWorldBounds(GeometryBounds& result) const
+{
+    // Clipping only removes material, so the core bounds intersected with each
+    // clip region's solid bounds still enclose the body. An unverified
+    // bounding hint has no defined solid.
+    if (!boundingRegionsVerified()) { result.setUnsupported(); return; }
+    getCoreSolidWorldBounds(result);
+    for (long int i=0;i<clippingShapes.size();++i) {
+        if (!clippingShapes[i]) { result.setUnsupported(); return; }
+        GeometryBounds clip;
+        clippingShapes[i]->getSolidWorldBounds(clip);
+        result=result.intersecting(clip);
+    }
+}
+
+const Geometry* RayCastingBody::getSolidEquivalenceGeometry() const
+{
+    const Geometry* intrinsic=nullptr; bool inverted=false;
+    return querySolidCore(intrinsic,inverted) && !inverted ? intrinsic : nullptr;
 }
 
 GeometryDistanceStatus RayCastingBody::queryCertifiedSphere(const Sphere*& sphere, bool& inverted,
@@ -839,34 +991,29 @@ GeometryContainment RayCastingBody::classifyPointCertified(const Vector3Dd& poin
     if (!java::Double::isFinite(point.x()) || !java::Double::isFinite(point.y()) ||
         !java::Double::isFinite(point.z()) || !java::Double::isFinite(tolerance) || tolerance<0)
         return GeometryContainment::InvalidInput;
-    const Sphere* sphere=nullptr; bool inverted=false;
-    Matrix4x4d forward,inverse;
-    const GeometryDistanceStatus availability=queryCertifiedSphere(sphere,inverted,forward,inverse);
-    if (availability==GeometryDistanceStatus::InvalidInput) return GeometryContainment::InvalidInput;
-    if (availability==GeometryDistanceStatus::Unsupported) return GeometryContainment::Unsupported;
-    if (availability!=GeometryDistanceStatus::Valid) return GeometryContainment::Indeterminate;
-    Vector3Dd seed=inverse.multiply(point);
-    if (!java::Double::isFinite(seed.x()) || !java::Double::isFinite(seed.y()) ||
-        !java::Double::isFinite(seed.z())) return GeometryContainment::Indeterminate;
-    if (seed.x()==0 && seed.y()==0 && seed.z()==0) seed=Vector3Dd(1,0,0);
-    GeometryContainment side=GeometryContainment::Indeterminate;
-    double lower=0,upper=0;
-    GeometryDistanceStatus status=AffineEllipsoidDistanceBounds::query(point,sphere->getRadius(),forward,
-        seed,side,lower,upper);
-    if (status==GeometryDistanceStatus::InvalidInput) return GeometryContainment::InvalidInput;
-    if (status==GeometryDistanceStatus::Unsupported) return GeometryContainment::Unsupported;
-    if (status!=GeometryDistanceStatus::Valid) return GeometryContainment::Indeterminate;
-    if (upper<=tolerance) return GeometryContainment::Boundary;
-    if (lower<=tolerance && tolerance>0) {
-        const double width=tolerance*1e-3;
-        if (width>0 && java::Double::isFinite(width))
-            status=AffineEllipsoidMinimumDistance::query(point,sphere->getRadius(),forward,inverse,width,side,lower,upper);
-        else status=GeometryDistanceStatus::Indeterminate;
-        if (status==GeometryDistanceStatus::Valid && upper<=tolerance) return GeometryContainment::Boundary;
-        if (status!=GeometryDistanceStatus::Valid) return GeometryContainment::Indeterminate;
+    const Geometry* intrinsic=nullptr; bool inverted=false;
+    if (!queryCoreSolid(intrinsic,inverted)) return GeometryContainment::Unsupported;
+    // bounded_by is a hint: it never changes membership, and it is only
+    // accepted when certified to contain the core solid.
+    if (!boundingRegionsVerified()) return GeometryContainment::Unsupported;
+    if (clippingShapes.isEmpty()) return classifyCoreCertified(point,tolerance);
+    // clipped_by keeps the core material inside every clip region: the shared
+    // conservative intersection decides, including exposed clip boundaries.
+    for (long int i=0;i<clippingShapes.size();++i)
+        if (!clippingShapes[i]) return GeometryContainment::Unsupported;
+    RayCastingCoreOperand core(*this);
+    java::ArrayList<CsgBodyOperand*> clips(clippingShapes.size());
+    CsgTree clipped(CsgOperation::INTERSECTION);
+    GeometryContainment result=clipped.addOperand(core) ? GeometryContainment::Indeterminate : GeometryContainment::Unsupported;
+    for (long int i=0;result!=GeometryContainment::Unsupported && i<clippingShapes.size();++i) {
+        CsgBodyOperand* view=new CsgBodyOperand(*clippingShapes[i]);
+        if (!clips.add(view)) { delete view; result=GeometryContainment::Indeterminate; break; }
+        if (!clipped.addOperand(*view)) result=GeometryContainment::Unsupported;
     }
-    if (lower<=tolerance) return GeometryContainment::Indeterminate;
-    return orientCertifiedSide(side,inverted);
+    if (result==GeometryContainment::Indeterminate && clips.size()==clippingShapes.size())
+        result=CsgPointClassification::classify(clipped,point,tolerance);
+    for (long int i=0;i<clips.size();++i) delete clips[i];
+    return result;
 }
 
 AxisAlignedBoundingBox
@@ -928,6 +1075,16 @@ void RayCastingBody::doExtraInformation(const Ray& source, double t, RayHit* out
     RayCastingHit detail = RayCastingHit::fromCandidate(candidate, out->getRequiredDetailMask());
     const_cast<RayCastingBody*>(this)->doExtraInformation(context.ray, t, &detail);
     RayCastingQueryAdapter::exportHit(source, detail, out);
+}
+
+RaySolidQueryStatus RayCastingBody::classifyRay(const Ray& ray,
+    const RayCrossingQuery& query, RaySolidClassification& result) const
+{
+    if (!boundingShapes.isEmpty() || !clippingShapes.isEmpty()) {
+        result.clear();
+        return RaySolidQueryStatus::Unsupported;
+    }
+    return SimpleBody::classifyRay(ray,query,result);
 }
 
 RayCrossingSupport RayCastingBody::emitRayCrossings(const Ray& source,

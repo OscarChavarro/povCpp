@@ -591,6 +591,22 @@
       "policy": "Keep POV bindings in scene specialization; merge affine placement/ownership into VITRAL SimpleBody or minimal common contract."
     },
     {
+      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/RayCastingCoreOperand.h",
+      "destination": "PovRay",
+      "action": "move",
+      "target": "PovraySolid (provisional name) region policy",
+      "acceptance": "S1",
+      "policy": "POV clipped_by/bounded_by policy expressed as a shared CSG composition of the body's core solid; moves with the POV scene specialization."
+    },
+    {
+      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/RayCastingCoreOperand.cpp",
+      "destination": "PovRay",
+      "action": "move",
+      "target": "PovraySolid (provisional name) region policy",
+      "acceptance": "S1",
+      "policy": "POV clipped_by/bounded_by policy expressed as a shared CSG composition of the body's core solid; moves with the POV scene specialization."
+    },
+    {
       "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/RayCastingBody.h",
       "destination": "PovRay",
       "action": "split",

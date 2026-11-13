@@ -44,6 +44,8 @@ public:
     virtual void doExtraInformation(const Ray& inRay, double inT, RayHit* outData) override;
     virtual int doContainmentTest(const Vector3Dd& p, double distanceTolerance) override;
     virtual double* getMinMax() override;
+    // Finite solid bounds: |x|,|y| <= max radius and 0 <= z <= height.
+    void getBounds(GeometryBounds& result) const override;
 
     /**
     @return a new boundary representation of the cone with the default

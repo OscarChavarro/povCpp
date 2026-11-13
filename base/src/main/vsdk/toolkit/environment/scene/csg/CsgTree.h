@@ -22,9 +22,11 @@ public:
     long int getOperandCount() const override;
     const CsgOperandView* getOperand(long int index) const override;
     bool addOperand(const CsgOperandView& operand);
+    bool isSameSolid(const CsgOperandView& other) const override;
     const Geometry* getGeometry() const override;
     Matrix4x4d getAffinePlacement() const override;
     AffinePlacementStatus queryAffinePlacement(Matrix4x4d& forward, Matrix4x4d& inverse) const override;
     const CsgExpression* getChildExpression() const override;
+    bool isStructuralTraversalSafe() const override;
 };
 #endif

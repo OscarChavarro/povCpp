@@ -9,6 +9,7 @@
 #include "vsdk/toolkit/environment/geometry/element/RayHit.h"
 #include "vsdk/toolkit/environment/geometry/element/RaySolidClassification.h"
 #include "vsdk/toolkit/environment/geometry/volume/Box.h"
+#include "vsdk/toolkit/common/numerics/FloatingInterval.h"
 #include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolid.h"
 #include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolidEulerOperators.h"
 static const Vector3Dd NORMAL_POS_Z(0, 0, 1);
@@ -39,36 +40,89 @@ void Box::getBounds(GeometryBounds& result) const {
 }
 
 GeometryContainment Box::classifyPoint(const Vector3Dd& point, double tolerance) const {
-    const Vector3Dd size = getSize();
-    const double dimensions[3] = {size.x(), size.y(), size.z()};
+    if (java::Double::isFinite(tolerance) && tolerance > 0) return classifyPointCertified(point, tolerance);
     const double minimum[3] = {bounds[0].x(), bounds[0].y(), bounds[0].z()};
     const double maximum[3] = {bounds[1].x(), bounds[1].y(), bounds[1].z()};
     const double coordinates[3] = {point.x(), point.y(), point.z()};
     if (!java::Double::isFinite(tolerance) || tolerance < 0) return GeometryContainment::InvalidInput;
-    double excess[3] = {0,0,0};
     bool outside = false;
-    bool nearInsideFace = false;
+    bool onFace = false;
     for (int i = 0; i < 3; ++i) {
-        if (!java::Double::isFinite(dimensions[i]) || dimensions[i] <= 0 ||
+        const double dimension = maximum[i] - minimum[i];
+        if (!java::Double::isFinite(dimension) || dimension <= 0 ||
             !java::Double::isFinite(coordinates[i])) return GeometryContainment::InvalidInput;
         if (!java::Double::isFinite(minimum[i]) || !java::Double::isFinite(maximum[i]) ||
-            dimensions[i] / 2 == 0) return GeometryContainment::Indeterminate;
-        if (coordinates[i] < minimum[i] || coordinates[i] > maximum[i]) {
-            outside = true;
-            excess[i] = coordinates[i] < minimum[i] ? minimum[i] - coordinates[i] : coordinates[i] - maximum[i];
-        } else if (coordinates[i] - minimum[i] <= tolerance || maximum[i] - coordinates[i] <= tolerance) {
-            nearInsideFace = true;
-        }
+            dimension / 2 == 0) return GeometryContainment::Indeterminate;
+        if (coordinates[i] < minimum[i] || coordinates[i] > maximum[i]) outside = true;
+        else if (coordinates[i] == minimum[i] || coordinates[i] == maximum[i]) onFace = true;
     }
-    if (!outside) return nearInsideFace ? GeometryContainment::Boundary : GeometryContainment::Inside;
-    if (tolerance == 0) return GeometryContainment::Outside;
-    double scaledSquared = 0;
+    if (outside) return GeometryContainment::Outside;
+    return onFace ? GeometryContainment::Boundary : GeometryContainment::Inside;
+}
+
+GeometryContainment Box::classifyBoxCertified(const Vector3Dd& center, const Vector3Dd& halfWidths) const {
+    const double minimum[3] = {bounds[0].x(), bounds[0].y(), bounds[0].z()};
+    const double maximum[3] = {bounds[1].x(), bounds[1].y(), bounds[1].z()};
+    const double c[3] = {center.x(), center.y(), center.z()};
+    const double h[3] = {halfWidths.x(), halfWidths.y(), halfWidths.z()};
     for (int i = 0; i < 3; ++i) {
-        if (excess[i] > tolerance) return GeometryContainment::Outside;
-        const double scaled = excess[i] / tolerance;
-        scaledSquared += scaled * scaled;
+        if (!java::Double::isFinite(c[i]) || !java::Double::isFinite(h[i]) || h[i] < 0)
+            return GeometryContainment::InvalidInput;
+        if (!java::Double::isFinite(minimum[i]) || !java::Double::isFinite(maximum[i]))
+            return GeometryContainment::Indeterminate;
+        if (!(minimum[i] < maximum[i])) return GeometryContainment::InvalidInput;
     }
-    return scaledSquared <= 1 ? GeometryContainment::Boundary : GeometryContainment::Outside;
+    if (!FloatingInterval::isSupportedEnvironment()) return GeometryContainment::Unsupported;
+    bool inside = true;
+    for (int i = 0; i < 3; ++i) {
+        const FloatingInterval range = FloatingInterval::around(c[i], h[i]);
+        if (!range.isValid()) return GeometryContainment::Indeterminate;
+        if (range.getUpper() < minimum[i] || range.getLower() > maximum[i]) return GeometryContainment::Outside;
+        if (!(range.getLower() > minimum[i] && range.getUpper() < maximum[i])) inside = false;
+    }
+    return inside ? GeometryContainment::Inside : GeometryContainment::Indeterminate;
+}
+
+GeometryContainment Box::classifyPointCertified(const Vector3Dd& point, double tolerance) const {
+    const double minimum[3] = {bounds[0].x(), bounds[0].y(), bounds[0].z()};
+    const double maximum[3] = {bounds[1].x(), bounds[1].y(), bounds[1].z()};
+    const double coordinates[3] = {point.x(), point.y(), point.z()};
+    if (!java::Double::isFinite(tolerance) || tolerance < 0) return GeometryContainment::InvalidInput;
+    for (int i = 0; i < 3; ++i) {
+        if (!java::Double::isFinite(coordinates[i])) return GeometryContainment::InvalidInput;
+        if (!java::Double::isFinite(minimum[i]) || !java::Double::isFinite(maximum[i]))
+            return GeometryContainment::Indeterminate;
+        if (!(minimum[i] < maximum[i])) return GeometryContainment::InvalidInput;
+    }
+    if (!FloatingInterval::isSupportedEnvironment()) return GeometryContainment::Unsupported;
+    bool inside = true;
+    for (int i = 0; i < 3; ++i)
+        if (coordinates[i] < minimum[i] || coordinates[i] > maximum[i]) inside = false;
+    if (inside) {
+        // The distance to the boundary is the smallest face distance.
+        bool deep = true, near = false;
+        for (int i = 0; i < 3; ++i) {
+            if (coordinates[i] == minimum[i] || coordinates[i] == maximum[i]) { near = true; deep = false; continue; }
+            const FloatingInterval low = FloatingInterval::exact(coordinates[i]).subtract(FloatingInterval::exact(minimum[i]));
+            const FloatingInterval high = FloatingInterval::exact(maximum[i]).subtract(FloatingInterval::exact(coordinates[i]));
+            if (!low.isValid() || !high.isValid()) return GeometryContainment::Indeterminate;
+            if (!(low.getLower() > tolerance) || !(high.getLower() > tolerance)) deep = false;
+            if (low.getUpper() <= tolerance || high.getUpper() <= tolerance) near = true;
+        }
+        if (deep) return GeometryContainment::Inside;
+        return near ? GeometryContainment::Boundary : GeometryContainment::Indeterminate;
+    }
+    FloatingInterval squared = FloatingInterval::exact(0);
+    for (int i = 0; i < 3; ++i) {
+        if (coordinates[i] < minimum[i])
+            squared = squared.add(FloatingInterval::exact(minimum[i]).subtract(FloatingInterval::exact(coordinates[i])).square());
+        else if (coordinates[i] > maximum[i])
+            squared = squared.add(FloatingInterval::exact(coordinates[i]).subtract(FloatingInterval::exact(maximum[i])).square());
+    }
+    const FloatingInterval distance = squared.squareRoot();
+    if (!distance.isValid()) return GeometryContainment::Indeterminate;
+    if (distance.getLower() > tolerance) return GeometryContainment::Outside;
+    return distance.getUpper() <= tolerance ? GeometryContainment::Boundary : GeometryContainment::Indeterminate;
 }
 
 // Slab intersection in the original affine ray parameterization. A ray that

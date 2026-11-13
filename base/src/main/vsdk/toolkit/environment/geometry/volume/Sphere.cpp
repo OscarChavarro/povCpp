@@ -146,25 +146,55 @@ Sphere::fillSurfaceDetail(const Ray& inRay, double inT, RayHit* outData) const {
 }
 
 GeometryContainment
+Sphere::classifyBoxCertified(const Vector3Dd& center, const Vector3Dd& halfWidths) const {
+    if (!java::Double::isFinite(radius) || radius <= 0) return GeometryContainment::InvalidInput;
+    if (!FloatingInterval::isSupportedEnvironment()) return GeometryContainment::Unsupported;
+    const double c[3] = {center.x(), center.y(), center.z()};
+    const double h[3] = {halfWidths.x(), halfWidths.y(), halfWidths.z()};
+    // Squared distances from the centre to the farthest and nearest box points.
+    FloatingInterval farthest = FloatingInterval::exact(0), nearest = FloatingInterval::exact(0);
+    for (int i = 0; i < 3; ++i) {
+        const FloatingInterval range = FloatingInterval::around(c[i], h[i]);
+        if (!range.isValid()) return GeometryContainment::InvalidInput;
+        const double extreme = java::Math::max(java::Math::abs(range.getLower()), java::Math::abs(range.getUpper()));
+        farthest = farthest.add(FloatingInterval::exact(extreme).square());
+        if (range.getLower() > 0) nearest = nearest.add(FloatingInterval::exact(range.getLower()).square());
+        else if (range.getUpper() < 0) nearest = nearest.add(FloatingInterval::exact(range.getUpper()).square());
+    }
+    const FloatingInterval squaredRadius = FloatingInterval::exact(radius).square();
+    if (!farthest.isValid() || !nearest.isValid() || !squaredRadius.isValid()) return GeometryContainment::Indeterminate;
+    if (farthest.getUpper() < squaredRadius.getLower()) return GeometryContainment::Inside;
+    if (nearest.getLower() > squaredRadius.getUpper()) return GeometryContainment::Outside;
+    return GeometryContainment::Indeterminate;
+}
+
+GeometryContainment
+Sphere::classifyPointCertified(const Vector3Dd& p, double distanceTolerance) const {
+    if (!java::Double::isFinite(radius) || radius <= 0 ||
+        !java::Double::isFinite(distanceTolerance) || distanceTolerance < 0 ||
+        !java::Double::isFinite(p.x()) || !java::Double::isFinite(p.y()) ||
+        !java::Double::isFinite(p.z())) return GeometryContainment::InvalidInput;
+    if (!FloatingInterval::isSupportedEnvironment()) return GeometryContainment::Unsupported;
+    FloatingInterval squared=FloatingInterval::exact(0);
+    squared=squared.add(FloatingInterval::exact(p.x()).square());
+    squared=squared.add(FloatingInterval::exact(p.y()).square());
+    squared=squared.add(FloatingInterval::exact(p.z()).square());
+    const FloatingInterval signedDistance=squared.squareRoot().subtract(FloatingInterval::exact(radius));
+    if (!signedDistance.isValid()) return GeometryContainment::Indeterminate;
+    if (signedDistance.getUpper() < -distanceTolerance) return GeometryContainment::Inside;
+    if (signedDistance.getLower() > distanceTolerance) return GeometryContainment::Outside;
+    if (signedDistance.getLower() >= -distanceTolerance && signedDistance.getUpper() <= distanceTolerance)
+        return GeometryContainment::Boundary;
+    return GeometryContainment::Indeterminate;
+}
+
+GeometryContainment
 Sphere::classifyPoint(const Vector3Dd& p, double distanceTolerance) const {
     if (!java::Double::isFinite(radius) || radius <= 0 ||
         !java::Double::isFinite(distanceTolerance) || distanceTolerance < 0 ||
         !java::Double::isFinite(p.x()) || !java::Double::isFinite(p.y()) ||
         !java::Double::isFinite(p.z())) return GeometryContainment::InvalidInput;
-    if (distanceTolerance>0) {
-        if (!FloatingInterval::isSupportedEnvironment()) return GeometryContainment::Unsupported;
-        FloatingInterval squared=FloatingInterval::exact(0);
-        squared=squared.add(FloatingInterval::exact(p.x()).square());
-        squared=squared.add(FloatingInterval::exact(p.y()).square());
-        squared=squared.add(FloatingInterval::exact(p.z()).square());
-        const FloatingInterval signedDistance=squared.squareRoot().subtract(FloatingInterval::exact(radius));
-        if (!signedDistance.isValid()) return GeometryContainment::Indeterminate;
-        if (signedDistance.getUpper() < -distanceTolerance) return GeometryContainment::Inside;
-        if (signedDistance.getLower() > distanceTolerance) return GeometryContainment::Outside;
-        if (signedDistance.getLower() >= -distanceTolerance && signedDistance.getUpper() <= distanceTolerance)
-            return GeometryContainment::Boundary;
-        return GeometryContainment::Indeterminate;
-    }
+    if (distanceTolerance>0) return classifyPointCertified(p, distanceTolerance);
     const double squared = p.dotProduct(p);
     const double radiusSquaredValue = radius * radius;
     if (!java::Double::isFinite(squared) || !java::Double::isFinite(radius + distanceTolerance) ||

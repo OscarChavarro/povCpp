@@ -44,6 +44,9 @@ public:
 
     Ray* doIntersectionWithNegative(const Ray& inout_rayo);
 
+    // Legacy predicates in unnormalized plane units (Java parity). The half-space
+    // form classifies n.p + d <= 0; the surface form reports LIMIT on the plane
+    // and OUTSIDE elsewhere (its -INSIDE equals OUTSIDE).
     int doContainmentTestHalfSpace(const Vector3Dd& p, double distanceTolerance);
     virtual int doContainmentTest(const Vector3Dd& p, double distanceTolerance);
 

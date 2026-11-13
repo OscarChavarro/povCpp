@@ -37,5 +37,15 @@ RayFirstHitStatus Geometry::querySurfaceDetail(const Ray&, const RayBoundary&, R
     return RayFirstHitStatus::Unsupported;
 }
 
+GeometryContainment Geometry::classifyPointCertified(const Vector3Dd&, double) const
+{
+    return GeometryContainment::Unsupported;
+}
+
+GeometryContainment Geometry::classifyBoxCertified(const Vector3Dd&, const Vector3Dd&) const
+{
+    return GeometryContainment::Unsupported;
+}
+
 GeometryContainment Geometry::classifyPoint(const Vector3Dd&, double) const
 { return GeometryContainment::Unsupported; }

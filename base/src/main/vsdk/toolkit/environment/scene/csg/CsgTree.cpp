@@ -1,5 +1,7 @@
+#include <typeinfo>
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/environment/scene/csg/CsgTree.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgExpressionEquivalence.h"
 
 CsgTree::CsgTree(CsgOperation value) : operation(value), operands(4) {}
 CsgTree::~CsgTree() {}
@@ -38,3 +40,8 @@ Matrix4x4d CsgTree::getAffinePlacement() const { return Matrix4x4d::identityMatr
 AffinePlacementStatus CsgTree::queryAffinePlacement(Matrix4x4d& forward, Matrix4x4d& inverse) const
 { forward = Matrix4x4d::identityMatrix(); inverse = forward; return AffinePlacementStatus::Valid; }
 const CsgExpression* CsgTree::getChildExpression() const { return this; }
+
+bool CsgTree::isSameSolid(const CsgOperandView& other) const
+{ return CsgExpressionEquivalence::same(*this,other); }
+
+bool CsgTree::isStructuralTraversalSafe() const { return typeid(*this)==typeid(CsgTree); }

@@ -48,6 +48,8 @@ public:
         RayHit* outHit);
     virtual void doExtraInformation(const Ray& inRay, double inT, RayHit* outData);
     GeometryContainment classifyPoint(const Vector3Dd& p, double distanceTolerance) const override;
+    GeometryContainment classifyPointCertified(const Vector3Dd& p, double distanceTolerance) const override;
+    GeometryContainment classifyBoxCertified(const Vector3Dd& center, const Vector3Dd& halfWidths) const override;
     virtual int doContainmentTest(const Vector3Dd& p, double distanceTolerance);
     void getBounds(GeometryBounds& result) const override;
     virtual double* getMinMax();

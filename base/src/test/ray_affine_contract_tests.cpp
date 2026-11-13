@@ -1,3 +1,4 @@
+#include "vsdk/toolkit/environment/geometry/volume/Cone.h"
 #include <gtest/gtest.h>
 #include <fenv.h>
 #include "java/lang/Double.h"
@@ -161,6 +162,9 @@ TEST(EllipsoidDistanceBoundsContract, SceneExposesCertifiedEnclosuresAndContainm
     EXPECT_EQ(GeometryContainment::InvalidInput,body.classifyPointCertified(Vector3Dd(),-1));
     Box box(1,1,1);
     body.setGeometryReference(&box);
+    EXPECT_EQ(GeometryContainment::Inside,body.classifyPointCertified(Vector3Dd(),0.1));
+    Cone cone(1,1,1);
+    body.setGeometryReference(&cone);
     EXPECT_EQ(GeometryContainment::Unsupported,body.classifyPointCertified(Vector3Dd(),0.1));
 }
 
@@ -997,7 +1001,12 @@ TEST(BoxContract, InstancePreservesAffineParameterAndProvenance) {
     RayInstanceStep step;
     ASSERT_TRUE(workspace.solidResult().boundaries[0].getInstance(0, step));
     EXPECT_EQ(&body, step.instance);
-    EXPECT_EQ(GeometryContainment::Indeterminate, body.classifyPoint(Vector3Dd(10,0,0), 0.1));
+    // Certified under the reflected nonuniform placement: world x in [8,12],
+    // y in [-3,3], z in [-1,1].
+    EXPECT_EQ(GeometryContainment::Inside, body.classifyPoint(Vector3Dd(10,0,0), 0.1));
+    EXPECT_EQ(GeometryContainment::Boundary, body.classifyPoint(Vector3Dd(12.05,0,0), 0.1));
+    EXPECT_EQ(GeometryContainment::Boundary, body.classifyPoint(Vector3Dd(10,2.95,0), 0.1));
+    EXPECT_EQ(GeometryContainment::Outside, body.classifyPoint(Vector3Dd(7.8,0,0), 0.1));
 }
 
 TEST(PlanarHalfSpaceContract, ReflectedInstanceKeepsBoundaryAndInterior) {
@@ -1890,4 +1899,51 @@ TEST(FloatingIntervalContract, DeterministicStressContainsExactRationalBounds) {
         EXPECT_LE(result.getLower(),cases[i][3]) << i;
         EXPECT_GE(result.getUpper(),cases[i][4]) << i;
     }
+}
+
+#include "vsdk/toolkit/environment/scene/csg/CsgPointClassification.h"
+TEST(CsgPointClassificationContract, PlacedSpheresAndNestedBooleanOperations) {
+    SimpleBody a, b;
+    a.setGeometry(new Sphere(2)); b.setGeometry(new Sphere(1));
+    b.setPosition(Vector3Dd(1,0,0));
+    CsgBodyOperand aOperand(a), bOperand(b);
+    CsgTree united(CsgOperation::UNION), intersected(CsgOperation::INTERSECTION), difference(CsgOperation::DIFFERENCE);
+    ASSERT_TRUE(united.addOperand(aOperand)); ASSERT_TRUE(united.addOperand(bOperand));
+    ASSERT_TRUE(intersected.addOperand(aOperand)); ASSERT_TRUE(intersected.addOperand(bOperand));
+    ASSERT_TRUE(difference.addOperand(aOperand)); ASSERT_TRUE(difference.addOperand(bOperand));
+    EXPECT_EQ(GeometryContainment::Inside,CsgPointClassification::classify(united,Vector3Dd(-1,0,0),0.1));
+    EXPECT_EQ(GeometryContainment::Outside,CsgPointClassification::classify(united,Vector3Dd(4,0,0),0.1));
+    EXPECT_EQ(GeometryContainment::Inside,CsgPointClassification::classify(intersected,Vector3Dd(1,0,0),0.1));
+    EXPECT_EQ(GeometryContainment::Outside,CsgPointClassification::classify(intersected,Vector3Dd(-1,0,0),0.1));
+    EXPECT_EQ(GeometryContainment::Inside,CsgPointClassification::classify(difference,Vector3Dd(-1,0,0),0.1));
+    EXPECT_EQ(GeometryContainment::Outside,CsgPointClassification::classify(difference,Vector3Dd(1,0,0),0.1));
+    EXPECT_EQ(GeometryContainment::Boundary,CsgPointClassification::classify(difference,Vector3Dd(0,0,0),0.1));
+    CsgTree nested(CsgOperation::INTERSECTION);
+    ASSERT_TRUE(nested.addOperand(united)); ASSERT_TRUE(nested.addOperand(aOperand));
+    EXPECT_EQ(GeometryContainment::Inside,CsgPointClassification::classify(nested,Vector3Dd(-1,0,0),0.1));
+    EXPECT_EQ(GeometryContainment::InvalidInput,CsgPointClassification::classify(nested,Vector3Dd(),-1));
+    CsgTree empty(CsgOperation::UNION);
+    EXPECT_EQ(GeometryContainment::InvalidInput,CsgPointClassification::classify(empty,Vector3Dd(),0));
+}
+
+#include "CsgTestOperand.h"
+TEST(CsgPointClassificationContract, PreservesUncertaintyAndProvesMaskedResults) {
+    CsgTestOperand inside(GeometryContainment::Inside), outside(GeometryContainment::Outside);
+    CsgTestOperand boundary(GeometryContainment::Boundary), unknown(GeometryContainment::Indeterminate);
+    CsgTestOperand unsupported(GeometryContainment::Unsupported), invalid(GeometryContainment::InvalidInput);
+    CsgTree hiddenBoundary(CsgOperation::UNION), exposedBoundary(CsgOperation::UNION);
+    ASSERT_TRUE(hiddenBoundary.addOperand(inside)); ASSERT_TRUE(hiddenBoundary.addOperand(boundary));
+    ASSERT_TRUE(exposedBoundary.addOperand(outside)); ASSERT_TRUE(exposedBoundary.addOperand(boundary));
+    EXPECT_EQ(GeometryContainment::Inside,CsgPointClassification::classify(hiddenBoundary,Vector3Dd(),0.1));
+    EXPECT_EQ(GeometryContainment::Boundary,CsgPointClassification::classify(exposedBoundary,Vector3Dd(),0.1));
+    CsgTree unknownUnion(CsgOperation::UNION), unknownIntersection(CsgOperation::INTERSECTION);
+    ASSERT_TRUE(unknownUnion.addOperand(outside)); ASSERT_TRUE(unknownUnion.addOperand(unknown));
+    ASSERT_TRUE(unknownIntersection.addOperand(inside)); ASSERT_TRUE(unknownIntersection.addOperand(unsupported));
+    EXPECT_EQ(GeometryContainment::Indeterminate,CsgPointClassification::classify(unknownUnion,Vector3Dd(),0.1));
+    EXPECT_EQ(GeometryContainment::Unsupported,CsgPointClassification::classify(unknownIntersection,Vector3Dd(),0.1));
+    CsgTree decisive(CsgOperation::INTERSECTION), malformed(CsgOperation::UNION);
+    ASSERT_TRUE(decisive.addOperand(outside)); ASSERT_TRUE(decisive.addOperand(unknown));
+    ASSERT_TRUE(malformed.addOperand(inside)); ASSERT_TRUE(malformed.addOperand(invalid));
+    EXPECT_EQ(GeometryContainment::Outside,CsgPointClassification::classify(decisive,Vector3Dd(),0.1));
+    EXPECT_EQ(GeometryContainment::InvalidInput,CsgPointClassification::classify(malformed,Vector3Dd(),0.1));
 }

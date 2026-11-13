@@ -341,36 +341,141 @@ does not imply that a later evaluator is already operational:
 | Subphase | Scope | Status and exit condition |
 |---|---|---|
 | E.1 — Primitive query contract | Provide certified distance and containment operations, explicit uncertainty, and the zero-tolerance path for affine spheres. Make these operations available through VITRAL scene bodies and supported POV sphere leaves, including placement and inversion. | **Complete.** The original ellipsoid regression and independent numerical tests pass; unsupported or indeterminate cases remain explicit. This subphase supplies the operations, not composite evaluation. |
-| F.1 — Composition and scene policies | Extend the shared operations to other placed primitives and POV clipping/bounding policies. Propagate typed results through scene instances and CSG composition, including attribution, difference orientation and conservative tolerance-aware culling. Audit legacy integer adapters and prevent silent conversion of uncertainty. | **Pending.** Composition and scene-policy paths preserve the contract end to end; unsupported and indeterminate cases are explicit. |
-| G.1 — Evaluator adoption | Integrate the shared composition and typed queries into both the original POV heuristic and Roth evaluator, with their respective event combination, boundary, provenance and uncertainty policies. | **Pending.** Both evaluators are exercised against shared primitives and compositions, with their documented differences and no silent classification of uncertainty. |
+| F.1 — Composition and scene policies | Extend the shared operations to other placed primitives and POV clipping/bounding policies. Propagate typed results through scene instances and CSG composition, including attribution, difference orientation and conservative tolerance-aware culling. Audit legacy integer adapters and prevent silent conversion of uncertainty. | **Complete.** Sphere, box, half-space and quadric leaves are certified at zero and positive world tolerance under any valid affine placement, through one shared placed-solid routine used by VITRAL bodies, POV leaves and CSG leaves. CSG expressions have conservative solid bounds and cull only proven-disjoint leaves. POV `clipped_by` point queries are a shared intersection; `bounded_by` is used only when certified to contain the body. Affine edits move owned regions atomically or are rejected. Legacy integer adapters are documented or throw. Ray classification of clipped or bounded bodies remains `Unsupported` until the G Boolean event combiner exists. |
+| G.1 — Evaluator adoption | Integrate the shared composition and typed queries into both the original POV heuristic and Roth evaluator, with their respective event combination, boundary, provenance and uncertainty policies, including ray classification of POV bodies with `clipped_by`/`bounded_by` regions. | **Pending.** Both evaluators are exercised against shared primitives and compositions, with their documented differences and no silent classification of uncertainty. |
+
+Stage F status (complete):
+
+- **Complete:** conservative world-space point containment through affine-placed
+  shared CSG trees and typed VITRAL/POV body operands. Outward-rounded inner and
+  outer tolerance enclosures support nonuniform scale, shear and reflection.
+  Exposed single-operand boundaries and single-leaf proof paths retain difference
+  orientation; nested expressions, uncertainty and mixed scene bodies are tested.
+- **Complete:** multi-operand point evidence with leaf paths, local query values
+  and difference orientation. Typed ray leaf intervals and exact-parameter event
+  groups retain all coincident contributors, affine placement snapshots and
+  inversion parity. Unsupported or malformed leaves clear the whole result;
+  unimplemented POV clipping and owned bounds are explicit.
+- **Complete for the proven cases:** point-boundary attribution returns every
+  certified coincident owner, including nested paths and difference orientation,
+  while excluding cancelled or hidden surfaces. Unknown or ambiguous owner sets
+  remain unavailable.
+- **Complete for the proven cases (further work frozen):** exact equivalence
+  recognizes affine spheres via exact Gram
+  matrices, affine boxes via corresponding edges and corners, oriented planes and
+  quadrics via world coefficients, and spherical/linear quadrics across families.
+  The more general plane and quadric conversions require exactly representable
+  intermediate coefficients; unavailable proofs remain inconclusive. Compatible
+  POV bodies opt in only when inversion is represented in the core geometry and
+  no clipping or owned bounds intervene. Other families, general numerical
+  certificates and ambiguous boundary configurations remain open; Boolean
+  combination of crossing groups belongs to G. Equivalent leaf or structurally
+  safe subtree operands can reuse a sibling's certified point result with explicit
+  source and identity evidence. A subtree recipient has incomplete attribution
+  until its own owners can be resolved; unsupported/indeterminate cases without
+  evidence remain explicit. Shared trees also recognize associative/idempotent
+  union/intersection and unions of subtractors after an ordered difference
+  minuend, flattening only identity-placed known structural nodes.
+  Unknown scene views and expressions are not unpacked for equivalence, and
+  point/ray traversal requires both to opt in when their structure fully describes
+  the solid; unknown subclasses do not inherit that opt-in automatically.
+  Event grouping uses equality of reported binary64 parameters, not a proof that
+  nearby mathematical roots coincide. The actual evaluator policies belong to G.
+- **Complete:** certified point containment for sphere, box, half-space and
+  quadric at zero and positive world tolerance. Each family implements
+  `Geometry::classifyPointCertified` (local closed ball) and
+  `Geometry::classifyBoxCertified` (local box, `Inside`/`Outside` only).
+  `SimpleBody::classifyPlacedPointCertified` maps the world ball through the
+  placement with `AffineToleranceMap` and tries, in order, the identity path,
+  the enclosing local box, the outer and inner balls and a two-point world
+  proof; anything unproven is `Indeterminate`. `RayCastingBody` uses the same
+  routine for its core solid, so a placed sphere has one certificate.
+- **Complete:** conservative bounds. `GeometryBounds::transformed` rounds
+  outward; `inflated`, `intersecting` and `excludesBall` support culling.
+  `CsgSolidBounds` encloses unions, intersects intersections and uses the
+  minuend of a difference; `CsgPointClassification` culls a leaf as `Outside`
+  only when its solid bounds exclude the tolerance ball.
+- **Complete:** POV region policies for point queries. `clipped_by` is the
+  shared CSG intersection of the core solid (`RayCastingCoreOperand`) and each
+  clip; `bounded_by` is accepted only when the region is certified to contain
+  the core bounds, and otherwise the query is `Unsupported`. Solid world bounds
+  of clipped bodies are the intersection with the clip bounds.
+- **Complete:** placement editing. `RayCastingBody::setAffinePlacement` moves
+  owned regions by `new * old^-1` in a two-phase, all-or-nothing step; regions
+  that cannot be moved make the edit fail without changes.
+- **Complete:** adapter and estimator audit. Integer predicates inherited from
+  the Java port (`Geometry` default, `Box` band, `InfinitePlane` surface value,
+  cones, meshes) keep Java parity and are documented as legacy predicates;
+  adapters introduced during convergence (`Sphere`, `PlanarHalfSpace`,
+  `QuadricSurface`, `NativeGeometryBinding`) throw instead of converting
+  uncertainty. Typed scene and CSG paths never call `doContainmentTest`.
+  `estimateBoundaryDistance` and `AffineEllipsoidDistance` only propose
+  candidates inside `AffineEllipsoidMinimumDistance`; no decision depends on them.
+- **Moved to G:** ray classification of POV bodies with regions (needs Boolean
+  event combination), proof versioning (F-R2) and workspace reuse (F-R3).
+- **Ongoing through H:** extend these contracts to future geometry families as
+  they are adopted. Both CSG event evaluators adopt them in G.
+- **Frozen:** further exact-equivalence work (additional families, general
+  rotations, certificates beyond exactly representable intermediates). It
+  exceeds F's exit condition. Resume an item only when a G evaluator or an H
+  family demonstrably needs it.
+
+#### Stage F audit: non-conformities and risks
+
+A code audit of both projects at the start of the remaining F work found:
+
+| ID | Finding | Resolution |
+|---|---|---|
+| F-NC1 | The CSG point classifier queries leaves through `classifyPointCertified`, which supports only spheres in both `SimpleBody` and `RayCastingBody`. Box, half-space and quadric leaves are `Unsupported` in CSG point queries even at zero tolerance; equivalence-based proof reuse only partially masks this. | F-1 |
+| F-NC2 | Two levels of rigor share one name. Sphere positive tolerance uses outward-rounded intervals. `Box` and `PlanarHalfSpace` positive tolerance and the uniform-scale `SimpleBody` path (`tolerance / scale`) use round-to-nearest arithmetic and can misclassify points within rounding of the tolerance band. | F-1 |
+| F-NC3 | `RayCastingBody::classifyPointCertified` reimplements the placed-sphere search with a different strategy from `SimpleBody`, so the same placed sphere can be classified differently, which violates §4.2. | F-6 |
+| F-NC4 | Legacy integer adapters silently convert uncertainty. `Geometry::doContainmentTest` defaults to `OUTSIDE`. `QuadricSurface::doContainmentTest` compares the implicit value with the tolerance and maps NaN to `OUTSIDE`. `Box::doContainmentTest` uses a per-axis band that differs from `Box::classifyPoint`. `InfinitePlane::doContainmentTest` returns `-INSIDE` with an unnormalized tolerance. POV adapters (`RayCastingBox` ignoring tolerance, implicit-unit quadric/plane/sphere comparisons) are render policy and must remain byte-identical, but must be identified as such. | F-2 |
+| F-NC5 | `GeometryBounds::transformed` rounds to nearest, so a placed bound can shrink by an ulp. There is no tolerance inflation and no bounds query for CSG expressions, so "conservative culling" has no certified primitive. | F-3 |
+| F-NC6 | The execution record still used the stage letters from before E/F were inserted (evaluators in "F", scene in "H", removal in "I"). | Corrected |
+| F-R1 | The equivalence work (dyadic arithmetic, more than 1,300 rational fixtures, structural regrouping) grew faster than the basic per-family contract. | Frozen above |
+| F-R2 | Proofs, witnesses and attributions borrow scene identities without recording `modificationVersion`; stale use after an edit is detectable only by convention. | G: record versions before evaluators cache proofs |
+| F-R3 | CSG point/ray queries allocate `java::ArrayList` storage per node. Putting them on the per-ray path in G without workspace reuse risks the `renderAll.sh` performance gate. | G: use caller-owned workspaces and measure before adoption |
+
+#### Stage F exit checklist
+
+F is closed when all of the following hold, with the usual gates (VITRAL
+examples and tests, POV integration, example captures, `renderAll.sh` with
+baseline-identical images, Roth with only the seven accepted discrepancies,
+mirror audit):
+
+- [x] **F-1 Certified containment for basic families.** Sphere, box, half-space and
+  quadric support certified point classification at zero and positive
+  world-space tolerance under any valid affine placement (nonuniform scale,
+  shear, reflection). The same implementation serves VITRAL bodies, compatible
+  POV leaves and CSG leaves. A result is definite only when proven; otherwise it is
+  `Indeterminate`.
+- [x] **F-2 Legacy adapter audit.** Every shared integer adapter either represents
+  the typed result or raises an explicit error; none maps unsupported or
+  indeterminate results to `OUTSIDE`. POV historical comparisons stay unchanged
+  and are documented as application policy.
+- [x] **F-3 Conservative bounds and culling.** Outward-rounded world bounds, inflation
+  by a world tolerance, bounds for CSG expressions (union encloses all operands;
+  intersection lies within each operand; difference lies within its minuend), and a
+  culling predicate that culls only when disjointness is proven.
+- [x] **F-4 POV region policies.** Typed point classification for bodies with
+  `clipped_by` (intersection with the clip regions) and `bounded_by` (a culling
+  hint that never changes membership), preserving provenance; unsupported region
+  types remain explicit. Ray classification with regions returns `Unsupported`
+  and is completed by the G event combiner.
+- [x] **F-5 Placement editing.** Arbitrary affine edits of POV bodies with owned
+  regions either move the regions with the object or are rejected explicitly, as
+  documented; no partial edit.
+- [x] **F-6 One placed-sphere certificate.** POV and VITRAL bodies share one
+  certified placed-sphere classification routine.
+- [x] **F-7 Estimator audit.** `estimateBoundaryDistance` is never used to decide
+  containment or CSG results; its error remains documented as an estimate.
 
 Stage E is complete. The optional numerical estimator remains explicitly
-approximate; certifying or using its error as a guarantee is an F follow-up,
-not a condition for the already-certified enclosure delivered in E.
+approximate and is never used as a guarantee.
 
-The partially completed D work deferred specifically to F consists of:
-
-- Positive world-space tolerance for the shared box, half-space and quadric
-  containment paths when placement is nonuniform or sheared, and for POV sphere
-  bodies with clipping or owned bounds. Unclipped native-sphere scene queries
-  are covered by E. Quadric point containment currently supports zero tolerance only.
-- Propagating that tolerance and its indeterminate outcomes through instance and
-  common CSG composition, including difference orientation and provenance.
-- Conservative bounds and culling decisions that depend on the same world-space
-  tolerance after affine placement; uncertain cases must not be culled.
-- Applying the placement, bounds and query contracts to future geometry families;
-  complete each family as it is introduced in H, without blocking D on objects
-  that are not yet part of its basic primitive catalog.
-- Complete typed crossing and clipping/bounding-region policies for POV bodies
-  that still use the historical scene traversal, preserving attribution and
-  explicit failure states. Integrate those results with the G evaluators.
-- Support arbitrary affine edits of POV bodies with separately owned bounding or
-  clipping regions, and richer decomposed editing of arbitrary affine placements,
-  once ownership and editor semantics are defined. The current APIs explicitly
-  reject these unsupported edits rather than silently changing only part of a scene.
-- Audit the optional approximate nearest-distance estimator's fixed error value
-  before using it as a guarantee. Certified queries instead use interval-verified
-  bounds and return an explicit indeterminate or unsupported result when needed.
+The D work deferred to F is resolved as listed in the F status above. Applying
+the placement, bounds and query contracts to future geometry families continues
+in H as each family is adopted.
 
 Continue and close all independent D work before E: primitive uniqueness,
 zero-tolerance solid queries, authoritative affine placement and inverse,

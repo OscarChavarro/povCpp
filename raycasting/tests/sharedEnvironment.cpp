@@ -109,7 +109,7 @@ int main() {
         affineSegments.boundaries[0].geometry != affineSphere->getIntrinsicGeometry() ||
         affineSegments.boundaries[0].getInstanceCount()!=1 ||
         affineBody.classifyPoint(placement.multiply(Vector3Dd()),0) != GeometryContainment::Inside ||
-        affineBody.classifyPoint(placement.multiply(Vector3Dd()),0.1) != GeometryContainment::Indeterminate) return 123;
+        affineBody.classifyPoint(placement.multiply(Vector3Dd()),0.1) != GeometryContainment::Inside) return 123;
     TestCrossingCollector affineEvents;
     if (affineBody.emitRayCrossings(affineRay,RayCrossingQuery(0,10),affineEvents) != RayCrossingSupport::Supported ||
         affineEvents.hits.size()!=2 || affineEvents.hits[0]->geometry != affineSphere->getIntrinsicGeometry() ||
@@ -120,7 +120,8 @@ int main() {
     if (affineBody.classifyRay(affineRay,RayCrossingQuery(0,10),affineSegments) != RaySolidQueryStatus::Supported ||
         !affineSegments.insideSegments[0] || affineSegments.insideSegments[1] ||
         !affineSegments.insideSegments[2] || !affineSegments.boundaries[0].normalReversed ||
-        affineBody.classifyPoint(placement.multiply(Vector3Dd()),0) != GeometryContainment::Outside) return 124;
+        affineBody.classifyPoint(placement.multiply(Vector3Dd()),0) != GeometryContainment::Outside ||
+        affineBody.classifyPoint(placement.multiply(Vector3Dd()),0.1) != GeometryContainment::Outside) return 124;
     TestCrossingCollector invertedAffineEvents;
     if (affineBody.emitRayCrossings(affineRay,RayCrossingQuery(0,10),invertedAffineEvents) != RayCrossingSupport::Supported ||
         invertedAffineEvents.hits.size()!=2 || !invertedAffineEvents.hits[0]->normalReversed ||

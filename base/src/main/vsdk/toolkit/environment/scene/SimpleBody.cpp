@@ -1,3 +1,4 @@
+#include <typeinfo>
 #include <cfloat>
 #include <cmath>
 
@@ -20,6 +21,9 @@
 #include "vsdk/toolkit/environment/geometry/volume/Sphere.h"
 #include "vsdk/toolkit/environment/geometry/geometricProcessing/SurfaceRayIntersection.h"
 #include "vsdk/toolkit/environment/scene/SimpleBody.h"
+#include "vsdk/toolkit/environment/geometry/volume/Solid.h"
+#include "vsdk/toolkit/environment/scene/AffineToleranceMap.h"
+#include "vsdk/toolkit/common/numerics/FloatingInterval.h"
 #include "vsdk/toolkit/environment/scene/AffinePlacement.h"
 #include "vsdk/toolkit/environment/geometry/volume/AffineEllipsoidDistance.h"
 #include "vsdk/toolkit/environment/geometry/volume/AffineEllipsoidDistanceBounds.h"
@@ -256,6 +260,53 @@ void SimpleBody::getWorldBounds(GeometryBounds& result) const
     GeometryBounds local;
     shape->getBounds(local);
     result = local.transformed(getAffinePlacement());
+}
+
+void SimpleBody::getSolidWorldBounds(GeometryBounds& result) const
+{
+    if (typeid(*this)!=typeid(SimpleBody) || dynamic_cast<const Solid*>(getGeometry())==nullptr) {
+        result.setUnsupported();
+        return;
+    }
+    getWorldBounds(result);
+}
+
+GeometryContainment SimpleBody::classifyWorldBoxCertified(const GeometryBounds& box) const
+{
+    if (typeid(*this)!=typeid(SimpleBody) || geometry==nullptr) return GeometryContainment::Unsupported;
+    Matrix4x4d forward,inverse;
+    const AffinePlacementStatus placement=queryAffinePlacement(forward,inverse);
+    if (placement==AffinePlacementStatus::Invalid) return GeometryContainment::InvalidInput;
+    if (placement==AffinePlacementStatus::Unsupported) return GeometryContainment::Unsupported;
+    if (placement==AffinePlacementStatus::Indeterminate) return GeometryContainment::Indeterminate;
+    return classifyPlacedBoxCertified(*geometry,false,inverse,box);
+}
+
+GeometryContainment SimpleBody::classifyPlacedBoxCertified(const Geometry& geometry, bool inverted,
+    const Matrix4x4d& inverse, const GeometryBounds& box)
+{
+    if (box.getKind()==GeometryBounds::Kind::Unsupported) return GeometryContainment::Unsupported;
+    if (box.getKind()!=GeometryBounds::Kind::Finite) return GeometryContainment::Indeterminate;
+    // The conservative local bounds of the box's preimage, as centre and
+    // outward-rounded half widths.
+    const GeometryBounds local=box.transformed(inverse);
+    if (local.getKind()!=GeometryBounds::Kind::Finite) return GeometryContainment::Indeterminate;
+    const double lo[3]={local.getMinimum().x(),local.getMinimum().y(),local.getMinimum().z()};
+    const double hi[3]={local.getMaximum().x(),local.getMaximum().y(),local.getMaximum().z()};
+    double centre[3], half[3];
+    for (int i=0;i<3;++i) {
+        centre[i]=lo[i]*0.5+hi[i]*0.5;
+        const FloatingInterval below=FloatingInterval::exact(centre[i]).subtract(FloatingInterval::exact(lo[i]));
+        const FloatingInterval above=FloatingInterval::exact(hi[i]).subtract(FloatingInterval::exact(centre[i]));
+        if (!java::Double::isFinite(centre[i]) || !below.isValid() || !above.isValid())
+            return GeometryContainment::Indeterminate;
+        half[i]=java::Math::max(java::Math::max(below.getUpper(),above.getUpper()),0.0);
+    }
+    const GeometryContainment result=geometry.classifyBoxCertified(Vector3Dd(centre[0],centre[1],centre[2]),
+        Vector3Dd(half[0],half[1],half[2]));
+    if (inverted && result==GeometryContainment::Inside) return GeometryContainment::Outside;
+    if (inverted && result==GeometryContainment::Outside) return GeometryContainment::Inside;
+    return result;
 }
 
 void SimpleBody::setScale(const Vector3Dd& s)
@@ -753,27 +804,114 @@ GeometryDistanceStatus SimpleBody::encloseBoundaryDistance(const Vector3Dd& poin
         forward,localDirection,side,lower,upper);
 }
 
-GeometryContainment SimpleBody::classifyPointCertified(const Vector3Dd& point, double tolerance) const
+const Geometry* SimpleBody::getSolidEquivalenceGeometry() const
 {
-    return classifyPointCertifiedWithLimit(point,tolerance,128);
+    return typeid(*this)==typeid(SimpleBody) ? getGeometry() : nullptr;
 }
 
-GeometryContainment SimpleBody::classifyPointCertifiedWithLimit(const Vector3Dd& point,
-    double tolerance, int iterationLimit) const
+GeometryContainment SimpleBody::classifyPointCertified(const Vector3Dd& point, double tolerance) const
 {
     if (!java::Double::isFinite(point.x()) || !java::Double::isFinite(point.y()) ||
         !java::Double::isFinite(point.z()) || !java::Double::isFinite(tolerance) || tolerance<0)
         return GeometryContainment::InvalidInput;
-    if (!geometryIsSphere) return GeometryContainment::Unsupported;
+    if (geometry==nullptr) return GeometryContainment::Unsupported;
     Matrix4x4d forward,inverse;
     const AffinePlacementStatus placement=queryAffinePlacement(forward,inverse);
     if (placement==AffinePlacementStatus::Invalid) return GeometryContainment::InvalidInput;
     if (placement==AffinePlacementStatus::Unsupported) return GeometryContainment::Unsupported;
     if (placement==AffinePlacementStatus::Indeterminate) return GeometryContainment::Indeterminate;
+    return classifyPlacedPointCertified(*geometry,false,forward,inverse,point,tolerance);
+}
+
+GeometryContainment SimpleBody::classifyPlacedPointCertified(const Geometry& geometry, bool inverted,
+    const Matrix4x4d& forward, const Matrix4x4d& inverse, const Vector3Dd& point, double tolerance)
+{
+    if (!java::Double::isFinite(point.x()) || !java::Double::isFinite(point.y()) ||
+        !java::Double::isFinite(point.z()) || !java::Double::isFinite(tolerance) || tolerance<0)
+        return GeometryContainment::InvalidInput;
+    const Sphere* sphere=dynamic_cast<const Sphere*>(&geometry);
+    const GeometryContainment result=sphere ?
+        classifyPlacedSphereCertified(sphere->getRadius(),forward,inverse,point,tolerance,128) :
+        classifyPlacedSolidCertified(geometry,forward,point,tolerance);
+    if (inverted && result==GeometryContainment::Inside) return GeometryContainment::Outside;
+    if (inverted && result==GeometryContainment::Outside) return GeometryContainment::Inside;
+    return result;
+}
+
+GeometryContainment SimpleBody::classifyPlacedSolidCertified(const Geometry& geometry,
+    const Matrix4x4d& forward, const Vector3Dd& point, double tolerance)
+{
+    bool identity=true;
+    for (int row=0;row<4;++row) for (int column=0;column<4;++column)
+        if (forward.get(row,column)!=(row==column ? 1.0 : 0.0)) identity=false;
+    if (identity) return geometry.classifyPointCertified(point,tolerance);
+    Vector3Dd local, halfWidths;
+    double outer=0,inner=-1;
+    const AffinePlacementStatus mapped=AffineToleranceMap::map(forward,point,tolerance,local,outer,&inner,&halfWidths);
+    if (mapped==AffinePlacementStatus::Invalid) return GeometryContainment::InvalidInput;
+    if (mapped==AffinePlacementStatus::Unsupported) return GeometryContainment::Unsupported;
+    if (mapped!=AffinePlacementStatus::Valid) return GeometryContainment::Indeterminate;
+    // The axis-aligned local box also contains the preimage and is tighter
+    // under anisotropic placement; it can only prove Inside or Outside.
+    const GeometryContainment region=geometry.classifyBoxCertified(local,halfWidths);
+    if (region==GeometryContainment::Inside || region==GeometryContainment::Outside ||
+        region==GeometryContainment::InvalidInput) return region;
+    // The outer local ball contains the preimage of the world ball, so a
+    // definite side for it is a definite world side. A zero outer radius means
+    // the preimage is exactly the local point.
+    const GeometryContainment result=geometry.classifyPointCertified(local,outer);
+    if (result==GeometryContainment::Inside || result==GeometryContainment::Outside ||
+        result==GeometryContainment::InvalidInput || result==GeometryContainment::Unsupported) return result;
+    if (result==GeometryContainment::Boundary && outer==0) return result;
+    // A boundary inside the inner local ball maps inside the world ball.
+    if (inner>0) {
+        const GeometryContainment near=geometry.classifyPointCertified(local,inner);
+        if (near==GeometryContainment::Boundary || near==GeometryContainment::InvalidInput ||
+            near==GeometryContainment::Unsupported) return near;
+    }
+    if (!(tolerance>0)) return GeometryContainment::Indeterminate;
+    // Under anisotropic placement the inner ball is small. Two world points of
+    // the (convex) tolerance ball with certified opposite membership prove a
+    // boundary point on the segment joining them.
+    const GeometryContainment centre=classifyPlacedSolidCertified(geometry,forward,point,0);
+    int centreSign=centre==GeometryContainment::Inside ? -1 : centre==GeometryContainment::Outside ? 1 : 0;
+    bool foundInside=centreSign<0, foundOutside=centreSign>0;
+    const double step=tolerance*(1.0-1.0/1048576.0);
+    const double diagonal=step/java::Math::sqrt(3.0)*(1.0-1.0/1048576.0);
+    for (int direction=0;direction<14;++direction) {
+        Vector3Dd offset;
+        if (direction<6) {
+            const double sign=direction%2==0 ? 1.0 : -1.0;
+            offset=Vector3Dd(direction/2==0 ? sign*step : 0, direction/2==1 ? sign*step : 0,
+                direction/2==2 ? sign*step : 0);
+        } else {
+            const int corner=direction-6;
+            offset=Vector3Dd(corner&1 ? -diagonal : diagonal, corner&2 ? -diagonal : diagonal,
+                corner&4 ? -diagonal : diagonal);
+        }
+        const Vector3Dd sample=point.add(offset);
+        FloatingInterval squared=FloatingInterval::exact(0);
+        squared=squared.add(FloatingInterval::exact(sample.x()).subtract(FloatingInterval::exact(point.x())).square());
+        squared=squared.add(FloatingInterval::exact(sample.y()).subtract(FloatingInterval::exact(point.y())).square());
+        squared=squared.add(FloatingInterval::exact(sample.z()).subtract(FloatingInterval::exact(point.z())).square());
+        const FloatingInterval distance=squared.squareRoot();
+        if (!distance.isValid() || distance.getUpper()>tolerance) continue;
+        const GeometryContainment side=classifyPlacedSolidCertified(geometry,forward,sample,0);
+        if (side==GeometryContainment::Inside) foundInside=true;
+        else if (side==GeometryContainment::Outside) foundOutside=true;
+        else if (side==GeometryContainment::Boundary) return GeometryContainment::Boundary;
+        if (foundInside && foundOutside) return GeometryContainment::Boundary;
+    }
+    return GeometryContainment::Indeterminate;
+}
+
+GeometryContainment SimpleBody::classifyPlacedSphereCertified(double radius,
+    const Matrix4x4d& forward, const Matrix4x4d& inverse, const Vector3Dd& point,
+    double tolerance, int iterationLimit)
+{
     Vector3Dd seed=inverse.multiply(point);
     if (!java::Double::isFinite(seed.x()) || !java::Double::isFinite(seed.y()) ||
         !java::Double::isFinite(seed.z())) return GeometryContainment::Indeterminate;
-    const double radius=static_cast<const Sphere*>(geometry)->getRadius();
     const bool center=(point.x()==forward.get(0,3) && point.y()==forward.get(1,3) && point.z()==forward.get(2,3)) ||
         (seed.x()==0 && seed.y()==0 && seed.z()==0);
     const Vector3Dd axes[]={Vector3Dd(1,0,0),Vector3Dd(0,1,0),Vector3Dd(0,0,1)};
@@ -864,19 +1002,5 @@ GeometryContainment SimpleBody::classifyPoint(const Vector3Dd& point, double tol
             !java::Double::isFinite(local.z())) return GeometryContainment::Indeterminate;
         return geometry->classifyPoint(local, 0);
     }
-    if (geometryIsSphere) return classifyPointCertifiedWithLimit(point,tolerance,128);
-    if (!supportsDecomposedPlacement()) return GeometryContainment::Indeterminate;
-    const QueryPlacementStatus placement = queryPlacementStatus();
-    if (placement == QueryPlacementStatus::Invalid) return GeometryContainment::InvalidInput;
-    if (placement == QueryPlacementStatus::Indeterminate) return GeometryContainment::Indeterminate;
-    const double sx = java::Math::abs(scale.x()), sy = java::Math::abs(scale.y()), sz = java::Math::abs(scale.z());
-    if (tolerance > 0 && (sx != sy || sx != sz)) return GeometryContainment::Indeterminate;
-    const double localTolerance = tolerance == 0 ? 0 : tolerance / sx;
-    if (!java::Double::isFinite(localTolerance)) return GeometryContainment::Indeterminate;
-    const Matrix4x4d inverse = Matrix4x4d().scale(inverseScale)
-        .multiply(rotationInverse).multiply(Matrix4x4d().translation(position.multiply(-1)));
-    const Vector3Dd localPoint = inverse.multiply(point);
-    if (!java::Double::isFinite(localPoint.x()) || !java::Double::isFinite(localPoint.y()) ||
-        !java::Double::isFinite(localPoint.z())) return GeometryContainment::Indeterminate;
-    return geometry->classifyPoint(localPoint, localTolerance);
+    return classifyPointCertified(point, tolerance);
 }

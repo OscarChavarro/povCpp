@@ -31,6 +31,8 @@ public:
     Geometry* copyGeometry() const override { return new Box(bounds[0], bounds[1]); }
     void getBounds(GeometryBounds& result) const override;
     GeometryContainment classifyPoint(const Vector3Dd& p, double tolerance) const override;
+    GeometryContainment classifyPointCertified(const Vector3Dd& p, double tolerance) const override;
+    GeometryContainment classifyBoxCertified(const Vector3Dd& center, const Vector3Dd& halfWidths) const override;
     RayCrossingSupport emitRayCrossings(const Ray& ray, const RayCrossingQuery& query,
         RayCrossingSink& sink) const override;
     RayFirstHitStatus queryFirstHit(const Ray& ray, const RayCrossingQuery& query,
@@ -57,6 +59,8 @@ public:
     Ray* doIntersectionFirstHit(const Ray& inOutRay);
     virtual bool doIntersectionFirstHit(const Ray& inRay, RayHit* outHit) override;
     virtual void doExtraInformation(const Ray& inRay, double inT, RayHit* outData) override;
+    // Java-parity legacy band: per-axis |p_i| within half_i +/- tolerance. It is
+    // intentionally not the Euclidean band of classifyPoint.
     virtual int doContainmentTest(const Vector3Dd& p, double distanceTolerance) override;
     virtual double* getMinMax() override;
     virtual PolyhedralBoundedSolid* exportToPolyhedralBoundedSolid() override;

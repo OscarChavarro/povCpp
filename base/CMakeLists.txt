@@ -65,9 +65,36 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/environment/scene/AffinePlacement.cpp
     src/main/vsdk/toolkit/environment/scene/InstanceRayCrossingBuffer.cpp
     src/main/vsdk/toolkit/environment/scene/csg/CsgExpression.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgExpressionEquivalence.cpp
     src/main/vsdk/toolkit/environment/scene/csg/CsgOperandView.cpp
     src/main/vsdk/toolkit/environment/scene/csg/CsgBodyOperand.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgExactArithmetic.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgDyadic.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgDyadicTransform.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgDyadicSolid.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgExactPlane.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgExactTransform.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgExactQuadric.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgSolidEquivalence.cpp
     src/main/vsdk/toolkit/environment/scene/csg/CsgTree.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgPointClassification.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgSolidBounds.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgPointWitness.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgPointAttribution.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgPointCandidate.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgPointEvidence.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgPointProof.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgRayLeaf.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgRayPlacement.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgRayLeafBatch.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgRayLeafQuery.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgRayEventReference.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgRayEventGroup.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgRayEventBatch.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgRayEventQuery.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgRayEventCursor.cpp
+    src/main/vsdk/toolkit/environment/scene/AffineToleranceMap.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgPlacedExpression.cpp
     src/main/vsdk/toolkit/environment/geometry/element/GeometryBounds.cpp
     src/main/vsdk/toolkit/environment/geometry/element/GeometryQueryWorkspace.cpp
     src/main/vsdk/toolkit/environment/geometry/element/RayInstanceStep.cpp
@@ -391,12 +418,25 @@ endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
   set_source_files_properties(
     src/main/vsdk/toolkit/common/numerics/FloatingInterval.cpp
+    src/main/vsdk/toolkit/environment/scene/AffineToleranceMap.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgExactArithmetic.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgDyadic.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgDyadicTransform.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgDyadicSolid.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgExactPlane.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgExactTransform.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgExactQuadric.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgSolidEquivalence.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/QuadraticInteriorBound.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/AffineEllipsoidMinimumDistance.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/AffineEllipsoidDualBound.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/AffineEllipsoidDistanceBounds.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/Sphere.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/Box.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/PlanarHalfSpace.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/QuadricSurface.cpp
     src/main/vsdk/toolkit/environment/scene/SimpleBody.cpp
+    src/main/vsdk/toolkit/environment/geometry/element/GeometryBounds.cpp
     src/main/java/lang/Double.cpp
     PROPERTIES COMPILE_OPTIONS "-fno-fast-math;-ffp-contract=off")
 endif()
@@ -481,6 +521,14 @@ if(VITRAL_BUILD_TESTS)
     src/test/image_persistence_tests.cpp
     src/test/GeometryWorkspaceTestWorker.cpp
     src/test/RayCrossingTestCollector.cpp
+    src/test/CsgTestOperand.cpp
+    src/test/UncertifiedTestBody.cpp
+    src/test/CsgCycleTestOperand.cpp
+    src/test/CsgPolicyTestOperand.cpp
+    src/test/CsgPolicyTestTree.cpp
+    src/test/CsgOpaqueTestExpression.cpp
+    src/test/csg_placement_tests.cpp
+    src/test/certified_containment_tests.cpp
     src/test/microfaceted_material_csv_tests.cpp
     src/test/ray_affine_contract_tests.cpp
     src/test/ray_crossing_tests.cpp

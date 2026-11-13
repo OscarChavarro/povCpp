@@ -51,8 +51,23 @@ public:
     // Unsupported is explicit; legacy getMinMax remains available.
     virtual void getBounds(GeometryBounds& result) const;
     virtual double* getMinMax() = 0;
-    // Legacy containment remains for existing callers; unsupported is explicit here.
+    // Typed containment; unsupported is explicit here.
     virtual GeometryContainment classifyPoint(const Vector3Dd&, double distanceTolerance) const;
+    // Certified local-space classification of the closed ball of radius
+    // distanceTolerance around the point. Inside/Outside: the whole ball lies
+    // strictly in the interior/exterior. Boundary: a boundary point lies within
+    // the ball. Anything not proven, including at zero tolerance, is Indeterminate.
+    virtual GeometryContainment classifyPointCertified(const Vector3Dd&, double distanceTolerance) const;
+    // Certified classification of the closed axis-aligned local box
+    // center +/- halfWidths: Inside/Outside only when the whole box lies strictly
+    // in the interior/exterior; never Boundary. Other results are Indeterminate.
+    virtual GeometryContainment classifyBoxCertified(const Vector3Dd& center, const Vector3Dd& halfWidths) const;
+    // Legacy integer predicate kept for parity with the Java port. It is not
+    // the typed contract: its tolerance band is family specific, the default
+    // reports OUTSIDE for unsupported geometries, and surfaces report LIMIT only
+    // on the surface. Typed scene and CSG queries never consult it. Adapters for
+    // solids introduced with the typed contract raise when a typed result has
+    // no integer representation.
     virtual int doContainmentTest(const Vector3Dd& p, double distanceTolerance);
 };
 

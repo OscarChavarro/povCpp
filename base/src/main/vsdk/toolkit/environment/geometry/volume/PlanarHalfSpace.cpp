@@ -7,12 +7,59 @@
 #include "vsdk/toolkit/environment/geometry/element/RayHit.h"
 #include "vsdk/toolkit/environment/geometry/element/RaySolidClassification.h"
 #include "vsdk/toolkit/environment/geometry/volume/PlanarHalfSpace.h"
+#include "vsdk/toolkit/common/numerics/FloatingInterval.h"
 
 PlanarHalfSpace::PlanarHalfSpace(double a, double b, double c, double d) : plane(a,b,c,d) {}
 PlanarHalfSpace::PlanarHalfSpace(const InfinitePlane& boundary) : plane(boundary) {}
 Geometry* PlanarHalfSpace::copyGeometry() const { return new PlanarHalfSpace(plane); }
 void PlanarHalfSpace::getBounds(GeometryBounds& result) const { plane.getBounds(result); }
 double* PlanarHalfSpace::getMinMax() { return plane.getMinMax(); }
+
+GeometryContainment PlanarHalfSpace::classifyBoxCertified(const Vector3Dd& center,
+    const Vector3Dd& halfWidths) const
+{
+    const double a = plane.getA(), b = plane.getB(), c = plane.getC(), d = plane.getD();
+    if (!java::Double::isFinite(a) || !java::Double::isFinite(b) || !java::Double::isFinite(c) ||
+        !java::Double::isFinite(d) || (a == 0 && b == 0 && c == 0))
+        return GeometryContainment::InvalidInput;
+    if (!FloatingInterval::isSupportedEnvironment()) return GeometryContainment::Unsupported;
+    const FloatingInterval x = FloatingInterval::around(center.x(), halfWidths.x());
+    const FloatingInterval y = FloatingInterval::around(center.y(), halfWidths.y());
+    const FloatingInterval z = FloatingInterval::around(center.z(), halfWidths.z());
+    if (!x.isValid() || !y.isValid() || !z.isValid()) return GeometryContainment::InvalidInput;
+    const FloatingInterval value = FloatingInterval::exact(a).multiply(x)
+        .add(FloatingInterval::exact(b).multiply(y))
+        .add(FloatingInterval::exact(c).multiply(z)).add(FloatingInterval::exact(d));
+    if (!value.isValid()) return GeometryContainment::Indeterminate;
+    if (value.getUpper() < 0) return GeometryContainment::Inside;
+    if (value.getLower() > 0) return GeometryContainment::Outside;
+    return GeometryContainment::Indeterminate;
+}
+
+GeometryContainment PlanarHalfSpace::classifyPointCertified(const Vector3Dd& point, double tolerance) const
+{
+    const double a = plane.getA(), b = plane.getB(), c = plane.getC(), d = plane.getD();
+    if (!java::Double::isFinite(a) || !java::Double::isFinite(b) || !java::Double::isFinite(c) ||
+        !java::Double::isFinite(d) || (a == 0 && b == 0 && c == 0) ||
+        !java::Double::isFinite(point.x()) || !java::Double::isFinite(point.y()) ||
+        !java::Double::isFinite(point.z()) || !java::Double::isFinite(tolerance) || tolerance < 0)
+        return GeometryContainment::InvalidInput;
+    if (!FloatingInterval::isSupportedEnvironment()) return GeometryContainment::Unsupported;
+    const FloatingInterval A = FloatingInterval::exact(a), B = FloatingInterval::exact(b),
+        C = FloatingInterval::exact(c);
+    const FloatingInterval value = A.multiply(FloatingInterval::exact(point.x()))
+        .add(B.multiply(FloatingInterval::exact(point.y())))
+        .add(C.multiply(FloatingInterval::exact(point.z()))).add(FloatingInterval::exact(d));
+    const FloatingInterval norm = A.square().add(B.square()).add(C.square()).squareRoot();
+    if (!value.isValid() || !norm.isValid() || !(norm.getLower() > 0)) return GeometryContainment::Indeterminate;
+    const FloatingInterval signedDistance = value.divide(norm);
+    if (!signedDistance.isValid()) return GeometryContainment::Indeterminate;
+    if (signedDistance.getUpper() < -tolerance) return GeometryContainment::Inside;
+    if (signedDistance.getLower() > tolerance) return GeometryContainment::Outside;
+    if (signedDistance.getLower() >= -tolerance && signedDistance.getUpper() <= tolerance)
+        return GeometryContainment::Boundary;
+    return GeometryContainment::Indeterminate;
+}
 
 GeometryContainment PlanarHalfSpace::classifyPoint(const Vector3Dd& point, double tolerance) const
 {
@@ -22,6 +69,7 @@ GeometryContainment PlanarHalfSpace::classifyPoint(const Vector3Dd& point, doubl
         !java::Double::isFinite(point.x()) || !java::Double::isFinite(point.y()) ||
         !java::Double::isFinite(point.z()) || !java::Double::isFinite(tolerance) || tolerance < 0)
         return GeometryContainment::InvalidInput;
+    if (tolerance > 0) return classifyPointCertified(point, tolerance);
     const double squared = a*a + b*b + c*c;
     const double value = plane.pointDistance(point);
     if (!java::Double::isFinite(squared) || squared == 0 || !java::Double::isFinite(value))

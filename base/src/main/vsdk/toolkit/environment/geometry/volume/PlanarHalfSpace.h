@@ -17,6 +17,8 @@ public:
     InfinitePlane& getBoundaryPlane() { return plane; }
     void getBounds(GeometryBounds& result) const override;
     GeometryContainment classifyPoint(const Vector3Dd& point, double tolerance) const override;
+    GeometryContainment classifyPointCertified(const Vector3Dd& point, double tolerance) const override;
+    GeometryContainment classifyBoxCertified(const Vector3Dd& center, const Vector3Dd& halfWidths) const override;
     int doContainmentTest(const Vector3Dd& point, double tolerance) override;
     RayCrossingSupport emitRayCrossings(const Ray& ray, const RayCrossingQuery& query,
         RayCrossingSink& sink) const override;

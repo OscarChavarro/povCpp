@@ -7,6 +7,8 @@
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/environment/geometry/geometricProcessing/polyhedralBoundedSolidOperators/PolyhedralBoundedSolidModeler.h"
 #include "vsdk/toolkit/environment/geometry/volume/Cone.h"
+#include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
+#include "java/lang/Double.h"
 #include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolid.h"
 #include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolidEulerOperators.h"
 #include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/nodes/_PolyhedralBoundedSolidFace.h"
@@ -212,6 +214,13 @@ int Cone::doContainmentTest(const Vector3Dd& p, double distanceTolerance)
         return INSIDE;
     }
     return LIMIT;
+}
+
+void Cone::getBounds(GeometryBounds& result) const {
+    const double r = (bottomRadius > topRadius) ? bottomRadius : topRadius;
+    if (!java::Double::isFinite(r) || !java::Double::isFinite(height) || height <= 0 ||
+        bottomRadius < 0 || topRadius < 0) { result.setIndeterminate(); return; }
+    result.setFinite(Vector3Dd(-r,-r,0), Vector3Dd(r,r,height));
 }
 
 double* Cone::getMinMax() {

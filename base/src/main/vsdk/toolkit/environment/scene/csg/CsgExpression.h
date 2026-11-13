@@ -9,6 +9,8 @@ class CsgOperandView;
 class CsgExpression {
 public:
     virtual ~CsgExpression();
+    // Opt in only if operation and operands fully describe this solid.
+    virtual bool isStructuralTraversalSafe() const;
     virtual CsgOperation getOperation() const = 0;
     virtual long int getOperandCount() const = 0;
     virtual const CsgOperandView* getOperand(long int index) const = 0;

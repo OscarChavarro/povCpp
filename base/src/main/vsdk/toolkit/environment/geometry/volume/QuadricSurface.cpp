@@ -1,5 +1,6 @@
 #include "java/lang/Double.h"
 #include "java/lang/Math.h"
+#include "java/lang/IllegalStateException.h"
 #include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 #include "vsdk/toolkit/environment/geometry/element/RayHit.h"
@@ -86,9 +87,98 @@ void QuadricSurface::getBounds(GeometryBounds& result) const
         java::Math::sqrt(radiusSquared*inv22), java::Math::sqrt(radiusSquared*inv33));
     result.setFinite(center.subtract(extent), center.add(extent));
 }
+FloatingInterval QuadricSurface::enclose(const FloatingInterval& x, const FloatingInterval& y,
+    const FloatingInterval& z) const
+{
+    FloatingInterval result = FloatingInterval::exact(constant);
+    result = result.add(FloatingInterval::exact(linear.x()).multiply(x));
+    result = result.add(FloatingInterval::exact(linear.y()).multiply(y));
+    result = result.add(FloatingInterval::exact(linear.z()).multiply(z));
+    result = result.add(FloatingInterval::exact(square.x()).multiply(x.square()));
+    result = result.add(FloatingInterval::exact(square.y()).multiply(y.square()));
+    result = result.add(FloatingInterval::exact(square.z()).multiply(z.square()));
+    result = result.add(FloatingInterval::exact(mixed.x()).multiply(x.multiply(y)));
+    result = result.add(FloatingInterval::exact(mixed.y()).multiply(x.multiply(z)));
+    return result.add(FloatingInterval::exact(mixed.z()).multiply(y.multiply(z)));
+}
+
+GeometryContainment QuadricSurface::classifyBoxCertified(const Vector3Dd& center,
+    const Vector3Dd& halfWidths) const
+{
+    const double coefficients[10] = {square.x(), square.y(), square.z(), mixed.x(), mixed.y(),
+        mixed.z(), linear.x(), linear.y(), linear.z(), constant};
+    for (int i = 0; i < 10; ++i)
+        if (!java::Double::isFinite(coefficients[i])) return GeometryContainment::InvalidInput;
+    if (!FloatingInterval::isSupportedEnvironment()) return GeometryContainment::Unsupported;
+    const FloatingInterval x = FloatingInterval::around(center.x(), halfWidths.x());
+    const FloatingInterval y = FloatingInterval::around(center.y(), halfWidths.y());
+    const FloatingInterval z = FloatingInterval::around(center.z(), halfWidths.z());
+    if (!x.isValid() || !y.isValid() || !z.isValid()) return GeometryContainment::InvalidInput;
+    const FloatingInterval range = enclose(x, y, z);
+    if (!range.isValid()) return GeometryContainment::Indeterminate;
+    if (range.getUpper() < 0) return GeometryContainment::Inside;
+    if (range.getLower() > 0) return GeometryContainment::Outside;
+    return GeometryContainment::Indeterminate;
+}
+
+GeometryContainment QuadricSurface::classifyPointCertified(const Vector3Dd& point, double tolerance) const
+{
+    if (!java::Double::isFinite(tolerance) || tolerance < 0 || !java::Double::isFinite(point.x()) ||
+        !java::Double::isFinite(point.y()) || !java::Double::isFinite(point.z()))
+        return GeometryContainment::InvalidInput;
+    const double coefficients[10] = {square.x(), square.y(), square.z(), mixed.x(), mixed.y(),
+        mixed.z(), linear.x(), linear.y(), linear.z(), constant};
+    for (int i = 0; i < 10; ++i)
+        if (!java::Double::isFinite(coefficients[i])) return GeometryContainment::InvalidInput;
+    if (!FloatingInterval::isSupportedEnvironment()) return GeometryContainment::Unsupported;
+    const double coordinates[3] = {point.x(), point.y(), point.z()};
+    FloatingInterval box[3];
+    for (int i = 0; i < 3; ++i) {
+        box[i] = FloatingInterval::around(coordinates[i], tolerance);
+        if (!box[i].isValid()) return GeometryContainment::Indeterminate;
+    }
+    const FloatingInterval range = enclose(box[0], box[1], box[2]);
+    if (!range.isValid()) return GeometryContainment::Indeterminate;
+    if (range.getUpper() < 0) return GeometryContainment::Inside;
+    if (range.getLower() > 0) return GeometryContainment::Outside;
+    if (tolerance == 0) return GeometryContainment::Indeterminate;
+    // F is continuous and the ball is convex: certified opposite signs at two
+    // points of the ball prove a boundary point on the segment joining them.
+    const Vector3Dd g = gradient(point);
+    const double length = g.length();
+    if (!(length > 0) || !java::Double::isFinite(length)) return GeometryContainment::Indeterminate;
+    const Vector3Dd unit = g.multiply(1.0 / length);
+    const double steps[2] = {tolerance * (1.0 - 1.0 / 1048576.0), tolerance * 0.5};
+    for (int s = 0; s < 2; ++s) {
+        int signs[2] = {0, 0};
+        for (int side = 0; side < 2; ++side) {
+            const Vector3Dd q = point.add(unit.multiply(side == 0 ? -steps[s] : steps[s]));
+            FloatingInterval offset = FloatingInterval::exact(0);
+            offset = offset.add(FloatingInterval::exact(q.x()).subtract(FloatingInterval::exact(point.x())).square());
+            offset = offset.add(FloatingInterval::exact(q.y()).subtract(FloatingInterval::exact(point.y())).square());
+            offset = offset.add(FloatingInterval::exact(q.z()).subtract(FloatingInterval::exact(point.z())).square());
+            const FloatingInterval distance = offset.squareRoot();
+            if (!distance.isValid() || distance.getUpper() > tolerance) continue;
+            const FloatingInterval value = enclose(FloatingInterval::exact(q.x()),
+                FloatingInterval::exact(q.y()), FloatingInterval::exact(q.z()));
+            if (!value.isValid()) continue;
+            signs[side] = value.getUpper() < 0 ? -1 : value.getLower() > 0 ? 1 : 0;
+        }
+        if (signs[0] * signs[1] < 0) return GeometryContainment::Boundary;
+        // The centre itself may be the second point.
+        const FloatingInterval centre = enclose(FloatingInterval::exact(point.x()),
+            FloatingInterval::exact(point.y()), FloatingInterval::exact(point.z()));
+        if (centre.isValid()) {
+            const int sign = centre.getUpper() < 0 ? -1 : centre.getLower() > 0 ? 1 : 0;
+            if (sign != 0 && (signs[0] == -sign || signs[1] == -sign)) return GeometryContainment::Boundary;
+        }
+    }
+    return GeometryContainment::Indeterminate;
+}
+
 GeometryContainment QuadricSurface::classifyPoint(const Vector3Dd& point, double tolerance) const {
     if (!java::Double::isFinite(tolerance) || tolerance < 0) return GeometryContainment::InvalidInput;
-    if (tolerance != 0) return GeometryContainment::Unsupported;
+    if (tolerance != 0) return classifyPointCertified(point, tolerance);
     const double value = evaluate(point);
     if (!java::Double::isFinite(value)) return GeometryContainment::Indeterminate;
     return value < 0 ? GeometryContainment::Inside : value > 0 ? GeometryContainment::Outside : GeometryContainment::Boundary;
@@ -221,7 +311,12 @@ void QuadricSurface::doExtraInformation(const Ray& ray, double t, RayHit* hit) {
     }
 }
 int QuadricSurface::doContainmentTest(const Vector3Dd& p, double tolerance) {
-    return evaluate(p)<tolerance ? INSIDE : OUTSIDE;
+    // Legacy integer adapter over the typed world-distance contract.
+    const GeometryContainment result = classifyPoint(p, tolerance);
+    if (result == GeometryContainment::Inside) return INSIDE;
+    if (result == GeometryContainment::Boundary) return LIMIT;
+    if (result == GeometryContainment::Outside) return OUTSIDE;
+    throw java::IllegalStateException("Quadric containment cannot be represented by the legacy integer result");
 }
 double* QuadricSurface::getMinMax() {
     GeometryBounds bounds;

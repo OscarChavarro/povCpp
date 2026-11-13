@@ -2,6 +2,7 @@
 #include "java/lang/Double.h"
 #include "java/lang/Math.h"
 #include <fenv.h>
+#include <cmath>
 #include <cfloat>
 
 FloatingInterval::FloatingInterval() : lower(0), upper(0), valid(false) {}
@@ -24,6 +25,22 @@ FloatingInterval FloatingInterval::exact(double value)
     return java::Double::isFinite(value) ? FloatingInterval(value,value,true) : FloatingInterval();
 }
 
+FloatingInterval FloatingInterval::spanning(double lo, double hi)
+{
+    return java::Double::isFinite(lo) && java::Double::isFinite(hi) && lo<=hi ?
+        FloatingInterval(lo,hi,true) : FloatingInterval();
+}
+
+FloatingInterval FloatingInterval::around(double center, double halfWidth)
+{
+    if (!java::Double::isFinite(center) || !java::Double::isFinite(halfWidth) || halfWidth<0)
+        return FloatingInterval();
+    if (halfWidth==0) return exact(center);
+    const FloatingInterval low=exact(center).subtract(exact(halfWidth));
+    const FloatingInterval high=exact(center).add(exact(halfWidth));
+    return low.valid && high.valid ? spanning(low.lower,high.upper) : FloatingInterval();
+}
+
 FloatingInterval FloatingInterval::rounded(double lo, double hi)
 {
     if (!java::Double::isFinite(lo) || !java::Double::isFinite(hi) || lo>hi) return FloatingInterval();
@@ -35,15 +52,32 @@ FloatingInterval FloatingInterval::rounded(double lo, double hi)
 
 FloatingInterval FloatingInterval::add(const FloatingInterval& b) const
 {
-    return valid && b.valid ? rounded(lower+b.lower,upper+b.upper) : FloatingInterval();
+    if (!valid || !b.valid) return FloatingInterval();
+    if (lower==upper && b.lower==b.upper) {
+        // TwoSum: a zero rounding error means the point sum is exact.
+        const double sum=lower+b.lower;
+        const double shifted=sum-lower;
+        const double error=(lower-(sum-shifted))+(b.lower-shifted);
+        if (java::Double::isFinite(sum) && error==0) return FloatingInterval(sum,sum,true);
+    }
+    return rounded(lower+b.lower,upper+b.upper);
 }
 FloatingInterval FloatingInterval::subtract(const FloatingInterval& b) const
 {
-    return valid && b.valid ? rounded(lower-b.upper,upper-b.lower) : FloatingInterval();
+    if (!valid || !b.valid) return FloatingInterval();
+    return add(FloatingInterval(-b.upper,-b.lower,true));
 }
 FloatingInterval FloatingInterval::multiply(const FloatingInterval& b) const
 {
     if (!valid || !b.valid) return FloatingInterval();
+    if (lower==upper && b.lower==b.upper) {
+        // A correctly rounded fused residual of zero means the product is exact.
+        // Below 2^-969 the residual could underflow to zero, so do not trust it.
+        const double product=lower*b.lower;
+        if (java::Double::isFinite(product) && (product==0 ? (lower==0 || b.lower==0) :
+            java::Math::abs(product)>=DBL_MIN*9007199254740992.0) && std::fma(lower,b.lower,-product)==0)
+            return FloatingInterval(product,product,true);
+    }
     const double values[]={lower*b.lower,lower*b.upper,upper*b.lower,upper*b.upper};
     double lo=values[0],hi=values[0];
     for (int i=1;i<4;++i) { if (values[i]<lo) lo=values[i]; if (values[i]>hi) hi=values[i]; }

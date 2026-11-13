@@ -59,13 +59,26 @@ private:
 
 protected:
     void markModified();
+    // The single certified world-space point classification for an intrinsic
+    // solid under a validated affine pair. Spheres use the ellipsoid distance
+    // certificates; other solids map the tolerance ball to local inner and outer
+    // balls. An inverted binding swaps Inside and Outside. Scene specializations
+    // reuse this routine rather than reimplementing a certificate.
+    static GeometryContainment classifyPlacedBoxCertified(const Geometry& geometry,
+        bool inverted, const Matrix4x4d& inverse, const GeometryBounds& box);
+    static GeometryContainment classifyPlacedPointCertified(const Geometry& geometry,
+        bool inverted, const Matrix4x4d& forward, const Matrix4x4d& inverse,
+        const Vector3Dd& point, double distanceTolerance);
 private:
     enum class QueryPlacementStatus { Valid, Invalid, Indeterminate };
     QueryPlacementStatus queryPlacementStatus() const;
     void updateTransformFlags();
     void updateDecomposedPlacement();
-    GeometryContainment classifyPointCertifiedWithLimit(const Vector3Dd& point,
-        double distanceTolerance, int iterationLimit) const;
+    static GeometryContainment classifyPlacedSphereCertified(double radius,
+        const Matrix4x4d& forward, const Matrix4x4d& inverse, const Vector3Dd& point,
+        double distanceTolerance, int iterationLimit);
+    static GeometryContainment classifyPlacedSolidCertified(const Geometry& geometry,
+        const Matrix4x4d& forward, const Vector3Dd& point, double distanceTolerance);
     bool doIntersectionWithAffinePlacement(const Ray& ray, RayHit* hit) const;
     void doExtraInformationWithAffinePlacement(const Ray& ray, double t, RayHit* hit) const;
     static bool isIdentityRotation(const Matrix4x4d& matrix);
@@ -75,9 +88,8 @@ private:
 public:
     virtual RayCrossingSupport emitRayCrossings(
         const Ray&, const RayCrossingQuery&, RayCrossingSink&) const;
-    // Classifies with an affine local ray and appends this instance's provenance.
-    // Positive world-space tolerance uses conservative affine-sphere certificates;
-    // other nonuniform placements remain explicitly indeterminate.
+    // Zero tolerance classifies the mapped local point. Positive world-space
+    // tolerance uses the certified classification below.
     virtual GeometryContainment classifyPoint(const Vector3Dd& point, double distanceTolerance) const;
     // Numerical estimate for placed spheres; estimatedError is not certified.
     // On failure both output arguments remain unchanged.
@@ -105,6 +117,9 @@ public:
     void setName(const java::String& n);
 
     virtual Geometry* getGeometry() const;
+    // Borrowed core solid only when scene-specific policies preserve it exactly.
+    // Unknown subclasses must opt in explicitly; nullptr means not comparable.
+    virtual const Geometry* getSolidEquivalenceGeometry() const;
 
     /**
     Sets the geometry, taking its ownership (it is deleted with this body or
@@ -163,6 +178,14 @@ public:
     virtual AffinePlacementStatus queryAffinePlacement(Matrix4x4d& forward, Matrix4x4d& inverse) const;
     // Result is in the parent coordinate system of this body.
     virtual void getWorldBounds(GeometryBounds& result) const;
+    // Conservative world bounds of the solid this body denotes. Only plain
+    // bodies over Solid geometry qualify; surfaces and unknown subclasses report
+    // Unsupported, so bounds are never mistaken for volumetric membership.
+    virtual void getSolidWorldBounds(GeometryBounds& result) const;
+    // Certified classification of a closed world-space axis-aligned box:
+    // Inside/Outside only when the whole box lies strictly in the interior or
+    // exterior of this body's solid; never Boundary.
+    virtual GeometryContainment classifyWorldBoxCertified(const GeometryBounds& box) const;
     virtual void setScale(const Vector3Dd& s);
 
     Ray* doIntersectionFirstHit(const Ray& inRay) const;

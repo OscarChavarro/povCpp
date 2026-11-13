@@ -3,6 +3,7 @@
 
 #include "vsdk/toolkit/environment/geometry/volume/Solid.h"
 #include "java/lang/Math.h"
+#include "vsdk/toolkit/common/numerics/FloatingInterval.h"
 
 // F(x,y,z) = square dot (x*x,y*y,z*z) + mixed dot (xy,xz,yz)
 //              + linear dot (x,y,z) + constant; the solid is F <= 0.
@@ -12,6 +13,8 @@ private:
     Vector3Dd mixed;
     Vector3Dd linear;
     double constant;
+    FloatingInterval enclose(const FloatingInterval& x, const FloatingInterval& y,
+        const FloatingInterval& z) const;
     RayFirstHitStatus roots(const Ray& ray, const RayCrossingQuery& query,
         double& first, double& second) const;
 public:
@@ -55,6 +58,10 @@ public:
     }
     void getBounds(GeometryBounds& result) const override;
     GeometryContainment classifyPoint(const Vector3Dd& point, double tolerance) const override;
+    // Sign enclosures of F over the ball's bounding box prove Inside/Outside;
+    // Boundary requires two certified points of opposite sign within the ball.
+    GeometryContainment classifyPointCertified(const Vector3Dd& point, double tolerance) const override;
+    GeometryContainment classifyBoxCertified(const Vector3Dd& center, const Vector3Dd& halfWidths) const override;
     RayFirstHitStatus queryFirstHit(const Ray& ray, const RayCrossingQuery& query,
         RayHit* hit, RayBoundary* boundary = nullptr) const override;
     RayFirstHitStatus querySurfaceDetail(const Ray& ray, const RayBoundary& boundary,
