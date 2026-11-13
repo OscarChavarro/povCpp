@@ -362,8 +362,8 @@ pass; [the validation report](vitralStageBValidation.json) contains the evidence
 Remaining work is deliberately assigned to later stages: `RayCastingSphere` and
 other duplicate geometry families remain; unmigrated primitives and the legacy
 POV scene adapter can return `Unsupported`; coincident CSG event policy and the
-full Roth/heuristic evaluators remain in F; scene ownership and appearance binding
-remain in H; compatibility fields and `raycasting` are removed in I. In particular,
+full Roth/heuristic evaluators remain in G; scene ownership and appearance binding
+remain in I; compatibility fields and `raycasting` are removed in J. In particular,
 positive world-space tolerance under nonuniform scale is currently explicit
 `Indeterminate` and must be addressed by the CSG/scene integration instead of
 being silently approximated.
@@ -437,8 +437,8 @@ paths. Unsupported operations and invalid or indeterminate results are not
 silently converted into misses or inside/outside answers. The old queue format
 cannot represent nested leaf provenance, instance paths or reversed boundaries;
 the generic adapter explicitly rejects those events pending the scene work in
-stage H. The binding and queue sink remain transitional components to remove
-with the rest of `raycasting` in stage I.
+stage I. The binding and queue sink remain transitional components to remove
+with the rest of `raycasting` in stage J.
 
 Stage C's sphere exit conditions are met: the separate sphere geometry is gone,
 the three applications use VITRAL's mathematical sphere, and first-hit and
@@ -1294,3 +1294,377 @@ The final Roth regression check retained exactly the seven accepted RMSE
 discrepancies, with no additional scenes. Stage E meets its affine-sphere
 distance/tolerance exit conditions; the scene-policy and CSG adoption cases
 described above remain in F/G.
+
+### Stage F: conservative point queries through shared CSG
+
+`CsgOperandView` now exposes typed world-space containment, and `CsgBodyOperand`
+forwards it through the body's virtual scene API. `CsgPointClassification`
+traverses identity-placed shared expression trees and conservatively combines
+union, intersection and ordered difference. It returns a definite inside or
+outside only when operand results prove the entire tolerance ball has that
+classification. Thus a definite result can mask an uncertain operand only when
+the Boolean operation proves that operand irrelevant. Invalid inputs are never
+masked. Operand boundary results that do not prove a composite result yield
+`Indeterminate`, since another operand may hide the boundary; a one-operand
+expression preserves its operand's result. Cyclic or empty expressions are
+invalid, and separately placed nested expressions remain explicitly unsupported.
+
+Tests cover nested compositions, translated sphere leaves, all three Boolean
+operations, hidden boundaries, uncertainty, invalid input, and a mixed VITRAL/POV
+composition through virtual dispatch. This is a point-classification contract;
+it does not claim composite boundary attribution or implement the historical or
+Roth event evaluators. Other primitives, clipping and bounding policies,
+transformed child expressions, provenance, conservative culling and legacy
+integer integration remain open in F/G.
+
+Validation: all configured VITRAL examples built and 214 enabled base tests
+passed (one pre-existing test is disabled); the POV environment integration
+passed. All 48 offline and shader captures and the ten individual CPU/OpenGL
+shading-mode captures matched their preceding references. `renderAll.sh`
+produced all 108 baseline-identical images in 113.16 seconds, with 1301.30
+user CPU seconds (preceding run: 113.69 and 1318.55 seconds). The mirror audit
+found all 161 copied files identical to VITRAL.
+The full Roth run rendered all 108 scenes; the regression check found exactly
+the seven previously accepted RMSE discrepancies and no new ones.
+
+### Stage F: affine CSG placement and exposed boundaries
+
+A borrowed `CsgPlacedExpression` places a shared child expression without
+changing or duplicating its geometry; failed placement edits preserve its prior
+state. `CsgAffineTolerance` computes outward-rounded cofactor/determinant
+intervals from the forward placement instead of trusting an approximate inverse.
+It encloses the inverse image of the parent tolerance ball in a child-space
+ball. A second, inscribed child ball is certified using a Frobenius-norm bound
+and the interval error of the mapped center. The outer ball proves inside or
+outside; the inner ball can prove that a child boundary lies within the original
+tolerance. Overflow, determinant uncertainty and unsupported arithmetic remain
+explicit. As in the stage E certificates, the guarantees require binary64
+round-to-nearest, gradual underflow and correctly rounded square root; the
+certificate code is compiled without fast math or contraction.
+
+The CSG point policy now reports an exposed boundary when exactly one operand
+has a certified boundary within the tolerance and all other operands are
+certified non-interfering throughout that ball. It keeps multiple potentially
+coincident boundaries indeterminate. `CsgPointWitness` optionally records the
+borrowed root-to-leaf operand path and the parity of difference orientation when
+a single operand proves the returned point result. A result requiring several
+operands has no single-leaf witness. The witness is a point-query proof, not a
+ray-hit record or a complete representation of all possible boundary owners.
+
+Tests cover exposed, hidden and coincident boundaries; nested differences;
+multiple parent placements; reflections and shear; inner/outer ball samples at
+16 scale combinations; nearly singular placement; atomic failure; unsupported
+rounding; and a placed mixed VITRAL/POV composition. The historical POV and Roth
+CSG traversal remain unchanged until their evaluator integration in G. General
+coincident-boundary attribution, typed composition crossings, tolerance-aware
+bounds and remaining primitive and clipping policies remain open in F.
+
+Final composition validation: all configured VITRAL examples built; 225 enabled
+base tests passed, including propagation of invalid/unsupported inner probes,
+with one pre-existing disabled test. POV environment integration passed. All 48
+example captures and all ten individual CPU/OpenGL shading modes matched the
+preceding references. The Roth run rendered all 108 scenes and retained exactly
+the seven previously accepted RMSE discrepancies, without new scenes. The
+base-mirror audit found all 161 copied files identical to VITRAL.
+The final isolated `renderAll.sh` run produced all 108 baseline-identical images
+in 114.63 seconds and 1317.74 user CPU seconds, compared with 113.16 seconds and
+1301.30 user CPU seconds in the preceding stage F run; the difference is within
+the observed run-to-run variation of the recorded baseline measurements.
+
+### Stage F: multi-operand point proofs and typed ray events
+
+`CsgPointProof` records sufficient leaf classifications, the query point and
+world/parent-space tolerance used at each leaf, the borrowed operand paths and
+difference orientation. Conjunctive outcomes now retain all necessary leaf
+facts, including exposed-boundary decisions and nested placed trees. The paths
+borrow their operand identities: proofs describe the scene at query time and
+must be discarded or re-evaluated if that scene is subsequently edited. A
+single-leaf witness remains available where appropriate. The simplification of
+repeated operands is deliberately conservative: two views of the same body, or
+exact toolkit spheres with identical radius and affine forward placement, denote
+the same solid. Repeated union/intersection boundaries can then be attributed,
+a solid subtracted from itself is empty under the point-query solid-set
+semantics, and repeated subtractors do not create spurious multiple boundaries.
+This does not prescribe how either renderer handles coincident surface events;
+that remains an explicit G policy. Application-specific body subclasses
+are not compared structurally. Merely nearby surfaces and general coincident
+geometries remain indeterminate, as do inconsistent classifications of views
+claiming identity.
+
+`CsgRayLeafQuery` collects typed solid classifications for all leaf operands in
+an ordered shared expression, with affine ray parameters, their individual
+geometry provenance, root-to-leaf operand paths, parent-placement snapshots and
+difference parity. Membership remains the raw leaf membership; normal orientation
+is reversed for each enclosing subtraction. Invalid, unsupported or malformed
+leaves clear the whole output. `CsgRayEventQuery` groups the reported events by
+exactly equal binary64 parameter while retaining every leaf and boundary index;
+it does not infer that numerically close values are geometrically coincident.
+The batches are scaffolding for the distinct Boolean evaluator policies in G;
+they do not claim to combine crossings into a composite solid.
+
+A POV body with clipping or owned bounding regions now returns `Unsupported`
+for typed solid-ray classification instead of silently classifying its raw
+geometry. Unclipped/unbounded bodies delegate through the shared scene contract,
+including binding inversion. Tests cover mixed POV/VITRAL coincident ray events,
+box, half-space and quadric leaves, affine and nested-difference orientation,
+malformed partial data, exact ties, nearby distinct roots and atomic failure.
+
+Validation for this increment: all configured VITRAL examples built and 234
+enabled base tests passed, with one pre-existing disabled test. POV environment
+integration passed, including inverted and clipped/bounded leaves and coincident
+mixed-project ray events. All 48 example captures and ten individual CPU/OpenGL
+shading-mode images matched their references. The complete Roth run rendered 108
+scenes and retained exactly the seven accepted RMSE discrepancies, with no new
+ones. The base mirror audit found all 161 copied files identical to VITRAL.
+The final isolated `renderAll.sh` run produced 108 baseline-identical images in
+112.66 seconds and 1320.24 user CPU seconds, compared with 114.63 seconds and
+1317.74 user CPU seconds in the preceding run.
+
+### Stage F: exact family and placement equivalence
+
+`CsgSolidEquivalence` recognizes conservative sufficient conditions for the
+same placed solid across spheres, boxes, oriented planar half-spaces and quadrics.
+It handles signed axis permutations and reflections, sphere radius/placement
+rescaling, boxes with independently translated/scaled bounds (and certain general
+affine edge reparameterizations), positively proportional plane and quadric
+coefficients, and axis-aligned oriented planes with different placements. It also
+recognizes spherical quadrics as spheres and linear quadrics as half-spaces where
+the exact sufficient conditions hold. Distinct views of the same expression
+and placement are comparable. The checks do not turn an unsupported containment
+query into a definite classification.
+
+`CsgExactArithmetic` compares binary64 products and affine endpoints as exact
+dyadic integers; rounded endpoint equality is never used as a proof. It rejects
+unsupported arithmetic environments. A deterministic corpus generated with
+Python `Fraction` supplies 1,179 independent exact arithmetic checks, including
+subnormal values, overflow-scale products and equal rounded but unequal exact
+expressions. Tests additionally cover mixed quadric terms, permutations,
+reflection, translation, scale, opposite orientations and nearby surfaces.
+
+Scene bodies explicitly expose a borrowed comparable core solid only when their
+application policies preserve it. The default permits the plain VITRAL body;
+POV opts in its compatible sphere, box, quadric and half-space bindings; it
+rejects wrapper-level inversion, clipping, owned bounds and unknown subclasses.
+Inversion already encoded in quadric or plane coefficients remains part of the
+comparison. Tests
+compare both directions between POV and VITRAL and preserve coincident typed
+ray events across a sphere/quadric pair. General rotations, arbitrary affine
+reparameterizations, inversions and additional geometry families remain open;
+absence of a proof does not mean the solids are different.
+
+Family-equivalence validation: all configured VITRAL examples built and 244
+enabled base tests passed, with one pre-existing disabled test. POV environment
+integration passed, including comparable core solids from both applications,
+inversion and scene-policy rejection, and cross-family ray events. All 48 example
+captures and all ten CPU/OpenGL shading modes matched their references. Roth
+rendered 108 scenes and retained exactly the seven accepted RMSE discrepancies,
+with no new ones. The base mirror audit found all 161 copied files identical to
+VITRAL.
+The final isolated `renderAll.sh` run produced 108 baseline-identical images in
+113.66 seconds and 1315.26 user CPU seconds, compared with 112.66 seconds and
+1320.24 user CPU seconds in the preceding run.
+
+### Stage F: affine equivalence and coincident boundary attribution
+
+`CsgPointAttribution` supplies the complete set of owner paths for a boundary
+when the existing point classifier can prove it: equivalent coincident operands
+retain their individual identities and difference orientation, while hidden or
+cancelled boundaries are excluded. If the boundary or owner set is ambiguous,
+the result remains indeterminate or the attribution explicitly incomplete.
+Paths borrow scene identities and must be re-evaluated after scene edits.
+
+Exact sufficient equivalence now includes affine spheres whose scaled Gram
+matrices agree, affine boxes with exactly matching edge vectors and a matching
+corner even when local origins differ, and oriented planes or quadrics whose
+exact world coefficients are positively proportional. The plane and quadric
+conversion uses a homogeneous adjugate transform and verifies every rounded
+intermediate against dyadic integer arithmetic; if any intermediate is not
+exactly representable, it declines the proof. Spherical and linear quadrics can
+also be compared across families in the supported cases. Equality of rounded
+values alone is not accepted, and unsupported point-containment queries are not
+silently resolved merely because another operand is geometrically equivalent.
+
+The independent rational corpus was extended to 1,379 product, affine and
+sum-of-products fixtures. Focused tests cover general non-permutation ellipsoid
+placement, translated/sheared boxes, reflected oblique half-spaces, general
+affine mixed quadrics, nearby unequal shapes, multiple coincident owners,
+subtraction orientation, hidden cancellation and mixed POV/VITRAL attribution.
+The final attribution validation also includes 50 independently generated
+homogeneous quadric transformations computed with Python rational arithmetic,
+atomic failure on an unrepresentable intermediate, and attribution through a
+placed nested difference. The CSG arithmetic corpus contains 1,379 independent
+product, affine and sum-of-products fixtures.
+
+Affine-equivalence/attribution validation: all configured VITRAL examples built
+and 253 enabled base tests passed; one pre-existing test remains disabled. POV
+integration passed, including coincident owner paths across VITRAL and POV.
+All 48 example captures and all ten CPU/OpenGL shading modes matched their
+references. Roth rendered all 108 scenes and retained exactly the seven accepted
+RMSE discrepancies, with no new ones. The mirror audit found all 161 copied base
+files identical to VITRAL.
+The final isolated `renderAll.sh` run produced all 108 baseline-identical images
+in 111.91 seconds and 1320.58 user CPU seconds, compared with 113.66 seconds and
+1315.26 user CPU seconds in the preceding run.
+
+### Stage F: certified results across equivalent operands
+
+Point classification evaluates all sibling operands first. An unsupported or
+indeterminate **leaf** may then reuse a definite certified result from a sibling
+only when both scene views prove they denote the same placed solid. Invalid
+inputs are never replaced; inconsistent definite results remain indeterminate.
+The proof records both the original certified leaf fact and an explicit
+source-to-recipient equivalence relation, including both operand paths and their
+difference orientation. Boundary attribution retains the recipient as a separate
+owner. Tests exercise both operand orders, nested placement/difference, unrelated
+nearby and complementary solids, unresolved uncertainty, and a mixed POV
+quadric/VITRAL sphere. A clipped POV body cannot use this shortcut.
+
+Separately built shared CSG trees and placed-expression views can now prove
+structural equivalence when placements match exactly and their children are
+equivalent. Arbitrary application views or expression implementations are not
+unpacked for structural equivalence, since they may carry additional policies.
+Point and typed-ray traversal also require both the operand view and child
+expression to opt in explicitly that their structure fully describes the solid;
+otherwise they return Unsupported. Subclasses of the shared tree and placement
+views must opt in themselves rather than inheriting that promise automatically.
+Union and intersection
+operands may be reordered; difference retains its first operand and permits the
+subsequent subtractors to be reordered. Invalid, cyclic, structurally different or
+unproven graphs remain non-equivalent. This is a solid-set comparison; it does
+not select materials or prescribe either renderer's coincident-event policy.
+
+Validation: all configured VITRAL examples built and 258 enabled base tests
+passed, with one pre-existing disabled test. POV integration passed. All 48
+example captures and ten CPU/OpenGL shading modes matched their references.
+Roth rendered all 108 scenes and retained exactly the seven accepted RMSE
+discrepancies, with no new scenes. The base mirror audit found all 161 copied
+files identical to VITRAL.
+
+The structural traversal guard was additionally tested with opaque scene views,
+opaque child expressions, subclasses with additional policies and cyclic graphs.
+These cannot be silently treated as ordinary shared trees. Equivalence itself
+unpacks only the known shared tree and placed-expression implementations.
+
+Final policy-guard validation: all configured VITRAL examples built and 261
+enabled base tests passed, with one pre-existing disabled test. POV integration
+passed. All 48 example captures and ten CPU/OpenGL shading modes matched their
+references. Roth rendered all 108 scenes and retained the seven accepted RMSE
+discrepancies, with no new scenes. The base mirror audit found all 161 copied
+files identical to VITRAL.
+The final isolated `renderAll.sh` run produced all 108 baseline-identical images
+in 114.51 seconds and 1319.92 user CPU seconds, compared with 111.91 seconds and
+1320.58 user CPU seconds in the preceding recorded run.
+
+### Stage F: associative compositions and certified subtree reuse
+
+Shared union and intersection expressions now recognize associative and
+idempotent regrouping as solid-set equivalence. Difference keeps the minuend
+ordered while allowing equivalent unions of subtractors to be regrouped and
+deduplicated. Flattening is restricted to known shared structural nodes with
+identity placement; displaced subtrees, unknown policies and cycles are not
+silently flattened. This comparison does not impose any material or event policy
+on the renderers.
+
+A certified sibling proof can now support an equivalent, structurally safe
+subtree whose own point query is unsupported or indeterminate. The proof retains
+both source and recipient paths and the identity relation. For a composite
+recipient the classifier deliberately leaves the complete owner attribution
+unavailable unless its own owner paths have been independently resolved; it
+never fabricates a leaf owner. Tests cover regrouped/duplicated Boolean trees,
+ordered differences, displaced non-equivalences, proof transfer and incomplete
+attribution for an equivalent sphere/quadric subtree pair.
+
+Validation: all configured VITRAL examples built and 263 enabled base tests
+passed, with one pre-existing disabled test. POV integration passed, including
+proof reuse across equivalent POV/VITRAL subtrees and incomplete attribution.
+All 48 example captures and ten CPU/OpenGL shading modes matched their
+references. Roth rendered all 108 scenes and retained the seven accepted RMSE
+discrepancies, with no new scenes. The base mirror audit found all 161 copied
+files identical to VITRAL.
+The final isolated `renderAll.sh` run produced all 108 baseline-identical images
+in 112.01 seconds and 1314.97 user CPU seconds, compared with 114.51 seconds and
+1319.92 user CPU seconds in the preceding recorded run.
+
+### Stage F audit
+
+An audit of both projects before closing F recorded the non-conformities F-NC1
+to F-NC6 and the risks F-R1 to F-R3 in the plan. CSG point leaves supported
+only spheres; box and half-space positive tolerance and the uniform-scale body
+path used round-to-nearest arithmetic; POV and VITRAL used two different
+placed-sphere searches; several integer adapters converted uncertainty into
+`OUTSIDE`; placed bounds could shrink by an ulp and CSG expressions had no
+bounds. Stale stage letters in this record were corrected. Further exact
+equivalence work was frozen, and proof versioning and workspace reuse were
+assigned to G.
+
+### Stage F: certified containment for basic families (F-1, F-6)
+
+`Geometry` gained `classifyPointCertified` for a local closed ball and
+`classifyBoxCertified` for a local box; both default to `Unsupported`.
+`Sphere`, `Box`, `PlanarHalfSpace` and `QuadricSurface` implement them with
+outward-rounded `FloatingInterval` arithmetic; their positive-tolerance
+`classifyPoint` paths delegate to the certified routine and their
+zero-tolerance paths are unchanged. `FloatingInterval` keeps sums and products
+of point intervals exact when an error-free transformation proves it.
+`AffineToleranceMap` (formerly `CsgAffineTolerance`) also reports per-axis
+local half-widths, and its inner ball uses the smaller of the Frobenius and
+`sqrt(||A||_1 ||A||_inf)` bounds.
+
+`SimpleBody::classifyPlacedPointCertified` is the single placed-solid routine:
+identity placement, the enclosing local box, outer and inner balls, and a
+two-point world proof over fixed directions. The uniform-scale shortcut was
+removed. `RayCastingBody` classifies its core solid through the same routine,
+so a placed POV sphere and a placed VITRAL sphere receive the same certificate.
+`CertifiedContainmentContract` checks all four families under nonuniform scale,
+shear and reflection, including a soundness sampler that compares every
+definite result with dense exact sampling; deliberately weakening the box
+enclosure made that sampler report 44 failures.
+
+### Stage F: legacy adapters and estimator (F-2, F-7)
+
+Integer predicates inherited from the Java port keep Java parity and are
+documented as legacy predicates; the Java sources contain the same defaults,
+including the `-INSIDE` surface value of `InfinitePlane`. Adapters introduced
+during convergence (`Sphere`, `PlanarHalfSpace`, `QuadricSurface`,
+`NativeGeometryBinding`) throw `IllegalStateException`. No typed scene or CSG
+path calls `doContainmentTest`. `estimateBoundaryDistance` and
+`AffineEllipsoidDistance` are used only to propose candidates inside
+`AffineEllipsoidMinimumDistance`, whose result is independently enclosed.
+
+### Stage F: conservative bounds and culling (F-3)
+
+`GeometryBounds::transformed` rounds outward, and `inflated`, `intersecting` and
+`excludesBall` were added. `CsgOperandView::getSolidBounds` and `CsgSolidBounds`
+give conservative bounds for shared expressions: unions enclose all operands,
+intersections intersect them and differences use the minuend; placed children
+are transformed and cycles are rejected. `CsgPointClassification` culls a leaf
+as `Outside` only when its solid bounds exclude the tolerance ball.
+`ConservativeBoundsContract` covers rounding, inflation, expression bounds and
+culling.
+
+### Stage F: POV region policies and placement editing (F-4, F-5)
+
+`RayCastingBody` separates its core solid from its regions. A `clipped_by`
+point query evaluates a shared CSG intersection of `RayCastingCoreOperand` and
+one operand per clip, so attribution and uncertainty follow the common
+classifier; a missing clip is `Unsupported`. A `bounded_by` region is used only
+after `classifyWorldBoxCertified` proves that it contains the core bounds;
+otherwise the query is `Unsupported`, so a bound never changes membership.
+Solid world bounds of clipped bodies intersect the clip bounds. Ray
+classification with regions remains `Unsupported` for G.
+
+`setAffinePlacement` moves owned regions by `new * old^-1` after checking that
+every region can move, so an edit either moves all regions or changes nothing.
+Integration tests cover clipped, hollow and bounded spheres, tight and
+non-containing bounds, region movement, return to identity and atomic
+rejection.
+
+### Stage F closure
+
+All F exit-checklist items hold. VITRAL built all configured examples and passed
+279 base tests, with one pre-existing disabled test; POV passed 280 tests.
+All 48 example captures matched their references. `renderAll.sh` produced all
+108 baseline-identical images in 115.88 seconds and 1307.26 user CPU seconds.
+Roth rendered all 108 scenes and retained the seven accepted RMSE
+discrepancies, with no new scenes. The audit mapped 81 raycasting files and
+found all 161 copied base files identical to VITRAL.

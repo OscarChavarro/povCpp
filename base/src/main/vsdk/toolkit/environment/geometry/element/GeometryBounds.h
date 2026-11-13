@@ -23,10 +23,19 @@ public:
     Kind getKind() const;
     const Vector3Dd& getMinimum() const;
     const Vector3Dd& getMaximum() const;
-    // Conservative axis-aligned enclosure in the destination coordinates.
-    // Non-affine or numerically invalid transforms are indeterminate.
+    // Conservative axis-aligned enclosure in the destination coordinates,
+    // computed with outward rounding. Non-affine or numerically invalid
+    // transforms are indeterminate.
     GeometryBounds transformed(const Matrix4x4d& placement) const;
     // Enclose both bounds; unknown states remain explicit.
     GeometryBounds enclosing(const GeometryBounds& other) const;
+    // Enclose the intersection. A known operand alone still encloses it, so an
+    // unknown operand only remains when neither side is known.
+    GeometryBounds intersecting(const GeometryBounds& other) const;
+    // Enclose all points within the world tolerance of these bounds.
+    GeometryBounds inflated(double tolerance) const;
+    // True only when the closed ball is proven disjoint from these bounds.
+    // Unknown and unbounded kinds never exclude anything.
+    bool excludesBall(const Vector3Dd& point, double tolerance) const;
 };
 #endif

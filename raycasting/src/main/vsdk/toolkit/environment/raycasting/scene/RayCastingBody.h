@@ -13,6 +13,8 @@ class Sphere;
 
 class RayCastingBody : public SimpleBody, public PostRayHitElement {
   public:
+    RaySolidQueryStatus classifyRay(const Ray& ray, const RayCrossingQuery& query,
+        RaySolidClassification& result) const override;
     RayCrossingSupport emitRayCrossings(const Ray& ray,
         const RayCrossingQuery& query, RayCrossingSink& sink) const override;
     // Callers that hand RayCastingBody an objectTexture whose destruction needs
@@ -25,6 +27,16 @@ class RayCastingBody : public SimpleBody, public PostRayHitElement {
     GeometryDistanceStatus queryCertifiedSphere(const Sphere*& sphere, bool& inverted,
         Matrix4x4d& forward, Matrix4x4d& inverse) const;
     static GeometryContainment orientCertifiedSide(GeometryContainment side, bool inverted);
+    // The VITRAL solid and binding inversion of a compatible unclipped,
+    // unbounded leaf; false for wrappers whose policies change the solid.
+    bool querySolidCore(const Geometry*& intrinsic, bool& inverted) const;
+    // True when every bounding region is certified to contain the core solid,
+    // so the bounded_by hint cannot change membership.
+    bool boundingRegionsVerified() const;
+    // Owned regions live in this body's outer frame and follow its object-level
+    // edits. The check validates the complete region tree before any change.
+    bool canMoveRegions(const Matrix4x4d& delta, const Matrix4x4d& deltaInverse) const;
+    void moveRegions(const Matrix4x4d& delta, const Matrix4x4d& deltaInverse);
     java::ArrayList<RayCastingBody*> boundingShapes{4};
     java::ArrayList<RayCastingBody*> clippingShapes{4};
     Material *geometryMaterial;
@@ -113,6 +125,16 @@ class RayCastingBody : public SimpleBody, public PostRayHitElement {
     Matrix4x4d getTransformationMatrix() const override { return getAffinePlacement(); }
     bool hasArbitraryAffineTransform() const { return arbitraryAffineTransform; }
     RayCastingGeometry *getGeometry() const override { return static_cast<RayCastingGeometry*>(geometry); }
+    const Geometry* getSolidEquivalenceGeometry() const override;
+    // Bounds of the shared core solid; an inverted binding is unbounded and
+    // region policies are unsupported until their typed semantics exist.
+    void getSolidWorldBounds(GeometryBounds& result) const override;
+    GeometryContainment classifyWorldBoxCertified(const GeometryBounds& box) const override;
+    // The core solid ignores bounding and clipping regions; it is the shared
+    // geometry under this body's placement and binding inversion.
+    bool queryCoreSolid(const Geometry*& intrinsic, bool& inverted) const;
+    GeometryContainment classifyCoreCertified(const Vector3Dd& point, double tolerance) const;
+    void getCoreSolidWorldBounds(GeometryBounds& result) const;
     Material *getGeometryMaterial() const { return geometryMaterial; }
     Matrix4x4d *getTransformation() const { return transformation; }
     Matrix4x4d *getTransformationInverse() const { return transformationInverse; }
