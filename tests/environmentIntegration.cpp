@@ -2,6 +2,7 @@
 #include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
 #include <cstdio>
 #include "environment/scene/Scene.h"
+#include "vsdk/toolkit/environment/scene/SimpleBody.h"
 #include "vsdk/toolkit/environment/geometry/volume/Sphere.h"
 #include "vsdk/toolkit/environment/geometry/volume/Box.h"
 #include "vsdk/toolkit/environment/geometry/volume/PlanarHalfSpace.h"
@@ -11,6 +12,9 @@
 #include "vsdk/toolkit/environment/geometry/element/RayHit.h"
 #include "vsdk/toolkit/environment/scene/SimpleSceneSnapshot.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/Blob.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/HeightField.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/polynomial/PolynomialShape.h"
 #include "render/bakedScene/BakedSceneBuilder.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgBodyOperand.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgTree.h"
@@ -42,8 +46,8 @@ int main() {
             "inverted native sphere did not preserve uncertainty");
         require(typedSphere.classifyPoint(Vector3Dd(),0.1)==GeometryContainment::Outside,
             "inverted native sphere lost its certified exterior");
-        java::ArrayList<RayCastingBody*> noRegions;
-        RayCastingBody certifiedSphere(new NativeGeometryBinding(new Sphere(1)),nullptr,nullptr,
+        java::ArrayList<PovrayBody*> noRegions;
+        PovrayBody certifiedSphere(new NativeGeometryBinding(new Sphere(1)),nullptr,nullptr,
             nullptr,false,noRegions,noRegions);
         const Matrix4x4d spherePlacement=Matrix4x4d().translation(3,0,0).multiply(Matrix4x4d().scale(2,1,1));
         const Matrix4x4d sphereInverse=Matrix4x4d().scale(0.5,1,1).multiply(Matrix4x4d().translation(-3,0,0));
@@ -66,23 +70,23 @@ int main() {
             "coincident POV and VITRAL boundary owners were not preserved");
 
         SimpleBody nativeBox; nativeBox.setGeometry(new Box(Vector3Dd(-1,-1,-1),Vector3Dd(1,1,1)));
-        RayCastingBody povBox(new RayCastingBox(Vector3Dd(-1,-1,-1),Vector3Dd(1,1,1)),nullptr,nullptr,
+        PovrayBody povBox(new RayCastingBox(Vector3Dd(-1,-1,-1),Vector3Dd(1,1,1)),nullptr,nullptr,
             nullptr,false,noRegions,noRegions);
         CsgBodyOperand nativeBoxOperand(nativeBox), povBoxOperand(povBox);
         require(nativeBoxOperand.isSameSolid(povBoxOperand) && povBoxOperand.isSameSolid(nativeBoxOperand),
             "equivalent POV and VITRAL boxes were not recognized");
         SimpleBody nativeHalfSpace; nativeHalfSpace.setGeometry(new PlanarHalfSpace(1,2,0,-3));
-        RayCastingBody povHalfSpace(new RayCastingInfinitePlane(Vector3Dd(2,4,0),-6),nullptr,nullptr,
+        PovrayBody povHalfSpace(new RayCastingInfinitePlane(Vector3Dd(2,4,0),-6),nullptr,nullptr,
             nullptr,false,noRegions,noRegions);
         CsgBodyOperand nativeHalfOperand(nativeHalfSpace), povHalfOperand(povHalfSpace);
         require(nativeHalfOperand.isSameSolid(povHalfOperand) && povHalfOperand.isSameSolid(nativeHalfOperand),
             "equivalent POV and VITRAL half-spaces were not recognized");
-        RayCastingBody povQuadric(new Quadric(Vector3Dd(1,1,1),Vector3Dd(),Vector3Dd(),-1),nullptr,nullptr,
+        PovrayBody povQuadric(new Quadric(Vector3Dd(1,1,1),Vector3Dd(),Vector3Dd(),-1),nullptr,nullptr,
             nullptr,false,noRegions,noRegions);
         // Stage F-1: POV box and plane leaves use the shared certificate under
         // nonuniform, reflected and sheared placement, including binding inversion.
         {
-            RayCastingBody placedBox(new RayCastingBox(Vector3Dd(-1,-1,-1),Vector3Dd(1,1,1)),nullptr,nullptr,
+            PovrayBody placedBox(new RayCastingBox(Vector3Dd(-1,-1,-1),Vector3Dd(1,1,1)),nullptr,nullptr,
                 nullptr,false,noRegions,noRegions);
             const Matrix4x4d boxForward=Matrix4x4d().translation(10,0,0).multiply(Matrix4x4d().scale(-2,3,1));
             require(placedBox.setAffinePlacement(boxForward,boxForward.inverse())==AffinePlacementStatus::Valid,
@@ -93,13 +97,13 @@ int main() {
                 placedBox.classifyPointCertified(Vector3Dd(7.85,0,0),0.1)==GeometryContainment::Outside &&
                 placedBox.classifyPointCertified(Vector3Dd(10,2.95,0),0.1)==GeometryContainment::Boundary,
                 "placed POV box classification differs from its world-space distances");
-            RayCastingBody invertedBox(new RayCastingBox(Vector3Dd(-1,-1,-1),Vector3Dd(1,1,1),true),nullptr,nullptr,
+            PovrayBody invertedBox(new RayCastingBox(Vector3Dd(-1,-1,-1),Vector3Dd(1,1,1),true),nullptr,nullptr,
                 nullptr,false,noRegions,noRegions);
             require(invertedBox.classifyPointCertified(Vector3Dd(0,0,0),0.1)==GeometryContainment::Outside &&
                 invertedBox.classifyPointCertified(Vector3Dd(2,0,0),0.1)==GeometryContainment::Inside &&
                 invertedBox.classifyPointCertified(Vector3Dd(1.05,0,0),0.1)==GeometryContainment::Boundary,
                 "inverted POV box did not complement the certified classification");
-            RayCastingBody shearedPlane(new RayCastingInfinitePlane(Vector3Dd(1,0,0),-1),nullptr,nullptr,
+            PovrayBody shearedPlane(new RayCastingInfinitePlane(Vector3Dd(1,0,0),-1),nullptr,nullptr,
                 nullptr,false,noRegions,noRegions);
             const Matrix4x4d planeForward=Matrix4x4d::identityMatrix().withVal(0,1,0.5);
             require(shearedPlane.setAffinePlacement(planeForward,planeForward.inverse())==AffinePlacementStatus::Valid,
@@ -144,7 +148,7 @@ int main() {
             const Matrix4x4d dyadicLinear=Matrix4x4d::identityMatrix().withVal(0,1,0.1).withVal(1,2,0.1);
             const Matrix4x4d dyadicInverse=Matrix4x4d::identityMatrix().withVal(0,1,-0.1).withVal(0,2,0.01).withVal(1,2,-0.1);
             SimpleBody shearedSphere; shearedSphere.setGeometry(new Sphere(1));
-            RayCastingBody shiftedQuadric(new Quadric(Vector3Dd(1,1,1),Vector3Dd(),Vector3Dd(0,0,2),0),
+            PovrayBody shiftedQuadric(new Quadric(Vector3Dd(1,1,1),Vector3Dd(),Vector3Dd(0,0,2),0),
                 nullptr,nullptr,nullptr,false,noRegions,noRegions);
             require(shearedSphere.setAffinePlacement(dyadicLinear,dyadicInverse)==AffinePlacementStatus::Valid &&
                 shiftedQuadric.setAffinePlacement(Matrix4x4d().translation(0,0.1,1).multiply(dyadicLinear),
@@ -228,7 +232,7 @@ int main() {
 
         GeometryContainment certifiedSide=GeometryContainment::Indeterminate;
         double certifiedLower=0,certifiedUpper=0;
-        const SimpleBody& commonSphere=certifiedSphere;
+        const SceneSolid& commonSphere=certifiedSphere;
         require(commonSphere.encloseMinimumBoundaryDistance(Vector3Dd(5.2,0,0),1e-6,
             certifiedSide,certifiedLower,certifiedUpper)==GeometryDistanceStatus::Valid,
             "POV sphere failed to expose the certified minimum distance");
@@ -334,7 +338,7 @@ int main() {
         require(CsgRayLeafQuery::query(placedRoot,mixedRay,mixedRayRange,mixedRayLeaves)
             ==RaySolidQueryStatus::Unsupported && mixedRayLeaves.size()==0,
             "typed ray composition silently ignored POV bounds or retained partial results");
-        RayCastingBody layeredSphere(new NativeGeometryBinding(new Sphere(1)),nullptr,nullptr,
+        PovrayBody layeredSphere(new NativeGeometryBinding(new Sphere(1)),nullptr,nullptr,
             nullptr,false,noRegions,noRegions);
         Vector3Dd sphereGeometryScale(2,1,1),sphereOuterTranslation(5,0,0);
         layeredSphere.scaleGeometryLayer(&sphereGeometryScale);
@@ -343,7 +347,7 @@ int main() {
             certifiedSide,certifiedLower,certifiedUpper)==GeometryDistanceStatus::Valid &&
             certifiedSide==GeometryContainment::Outside && certifiedLower<0.20000001 && certifiedUpper>0.19999999,
             "layered POV placement did not reach the shared certified distance query");
-        RayCastingBody reflectedSphere(new NativeGeometryBinding(new Sphere(2)),nullptr,nullptr,
+        PovrayBody reflectedSphere(new NativeGeometryBinding(new Sphere(2)),nullptr,nullptr,
             nullptr,false,noRegions,noRegions);
         const Matrix4x4d reflected=Matrix4x4d().translation(1,-2,3).multiply(Matrix4x4d().scale(-2,1,1));
         const Matrix4x4d reflectedInverse=Matrix4x4d().scale(-0.5,1,1).multiply(Matrix4x4d().translation(-1,2,-3));
@@ -354,8 +358,8 @@ int main() {
             certifiedSide==GeometryContainment::Outside && certifiedLower<0.20000001 && certifiedUpper>0.19999999,
             "reflected non-unit POV sphere returned incorrect certified bounds");
         Scene scene;
-        java::ArrayList<RayCastingBody*> regions;
-        auto* body = new RayCastingBody(new NativeGeometryBinding(new Sphere(1.0)), nullptr, nullptr,
+        java::ArrayList<PovrayBody*> regions;
+        auto* body = new PovrayBody(new NativeGeometryBinding(new Sphere(1.0)), nullptr, nullptr,
             nullptr, false, regions, regions);
         Geometry* geometry = body->getGeometry();
         RayHit hit(RayHit::DETAIL_POINT | RayHit::DETAIL_NORMAL, false);
@@ -365,27 +369,22 @@ int main() {
         require(std::abs(hit.normal.x()+1.0) < 1e-10, "wrong sphere normal");
         Vector3Dd translation(5,0,0);
         body->translate(&translation);
-        java::ArrayList<RayCastingBody*> bodies;
+        java::ArrayList<PovrayBody*> bodies;
         bodies.add(body);
         scene.setObjects(bodies);
-        SimpleScene& sharedScene = scene;
-        require(sharedScene.getSimpleBodies()[0] == body, "scene copied the body graph");
-        SimpleBody* sharedBody = sharedScene.getSimpleBodies()[0];
+        require(scene.getObjects().size() == 1 && scene.getObjects()[0] == body,
+            "scene copied the body graph");
+        const SceneSolid* sharedBody = scene.getObjects()[0];
         hit.reset(RayHit::DETAIL_POINT | RayHit::DETAIL_NORMAL);
         require(sharedBody->doIntersectionFirstHit(Ray(Vector3Dd(0,0,0), Vector3Dd(1,0,0)), &hit),
             "shared body query missed transformed sphere");
         require(std::abs(hit.getHitDistance()-4.0) < 1e-10, "body lost its transform");
-        require(std::abs(sharedBody->getTransformationMatrix().multiply(Vector3Dd()).x()-5) < 1e-10,
+        require(std::abs(sharedBody->getAffinePlacement().multiply(Vector3Dd()).x()-5) < 1e-10,
             "shared placement does not describe the body");
-        require(!sharedBody->supportsDecomposedPlacement(), "affine body advertises TRS editing");
-        sharedBody->setPosition(Vector3Dd(6,0,0));
-        require(std::abs(sharedBody->getPosition().x()-6) < 1e-10, "shared translation was ignored");
-        auto* snapshot = sharedScene.exportToSimpleSceneSnapshot();
-        require(snapshot->getSimpleBodies()[0] == body, "snapshot copied the body graph");
-        delete snapshot;
+        require(scene.getSimpleBodies().size() == 0, "POV bodies were added as SimpleScene bodies");
         scene.resetForSceneParse();
-        require(sharedScene.getSimpleBodies().size() == 0, "reset retained owned bodies");
-        RayCastingBody quadricBody(new Quadric(Vector3Dd(1,1,1),Vector3Dd(),Vector3Dd(),-1),
+        require(scene.getObjects().size() == 0, "reset retained owned bodies");
+        PovrayBody quadricBody(new Quadric(Vector3Dd(1,1,1),Vector3Dd(),Vector3Dd(),-1),
             nullptr,nullptr,nullptr,false,regions,regions);
         Vector3Dd priorTranslation(1,0,0);
         quadricBody.translate(&priorTranslation);
@@ -395,7 +394,7 @@ int main() {
             Matrix4x4d().translation(-2,0,0));
         require(quadricBody.setAffinePlacement(shear,inverse) == AffinePlacementStatus::Valid,
             "quadric rejected valid affine placement");
-        java::ArrayList<SimpleBody*> bakedBodies;
+        java::ArrayList<PovrayBody*> bakedBodies;
         bakedBodies.add(&quadricBody);
         BakedScene baked;
         BakedSceneBuilder::build(bakedBodies,baked);
@@ -407,10 +406,10 @@ int main() {
         // conservative intersection with the clip regions; bounded_by is only a
         // hint that must be certified to contain the solid.
         {
-            java::ArrayList<RayCastingBody*> none;
-            RayCastingBody clippedSphere(new NativeGeometryBinding(new Sphere(2)),nullptr,nullptr,
+            java::ArrayList<PovrayBody*> none;
+            PovrayBody clippedSphere(new NativeGeometryBinding(new Sphere(2)),nullptr,nullptr,
                 nullptr,false,none,none);
-            clippedSphere.getClippingShapes().add(new RayCastingBody(
+            clippedSphere.getClippingShapes().add(new PovrayBody(
                 new RayCastingBox(Vector3Dd(-1,-1,-1),Vector3Dd(1,1,1)),nullptr,nullptr,nullptr,false,none,none));
             require(clippedSphere.classifyPointCertified(Vector3Dd(0,0,0),0.1)==GeometryContainment::Inside &&
                 clippedSphere.classifyPointCertified(Vector3Dd(0.9,0.9,0.9),0.05)==GeometryContainment::Inside &&
@@ -422,33 +421,33 @@ int main() {
             clippedSphere.getSolidWorldBounds(clippedBounds);
             require(clippedBounds.getKind()==GeometryBounds::Kind::Finite && clippedBounds.getMaximum().x()<1.001 &&
                 clippedBounds.getMinimum().x()>-1.001,"clipped POV sphere bounds ignore the clip region");
-            RayCastingBody hollowSphere(new NativeGeometryBinding(new Sphere(2)),nullptr,nullptr,
+            PovrayBody hollowSphere(new NativeGeometryBinding(new Sphere(2)),nullptr,nullptr,
                 nullptr,false,none,none);
-            hollowSphere.getClippingShapes().add(new RayCastingBody(
+            hollowSphere.getClippingShapes().add(new PovrayBody(
                 new RayCastingBox(Vector3Dd(-1,-1,-1),Vector3Dd(1,1,1),true),nullptr,nullptr,nullptr,false,none,none));
             require(hollowSphere.classifyPointCertified(Vector3Dd(0,0,0),0.1)==GeometryContainment::Outside &&
                 hollowSphere.classifyPointCertified(Vector3Dd(1.5,0,0),0.1)==GeometryContainment::Inside &&
                 hollowSphere.classifyPointCertified(Vector3Dd(0.95,0,0),0.1)==GeometryContainment::Boundary,
                 "inverted POV clip region was not subtracted");
-            RayCastingBody boundedSphere(new NativeGeometryBinding(new Sphere(1)),nullptr,nullptr,
+            PovrayBody boundedSphere(new NativeGeometryBinding(new Sphere(1)),nullptr,nullptr,
                 nullptr,false,none,none);
-            boundedSphere.getBoundingShapes().add(new RayCastingBody(
+            boundedSphere.getBoundingShapes().add(new PovrayBody(
                 new RayCastingBox(Vector3Dd(-2,-2,-2),Vector3Dd(2,2,2)),nullptr,nullptr,nullptr,false,none,none));
             require(boundedSphere.classifyPointCertified(Vector3Dd(0.95,0,0),0.1)==GeometryContainment::Boundary &&
                 boundedSphere.classifyPointCertified(Vector3Dd(1.5,0,0),0.1)==GeometryContainment::Outside,
                 "verified bounded_by hint changed the POV sphere classification");
-            RayCastingBody tightBound(new NativeGeometryBinding(new Sphere(1)),nullptr,nullptr,
+            PovrayBody tightBound(new NativeGeometryBinding(new Sphere(1)),nullptr,nullptr,
                 nullptr,false,none,none);
-            tightBound.getBoundingShapes().add(new RayCastingBody(
+            tightBound.getBoundingShapes().add(new PovrayBody(
                 new RayCastingBox(Vector3Dd(-0.5,-0.5,-0.5),Vector3Dd(0.5,0.5,0.5)),nullptr,nullptr,nullptr,false,none,none));
             GeometryBounds tightBounds;
             tightBound.getSolidWorldBounds(tightBounds);
             require(tightBound.classifyPointCertified(Vector3Dd(0,0,0),0.1)==GeometryContainment::Unsupported &&
                 tightBounds.getKind()==GeometryBounds::Kind::Unsupported,
                 "an unverified bounded_by hint was given a typed solid");
-            RayCastingBody sphereBound(new NativeGeometryBinding(new Sphere(1)),nullptr,nullptr,
+            PovrayBody sphereBound(new NativeGeometryBinding(new Sphere(1)),nullptr,nullptr,
                 nullptr,false,none,none);
-            sphereBound.getBoundingShapes().add(new RayCastingBody(
+            sphereBound.getBoundingShapes().add(new PovrayBody(
                 new NativeGeometryBinding(new Sphere(1.8)),nullptr,nullptr,nullptr,false,none,none));
             require(sphereBound.classifyPointCertified(Vector3Dd(0,0,0),0.1)==GeometryContainment::Inside,
                 "a spherical bounded_by region could not be certified");
@@ -490,7 +489,7 @@ int main() {
                 clippedSphere.getClippingShapes()[0]->getAffinePlacement().epsilonEquals(Matrix4x4d::identityMatrix(),1e-12),
                 "returning the clipped body to identity left its clip region displaced");
             // A region that cannot move atomically rejects the whole edit.
-            RayCastingBody* brokenRegion=new RayCastingBody(
+            PovrayBody* brokenRegion=new PovrayBody(
                 new RayCastingBox(Vector3Dd(-3,-3,-3),Vector3Dd(3,3,3)),nullptr,nullptr,nullptr,false,none,none);
             brokenRegion->getClippingShapes().add(nullptr);
             hollowSphere.getBoundingShapes().add(brokenRegion);
@@ -501,6 +500,65 @@ int main() {
                 hollowSphere.getClippingShapes()[0]->getAffinePlacement().epsilonEquals(clipBefore,0),
                 "a rejected region edit changed part of the POV object");
             hollowSphere.getBoundingShapes()[0]->getClippingShapes().clear();
+        }
+        {
+            // Stage I: polynomial and blob objects answer typed queries with
+            // their VITRAL solids, including inversion and placement.
+            java::ArrayList<PovrayBody*> none;
+            PolynomialShape* unitBall=new PolynomialShape(2);
+            unitBall->getCoeffs()[PolynomialSurface::getTermIndex(2,2,0,0)]=1;
+            unitBall->getCoeffs()[PolynomialSurface::getTermIndex(2,0,2,0)]=1;
+            unitBall->getCoeffs()[PolynomialSurface::getTermIndex(2,0,0,2)]=1;
+            unitBall->getCoeffs()[PolynomialSurface::getTermIndex(2,0,0,0)]=-1;
+            PovrayBody polyBody(unitBall,nullptr,nullptr,nullptr,false,none,none);
+            require(polyBody.setAffinePlacement(Matrix4x4d().translation(2,0,0),
+                Matrix4x4d().translation(-2,0,0))==AffinePlacementStatus::Valid,
+                "polynomial body rejected its placement");
+            require(polyBody.classifyPointCertified(Vector3Dd(2,0,0),0.1)==GeometryContainment::Inside &&
+                polyBody.classifyPointCertified(Vector3Dd(0,0,0),0.1)==GeometryContainment::Outside,
+                "POV polynomial was not classified by its VITRAL solid");
+            RaySolidClassification polyRay;
+            require(polyBody.classifyRay(Ray::fromAffine(Vector3Dd(-1,0,0),Vector3Dd(1,0,0)),
+                RayCrossingQuery(0,10),polyRay)==RaySolidQueryStatus::Supported &&
+                polyRay.boundaries.size()==2 && std::fabs(polyRay.boundaries[0].t-2)<1e-9 &&
+                std::fabs(polyRay.boundaries[1].t-4)<1e-9,
+                "POV polynomial ray classification differs from its VITRAL solid");
+            unitBall->invertGeometry();
+            require(polyBody.classifyPointCertified(Vector3Dd(2,0,0),0.1)==GeometryContainment::Outside,
+                "inverted POV polynomial kept its interior");
+            BlobSolid pair(0.5,false);
+            pair.addComponent(BlobComponent(Vector3Dd(-0.5,0,0),1.0,1.0));
+            pair.addComponent(BlobComponent(Vector3Dd(0.5,0,0),1.0,1.0));
+            PovrayBody blobBody(new Blob(pair),nullptr,nullptr,nullptr,false,none,none);
+            require(blobBody.classifyPointCertified(Vector3Dd(0,0,0),0.01)==GeometryContainment::Inside &&
+                blobBody.classifyPointCertified(Vector3Dd(5,0,0),0.01)==GeometryContainment::Outside,
+                "POV blob was not classified by its VITRAL solid");
+            SimpleBody cutter; cutter.setGeometry(new Box(Vector3Dd(0.2,-2,-2),Vector3Dd(3,2,2)));
+            CsgBodyOperand povBlobOperand(blobBody), cutterOperand(cutter);
+            CsgTree carved(CsgOperation::DIFFERENCE);
+            require(carved.addOperand(povBlobOperand) && carved.addOperand(cutterOperand),
+                "could not compose the POV blob");
+            require(CsgPointClassification::classify(carved,Vector3Dd(-0.5,0,0),0.01)==GeometryContainment::Inside &&
+                CsgPointClassification::classify(carved,Vector3Dd(0.5,0,0),0.01)==GeometryContainment::Outside,
+                "POV blob operand was not classified through its VITRAL solid");
+            // A height field's grid is placed by its body: here the zero
+            // heights over a floor at -1, the grid scaled by one half on x and z.
+            HeightField* field=new HeightField(5,5,Vector3Dd(0,0,0),Vector3Dd(4,2,4));
+            field->setWaterLevel(-1);
+            PovrayBody fieldBody(field,nullptr,nullptr,nullptr,false,none,none);
+            require(fieldBody.setAffinePlacement(Matrix4x4d().scale(0.5,1,0.5),
+                Matrix4x4d().scale(2,1,2))==AffinePlacementStatus::Valid,
+                "height field body rejected its placement");
+            require(fieldBody.classifyPointCertified(Vector3Dd(1,-0.5,1),0.01)==GeometryContainment::Inside &&
+                fieldBody.classifyPointCertified(Vector3Dd(1,0.5,1),0.01)==GeometryContainment::Outside &&
+                fieldBody.classifyPointCertified(Vector3Dd(3,-0.5,1),0.01)==GeometryContainment::Outside,
+                "POV height field was not classified by its placed VITRAL solid");
+            RaySolidClassification fieldRay;
+            require(fieldBody.classifyRay(Ray::fromAffine(Vector3Dd(1,5,1),Vector3Dd(0,-1,0)),
+                RayCrossingQuery(0,10),fieldRay)==RaySolidQueryStatus::Supported &&
+                fieldRay.boundaries.size()==2 && std::fabs(fieldRay.boundaries[0].t-5)<1e-9 &&
+                std::fabs(fieldRay.boundaries[1].t-6)<1e-9,
+                "POV height field ray classification differs from its VITRAL solid");
         }
     } catch (...) { return 1; }
     return 0;

@@ -3,14 +3,24 @@
 
 #include "java/lang/String.h"
 #include "java/util/concurrent/ExecutionException.h"
+#include "java/util/concurrent/atomic/AtomicLong.h"
 #include <pthread.h>
-#include "vsdk/toolkit/common/memoryManagement/SharedPointer.h"
 namespace java {
 
+/**
+Emulation of `java.util.concurrent.Future`: copies of a future share one
+result state, as Java references to the same future do. The state counts its
+references (the futures and the pending task that completes it) and is deleted
+by the last one released.
+*/
 template<typename T>
 class Future {
 public:
-    struct SharedState {
+    class SharedState {
+    private:
+        AtomicLong references;
+
+    public:
         pthread_mutex_t mutex;
         pthread_cond_t cond;
         bool done;
@@ -18,23 +28,52 @@ public:
         java::String errorMessage;
         T value;
 
-        SharedState() : done(false), failed(false), errorMessage(), value() {
+        /// Starts with one reference, owned by its creator.
+        SharedState() : references(1), done(false), failed(false), errorMessage(), value() {
             pthread_mutex_init(&mutex, 0);
             pthread_cond_init(&cond, 0);
         }
+
+        SharedState(const SharedState&) = delete;
+        SharedState& operator=(const SharedState&) = delete;
 
         ~SharedState() {
             pthread_cond_destroy(&cond);
             pthread_mutex_destroy(&mutex);
         }
+
+        void retain() { references.incrementAndGet(); }
+
+        void release()
+        {
+            if ( references.decrementAndGet() == 0 ) {
+                delete this;
+            }
+        }
     };
 
 private:
-    SharedPointer<SharedState> state_;
+    SharedState* state_;
 
 public:
     Future() : state_(new SharedState()) {}
-    explicit Future(const SharedPointer<SharedState>& state) : state_(state) {}
+
+    /// Shares the given state; the caller keeps its own reference.
+    explicit Future(SharedState* state) : state_(state) { state_->retain(); }
+
+    Future(const Future<T>& other) : state_(other.state_) { state_->retain(); }
+
+    Future<T>& operator=(const Future<T>& other)
+    {
+        if ( state_ != other.state_ ) {
+            other.state_->retain();
+            state_->release();
+            state_ = other.state_;
+        }
+        return *this;
+    }
+
+    ~Future() { state_->release(); }
 
     T get()
     {

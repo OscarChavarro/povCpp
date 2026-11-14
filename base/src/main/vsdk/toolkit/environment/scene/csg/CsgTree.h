@@ -23,6 +23,8 @@ public:
     long int getOperandCount() const override;
     const CsgOperandView* getOperand(long int index) const override;
     bool addOperand(const CsgOperandView& operand);
+    // Replaces the operation (e.g. a De Morgan complement); a structure edit.
+    void setOperation(CsgOperation value);
     bool isSameSolid(const CsgOperandView& other) const override;
     const Geometry* getGeometry() const override;
     Matrix4x4d getAffinePlacement() const override;

@@ -1,8 +1,8 @@
 #include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
-#include "vsdk/toolkit/environment/raycasting/scene/RayCastingBody.h"
+#include "vsdk/toolkit/environment/raycasting/scene/PovrayBody.h"
 #include "vsdk/toolkit/environment/raycasting/scene/RayCastingCoreOperand.h"
 
-RayCastingCoreOperand::RayCastingCoreOperand(const RayCastingBody& value) : body(value) {}
+RayCastingCoreOperand::RayCastingCoreOperand(const PovrayBody& value) : body(value) {}
 
 const Geometry* RayCastingCoreOperand::getGeometry() const
 {

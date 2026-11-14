@@ -55,7 +55,7 @@ LocalSurfaceShader::shade(const RayWithTracingState *ray, PovRayMaterial *textur
     if (usingMaterialTexture &&
         hit.materialUsesObjectLocalPoint &&
         hit.hitBody != nullptr) {
-        texturePoint = static_cast<RayCastingBody *>(hit.hitBody)->worldPointToLocal(hit.p);
+        texturePoint = static_cast<PovrayBody *>(hit.hitBody)->worldPointToLocal(hit.p);
     }
 
     if (static_cast<const PovRayRendererConfiguration *>(ray->getConfig())->withBumpMapping()) {

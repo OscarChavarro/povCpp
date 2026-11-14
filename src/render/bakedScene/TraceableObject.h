@@ -5,9 +5,9 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingInfinitePlane.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.h"
-#include "vsdk/toolkit/environment/raycasting/scene/RayCastingBody.h"
+#include "vsdk/toolkit/environment/raycasting/scene/PovrayBody.h"
 
-// One traceable object: a plain RayCastingBody, a CSG-wrapping RayCastingBody,
+// One traceable object: a plain PovrayBody, a CSG-wrapping PovrayBody,
 // or a RayCastingComposite (in which case `compositeIndex` points at the extra
 // per-composite data in `BakedScene::composites` - bounding/clipping/
 // composite kind is folded into `kind` at build time, not re-derived per
@@ -17,7 +17,7 @@ class TraceableObject {
   public:
     TraceableObject(
         BakedSceneTraceKind kind,
-        RayCastingBody *object,
+        PovrayBody *object,
         RayCastingGeometry *originalGeometry,
         Quadric *originalQuadricGeometry,
         Material *geometryMaterial,
@@ -79,7 +79,7 @@ class TraceableObject {
     {}
 
     BakedSceneTraceKind getKind() const { return kind; }
-    RayCastingBody *getObject() const { return object; }
+    PovrayBody *getObject() const { return object; }
     RayCastingGeometry *getGeometry() const
     {
         if (hasBakedQuadric) {
@@ -125,7 +125,7 @@ class TraceableObject {
 
   private:
     BakedSceneTraceKind kind;
-    RayCastingBody *object;
+    PovrayBody *object;
     RayCastingGeometry *originalGeometry;
     Quadric *originalQuadricGeometry;
     Material *geometryMaterial;

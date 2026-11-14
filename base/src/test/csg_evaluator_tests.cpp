@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "java/util/ArrayList.txx"
+#include "vsdk/toolkit/environment/scene/csg/CsgMembershipRule.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 #include "vsdk/toolkit/environment/geometry/element/RayCrossingQuery.h"
 #include "vsdk/toolkit/environment/geometry/volume/Box.h"
@@ -14,6 +15,8 @@
 #include "vsdk/toolkit/environment/scene/csg/CsgRaySurfaceEvents.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgRothRayClassifier.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgTree.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgSegmentClassification.txx"
+#include "vsdk/toolkit/environment/scene/csg/CsgBody.h"
 #include "CsgTestOperand.h"
 #include "UncertifiedTestBody.h"
 
@@ -448,4 +451,74 @@ TEST(CsgBodyContract, EvaluatorsDifferOnNestedUnionInternalSurfaces) {
     EXPECT_NEAR(-1,roth.normal.x(),1e-12);
     EXPECT_NEAR(-1,pov.normal.x(),1e-12);
     delete bodies[0]; delete bodies[1];
+}
+
+TEST(CsgMembershipRuleContract, FoldStopsOnlyWhenLaterOperandsCannotChangeIt) {
+    const CsgOperation operations[] = { CsgOperation::UNION, CsgOperation::INTERSECTION,
+        CsgOperation::DIFFERENCE };
+    for ( int k = 0; k < 3; k++ ) {
+        for ( int accumulated = 0; accumulated < 2; accumulated++ ) {
+            const bool value = accumulated == 1;
+            const bool unchanged = CsgMembershipRule::combine(operations[k], value, false) == value &&
+                CsgMembershipRule::combine(operations[k], value, true) == value;
+            EXPECT_EQ(CsgMembershipRule::isDecided(operations[k], value), unchanged);
+        }
+    }
+}
+
+TEST(CsgSegmentClassificationContract, MergesLeafSegmentsByTableThree) {
+    // Left solid [1,3], right solid [2,4]; payloads name the events.
+    CsgSegmentClassification<int> left(false, 2), right(false, 2);
+    left.append(1, 10); left.append(3, 11);
+    right.append(2, 20); right.append(4, 21);
+    ASSERT_TRUE(left.getEvents()[0].isEntering());
+    ASSERT_FALSE(left.getEvents()[1].isEntering());
+    const CsgSegmentClassification<int> u =
+        CsgSegmentClassification<int>::merge(left, right, CsgOperation::UNION);
+    ASSERT_EQ(2, u.getEvents().size());
+    EXPECT_EQ(10, u.getEvents()[0].getPayload()); EXPECT_EQ(21, u.getEvents()[1].getPayload());
+    const CsgSegmentClassification<int> i =
+        CsgSegmentClassification<int>::merge(left, right, CsgOperation::INTERSECTION);
+    ASSERT_EQ(2, i.getEvents().size());
+    EXPECT_EQ(20, i.getEvents()[0].getPayload()); EXPECT_EQ(11, i.getEvents()[1].getPayload());
+    const CsgSegmentClassification<int> d =
+        CsgSegmentClassification<int>::merge(left, right, CsgOperation::DIFFERENCE);
+    ASSERT_EQ(2, d.getEvents().size());
+    EXPECT_EQ(10, d.getEvents()[0].getPayload()); EXPECT_TRUE(d.getEvents()[0].isEntering());
+    EXPECT_EQ(20, d.getEvents()[1].getPayload()); EXPECT_FALSE(d.getEvents()[1].isEntering());
+    EXPECT_FALSE(d.isInitialInside());
+}
+
+TEST(CsgSegmentClassificationContract, InitialStateAndTiesTakeTheLeftEvent) {
+    // A ray starting inside the left solid, leaving it where the right one ends.
+    CsgSegmentClassification<int> left(true, 1), right(true, 1);
+    left.append(2, 1); right.append(2, 2);
+    const CsgSegmentClassification<int> u =
+        CsgSegmentClassification<int>::merge(left, right, CsgOperation::UNION);
+    EXPECT_TRUE(u.isInitialInside());
+    ASSERT_EQ(1, u.getEvents().size());
+    EXPECT_EQ(2, u.getEvents()[0].getPayload());
+    const CsgSegmentClassification<int> i =
+        CsgSegmentClassification<int>::merge(left, right, CsgOperation::INTERSECTION);
+    ASSERT_EQ(1, i.getEvents().size());
+    EXPECT_EQ(1, i.getEvents()[0].getPayload());
+}
+
+TEST(CsgTreeContract, OperationEditsAreStructureEdits) {
+    CsgTree tree(CsgOperation::UNION);
+    long long before = 0, after = 0;
+    ASSERT_TRUE(tree.queryStructureVersion(before));
+    tree.setOperation(CsgOperation::INTERSECTION);
+    ASSERT_TRUE(tree.queryStructureVersion(after));
+    EXPECT_EQ(CsgOperation::INTERSECTION, tree.getOperation());
+    EXPECT_NE(before, after);
+}
+
+TEST(CsgBodyOperandContract, StructuralTraversalFollowsThePlacedGeometryOptIn) {
+    SimpleBody plain; plain.setGeometry(new Sphere(1));
+    CsgBody composed(CsgOperation::UNION, CsgBodyEvaluator::ROTH);
+    CsgBodyOperand plainView(plain), composedView(composed);
+    EXPECT_TRUE(plain.isStructuralTraversalSafe());
+    EXPECT_TRUE(plainView.isStructuralTraversalSafe());
+    EXPECT_FALSE(composedView.isStructuralTraversalSafe());
 }

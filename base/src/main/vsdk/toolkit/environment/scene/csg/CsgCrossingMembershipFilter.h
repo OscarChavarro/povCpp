@@ -6,6 +6,7 @@
 #include "vsdk/toolkit/environment/scene/csg/CsgRayEventReference.h"
 class CsgExpression;
 class CsgOperandView;
+class CsgPointWorkspace;
 class CsgRayLeafBatch;
 class CsgRaySurfaceEvents;
 class Ray;
@@ -24,15 +25,21 @@ class Vector3Dd;
 // proves exclusion; otherwise the query fails with that sibling's status.
 class CsgCrossingMembershipFilter {
 private:
+    // Appends the kept events of the expression to the workspace event stack.
     static RaySolidQueryStatus select(const CsgExpression& expression, const Ray& ray,
         double tolerance, const CsgRayLeafBatch& leaves, long int& leafIndex,
-        java::ArrayList<CsgRayEventReference>& result);
+        CsgPointWorkspace& workspace);
     static RaySolidQueryStatus decide(const CsgExpression& expression, long int operandIndex,
-        const Vector3Dd& point, double tolerance, bool& keep);
+        const Vector3Dd& point, double tolerance, CsgPointWorkspace& workspace, bool& keep);
     static RaySolidQueryStatus toStatus(GeometryContainment containment);
 public:
     static RaySolidQueryStatus select(const CsgExpression& expression, const Ray& ray,
         const RayCrossingQuery& query, double tolerance, CsgRaySurfaceEvents& result);
+    // The same selection with caller-owned scratch storage: after warm-up it
+    // allocates nothing beyond the leaf queries.
+    static RaySolidQueryStatus select(const CsgExpression& expression, const Ray& ray,
+        const RayCrossingQuery& query, double tolerance, CsgPointWorkspace& workspace,
+        CsgRaySurfaceEvents& result);
     // Certified world classification of a single operand in its parent space.
     static GeometryContainment classifyOperand(const CsgOperandView& operand,
         const Vector3Dd& point, double tolerance);

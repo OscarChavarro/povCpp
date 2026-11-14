@@ -1892,3 +1892,240 @@ copied base files identical to VITRAL. `runAll.sh` rendered 29 scenes in
 (`heightfield_terrain`) and
 `e888d391804afa0a4d85bf0dc9ff615e042e012c5f50fbb94268e49c2e2dc746`
 (`bezier_patches`).
+
+### Stage I: offline corpus, shared resources, workspaces and POV adoption (I-1..I-4)
+
+- Offline MIT corpus (I-1): the C++ `ReaderMitScene` skipped unknown
+  commands, so `cube`, `cylinder`, `torus`, `polybox`, `appel`, `obj`,
+  `quads`, `rotation`, `texture`, `bumpmap` and `backgroundcubemap` were
+  dropped and seven scenes rendered without their objects, textures or
+  background: `bumpMapping`, `cubemap`, `object`, `balls_featured_object`,
+  `balls_torus`, `balls_cowobj` and `quadmesh_test`. The reader now builds
+  them and rejects unknown commands, malformed lines and unreadable files.
+  An unreadable image comes back from `ImagePersistence` as an empty image,
+  which the reader rejects. Bump maps were still invisible because the offline
+  example's default Gouraud selection uses `GouraudTextureShader`, which
+  ignores normal maps; scenes with normal maps now select Phong shading.
+  `ReaderMitCommands` checks the classic primitives, rotation and cubemap,
+  real hits on the quad mesh, polyhedral solid and torus, shared textures and
+  bump maps, resolution from the scene directory and ten rejected inputs. The
+  cubemap case needs JPEG support; POV's VITRAL build has none, so there it
+  checks the rejection.
+- Shared resources (I-2): with `SimpleScene::addImage` and `addNormalMap`
+  and the body reference setters, a texture used by two spheres is loaded once
+  and outlives the removal of one body. `ShadersExample` no longer clones the
+  sphere, texture and normal map for each frame.
+- Point classification workspace (I-3): on a heuristic CSG point query the
+  full `classify` made about 3,600 allocations; `classifyContainment` with a
+  reused `CsgPointWorkspace` makes none, and the heuristic `select` without a
+  workspace makes nine. A query still takes about 275 µs, against about 6 µs
+  for Roth with a workspace; the profile puts the cost in `FloatingInterval`
+  and `QuadraticInteriorBound::improve`. `csg_sculpture_pov` went from about
+  1.5 to 1.05 seconds in parallel with byte-identical CSG images.
+  `CsgPointWorkspaceContract` compares the containment query with the full
+  classification on 120 random trees with repeated operands, a sheared placed
+  subtree and an uncertain operand at three tolerances, and checks that the
+  heuristic selection gives the same events with a reused workspace.
+- POV catalog adoption (I-4): POV `PolynomialShape` and `Blob` report their
+  intrinsic geometry and inversion to `RayCastingBody::queryWrappedSolid`. The
+  POV environment integration test classifies points and rays of a polynomial
+  body, its inverted copy and a blob inside a CSG difference. `HeightField`
+  stays `Unsupported`.
+
+VITRAL passed 319 tests with one pre-existing disabled test; POV passed 320.
+After I-1 the example capture produced 64 images; 42 of the 56 references
+matched and the 14 others were the sequential and parallel images of the seven
+repaired scenes. After I-4 all 64 matched the I-1 capture. `renderAll.sh`
+produced all 108 baseline-identical images in 114 seconds and 1410.58 user CPU
+seconds. The Roth re-render kept the seven accepted discrepancies, and the
+audit mapped 69 raycasting files and found all 161 copied base files identical
+to VITRAL. `runAll.sh` rendered 29 scenes in 495.0 seconds sequentially and
+22.9 in parallel, with identical images; the 22 other scenes are unchanged.
+The sequential time grows because `balls_cowobj` (250 seconds) and
+`balls_featured_object` (120 seconds) now hold their meshes and polyhedral
+solid. The repaired images have SHA-256
+`04f393936a93c56104e9d00db6dc065b54c93afc319f52b23d70eadb727778b4`
+(`bumpMapping`), `57e0a95fc00ea65212cf3555a7e6d0e76c6a3a1535fdd9d8040ef60a3695bb02`
+(`cubemap`), `234934e42c05a67e4567f57315c678ebe5a5d5977e34a14b0b62927e9ed8ef5a`
+(`object`), `0f79c28626d284d10613bf1fc2b41c2fc7201acbeb94bc66c7cf533ef2690ac3`
+(`balls_featured_object`),
+`0fc09881f27a5fe8f35116800ca00117fc31e67349cf0fc242e705334dbfabd1`
+(`balls_torus`), `db41f21d4c4ac3b7a3c6d15f39eaa0c0cfc3b27f465c763cc33c450e446c0d33`
+(`balls_cowobj`) and
+`e877c0267a89e17d11976da29631107303df6bbe17966b2f2de24c909fdebbdf`
+(`quadmesh_test`).
+
+### Stage I: drawable representations and height field placement (I-5, I-6)
+
+- Drawable representations (I-5): `SolidBoundaryTessellatorContract` checks
+  that a placed sphere at resolution 32 gives a closed, consistently wound mesh
+  of Euler characteristic 2 whose volume and area are within 3 % and 5 % of
+  the sphere's, with every crossing found by a ray hit, over 95 % of the
+  vertices exactly on the sphere and the rest within one cell. A box minus a
+  sphere gives two shells (Euler characteristic 4) with both CSG evaluators, a
+  merged blob one shell, and a sphere larger than the region the region's cube
+  with volume 8 to 10⁻⁹. `BezierPatchTessellatorContract` checks the grid
+  points against the Bezier surface and the faces against `S_u x S_v`. The
+  PovRay `SubdividedBezierPatch::evaluateNormal` is not that cross product of
+  `evaluate`'s derivatives (dot products down to −0.96 on the test net), so the
+  tessellator computes its own Bernstein derivatives. The new tests pass under
+  Valgrind without errors or leaks.
+- `ShadersExample` renders the six geometries offline with `--method software`
+  and `--method opengl`; both paths show the same shapes, and the software
+  images add the ray-traced shadows. Building the CSG mesh at 96 cells takes
+  about 5.3 seconds once per selection. A Valgrind run of the offline software
+  CSG render reports no definite leaks; frame bodies, lights and backgrounds
+  were previously never deleted.
+- Height field placement (I-6): with the grid normalization moved from the
+  adapter to the body's first scale step, `hfclip`, `mtmand` and `sunsethf` are
+  byte-identical. The POV environment integration test classifies points and a
+  ray of a height field under a body scale.
+
+VITRAL passed 325 tests with one pre-existing disabled test; POV passed 326,
+with the JPEG cubemap case skipped. The example capture produced 64 images, all
+identical to the I-4 capture. `renderAll.sh` produced all 108
+baseline-identical images in 114 seconds and 1427.06 user CPU seconds. The
+Roth re-render kept the seven accepted discrepancies, and the audit mapped 69
+raycasting files and found all 161 copied base files identical to VITRAL.
+
+### Stage I: shared quadric kernel (I-7)
+
+- `QuadricRayExpansion` replaces the two copies of the PovRay quadric
+  expansion in POV `Quadric` and `bakedScene`. The two copies associated the
+  constant term differently; the shared kernel keeps the `bakedScene` order,
+  `(square + linear) + constant`, and with it all 108 scenes are identical.
+  The adapter's order changed `level3/wg5.tga`, the scene with a known
+  sensitivity to `rand()` dither.
+- A first version defined the kernel out of line in the VITRAL shared library;
+  `renderAll.sh` then took 170 seconds and 1616 user CPU seconds instead of
+  114 and 1427, since calls in the innermost intersection loop could not be
+  inlined. The kernel is now header-only and the timing is unchanged.
+- `QuadricRayExpansionContract` checks that the expanded polynomial equals the
+  quadric along a ray with all coefficient groups non-zero, that its roots lie
+  on the surface, and that a quadric without square terms gives the linear
+  root.
+
+VITRAL passed 327 tests with one pre-existing disabled test; POV passed 326,
+with the JPEG cubemap case skipped. The example capture produced 64 images, all
+identical to the I-4 capture. `renderAll.sh` produced all 108
+baseline-identical images in 119 seconds and 1429.55 user CPU seconds. The
+Roth re-render kept the seven accepted discrepancies, and the audit mapped 69
+raycasting files and found all 161 copied base files identical to VITRAL.
+
+### Stage I: shared Roth steps in the baked render path (I-7)
+
+- `RaySegmentCsgCombiner` had its own copies of the Roth classification
+  sample, the in/out toggle of sorted crossings, the segment merge and the
+  three Boolean rules; `CsgContainmentTest::containmentTest` had its own fold.
+  Both now call the POV Roth evaluator's steps and `CsgMembershipRule`, whose
+  new `isDecided` gives the stopping point of a fold. The operands are queried
+  in the same order as before.
+- `CsgMembershipRuleContract` checks that `isDecided` holds exactly when no
+  operand value can change the fold.
+- The Roth re-render reports `pool`, `snail` and `wg5` with RMSE values that
+  vary between runs of unchanged code (0.02887 to 0.02900, 0.037264 to
+  0.037268 and 0.035713 to 0.035778 over the G-6 to I-7 runs); this run's
+  values are inside those ranges.
+
+VITRAL passed 328 tests with one pre-existing disabled test; POV passed 329,
+with the JPEG cubemap case skipped. The example capture produced 64 images, all
+identical to the I-4 capture. `renderAll.sh` produced all 108
+baseline-identical images in 116 seconds and 1418.77 user CPU seconds. The
+Roth re-render kept the seven accepted discrepancies, and the audit mapped 69
+raycasting files and found all 161 copied base files identical to VITRAL.
+
+### Stage I: scope of the POV scene and bake (decision)
+
+- The POV render paths do not adopt the certified CSG evaluators: the certified
+  heuristic costs about forty times the Roth classifier (I-3). Render paths use
+  the fast evaluators, whose steps are shared (§5.3 of the plan).
+- The bake is PovRay's; VITRAL provides no baking service, only generic
+  kernels and algorithms that the bake calls.
+- POV scene elements become `PovrayBody`, an implementation of the common
+  scene contract `SceneSolid` extracted from `SimpleBody`, not a subclass of
+  `SimpleBody`: `RayCastingBody` overrides the whole placement
+  (`supportsDecomposedPlacement` is false) and inherits TRS state and VITRAL
+  appearance it does not use. POV CSG is to be built on `CsgTree` (I-8, I-9).
+
+### Stage I: `SceneSolid` and `PovrayBody` (I-8)
+
+- `SceneSolid` takes from `SimpleBody` the geometry ownership, name and
+  version, the typed queries and the static placed classifications;
+  `SceneSolid.cpp` compiles with the same floating-point options as
+  `SimpleBody.cpp` (`-fno-fast-math`, `-ffp-contract=off`). The
+  `typeid(*this)==typeid(SimpleBody)` checks became `denotesPlacedGeometry`,
+  with the same result for `SimpleBody`, `CsgBody` and the test body.
+- `RayCastingBody` was renamed `PovrayBody` and now derives from `SceneSolid`
+  instead of `SimpleBody`. It lost the TRS overrides that only threw or
+  composed a translation, and its copies of the boundary distances, box
+  classification, solid equivalence and certified sphere lookup: its
+  `queryDenotedSolid` returns the adapter's VITRAL solid and inversion when it
+  has no regions, and the contract computes the rest.
+- The POV `Scene` keeps its `PovrayBody` list and deletes it before the
+  `SimpleScene` elements and the default texture, as before. A POV test that
+  rendered a POV body with `SimpleRaytracer` now renders a `SimpleBody` sphere,
+  since VITRAL renderers read `SimpleBody` appearance; the POV body's crossing
+  and material assertions remain.
+
+VITRAL passed 328 tests with one pre-existing disabled test; POV passed 329,
+with the JPEG cubemap case skipped. The example capture produced 64 images, all
+identical to the I-4 capture. `renderAll.sh` produced all 108
+baseline-identical images in 118 seconds and 1421.61 user CPU seconds. The
+Roth re-render kept the seven accepted discrepancies, with `pool`, `snail` and
+`wg5` inside their run-to-run ranges, and the audit mapped 69 raycasting files
+and found all 161 copied base files identical to VITRAL.
+
+### Stage I: POV CSG over `CsgTree` (I-9)
+
+- `CsgOperand` now derives from `PovrayBody`, with the body layer as its only
+  placement layer, the operand material as the geometry material and the body
+  step log as its steps. Its own placement storage, TRS arithmetic, copies of
+  the ray and certified point classifications, modification counter and
+  structural-traversal opt-in were removed; it keeps the operand bounds cull,
+  the detail-owner registration and the normal unwinding without
+  normalization. `PovrayBody::preservesCoreSolid` replaces the
+  `typeid(*this)==typeid(PovrayBody)` check, so the operand reports its core
+  solid.
+- `ConstructiveSolidGeometry` owns a VITRAL `CsgTree`, its `CsgOperand`
+  leaves and their `CsgBodyOperand` views; operation, operand order and
+  structure version come from the tree. `getOperands` is read-only.
+- VITRAL gained `CsgTree::setOperation` (used by the De Morgan inversion) and
+  `SceneSolid::isStructuralTraversalSafe`, which `CsgBodyOperand` reports, so
+  shared evaluators descend into a nested CSG through a body that denotes its
+  placed geometry. Tests `CsgTreeContract` and `CsgBodyOperandContract` cover
+  them.
+
+VITRAL passed 328 tests before the new ones; POV passed 329, with the JPEG
+cubemap case skipped. The example capture produced 64 images, all identical to
+the I-4 capture. `renderAll.sh` produced all 108 baseline-identical images in
+118 seconds and 1432.72 user CPU seconds. The Roth re-render kept the seven
+accepted discrepancies, with `pool`, `snail` and `wg5` inside their run-to-run
+ranges.
+
+### Stage I: fast CSG steps in VITRAL (I-7)
+
+- VITRAL `scene/csg` holds the fast evaluators' steps as header-only templates
+  over the caller's event type: `CsgSegmentEvent` and
+  `CsgSegmentClassification` (alternating segments of a leaf and their merge by
+  `CsgMembershipRule::combine`, left event first on ties) and
+  `CsgCrossingSelection` (a crossing is kept when every sibling's containment
+  agrees with `CsgMembershipRule::requiresContainment`).
+- The POV Roth evaluator and the bake's `RaySegmentCsgCombiner` build and
+  merge `CsgSegmentClassification<IntersectionCandidate>`; POV's
+  `RaySegments` and `RaySegmentCrossing` and `mergeByMembership` were removed.
+  The POV heuristic's intersection filter and the bake's
+  `CsgContainmentTest::candidateInsideAllOtherOperands` and
+  `candidateInsideOperandsCoreFirst` use `CsgCrossingSelection`, querying
+  operands in the same order as before.
+- Tests `CsgSegmentClassificationContract` (Table 3 merges, initial state and
+  ties) cover the templates.
+- Decision: removing the POV geometry adapters, which I-6 listed, is the
+  wrapper removal of stage J and moves there; stage I is complete.
+
+VITRAL passed 332 tests with one pre-existing disabled test; POV passed 333,
+with the JPEG cubemap case skipped. The example capture produced 64 images, all
+identical to the I-4 capture. `renderAll.sh` produced all 108
+baseline-identical images in 117 seconds and 1424.27 user CPU seconds. The
+Roth re-render kept the seven accepted discrepancies, with `pool`, `snail` and
+`wg5` inside their run-to-run ranges, and the audit mapped 66 raycasting files
+and found all 161 copied base files identical to VITRAL.

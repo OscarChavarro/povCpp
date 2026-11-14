@@ -1,12 +1,10 @@
 #ifndef __CSG_OPERAND__
 #define __CSG_OPERAND__
 
+#include "vsdk/toolkit/environment/raycasting/scene/PovrayBody.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/element/RayCastingHit.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/element/PostRayHitElement.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/boundingVolumeHierarchy/AabbBoundingVolume.h"
 #include "vsdk/toolkit/environment/material/Material.h"
-#include "vsdk/toolkit/environment/scene/csg/CsgOperandView.h"
-#include "vsdk/toolkit/environment/scene/AffinePlacement.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/Blob.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/HeightField.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/RayCastingBox.h"
@@ -14,27 +12,21 @@
 #include "vsdk/toolkit/environment/geometry/volume/Sphere.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/element/TransformStep.h"
 
-class CsgOperand : public PostRayHitElement, public CsgOperandView {
+/**
+A `PovrayBody` leaf of a POV CSG: one placement layer (the body layer), the
+operand material, and no regions, object texture, color or shadow flag. Its
+solid is its geometry under that placement, so the shared CSG structure may
+descend into a nested CSG geometry. The render role differs from a top-level
+body: crossings register this operand as a detail owner, are culled by the
+operand's padded bounds, and normals are unwound without normalization (the
+top-level body normalizes once).
+*/
+class CsgOperand : public PovrayBody {
   private:
-    RayCastingGeometry *geometry = nullptr;
-    Material *material = nullptr;
-    Matrix4x4d *transformation = nullptr;
-    Matrix4x4d *transformationInverse = nullptr;
-    java::ArrayList<TransformStep> steps{4};
-    bool bakedTransformFolded = false;
     mutable bool bakedBoundsValid = false;
     mutable AxisAlignedBoundingBox bakedBounds = AxisAlignedBoundingBox::unbounded();
     mutable bool bakedBoundsBounded = false;
     mutable bool bakedBoundsCullSafe = false;
-    long long modificationVersion = 0;
-
-    void ensureMatrices()
-    {
-        if (transformation == nullptr) {
-            transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
-            transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
-        }
-    }
 
     void invalidateBakedBounds()
     {
@@ -56,7 +48,8 @@ class CsgOperand : public PostRayHitElement, public CsgOperandView {
             return;
         }
 
-        BoundingVolumeHierarchy *bounds = geometry->createBoundingVolume();
+        RayCastingGeometry *shape = getGeometry();
+        BoundingVolumeHierarchy *bounds = shape->createBoundingVolume();
         bakedBounds = bounds->axisAlignedExtent();
         delete bounds;
         if (transformation != nullptr && !bakedBounds.isUnbounded()) {
@@ -71,89 +64,34 @@ class CsgOperand : public PostRayHitElement, public CsgOperandView {
         bakedBoundsBounded = !bakedBounds.isUnbounded();
         bakedBoundsCullSafe =
             bakedBoundsBounded &&
-            (dynamic_cast<const Sphere *>(geometry->getIntrinsicGeometry()) != nullptr ||
-             dynamic_cast<RayCastingBox *>(geometry) != nullptr ||
-             dynamic_cast<Blob *>(geometry) != nullptr ||
-             dynamic_cast<Quadric *>(geometry) != nullptr ||
-             dynamic_cast<HeightField *>(geometry) != nullptr);
+            (dynamic_cast<const Sphere *>(shape->getIntrinsicGeometry()) != nullptr ||
+             dynamic_cast<RayCastingBox *>(shape) != nullptr ||
+             dynamic_cast<Blob *>(shape) != nullptr ||
+             dynamic_cast<Quadric *>(shape) != nullptr ||
+             dynamic_cast<HeightField *>(shape) != nullptr);
         bakedBoundsValid = true;
     }
 
+  protected:
+    bool denotesPlacedGeometry() const override;
+    bool preservesCoreSolid() const override;
+
   public:
-    CsgOperand(RayCastingGeometry *geometry, Material *material) :
-        geometry(geometry), material(material)
-    {
-    }
-
     CsgOperand(
         RayCastingGeometry *geometry,
         Material *material,
-        Matrix4x4d *transformation,
-        Matrix4x4d *transformationInverse) :
-        geometry(geometry),
-        material(material),
-        transformation(transformation),
-        transformationInverse(transformationInverse)
-    {
-    }
+        Matrix4x4d *transformation = nullptr,
+        Matrix4x4d *transformationInverse = nullptr,
+        const java::ArrayList<TransformStep> &steps = java::ArrayList<TransformStep>());
+    CsgOperand(const CsgOperand &other);
 
-    CsgOperand(
-        RayCastingGeometry *geometry,
-        Material *material,
-        Matrix4x4d *transformation,
-        Matrix4x4d *transformationInverse,
-        const java::ArrayList<TransformStep> &steps) :
-        geometry(geometry),
-        material(material),
-        transformation(transformation),
-        transformationInverse(transformationInverse),
-        steps(steps)
-    {
-    }
+    void *copy() override { return new CsgOperand(*this); }
 
-    CsgOperand(const CsgOperand &other) :
-        geometry(other.geometry != nullptr ?
-            (RayCastingGeometry *)other.geometry->copy() : nullptr),
-        material(other.material != nullptr ?
-            other.material->copy() : nullptr),
-        transformation(other.transformation != nullptr ?
-            new Matrix4x4d(*other.transformation) : nullptr),
-        transformationInverse(other.transformationInverse != nullptr ?
-            new Matrix4x4d(*other.transformationInverse) : nullptr),
-        steps(other.steps)
-    {
-    }
-
-    ~CsgOperand()
-    {
-        delete geometry;
-        delete material;
-        delete transformation;
-        delete transformationInverse;
-    }
-
-    CsgOperand *copy() const { return new CsgOperand(*this); }
-
-    RayCastingGeometry *getGeometry() const override { return geometry; }
-    Matrix4x4d getAffinePlacement() const override {
-        return transformation ? transformation->transpose() : Matrix4x4d::identityMatrix();
-    }
-    AffinePlacementStatus queryAffinePlacement(Matrix4x4d& forward, Matrix4x4d& inverse) const override {
-        if ((transformation == nullptr) != (transformationInverse == nullptr))
-            return AffinePlacementStatus::Indeterminate;
-        forward = getAffinePlacement();
-        inverse = transformationInverse ? transformationInverse->transpose() : Matrix4x4d::identityMatrix();
-        return AffinePlacement::validate(forward, inverse);
-    }
-    Material *getMaterial() const { return material; }
-    Matrix4x4d *getTransformation() const { return transformation; }
-    Matrix4x4d *getTransformationInverse() const { return transformationInverse; }
-    const java::ArrayList<TransformStep> &getSteps() const { return steps; }
-    bool isBakedTransformFolded() const { return bakedTransformFolded; }
-    void setBakedTransformFolded(bool value) { bakedTransformFolded = value; }
+    Material *getMaterial() const { return geometryMaterial; }
+    const java::ArrayList<TransformStep> &getSteps() const { return bodySteps; }
     Material *getEffectiveMaterial(Material *materialOverride) const
     {
-        return material != nullptr ? material : materialOverride;
+        return geometryMaterial != nullptr ? geometryMaterial : materialOverride;
     }
     const AxisAlignedBoundingBox &getBakedBounds() const
     {
@@ -169,7 +107,7 @@ class CsgOperand : public PostRayHitElement, public CsgOperandView {
     int doIntersectionForAllRayCrossings(
         RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
-        Material *materialOverride)
+        Material *materialOverride = nullptr) override
     {
         if (geometry == nullptr) {
             return false;
@@ -180,6 +118,7 @@ class CsgOperand : public PostRayHitElement, public CsgOperandView {
             return false;
         }
 
+        RayCastingGeometry *shape = getGeometry();
         java::PriorityQueue<IntersectionCandidate> *localDepthQueue =
             ray->getIntersectionQueuePool()->pop(128);
         // Build a local-space ray clone only when this operand actually carries
@@ -193,10 +132,10 @@ class CsgOperand : public PostRayHitElement, public CsgOperandView {
             localRay.setOrigin(transformationInverse->transformPoint(ray->getOrigin()));
             localRay.setDirection(transformationInverse->transformDirection(ray->getDirection()));
             localRay.setQuadricConstantsCached(false);
-            found = geometry->doIntersectionForAllRayCrossings(
+            found = shape->doIntersectionForAllRayCrossings(
                 &localRay, localDepthQueue, getEffectiveMaterial(materialOverride));
         } else {
-            found = geometry->doIntersectionForAllRayCrossings(
+            found = shape->doIntersectionForAllRayCrossings(
                 ray, localDepthQueue, getEffectiveMaterial(materialOverride));
         }
         // Mutate each crossing in place in the scratch queue (which is cleared
@@ -214,7 +153,7 @@ class CsgOperand : public PostRayHitElement, public CsgOperandView {
                         candidate.getIntersection().point);
             }
             // Signed ray parameter, not a bare distance: see the matching note
-            // in RayCastingBody::doIntersectionForAllRayCrossings. length() would
+            // in PovrayBody::doIntersectionForAllRayCrossings. length() would
             // flip crossings behind the origin to the front and break CSG
             // membership for internal/refracted rays.
             candidate.getIntersection().t =
@@ -227,14 +166,14 @@ class CsgOperand : public PostRayHitElement, public CsgOperandView {
         return found;
     }
 
-    int doContainmentTest(const Vector3Dd &point, double distanceTolerance)
+    int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override
     {
         if (geometry == nullptr) {
             return RayCastingGeometry::OUTSIDE;
         }
         const Vector3Dd localPoint = transformationInverse != nullptr ?
             transformationInverse->transformPoint(point) : point;
-        return geometry->doContainmentTest(localPoint, distanceTolerance);
+        return getGeometry()->doContainmentTest(localPoint, distanceTolerance);
     }
 
     BoundingVolumeHierarchy *createBoundingVolume() const
@@ -242,18 +181,11 @@ class CsgOperand : public PostRayHitElement, public CsgOperandView {
         return new AabbBoundingVolume(getBakedBounds());
     }
 
-    void translate(Vector3Dd *vector);
-    void rotate(Vector3Dd *vector);
-    void scale(Vector3Dd *vector);
-
-    // Typed views of this operand in its parent CSG coordinates. Leaves use
-    // the shared geometry of their POV wrapper and the shared placed-solid
-    // certificate; an operand holding a nested CSG is traversed structurally.
-    RaySolidQueryStatus classifyRay(const Ray& ray, const RayCrossingQuery& query,
-        RaySolidClassification& result) const override;
-    GeometryContainment classifyPointCertified(const Vector3Dd& point, double tolerance) const override;
-    bool isStructuralTraversalSafe() const override;
-    bool queryModificationVersion(long long& version) const override;
+    // Body-layer edits that also move the operand material; regions do not exist.
+    void translate(Vector3Dd *vector) override;
+    void rotate(Vector3Dd *vector) override;
+    void scale(Vector3Dd *vector) override;
+    void invert() override;
 
     void doExtraInformation(
         const RayWithTracingState &ray, double t, RayCastingHit *hit) override
@@ -279,7 +211,7 @@ class CsgOperand : public PostRayHitElement, public CsgOperandView {
         if (next != nullptr) {
             next->doExtraInformation(localRay, t, hit);
         } else {
-            PostRayHitElement *effectiveGeometry = bakedTransformFolded ? hit->hitGeometry : geometry;
+            PostRayHitElement *effectiveGeometry = bakedTransformFolded ? hit->hitGeometry : getGeometry();
             if (effectiveGeometry != nullptr) {
                 effectiveGeometry->doExtraInformation(localRay, t, hit);
             }
@@ -289,19 +221,10 @@ class CsgOperand : public PostRayHitElement, public CsgOperandView {
             // normalize here. With several nested non-uniform operand scales,
             // renormalizing between levels rescales the normal before the next
             // non-uniform multiply and corrupts the composition. The final
-            // normalize happens once at the top of the chain (RayCastingBody).
+            // normalize happens once at the top of the chain (PovrayBody).
             hit->n = transformationInverse->withoutTranslation().multiply(hit->n);
         }
         hit->p = parentPoint;
-    }
-
-    void invert()
-    {
-        if (geometry != nullptr) {
-            ++modificationVersion;
-            geometry->invertGeometry();
-            steps.add(TransformStep(TransformStep::Kind::Invert, Vector3Dd(0.0, 0.0, 0.0)));
-        }
     }
 };
 

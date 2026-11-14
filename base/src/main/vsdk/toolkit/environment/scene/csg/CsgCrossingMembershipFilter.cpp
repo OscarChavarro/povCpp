@@ -7,6 +7,7 @@
 #include "vsdk/toolkit/environment/scene/csg/CsgOperandView.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgMembershipRule.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgPointClassification.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgPointWorkspace.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgRayLeafBatch.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgRayLeafQuery.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgRaySurfaceEvents.h"
@@ -22,23 +23,30 @@ RaySolidQueryStatus CsgCrossingMembershipFilter::toStatus(GeometryContainment co
 GeometryContainment CsgCrossingMembershipFilter::classifyOperand(const CsgOperandView& operand,
     const Vector3Dd& point, double tolerance)
 {
-    CsgTree single(CsgOperation::UNION);
-    if (!single.addOperand(operand)) return GeometryContainment::InvalidInput;
-    return CsgPointClassification::classify(single,point,tolerance);
+    CsgPointWorkspace workspace;
+    return CsgPointClassification::classifyOperandContainment(operand,point,tolerance,workspace);
 }
 
 RaySolidQueryStatus CsgCrossingMembershipFilter::select(const CsgExpression& expression, const Ray& ray,
     const RayCrossingQuery& query, double tolerance, CsgRaySurfaceEvents& result)
 {
+    CsgPointWorkspace workspace;
+    return select(expression,ray,query,tolerance,workspace,result);
+}
+
+RaySolidQueryStatus CsgCrossingMembershipFilter::select(const CsgExpression& expression, const Ray& ray,
+    const RayCrossingQuery& query, double tolerance, CsgPointWorkspace& workspace,
+    CsgRaySurfaceEvents& result)
+{
     result.clear();
+    workspace.clear();
     if (!java::Double::isFinite(tolerance) || tolerance<0) return RaySolidQueryStatus::InvalidInput;
-    RaySolidQueryStatus status=CsgRayLeafQuery::query(expression,ray,query,result.getLeaves());
-    java::ArrayList<CsgRayEventReference> selected(8);
+    RaySolidQueryStatus status=CsgRayLeafQuery::query(expression,ray,query,workspace.ray,result.getLeaves());
     long int leafIndex=0;
     if (status==RaySolidQueryStatus::Supported)
-        status=select(expression,ray,tolerance,result.getLeaves(),leafIndex,selected);
-    for (long int i=0;status==RaySolidQueryStatus::Supported && i<selected.size();++i)
-        if (!result.add(selected[i])) status=RaySolidQueryStatus::Indeterminate;
+        status=select(expression,ray,tolerance,result.getLeaves(),leafIndex,workspace);
+    for (long int i=0;status==RaySolidQueryStatus::Supported && i<workspace.events.size();++i)
+        if (!result.add(workspace.events[i])) status=RaySolidQueryStatus::Indeterminate;
     if (status==RaySolidQueryStatus::Supported && !result.getVersions().capture(expression))
         status=RaySolidQueryStatus::Indeterminate;
     if (status!=RaySolidQueryStatus::Supported) result.clear();
@@ -46,7 +54,8 @@ RaySolidQueryStatus CsgCrossingMembershipFilter::select(const CsgExpression& exp
 }
 
 RaySolidQueryStatus CsgCrossingMembershipFilter::decide(const CsgExpression& expression,
-    long int operandIndex, const Vector3Dd& point, double tolerance, bool& keep)
+    long int operandIndex, const Vector3Dd& point, double tolerance, CsgPointWorkspace& workspace,
+    bool& keep)
 {
     const CsgOperation operation=expression.getOperation();
     bool excluded=false;
@@ -54,7 +63,10 @@ RaySolidQueryStatus CsgCrossingMembershipFilter::decide(const CsgExpression& exp
     for (long int j=0;j<expression.getOperandCount() && !excluded;++j) {
         if (j==operandIndex) continue;
         const bool mustContain=CsgMembershipRule::requiresContainment(operation,operandIndex,j);
-        const GeometryContainment c=classifyOperand(*expression.getOperand(j),point,tolerance);
+        const CsgOperandView* sibling=expression.getOperand(j);
+        const GeometryContainment c=sibling ?
+            CsgPointClassification::classifyOperandContainment(*sibling,point,tolerance,workspace) :
+            GeometryContainment::InvalidInput;
         if (c==GeometryContainment::InvalidInput) return RaySolidQueryStatus::InvalidInput;
         if (c==GeometryContainment::Boundary) continue;
         if (c==GeometryContainment::Inside) { excluded=!mustContain; continue; }
@@ -70,13 +82,15 @@ RaySolidQueryStatus CsgCrossingMembershipFilter::decide(const CsgExpression& exp
 
 RaySolidQueryStatus CsgCrossingMembershipFilter::select(const CsgExpression& expression, const Ray& ray,
     double tolerance, const CsgRayLeafBatch& leaves, long int& leafIndex,
-    java::ArrayList<CsgRayEventReference>& result)
+    CsgPointWorkspace& workspace)
 {
     const CsgOperation operation=expression.getOperation();
+    java::ArrayList<CsgRayEventReference>& events=workspace.events;
     for (long int i=0;i<expression.getOperandCount();++i) {
         const CsgOperandView* operand=expression.getOperand(i);
         const CsgExpression* child=operand->getChildExpression();
-        java::ArrayList<CsgRayEventReference> events(8);
+        // This operand's events occupy the stack from `first` on.
+        const long int first=events.size();
         if (child) {
             // The leaf query has already validated this placement.
             Matrix4x4d forward,inverse;
@@ -84,7 +98,7 @@ RaySolidQueryStatus CsgCrossingMembershipFilter::select(const CsgExpression& exp
                 return RaySolidQueryStatus::Indeterminate;
             const Ray childRay=Ray::fromAffine(inverse.multiply(ray.getOrigin()),
                 inverse.withoutTranslation().multiply(ray.getDirection()),ray.getT());
-            const RaySolidQueryStatus status=select(*child,childRay,tolerance,leaves,leafIndex,events);
+            const RaySolidQueryStatus status=select(*child,childRay,tolerance,leaves,leafIndex,workspace);
             if (status!=RaySolidQueryStatus::Supported) return status;
         }
         else {
@@ -94,16 +108,20 @@ RaySolidQueryStatus CsgCrossingMembershipFilter::select(const CsgExpression& exp
                 if (!events.add(CsgRayEventReference(leafIndex,k))) return RaySolidQueryStatus::Indeterminate;
             ++leafIndex;
         }
-        for (long int k=0;k<events.size();++k) {
+        if (!CsgMembershipRule::filtersEvents(operation)) continue;
+        // Keep the selected events in order, compacting them in place.
+        long int kept=first;
+        const long int last=events.size();
+        for (long int k=first;k<last;++k) {
             bool keep=true;
-            if (CsgMembershipRule::filtersEvents(operation)) {
-                const double t=leaves.get(events[k].leafIndex)->getClassification().boundaries[events[k].boundaryIndex].t;
-                const Vector3Dd point=ray.getOrigin().add(ray.getDirection().multiply(t));
-                const RaySolidQueryStatus status=decide(expression,i,point,tolerance,keep);
-                if (status!=RaySolidQueryStatus::Supported) return status;
-            }
-            if (keep && !result.add(events[k])) return RaySolidQueryStatus::Indeterminate;
+            const CsgRayEventReference event=events[k];
+            const double t=leaves.get(event.leafIndex)->getClassification().boundaries[event.boundaryIndex].t;
+            const Vector3Dd point=ray.getOrigin().add(ray.getDirection().multiply(t));
+            const RaySolidQueryStatus status=decide(expression,i,point,tolerance,workspace,keep);
+            if (status!=RaySolidQueryStatus::Supported) return status;
+            if (keep) events[kept++]=event;
         }
+        while (events.size()>kept) events.remove(events.size()-1);
     }
     return RaySolidQueryStatus::Supported;
 }

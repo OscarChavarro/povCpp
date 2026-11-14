@@ -2,6 +2,7 @@
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingInfinitePlane.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgMembershipRule.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgSegmentClassification.txx"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 
@@ -9,7 +10,7 @@
 // classify (Table 3 of [ROTH1982].3.3 assumes bounded operands), so
 // doIntersectionForAllRayCrossings() skips the merge for it below.
 static bool
-isUnionOfBarePlanes(BooleanSetOperations geometryType, java::ArrayList<CsgOperand*> &children)
+isUnionOfBarePlanes(BooleanSetOperations geometryType, const java::ArrayList<CsgOperand*> &children)
 {
     if (geometryType == BooleanSetOperations::DIFFERENCE ||
         geometryType == BooleanSetOperations::INTERSECTION) {
@@ -33,7 +34,7 @@ ConstructiveSolidGeometryByRaySegment::ConstructiveSolidGeometryByRaySegment(con
     topLevel(other.isTopLevel())
 {
     for (long int i = 0; i < other.getOperands().size(); i++) {
-        addOperand(other.getOperands()[i]->copy());
+        addOperand(static_cast<CsgOperand *>(other.getOperands()[i]->copy()));
     }
 }
 
@@ -43,8 +44,37 @@ ConstructiveSolidGeometryByRaySegment::copy()
     return new ConstructiveSolidGeometryByRaySegment(*this);
 }
 
+// One containment sample per child suffices: later crossings just toggle it
+// ([ROTH1982].3.3 - a ray alternates in/out at each surface crossing).
+Vector3Dd
+ConstructiveSolidGeometryByRaySegment::classificationPoint(
+    const RayWithTracingState &ray, java::PriorityQueue<IntersectionCandidate> &crossings)
+{
+    if (crossings.size() > 0) {
+        IntersectionCandidate firstCandidate = crossings.peek();
+        return ray.getOrigin().add(
+            ray.getDirection().multiply(0.5 * firstCandidate.getIntersection().t));
+    }
+    // See [ROTH1982] Bug B (math/trough.pov): a continuation ray starting
+    // exactly on this child's surface needs a positive offset, not a negative
+    // tolerance, to land reliably on the correct side.
+    return ray.getOrigin().add(ray.getDirection().multiply(2.0 * GeometryConfig::SMALL_TOLERANCE));
+}
+
+CsgSegmentClassification<IntersectionCandidate>
+ConstructiveSolidGeometryByRaySegment::segmentsFromCrossings(
+    java::PriorityQueue<IntersectionCandidate> &crossings, bool initialInside)
+{
+    CsgSegmentClassification<IntersectionCandidate> segments(initialInside, crossings.size());
+    while (crossings.size() > 0) {
+        IntersectionCandidate candidate = crossings.poll();
+        segments.append(candidate.getIntersection().t, candidate);
+    }
+    return segments;
+}
+
 // Per-child RAYCAST classification ([ROTH1982].3.3, "In-Out Classification").
-RaySegments
+CsgSegmentClassification<IntersectionCandidate>
 ConstructiveSolidGeometryByRaySegment::buildRaySegments(
     RayWithTracingState *ray, CsgOperand *child, Material *materialOverride)
 {
@@ -52,104 +82,12 @@ ConstructiveSolidGeometryByRaySegment::buildRaySegments(
         ray->getIntersectionQueuePool()->pop(128);
 
     child->doIntersectionForAllRayCrossings(ray, localDepthQueue, materialOverride);
-
-    // One containment sample per child suffices: later crossings just
-    // toggle it ([ROTH1982].3.3 - a ray alternates in/out at each surface
-    // crossing).
-    bool initialInside;
-    if (localDepthQueue->size() > 0) {
-        IntersectionCandidate firstCandidate = localDepthQueue->peek();
-        Vector3Dd samplePoint = ray->getOrigin().add(
-            ray->getDirection().multiply(0.5 * firstCandidate.getIntersection().t));
-        initialInside =
-            child->doContainmentTest(samplePoint, 0.0) == RayCastingGeometry::INSIDE;
-    } else {
-        // See [ROTH1982] Bug B (math/trough.pov): a continuation ray
-        // starting exactly on this child's surface needs a positive offset,
-        // not a negative tolerance, to land reliably on the correct side.
-        Vector3Dd samplePoint =
-            ray->getOrigin().add(ray->getDirection().multiply(2.0 * GeometryConfig::SMALL_TOLERANCE));
-        initialInside =
-            child->doContainmentTest(samplePoint, 0.0) == RayCastingGeometry::INSIDE;
-    }
-
-    java::ArrayList<RaySegmentCrossing> crossings{localDepthQueue->size()};
-    bool currentlyInside = initialInside;
-    while (localDepthQueue->size() > 0) {
-        IntersectionCandidate candidate = localDepthQueue->poll();
-        currentlyInside = !currentlyInside;
-        crossings.add(RaySegmentCrossing(candidate.getIntersection().t, currentlyInside, candidate));
-    }
+    const bool initialInside = child->doContainmentTest(
+        classificationPoint(*ray, *localDepthQueue), 0.0) == RayCastingGeometry::INSIDE;
+    CsgSegmentClassification<IntersectionCandidate> result = segmentsFromCrossings(*localDepthQueue, initialInside);
 
     ray->getIntersectionQueuePool()->push(localDepthQueue);
-    return RaySegments(crossings, initialInside);
-}
-
-// Merge/classify/simplify, the three-step process of [ROTH1982].3.3
-// ("Combining Left and Right Classifications", Figs. 8-9, Table 3).
-RaySegments
-ConstructiveSolidGeometryByRaySegment::mergeByMembership(
-    const RaySegments &left,
-    const RaySegments &right,
-    BooleanSetOperations operation)
-{
-    const java::ArrayList<RaySegmentCrossing> &leftCrossings = left.getCrossings();
-    const java::ArrayList<RaySegmentCrossing> &rightCrossings = right.getCrossings();
-
-    java::ArrayList<RaySegmentCrossing> outCrossings{leftCrossings.size() + rightCrossings.size()};
-    bool insideLeft = left.isInitialInside();
-    bool insideRight = right.isInitialInside();
-    const bool initialCombined = CsgMembershipRule::combine(operation, insideLeft, insideRight);
-
-    bool previousCombined = initialCombined;
-    long int i = 0;
-    long int j = 0;
-    while ((i < leftCrossings.size()) || (j < rightCrossings.size())) {
-        bool takeLeft;
-        if (j >= rightCrossings.size()) {
-            takeLeft = true;
-        } else if (i >= leftCrossings.size()) {
-            takeLeft = false;
-        } else {
-            takeLeft = leftCrossings[i].getT() <= rightCrossings[j].getT();
-        }
-
-        RaySegmentCrossing event;
-        if (takeLeft) {
-            event = leftCrossings[i];
-            insideLeft = event.isEntering();
-            i++;
-        } else {
-            event = rightCrossings[j];
-            insideRight = event.isEntering();
-            j++;
-        }
-
-        const bool newCombined = CsgMembershipRule::combine(operation, insideLeft, insideRight);
-        if (newCombined != previousCombined) {
-            outCrossings.add(RaySegmentCrossing(event.getT(), newCombined, event.getHit()));
-            previousCombined = newCombined;
-        }
-    }
-    return RaySegments(outCrossings, initialCombined);
-}
-
-RaySegments
-ConstructiveSolidGeometryByRaySegment::mergeUnion(const RaySegments &left, const RaySegments &right)
-{
-    return mergeByMembership(left, right, BooleanSetOperations::UNION);
-}
-
-RaySegments
-ConstructiveSolidGeometryByRaySegment::mergeIntersection(const RaySegments &left, const RaySegments &right)
-{
-    return mergeByMembership(left, right, BooleanSetOperations::INTERSECTION);
-}
-
-RaySegments
-ConstructiveSolidGeometryByRaySegment::mergeDifference(const RaySegments &left, const RaySegments &right)
-{
-    return mergeByMembership(left, right, BooleanSetOperations::DIFFERENCE);
+    return result;
 }
 
 // RAYCAST descends the tree and combines left/right classifications on the
@@ -160,7 +98,7 @@ ConstructiveSolidGeometryByRaySegment::doIntersectionForAllRayCrossings(
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
-    java::ArrayList<CsgOperand*> &children = getOperands();
+    const java::ArrayList<CsgOperand*> &children = getOperands();
     if (children.size() == 0) {
         return false;
     }
@@ -176,28 +114,18 @@ ConstructiveSolidGeometryByRaySegment::doIntersectionForAllRayCrossings(
         return anyFound;
     }
 
-    RaySegments result = buildRaySegments(
+    CsgSegmentClassification<IntersectionCandidate> result = buildRaySegments(
         ray, children[0], materialOverride);
     for (long int i = 1; i < children.size(); i++) {
-        const RaySegments childSegments =
+        const CsgSegmentClassification<IntersectionCandidate> childSegments =
             buildRaySegments(ray, children[i], materialOverride);
-        switch (getGeometryType()) {
-        case BooleanSetOperations::DIFFERENCE:
-            result = mergeDifference(result, childSegments);
-            break;
-        case BooleanSetOperations::INTERSECTION:
-            result = mergeIntersection(result, childSegments);
-            break;
-        default:
-            result = mergeUnion(result, childSegments);
-            break;
-        }
+        result = CsgSegmentClassification<IntersectionCandidate>::merge(result, childSegments, getGeometryType());
     }
 
     bool intersectionFound = false;
-    const java::ArrayList<RaySegmentCrossing> &resultCrossings = result.getCrossings();
-    for (long int i = 0; i < resultCrossings.size(); i++) {
-        depthQueue->offer(resultCrossings[i].getHit());
+    const java::ArrayList<CsgSegmentEvent<IntersectionCandidate> > &resultEvents = result.getEvents();
+    for (long int i = 0; i < resultEvents.size(); i++) {
+        depthQueue->offer(resultEvents[i].getPayload());
         intersectionFound = true;
     }
     return intersectionFound;
@@ -206,7 +134,7 @@ ConstructiveSolidGeometryByRaySegment::doIntersectionForAllRayCrossings(
 int
 ConstructiveSolidGeometryByRaySegment::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 {
-    java::ArrayList<CsgOperand*> &children = getOperands();
+    const java::ArrayList<CsgOperand*> &children = getOperands();
     if (children.size() == 0) {
         return OUTSIDE;
     }
@@ -216,7 +144,7 @@ ConstructiveSolidGeometryByRaySegment::doContainmentTest(const Vector3Dd &point,
     const BooleanSetOperations operation = getGeometryType();
     bool isInside = children[0]->doContainmentTest(point, distanceTolerance) != OUTSIDE;
     for (long int i = 1; i < children.size(); i++) {
-        if (operation == BooleanSetOperations::UNION ? isInside : !isInside) {
+        if (CsgMembershipRule::isDecided(operation, isInside)) {
             break;
         }
         isInside = CsgMembershipRule::combine(operation, isInside,
@@ -229,7 +157,7 @@ ConstructiveSolidGeometryByRaySegment::doContainmentTest(const Vector3Dd &point,
 void
 ConstructiveSolidGeometryByRaySegment::invertGeometry()
 {
-    java::ArrayList<CsgOperand*> &children = getOperands();
+    const java::ArrayList<CsgOperand*> &children = getOperands();
 
     if (getGeometryType() == BooleanSetOperations::INTERSECTION) {
         setGeometryType(BooleanSetOperations::UNION);

@@ -39,6 +39,11 @@ bool CsgTree::addOperand(const CsgOperandView& operand)
     ++structureVersion;
     return true;
 }
+void CsgTree::setOperation(CsgOperation value)
+{
+    operation = value;
+    ++structureVersion;
+}
 bool CsgTree::queryStructureVersion(long long& version) const { version=structureVersion; return true; }
 bool CsgTree::queryModificationVersion(long long& version) const { version=structureVersion; return true; }
 const Geometry* CsgTree::getGeometry() const { return nullptr; }

@@ -3,7 +3,6 @@
 
 #include "java/lang/String.h"
 #include "java/util/regex/Matcher.h"
-#include "vsdk/toolkit/common/memoryManagement/SharedPointer.h"
 
 namespace java {
 namespace util {
@@ -23,11 +22,15 @@ other alternatives may select a longer text than Java.
 class Pattern {
   private:
     java::String patternText;
-    SharedPointer<CompiledExpression> expression;
+    CompiledExpression *expression;
 
     explicit Pattern(const java::String &regex);
 
   public:
+    Pattern(const Pattern &other);
+    Pattern &operator=(const Pattern &other);
+    ~Pattern();
+
     /**
     @param regex regular expression
     @throws java::IllegalArgumentException if the expression is not valid

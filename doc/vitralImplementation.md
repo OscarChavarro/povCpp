@@ -23,20 +23,34 @@ el checkout VITRAL con estas modificaciones, no solamente su revisión anterior.
 
 ```text
 VITRAL base
-  Geometry <- RayCastingGeometry        [VITRAL raycasting]
-  SimpleBody <- RayCastingBody          [VITRAL raycasting]
+  Geometry <- RayCastingGeometry        [povCpp raycasting]
+  SceneSolid <- SimpleBody <- CsgBody   [VITRAL scene]
+  SceneSolid <- PovrayBody <- CsgOperand [povCpp raycasting]
+  CsgTree (CsgBodyOperand)              [CSG de VITRAL y de PovRay]
   SimpleScene <- Scene                  [aplicación PovRay]
   SimpleSceneSnapshot / Material / CameraSnapshot / Light
 
 ReaderMitScene -> SimpleScene -> SimpleRaytracer / ParallelRaytracer
-Parser .pov   -> Scene        -> RenderEngine y shaders POV
+Parser .pov   -> Scene        -> bake POV (bakedScene) -> RenderEngine y shaders POV
 ```
 
-La colección de cuerpos y luces de `Scene` es la de `SimpleScene`. Los snapshots
-referencian esos mismos objetos. La geometría de `RayCastingBody` tiene un único
-propietario, su base `SimpleBody`; no se conserva una copia paralela del grafo.
-`bakedScene` continúa siendo una representación derivada y específica del
-renderer POV.
+`SceneSolid` es el contrato común de cuerpos de escena: referencia de geometría,
+colocación afín autoritativa y las consultas tipadas calculadas una sola vez a
+partir del sólido denotado (`queryDenotedSolid`). `SimpleBody` añade edición TRS
+y apariencia VITRAL; `PovrayBody` añade las dos capas de colocación de PovRay,
+su apariencia, la inversión y las regiones `bounded_by`/`clipped_by`. `Scene`
+posee sus `PovrayBody` en una lista propia; de `SimpleScene` usa luces y
+recursos. Los renderers de VITRAL dibujan cuerpos `SimpleBody`. `bakedScene` es
+la representación derivada y específica del renderer POV.
+
+El CSG de PovRay es un `CsgTree` de VITRAL: `ConstructiveSolidGeometry` posee
+sus hojas `CsgOperand` (un `PovrayBody` con una sola capa de colocación y el
+material del operando) y las ve como `CsgBodyOperand`; la operación y el orden
+de operandos son los del árbol. Un CSG anidado es una hoja cuya geometría es otro
+`ConstructiveSolidGeometry`. Los evaluadores rápidos del render (la mezcla de
+Roth y el filtro de cruces de la heurística) usan las plantillas de VITRAL
+`CsgSegmentClassification` y `CsgCrossingSelection` sobre los eventos de PovRay,
+tanto en los evaluadores POV como en el bake.
 
 Se ha creado `VITRAL/vitral/cpp/raycasting`, con el paquete público
 `vsdk/toolkit/environment/raycasting`. Allí están las primitivas, ambas estrategias
@@ -61,7 +75,7 @@ la variante de ray casting.
 ## Contratos y compatibilidad
 
 - `SurfaceDetail` define las máscaras comunes.
-- `Geometry` y `SimpleBody` exponen la capacidad opcional `emitRayCrossings`;
+- `Geometry` y `SceneSolid` exponen la capacidad opcional `emitRayCrossings`;
   una operación no soportada se distingue de cero impactos.
 - Los eventos incluyen parámetro, geometría hoja, cuerpo y material cuando están
   disponibles. El adaptador de los kernels históricos declara su orientación
@@ -125,7 +139,7 @@ El resumen persistente y hashes finales se guardan en `vitralValidation.json`.
   deshabilitado y sigue así. Incluyen CSG compartido y render secuencial/paralelo
   de un cuerpo del nuevo módulo con el renderer VITRAL existente.
 - Test de povCpp: verifica identidad del grafo, geometría consultada como
-  `Geometry`, cuerpo consultado como `SimpleBody`, colocación, snapshot y reset.
+  `Geometry`, cuerpo consultado como `SceneSolid`, colocación, propiedad en `Scene` y reset.
 - Las 12 escenas MIT se renderizan en secuencial y paralelo, iguales byte a byte.
   `balls.ray` también coincide con la imagen anterior a la migración.
 

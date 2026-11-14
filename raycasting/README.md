@@ -6,11 +6,13 @@ from the renderer. It lives in povCpp during architecture alignment; VITRAL does
 not depend on this library. It does not depend on PovRay materials, shaders, its parser or its
 application. Static linkage lets consuming renderers retain cross-unit LTO.
 
-The shared model is `Geometry`, `SimpleBody`, `SimpleScene` and
-`SimpleSceneSnapshot`. `RayCastingGeometry` and `RayCastingBody` extend that model;
-a ray-casting body owns its geometry through `SimpleBody`, and can be placed in
-an ordinary `SimpleScene` without copying the graph. Plain `SimpleBody` can also
-wrap a `RayCastingGeometry` and use its usual TRS placement.
+The shared model is `Geometry` and the scene contract `SceneSolid`.
+`PovrayBody` implements `SceneSolid` (it is not a `SimpleBody`): it owns its
+geometry through the contract, keeps PovRay's two placement layers, appearance
+and regions, and inherits the typed queries computed from its denoted solid. POV
+bodies belong to the POV `Scene`, not to a `SimpleScene`; VITRAL renderers draw
+`SimpleBody` bodies. Plain `SimpleBody` can wrap a `RayCastingGeometry` and use
+its usual TRS placement.
 
 The ordinary nearest-hit primitives remain available. Ray-casting variants
 preserve historical crossing, tolerance and inversion policies; they are not
@@ -34,13 +36,10 @@ aliases that silently change the semantics of existing VITRAL scenes.
   apply to that sphere kernel, not to arbitrary numerical surfaces.
 - Resolve transformed/CSG detail through the queried geometry or body; leaf
   identity alone does not contain its placement chain.
-- `RayCastingBody` preserves two affine placement layers and their construction
-  order. `getTransformationMatrix()` and `getPosition()` expose the combined
-  placement, and `setPosition()` translates it. `supportsDecomposedPlacement()`
-  is false: TRS rotation/scale getters and setters reject use instead of reading
-  or changing an unrelated base-class transform. Use the extension's
-  `translate`, `rotate`, `scale` methods to compose placements, or wrap a geometry
-  in plain `SimpleBody` when TRS editing is required.
+- `PovrayBody` preserves two affine placement layers and their construction
+  order; `getAffinePlacement()` exposes the combined placement. It has no TRS
+  editing: use its `translate`, `rotate`, `scale` methods to compose placements,
+  or wrap a geometry in plain `SimpleBody` when TRS editing is required.
 - The detail-owner chain has an explicit limit of eight entries. Overflow throws
   instead of discarding attribution silently.
 

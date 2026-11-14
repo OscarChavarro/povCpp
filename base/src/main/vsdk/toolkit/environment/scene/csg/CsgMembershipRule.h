@@ -8,6 +8,10 @@ public:
     // operand 0 starts the fold and each later operand is combined with it, so
     // a difference subtracts operands 1..N from operand 0.
     static bool combine(CsgOperation operation, bool accumulated, bool operandInside);
+    // Whether no later operand can change an accumulated fold value: true for
+    // a union already inside and for an intersection or difference already
+    // outside. Point evaluators stop querying operands there.
+    static bool isDecided(CsgOperation operation, bool accumulated);
     // POV crossing-membership rule: whether an event of operand eventOperand
     // must lie inside sibling (true) or outside it (false). Union events are
     // never filtered, so it is only meaningful when filtersEvents is true.
@@ -20,6 +24,11 @@ inline bool CsgMembershipRule::combine(CsgOperation operation, bool accumulated,
     if (operation==CsgOperation::UNION) return accumulated || operandInside;
     if (operation==CsgOperation::INTERSECTION) return accumulated && operandInside;
     return accumulated && !operandInside;
+}
+
+inline bool CsgMembershipRule::isDecided(CsgOperation operation, bool accumulated)
+{
+    return operation==CsgOperation::UNION ? accumulated : !accumulated;
 }
 
 inline bool CsgMembershipRule::filtersEvents(CsgOperation operation)

@@ -29,6 +29,12 @@ class Blob : public RayCastingGeometry {
 
     int getSturmFlag() const { return solid.usesSturmSequences() ? 1 : 0; }
     const BlobSolid &getSolid() const { return solid; }
+    bool isInverted() const { return inverted; }
+    // The VITRAL solid for typed queries; inversion is reported separately.
+    const Geometry *getIntrinsicGeometry() const override { return &solid; }
+    // Typed ray classification of the VITRAL solid, complemented when inverted.
+    RaySolidQueryStatus classifyRay(const Ray& ray, const RayCrossingQuery& query,
+        RaySolidClassification& result) const override;
     Blob *copyWithSturmFlag(int flag) const;
 
     BoundingVolumeHierarchy *createBoundingVolume() const override;

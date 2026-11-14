@@ -1,3 +1,5 @@
+#include "vsdk/toolkit/environment/geometry/element/RaySolidClassification.h"
+#include "vsdk/toolkit/environment/geometry/element/RayCrossingQuery.h"
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/boundingVolumeHierarchy/AabbBoundingVolume.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
@@ -151,4 +153,18 @@ Blob::createBoundingVolume() const
     }
     return new AabbBoundingVolume(
         AxisAlignedBoundingBox::fromTransformedCorners(local.getMin(), local.getMax(), nullptr));
+}
+
+RaySolidQueryStatus
+Blob::classifyRay(const Ray& ray, const RayCrossingQuery& query,
+    RaySolidClassification& result) const
+{
+    const RaySolidQueryStatus status = solid.classifyRay(ray, query, result);
+    if (status == RaySolidQueryStatus::Supported && inverted) {
+        for (long int i=0; i<result.insideSegments.size(); ++i)
+            result.insideSegments[i] = !result.insideSegments[i];
+        for (long int i=0; i<result.boundaries.size(); ++i)
+            result.boundaries[i].normalReversed = !result.boundaries[i].normalReversed;
+    }
+    return status;
 }

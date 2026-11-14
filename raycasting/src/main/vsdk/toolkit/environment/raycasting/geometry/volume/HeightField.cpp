@@ -4,23 +4,14 @@
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/HeightField.h"
 #include "java/util/PriorityQueue.txx"
 
-HeightField::HeightField(const Matrix4x4d &transformation,
-    const Matrix4x4d &transformationInverse, const Vector3Dd &minBounds,
+HeightField::HeightField(long columns, long rows, const Vector3Dd &minBounds,
     const Vector3Dd &maxBounds) :
-    transformation(transformation),
-    transformationInverse(transformationInverse),
-    minBounds(minBounds),
-    maxBounds(maxBounds),
-    solid(nullptr)
+    solid(new HeightFieldSolid(columns, rows, minBounds, maxBounds))
 {
 }
 
 HeightField::HeightField(const HeightField &other) :
-    transformation(other.transformation),
-    transformationInverse(other.transformationInverse),
-    minBounds(other.minBounds),
-    maxBounds(other.maxBounds),
-    solid(other.solid != nullptr ? new HeightFieldSolid(*other.solid) : nullptr)
+    solid(new HeightFieldSolid(*other.solid))
 {
 }
 
@@ -32,31 +23,21 @@ HeightField::~HeightField()
 void
 HeightField::setWaterLevel(double level)
 {
-    minBounds = minBounds.withY(level);
-    if (solid != nullptr) {
-        solid->setBounds(minBounds, maxBounds);
-        solid->updateBlocks();
-    }
+    solid->setBounds(solid->getMinimum().withY(level), solid->getMaximum());
+    solid->updateBlocks();
 }
 
 BoundingVolumeHierarchy *
 HeightField::createBoundingVolume() const
 {
-    return new AabbBoundingVolume(
-        AxisAlignedBoundingBox::fromTransformedCorners(minBounds, maxBounds, &transformation));
-}
-
-void
-HeightField::allocateGrid(int maxX, int maxZ)
-{
-    delete solid;
-    solid = new HeightFieldSolid(maxX + 1, maxZ + 1, minBounds, maxBounds);
+    return new AabbBoundingVolume(AxisAlignedBoundingBox::fromTransformedCorners(
+        solid->getMinimum(), solid->getMaximum(), nullptr));
 }
 
 double
 HeightField::imageHeight(double height) const
 {
-    return height <= minBounds.y() ? HIDDEN_HEIGHT : height;
+    return height <= solid->getMinimum().y() ? HIDDEN_HEIGHT : height;
 }
 
 void
@@ -68,7 +49,6 @@ HeightField::findHfMinMax(HeightField *hField,
         maxX = maxX / 2;
     }
     const int maxZ = image->getYSize();
-    hField->allocateGrid(maxX, maxZ);
     for (int z = 0; z <= maxZ; z++) {
         for (int x = 0; x <= maxX; x++) {
             double height = HIDDEN_HEIGHT;
@@ -94,7 +74,6 @@ HeightField::findHfMinMax(HeightField *hField,
     (void)imageType;
     const int maxX = image->getXSize();
     const int maxZ = image->getYSize();
-    hField->allocateGrid(maxX, maxZ);
     for (int z = 0; z <= maxZ; z++) {
         for (int x = 0; x <= maxX; x++) {
             double height = HIDDEN_HEIGHT;
@@ -118,14 +97,10 @@ HeightField::traceCrossings(
 {
     GeometryStatistics &stats = *ray->getGeometryStatistics();
     stats.incrementRayHtFieldTests();
-    if (solid == nullptr) {
-        return (false);
-    }
     stats.incrementRayBoxTests();
     double depth = 0.0;
     const HeightFieldTraceResult result = solid->traceFirstHit(
-        transformationInverse.transformPoint(ray->getOrigin()),
-        transformationInverse.transformDirection(ray->getDirection()), depth);
+        ray->getOrigin(), ray->getDirection(), depth);
     if (result == HeightFieldTraceResult::MissedBounds) {
         return (false);
     }
@@ -173,10 +148,7 @@ int
 HeightField::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
 {
     (void)distanceTolerance;
-    if (solid == nullptr) {
-        return OUTSIDE;
-    }
-    const Vector3Dd test = transformationInverse.transformPoint(testPoint);
+    const Vector3Dd &test = testPoint;
     int px = (int)test.x();
     int pz = (int)test.z();
     const double x = test.x() - (double)px;
@@ -213,7 +185,7 @@ HeightField::doContainmentTest(const Vector3Dd &testPoint, double distanceTolera
     }
     const int dot1 = (int)test.dotProduct(localNormal);
     const int dot2 = (int)localOrigin.dotProduct(localNormal);
-    if ((dot1 < dot2) && (test.y() > minBounds.y() + 1.0)) {
+    if ((dot1 < dot2) && (test.y() > solid->getMinimum().y() + 1.0)) {
         return INSIDE;
     }
     return OUTSIDE;
@@ -224,11 +196,16 @@ HeightField::computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoin
 {
     Vector3Dd temp1;
     Vector3Dd temp2;
-    solid->getSurfaceTangents(transformationInverse.transformPoint(*intersectionPoint), temp1, temp2);
-    temp1 = transformation.transformDirection(temp1);
-    temp2 = transformation.transformDirection(temp2);
+    solid->getSurfaceTangents(*intersectionPoint, temp1, temp2);
     *result = temp2.crossProduct(temp1);
     *result = (*result).normalizedFast();
+}
+
+RaySolidQueryStatus
+HeightField::classifyRay(const Ray& ray, const RayCrossingQuery& query,
+    RaySolidClassification& result) const
+{
+    return solid->classifyRay(ray, query, result);
 }
 
 void *

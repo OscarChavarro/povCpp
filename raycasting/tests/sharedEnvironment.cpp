@@ -1,7 +1,7 @@
 #include <cmath>
 #include <cstdio>
 #include <stdexcept>
-#include "vsdk/toolkit/environment/raycasting/scene/RayCastingBody.h"
+#include "vsdk/toolkit/environment/raycasting/scene/PovrayBody.h"
 #include "vsdk/toolkit/environment/raycasting/scene/RayCastingComposite.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByMorganRules.h"
@@ -93,9 +93,9 @@ int main() {
         Matrix4x4d::identityMatrix().withVal(0,1,0.5));
     const Matrix4x4d outerInverse = Matrix4x4d::identityMatrix().withVal(0,1,-0.5).multiply(
         Matrix4x4d().translation(-3,0,0));
-    java::ArrayList<RayCastingBody*> affineRegions;
+    java::ArrayList<PovrayBody*> affineRegions;
     NativeGeometryBinding* affineSphere = new NativeGeometryBinding(new Sphere(1));
-    RayCastingBody affineBody(affineSphere, nullptr, nullptr, nullptr, false, affineRegions, affineRegions,
+    PovrayBody affineBody(affineSphere, nullptr, nullptr, nullptr, false, affineRegions, affineRegions,
         new Matrix4x4d(outerColumn.transpose()), new Matrix4x4d(outerInverse.transpose()),
         new Matrix4x4d(Matrix4x4d().scale(2,1,1).transpose()),
         new Matrix4x4d(Matrix4x4d().scale(0.5,1,1).transpose()));
@@ -138,18 +138,17 @@ int main() {
         !affineBody.hasArbitraryAffineTransform() ||
         affineBody.queryAffinePlacement(placement,inversePlacement) != AffinePlacementStatus::Valid ||
         !placement.epsilonEquals(editedForward,1e-12) ||
-        !affineBody.getTransformationMatrix().epsilonEquals(editedForward,1e-12) ||
-        affineBody.getPosition().x() != -2) return 131;
+        affineBody.getAffinePlacement().multiply(Vector3Dd()).x() != -2) return 131;
     if (affineBody.setAffinePlacement(Matrix4x4d().scale(0,1,1),Matrix4x4d()) != AffinePlacementStatus::Invalid ||
         !affineBody.getAffinePlacement().epsilonEquals(editedForward,1e-12)) return 132;
     affineBody.resetAffinePlacement();
     if (!affineBody.getAffinePlacement().epsilonEquals(Matrix4x4d(),1e-12)) return 133;
-    RayCastingBody singularBody(new NativeGeometryBinding(new Sphere(1)), nullptr, nullptr, nullptr,
+    PovrayBody singularBody(new NativeGeometryBinding(new Sphere(1)), nullptr, nullptr, nullptr,
         false, affineRegions, affineRegions, new Matrix4x4d(Matrix4x4d().scale(0,1,1)),
         new Matrix4x4d(Matrix4x4d()));
     if (singularBody.classifyRay(affineRay,RayCrossingQuery(0,10),affineSegments) != RaySolidQueryStatus::InvalidInput ||
         singularBody.classifyPoint(Vector3Dd(),0) != GeometryContainment::InvalidInput) return 125;
-    RayCastingBody inconsistentBody(new NativeGeometryBinding(new Sphere(1)), nullptr, nullptr, nullptr,
+    PovrayBody inconsistentBody(new NativeGeometryBinding(new Sphere(1)), nullptr, nullptr, nullptr,
         false, affineRegions, affineRegions, new Matrix4x4d(Matrix4x4d().scale(2,1,1)),
         new Matrix4x4d(Matrix4x4d()));
     if (inconsistentBody.classifyRay(affineRay,RayCrossingQuery(0,10),affineSegments) != RaySolidQueryStatus::Indeterminate ||
@@ -171,10 +170,10 @@ int main() {
     const Matrix4x4d invalidPlacement = shear.withVal(0,3,1);
     if (!AxisAlignedBoundingBox::fromTransformedCorners(
         Vector3Dd(-1,-1,-1), Vector3Dd(1,1,1), &invalidPlacement).isUnbounded()) return 98;
-    java::ArrayList<RayCastingBody*> noRegions;
-    RayCastingBody placedBody(new NativeGeometryBinding(new Sphere(2)), nullptr, nullptr,
+    java::ArrayList<PovrayBody*> noRegions;
+    PovrayBody placedBody(new NativeGeometryBinding(new Sphere(2)), nullptr, nullptr,
         nullptr, false, noRegions, noRegions);
-    placedBody.setPosition(Vector3Dd(5,0,0));
+    { Vector3Dd offset(5,0,0); placedBody.translateOwnerOnly(&offset); }
     placedBody.getWorldBounds(boxLocalBounds);
     if (boxLocalBounds.getKind() != GeometryBounds::Kind::Finite ||
         boxLocalBounds.getMinimum().x() != 3 || boxLocalBounds.getMaximum().x() != 7) return 99;
@@ -187,38 +186,38 @@ int main() {
     const AxisAlignedBoundingBox placedCulling = placedBody.getAABB();
     if (placedCulling.getMin().x() != boxLocalBounds.getMinimum().x() ||
         placedCulling.getMax().x() != boxLocalBounds.getMaximum().x()) return 101;
-    java::ArrayList<RayCastingBody*> compositeChildren;
-    compositeChildren.add(new RayCastingBody(new NativeGeometryBinding(new Sphere(1)),
+    java::ArrayList<PovrayBody*> compositeChildren;
+    compositeChildren.add(new PovrayBody(new NativeGeometryBinding(new Sphere(1)),
         nullptr, nullptr, nullptr, false, noRegions, noRegions));
-    RayCastingBody* shiftedChild = new RayCastingBody(new NativeGeometryBinding(new Sphere(2)),
+    PovrayBody* shiftedChild = new PovrayBody(new NativeGeometryBinding(new Sphere(2)),
         nullptr, nullptr, nullptr, false, noRegions, noRegions);
-    shiftedChild->setPosition(Vector3Dd(4,0,0));
+    { Vector3Dd offset(4,0,0); shiftedChild->translateOwnerOnly(&offset); }
     compositeChildren.add(shiftedChild);
     RayCastingComposite composite(nullptr, nullptr, nullptr, nullptr, false,
         noRegions, noRegions, compositeChildren);
-    composite.setPosition(Vector3Dd(10,0,0));
+    { Vector3Dd offset(10,0,0); composite.translateOwnerOnly(&offset); }
     composite.getWorldBounds(boxLocalBounds);
     if (boxLocalBounds.getKind() != GeometryBounds::Kind::Finite ||
         boxLocalBounds.getMinimum().x() != 9 || boxLocalBounds.getMaximum().x() != 16) return 102;
-    composite.getSimpleBodies().add(new RayCastingBody(new NativeGeometryBinding(new TestSlabGeometry()),
+    composite.getSimpleBodies().add(new PovrayBody(new NativeGeometryBinding(new TestSlabGeometry()),
         nullptr, nullptr, nullptr, false, noRegions, noRegions));
     composite.getWorldBounds(boxLocalBounds);
     if (boxLocalBounds.getKind() != GeometryBounds::Kind::Unbounded) return 103;
-    composite.getSimpleBodies().add(new RayCastingBody(new NativeGeometryBinding(new Torus(2,1)),
+    composite.getSimpleBodies().add(new PovrayBody(new NativeGeometryBinding(new Torus(2,1)),
         nullptr, nullptr, nullptr, false, noRegions, noRegions));
     composite.getWorldBounds(boxLocalBounds);
     if (boxLocalBounds.getKind() != GeometryBounds::Kind::Unsupported) return 104;
-    java::ArrayList<RayCastingBody*> nestedChildren;
-    nestedChildren.add(new RayCastingBody(new NativeGeometryBinding(new Sphere(1)),
+    java::ArrayList<PovrayBody*> nestedChildren;
+    nestedChildren.add(new PovrayBody(new NativeGeometryBinding(new Sphere(1)),
         nullptr, nullptr, nullptr, false, noRegions, noRegions));
     RayCastingComposite* nested = new RayCastingComposite(nullptr, nullptr, nullptr, nullptr,
         false, noRegions, noRegions, nestedChildren);
-    nested->setPosition(Vector3Dd(2,0,0));
-    java::ArrayList<RayCastingBody*> outerChildren;
+    { Vector3Dd offset(2,0,0); nested->translateOwnerOnly(&offset); }
+    java::ArrayList<PovrayBody*> outerChildren;
     outerChildren.add(nested);
     RayCastingComposite outerComposite(nullptr, nullptr, nullptr, nullptr, false,
         noRegions, noRegions, outerChildren);
-    outerComposite.setPosition(Vector3Dd(5,0,0));
+    { Vector3Dd offset(5,0,0); outerComposite.translateOwnerOnly(&offset); }
     outerComposite.getWorldBounds(boxLocalBounds);
     if (boxLocalBounds.getKind() != GeometryBounds::Kind::Finite ||
         boxLocalBounds.getMinimum().x() != 6 || boxLocalBounds.getMaximum().x() != 8) return 105;
@@ -361,8 +360,8 @@ int main() {
     placedTriangle->enableProjectedTriangleTraversal();
     placedTriangle->getProjectedTriangleTraversal()->addTriangle(
         Vector3Dd(0,0,0),Vector3Dd(2,0,0),Vector3Dd(0,2,0));
-    RayCastingBody triangleBody(placedTriangle,nullptr,nullptr,nullptr,false,noRegions,noRegions);
-    triangleBody.setPosition(Vector3Dd(0,0,5));
+    PovrayBody triangleBody(placedTriangle,nullptr,nullptr,nullptr,false,noRegions,noRegions);
+    { Vector3Dd offset(0,0,5); triangleBody.translateOwnerOnly(&offset); }
     TestCrossingCollector placedTriangleEvents;
     if (triangleBody.emitRayCrossings(Ray::fromAffine(Vector3Dd(0.5,0.5,9),Vector3Dd(0,0,-2)),
             RayCrossingQuery(0,10),placedTriangleEvents) != RayCrossingSupport::Supported ||
@@ -575,13 +574,13 @@ int main() {
     camera->updateViewportResize(width,height);
     auto* background = new SimpleBackground();
     background->setColor(0.2,0.3,0.4);
-    java::ArrayList<RayCastingBody*> regions;
+    java::ArrayList<PovrayBody*> regions;
     auto* material = new SimpleMaterial(SimpleMaterial().withDiffuse(ColorRgb(0.8,0.5,0.3)));
     auto* bodySphere = new NativeGeometryBinding(new Sphere(1.0));
-    auto* body = new RayCastingBody(bodySphere, material, nullptr,
+    auto* body = new PovrayBody(bodySphere, material, nullptr,
         nullptr, false, regions, regions);
-    SimpleBody* sharedBody = body;
-    if (sharedBody->getSurfaceMaterial()!=material || sharedBody->getMaterial()!=material) return 8;
+    const SceneSolid* sharedBody = body;
+    if (sharedBody->getSurfaceMaterial()!=material) return 8;
     TestCrossingCollector bodyCrossings;
     if (sharedBody->emitRayCrossings(Ray(Vector3Dd(-3,0,0),Vector3Dd(1,0,0)),
         RayCrossingQuery(0.001,10), bodyCrossings) != RayCrossingSupport::Supported) return 9;
@@ -589,7 +588,12 @@ int main() {
         bodyCrossings.hits[0]->material!=material ||
         bodyCrossings.hits[0]->geometry!=bodySphere->getIntrinsicGeometry() ||
         bodyCrossings.hits[1]->geometry!=bodySphere->getIntrinsicGeometry()) return 10;
-    scene.addBody(body);
+    // VITRAL renders the sphere through its own scene body: the POV body is
+    // not a SimpleBody and VITRAL renderers draw SimpleBody appearance.
+    auto* vitralBody = new SimpleBody();
+    vitralBody->setGeometry(new Sphere(1.0));
+    vitralBody->setMaterialReference(material);
+    scene.addBody(vitralBody);
     scene.addCamera(camera);
     scene.addBackground(background);
     scene.addLight(new PointLight(Vector3Dd(3,-3,4), ColorRgb(1,1,1)));
@@ -613,6 +617,8 @@ int main() {
         if (a.r!=corner.r || a.g!=corner.g || a.b!=corner.b) ++differentFromCorner;
     }
     delete snapshot;
+    scene.clearOwnedElements();
+    delete body;
     if (!differentFromCorner) { std::fprintf(stderr,"Shared sphere was not rendered\n"); return 3; }
     // Stage G-7: the POV render evaluators against the shared evaluators on
     // the same expressions. Agreement is required where the policies are the

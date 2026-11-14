@@ -1,4 +1,4 @@
-#include "vsdk/toolkit/environment/scene/SimpleBody.h"
+#include "vsdk/toolkit/environment/scene/SceneSolid.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/RayCastingGeometry.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/boundingVolumeHierarchy/AabbBoundingVolume.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/element/RayCastingHit.h"
@@ -130,7 +130,7 @@ RayCrossingSupport RayCastingGeometry::emitRayCrossings(const Ray& source,
         RayCrossing event(t, resolveIntrinsicGeometry(candidate.getAttributes().getHitGeometry()),
             RayCrossing::Kind::Unclassified);
         event.surfaceIndex = candidate.getAttributes().getSurfaceIndex();
-        event.body = dynamic_cast<const SimpleBody*>(candidate.getAttributes().getHitBody());
+        event.body = dynamic_cast<const SceneSolid*>(candidate.getAttributes().getHitBody());
         event.material = candidate.getAttributes().getMaterial();
         sink.crossing(event);
     }

@@ -8,6 +8,8 @@ class Light;
 class Background;
 class Camera;
 class CameraSnapshot;
+class Image;
+class NormalMap;
 class SimpleSceneSnapshot;
 
 class SimpleScene : public Entity {
@@ -16,6 +18,9 @@ private:
     java::ArrayList<Light*> lights;
     java::ArrayList<Background*> backgrounds;
     java::ArrayList<Camera*> cameras;
+    // Resources shared by reference among bodies and backgrounds.
+    java::ArrayList<Image*> images;
+    java::ArrayList<NormalMap*> normalMaps;
     int activeCameraIndex;
     int activeBackgroundIndex;
 
@@ -34,6 +39,18 @@ public:
     void addCamera(Camera* c);
     void addBackground(Background* b);
     void addLight(Light* l);
+    /**
+    Takes ownership of an image that bodies (`SimpleBody::setTextureReference`)
+    or backgrounds reference; it is deleted with the scene's other elements.
+    */
+    void addImage(Image* image);
+    /**
+    Takes ownership of a normal map that bodies reference
+    (`SimpleBody::setNormalMapReference`).
+    */
+    void addNormalMap(NormalMap* normalMap);
+    const java::ArrayList<Image*>& getImages() const { return images; }
+    const java::ArrayList<NormalMap*>& getNormalMaps() const { return normalMaps; }
 
     java::ArrayList<SimpleBody*>& getSimpleBodies();
     const java::ArrayList<SimpleBody*>& getSimpleBodies() const { return simpleBodies; }

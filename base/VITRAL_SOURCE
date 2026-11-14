@@ -1,4 +1,4 @@
-vitral 73e777a0517f999be8d99f68ae085571aabe4c5a
-committed 2026-11-14T09:21:14+01:00
+vitral 4412e55a22ff23e2f4592452585d3b61e3e96435
+committed 2026-11-14T19:58:38+01:00
 path cpp/base
-selection latest VITRAL commit not newer than this commit
+selection first later VITRAL commit this commit compiles against

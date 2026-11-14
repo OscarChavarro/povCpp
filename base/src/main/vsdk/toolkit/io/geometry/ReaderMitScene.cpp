@@ -20,6 +20,21 @@
 #include "vsdk/toolkit/environment/geometry/surface/SubdividedBezierPatch.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/environment/background/SimpleBackground.h"
+#include "vsdk/toolkit/environment/background/CubemapBackground.h"
+#include "vsdk/toolkit/environment/geometry/surface/QuadMesh.h"
+#include "vsdk/toolkit/environment/geometry/volume/Cone.h"
+#include "vsdk/toolkit/environment/geometry/volume/Torus.h"
+#include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolid.h"
+#include "vsdk/toolkit/environment/geometry/geometricProcessing/polyhedralBoundedSolidOperators/PolyhedralBoundedSolidModeler.h"
+#include "vsdk/toolkit/environment/geometry/geometricProcessing/polyhedralBoundedSolidOperators/fixtures/SimpleTestGeometryLibrary.h"
+#include "vsdk/toolkit/io/geometry/EnvironmentPersistence.h"
+#include "vsdk/toolkit/io/geometry/ReaderMitQuadGroup.h"
+#include "vsdk/toolkit/io/image/ImagePersistence.h"
+#include "vsdk/toolkit/media/IndexedColorImageUncompressed.h"
+#include "vsdk/toolkit/media/NormalMap.h"
+#include "vsdk/toolkit/media/RGBAImageUncompressed.h"
+#include "vsdk/toolkit/media/RGBImageUncompressed.h"
+#include "java/io/File.h"
 #include "vsdk/toolkit/environment/camera/Camera.h"
 #include "vsdk/toolkit/environment/light/AmbientLight.h"
 #include "vsdk/toolkit/environment/light/DirectionalLight.h"
@@ -31,7 +46,127 @@
 #include "vsdk/toolkit/io/geometry/ReaderMitScene.h"
 #include "vsdk/toolkit/io/geometry/ReaderMitTriangleGroup.h"
 ReaderMitScene::ReaderMitScene()
+    : yaw(0), pitch(0), roll(0), currentTexture(nullptr), currentNormalMap(nullptr)
 {
+}
+
+void ReaderMitScene::resetState(const char* fileName)
+{
+    const char* slash = strrchr(fileName, '/');
+    sceneDirectory = slash == nullptr ? java::String("") :
+        java::String(fileName).substr(0, (size_t)(slash - fileName) + 1);
+    yaw = 0;
+    pitch = 0;
+    roll = 0;
+    currentTexture = nullptr;
+    currentNormalMap = nullptr;
+    texturePaths.clear();
+    textures.clear();
+    normalMapKeys.clear();
+    normalMaps.clear();
+}
+
+bool ReaderMitScene::hasRotation() const
+{
+    return yaw != 0 || pitch != 0 || roll != 0;
+}
+
+java::String ReaderMitScene::resolveResource(const java::String& path) const
+{
+    if (path.isEmpty() || path[0] == '/' || sceneDirectory.isEmpty()) return path;
+    const java::String fromScene = sceneDirectory + path;
+    FILE* probe = fopen(fromScene.toCString(), "rb");
+    if (probe != nullptr) {
+        fclose(probe);
+        return fromScene;
+    }
+    return path;
+}
+
+Image* ReaderMitScene::loadTexture(const java::String& path, SimpleScene* scene)
+{
+    for (long int i = 0; i < texturePaths.size(); ++i)
+        if (texturePaths[i] == path) return textures[i];
+    RGBImageUncompressed* texture = ImagePersistence::importRGB(java::File(resolveResource(path)));
+    // Unreadable files come back as empty images.
+    if (texture != nullptr && (texture->getXSize() <= 0 || texture->getYSize() <= 0)) {
+        delete texture;
+        texture = nullptr;
+    }
+    if (texture == nullptr) return nullptr;
+    scene->addImage(texture);
+    texturePaths.add(path);
+    textures.add(texture);
+    return texture;
+}
+
+NormalMap* ReaderMitScene::loadNormalMap(const java::String& path, const Vector3Dd& scale,
+    SimpleScene* scene)
+{
+    char suffix[128];
+    snprintf(suffix, sizeof(suffix), "|%.17g|%.17g|%.17g", scale.x(), scale.y(), scale.z());
+    const java::String key = path + suffix;
+    for (long int i = 0; i < normalMapKeys.size(); ++i)
+        if (normalMapKeys[i] == key) return normalMaps[i];
+    IndexedColorImageUncompressed* bumpMap =
+        ImagePersistence::importIndexedColor(java::File(resolveResource(path)));
+    if (bumpMap != nullptr && (bumpMap->getXSize() <= 0 || bumpMap->getYSize() <= 0)) {
+        delete bumpMap;
+        bumpMap = nullptr;
+    }
+    if (bumpMap == nullptr) return nullptr;
+    NormalMap* normalMap = new NormalMap();
+    normalMap->importBumpMap(bumpMap, scale);
+    delete bumpMap;
+    scene->addNormalMap(normalMap);
+    normalMapKeys.add(key);
+    normalMaps.add(normalMap);
+    return normalMap;
+}
+
+void ReaderMitScene::applyRotation(SimpleBody* body) const
+{
+    if (!hasRotation()) return;
+    const Matrix4x4d rotation = Matrix4x4d().eulerAnglesRotation(yaw, pitch, roll);
+    body->setRotation(rotation);
+    body->setRotationInverse(rotation.inverse());
+}
+
+void ReaderMitScene::dressBody(SimpleBody* body) const
+{
+    applyRotation(body);
+    if (currentTexture != nullptr) body->setTextureReference(currentTexture);
+    if (currentNormalMap != nullptr) body->setNormalMapReference(currentNormalMap);
+}
+
+bool ReaderMitScene::importObj(const java::String& path, const Vector3Dd& translation,
+    double uniformScale, const SimpleMaterial* fallbackMaterial, SimpleScene* scene) const
+{
+    const java::String resolved = resolveResource(path);
+    FILE* probe = fopen(resolved.toCString(), "rb");
+    if (probe == nullptr) return false;
+    fclose(probe);
+    SimpleScene imported;
+    EnvironmentPersistence::importEnvironment(java::File(resolved), &imported);
+    java::ArrayList<SimpleBody*>& bodies = imported.getSimpleBodies();
+    if (bodies.isEmpty()) return false;
+    const Matrix4x4d sceneRotation = Matrix4x4d().eulerAnglesRotation(yaw, pitch, roll);
+    for (long int i = 0; i < bodies.size(); ++i) {
+        SimpleBody* body = bodies[i];
+        if (body->getMaterial() == nullptr) body->setMaterial(new SimpleMaterial(*fallbackMaterial));
+        const Matrix4x4d rotation = sceneRotation.multiply(body->getRotation());
+        const Vector3Dd scale = body->getScale().multiply(uniformScale);
+        const Vector3Dd position =
+            sceneRotation.multiply(body->getPosition().multiply(uniformScale)).add(translation);
+        body->setRotation(rotation);
+        body->setRotationInverse(rotation.inverse());
+        body->setScale(scale);
+        body->setPosition(position);
+        scene->addBody(body);
+    }
+    // The bodies now belong to the target scene.
+    bodies.clear();
+    return true;
 }
 
 static java::String trimLine(const java::String& in)
@@ -57,6 +192,7 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
     }
 
     outScene->clearOwnedElements();
+    resetState(fileName);
 
     Camera* camera =
         new Camera();
@@ -80,6 +216,8 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
     SimpleMaterial* currentMaterial = new SimpleMaterial();
     ReaderMitTriangleGroup triangleGroup;
     bool inTriangles = false;
+    ReaderMitQuadGroup quadGroup;
+    bool inQuads = false;
     // Open CSG body and its node stack; primitives inside become its leaves.
     CsgBody* csgBody = nullptr;
     java::ArrayList<long long> csgNodes;
@@ -105,13 +243,22 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
         delete blob;
         throw VSDKFatalException(message);
     };
+    // Strips the quotes around a file name.
+    auto unquote = [](const char* text) {
+        java::String value(text);
+        if (value.size() >= 2 && value[0] == '"' && value[value.size()-1] == '"')
+            value = value.substr(1, value.size() - 2);
+        return value;
+    };
     auto place = [&](SimpleBody* body) {
         if (!hasPlacement) return true;
         hasPlacement = false;
         const Matrix4x4d forward = placement.multiply(body->getAffinePlacement());
         return body->setAffinePlacement(forward, forward.inverse()) == AffinePlacementStatus::Valid;
     };
+    // Every primitive takes the current rotation, texture and normal map.
     auto attach = [&](SimpleBody* body) {
+        dressBody(body);
         if (!place(body)) { delete body; fail("ReaderMitScene: transform is not an invertible affine map"); }
         if (csgBody == nullptr) { outScene->addBody(body); return; }
         if (!csgBody->addLeaf((long int)csgNodes[csgNodes.size()-1], body))
@@ -141,6 +288,10 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
             fail("ReaderMitScene: blob blocks only hold component lines");
         if ( inPatch && cmd != "control" && cmd != "end" )
             fail("ReaderMitScene: patch blocks only hold control lines");
+        if ( inTriangles && cmd != "v" && cmd != "f" && cmd != "surface" && cmd != "end" )
+            fail("ReaderMitScene: triangles blocks only hold v, f and surface lines");
+        if ( inQuads && cmd != "v" && cmd != "q" && cmd != "surface" && cmd != "end" )
+            fail("ReaderMitScene: quads blocks only hold v, q and surface lines");
         if ( cmd == "transform" ) {
             double m[12];
             if (sscanf(javaLine.toCString(), "%*s %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",
@@ -285,11 +436,7 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
         else if ( cmd == "triangles" ) {
             if (csgBody) fail("ReaderMitScene: triangles cannot be csg operands");
             if (hasPlacement) fail("ReaderMitScene: triangles cannot be transformed");
-            if (inTriangles) {
-                fclose(file);
-                delete currentMaterial;
-                throw VSDKFatalException("ReaderMitScene: nested triangles block");
-            }
+            if (inTriangles || inQuads) fail("ReaderMitScene: nested mesh block");
             triangleGroup.reset();
             inTriangles = true;
         }
@@ -310,7 +457,8 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
             }
         }
         else if ( cmd == "end" && inTriangles ) {
-            triangleGroup.flush(outScene, currentMaterial);
+            SimpleBody* mesh = triangleGroup.flush(outScene, currentMaterial);
+            if (mesh != nullptr) applyRotation(mesh);
             triangleGroup.reset();
             inTriangles = false;
         }
@@ -388,10 +536,18 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
             double r, g, b;
             if ( sscanf(javaLine.toCString(), "%*s %lf %lf %lf", &r, &g, &b) == 3 ) {
                 background->setColor(r, g, b);
+                outScene->setActiveBackgroundIndex(0);
             }
         }
         else if ( cmd == "surface" ) {
-            if (inTriangles) triangleGroup.flush(outScene, currentMaterial);
+            if (inTriangles) {
+                SimpleBody* mesh = triangleGroup.flush(outScene, currentMaterial);
+                if (mesh != nullptr) applyRotation(mesh);
+            }
+            if (inQuads) {
+                SimpleBody* mesh = quadGroup.flush(outScene, currentMaterial);
+                if (mesh != nullptr) applyRotation(mesh);
+            }
             double r, g, b;
             double ka, kd, ks;
             double ns;
@@ -463,6 +619,7 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
                 b->setMaterial(new SimpleMaterial(*currentMaterial));
                 attach(b);
             }
+            else fail("ReaderMitScene: sphere requires a center and a radius");
         }
         else if ( cmd == "light" ) {
             double r, g, b;
@@ -483,9 +640,173 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
                     if ( sscanf(javaLine.toCString(), "%*s %*f %*f %*f %*s %lf %lf %lf", &x, &y, &z) == 3 ) {
                         outScene->addLight(new DirectionalLight(Vector3Dd(x,y,z), ColorRgb(r,g,b)));
                     }
+                    else fail("ReaderMitScene: directional light requires a direction");
+                }
+                else fail("ReaderMitScene: light type must be ambient, point or directional");
+            }
+            else fail("ReaderMitScene: light requires a color and a type");
+        }
+        else if ( cmd == "cube" ) {
+            double x, y, z, size;
+            if (sscanf(javaLine.toCString(), "%*s %lf %lf %lf %lf", &x, &y, &z, &size) != 4 ||
+                !java::Double::isFinite(size) || size <= 0)
+                fail("ReaderMitScene: cube requires a center and a positive size");
+            SimpleBody* body = new SimpleBody();
+            body->setGeometry(new Box(size, size, size));
+            body->setPosition(Vector3Dd(x, y, z));
+            body->setMaterial(new SimpleMaterial(*currentMaterial));
+            attach(body);
+        }
+        else if ( cmd == "cylinder" ) {
+            double x, y, z, bottomRadius, topRadius, height;
+            if (sscanf(javaLine.toCString(), "%*s %lf %lf %lf %lf %lf %lf",
+                    &x, &y, &z, &bottomRadius, &topRadius, &height) != 6 ||
+                !(bottomRadius >= 0) || !(topRadius >= 0) || !(height > 0) ||
+                (bottomRadius == 0 && topRadius == 0))
+                fail("ReaderMitScene: cylinder requires a base center, two radii and a positive height");
+            if (csgBody) fail("ReaderMitScene: cylinder cannot be a csg operand");
+            SimpleBody* body = new SimpleBody();
+            body->setGeometry(new Cone(bottomRadius, topRadius, height));
+            body->setPosition(Vector3Dd(x, y, z));
+            body->setMaterial(new SimpleMaterial(*currentMaterial));
+            attach(body);
+        }
+        else if ( cmd == "torus" ) {
+            double x, y, z, majorRadius, minorRadius;
+            if (sscanf(javaLine.toCString(), "%*s %lf %lf %lf %lf %lf",
+                    &x, &y, &z, &majorRadius, &minorRadius) != 5 ||
+                !(majorRadius > 0) || !(minorRadius > 0))
+                fail("ReaderMitScene: torus requires a center and two positive radii");
+            if (csgBody) fail("ReaderMitScene: torus cannot be a csg operand");
+            SimpleBody* body = new SimpleBody();
+            body->setGeometry(new Torus(majorRadius, minorRadius));
+            body->setPosition(Vector3Dd(x, y, z));
+            body->setMaterial(new SimpleMaterial(*currentMaterial));
+            attach(body);
+        }
+        else if ( cmd == "polybox" || cmd == "appel" ) {
+            if (csgBody) fail("ReaderMitScene: polyhedral solids cannot be csg operands");
+            double x, y, z;
+            double scale = 1.0;
+            PolyhedralBoundedSolid* solid = nullptr;
+            if ( cmd == "polybox" ) {
+                double sx, sy, sz;
+                if (sscanf(javaLine.toCString(), "%*s %lf %lf %lf %lf %lf %lf",
+                        &x, &y, &z, &sx, &sy, &sz) != 6 || !(sx > 0) || !(sy > 0) || !(sz > 0))
+                    fail("ReaderMitScene: polybox requires a center and three positive sizes");
+                Box box(sx, sy, sz);
+                solid = box.exportToPolyhedralBoundedSolid();
+            }
+            else {
+                int id;
+                const int fields = sscanf(javaLine.toCString(), "%*s %d %lf %lf %lf %lf",
+                    &id, &x, &y, &z, &scale);
+                if (fields < 4 || (fields == 5 && !(scale > 0)) || id < 1 || id > 3)
+                    fail("ReaderMitScene: appel requires an object 1 to 3, a center and optionally a positive scale");
+                if (id == 1) solid = SimpleTestGeometryLibrary::createTestObjectAPPE1967_1();
+                else if (id == 2) solid = SimpleTestGeometryLibrary::createTestObjectAPPE1967_2();
+                else solid = SimpleTestGeometryLibrary::createTestObjectAPPE1967_3();
+                // The APPEL objects are modelled in [0,1]^3; center them on the origin.
+                PolyhedralBoundedSolidModeler::applyTransformation(solid,
+                    Matrix4x4d().translation(-0.5, -0.5, -0.5));
+            }
+            if (solid == nullptr) fail("ReaderMitScene: could not build the polyhedral solid");
+            SimpleBody* body = new SimpleBody();
+            body->setGeometry(solid);
+            body->setPosition(Vector3Dd(x, y, z));
+            body->setScale(Vector3Dd(scale, scale, scale));
+            body->setMaterial(new SimpleMaterial(*currentMaterial));
+            attach(body);
+        }
+        else if ( cmd == "obj" ) {
+            char path[512] = {0};
+            double x, y, z;
+            double scale = 1.0;
+            const int fields = sscanf(javaLine.toCString(), "%*s %511s %lf %lf %lf %lf",
+                path, &x, &y, &z, &scale);
+            if (fields < 4 || (fields == 5 && !(scale > 0)))
+                fail("ReaderMitScene: obj requires a file, a position and optionally a positive scale");
+            if (csgBody || hasPlacement) fail("ReaderMitScene: obj models cannot be csg operands or transformed");
+            if (!importObj(unquote(path), Vector3Dd(x, y, z), scale, currentMaterial, outScene))
+                fail("ReaderMitScene: could not read the obj file");
+        }
+        else if ( cmd == "quads" ) {
+            if (csgBody) fail("ReaderMitScene: quads cannot be csg operands");
+            if (hasPlacement) fail("ReaderMitScene: quads cannot be transformed");
+            if (inQuads || inTriangles) fail("ReaderMitScene: nested mesh block");
+            quadGroup.reset();
+            inQuads = true;
+        }
+        else if ( cmd == "v" && inQuads ) {
+            double x, y, z;
+            if (sscanf(javaLine.toCString(), "%*s %lf %lf %lf", &x, &y, &z) != 3 ||
+                !quadGroup.addVertex(Vector3Dd(x, y, z)))
+                fail("ReaderMitScene: invalid quad vertex");
+        }
+        else if ( cmd == "q" && inQuads ) {
+            if (!quadGroup.addQuad(javaLine.toCString() + 1)) fail("ReaderMitScene: invalid quad face");
+        }
+        else if ( cmd == "end" && inQuads ) {
+            SimpleBody* mesh = quadGroup.flush(outScene, currentMaterial);
+            if (mesh != nullptr) applyRotation(mesh);
+            quadGroup.reset();
+            inQuads = false;
+        }
+        else if ( cmd == "rotation" ) {
+            double a, b, c;
+            if (sscanf(javaLine.toCString(), "%*s %lf %lf %lf", &a, &b, &c) != 3 ||
+                !java::Double::isFinite(a) || !java::Double::isFinite(b) || !java::Double::isFinite(c))
+                fail("ReaderMitScene: rotation requires three finite angles");
+            yaw = a;
+            pitch = b;
+            roll = c;
+        }
+        else if ( cmd == "texture" ) {
+            char path[512] = {0};
+            if (sscanf(javaLine.toCString(), "%*s %511s", path) != 1)
+                fail("ReaderMitScene: texture requires a file");
+            currentTexture = loadTexture(unquote(path), outScene);
+            if (currentTexture == nullptr) fail("ReaderMitScene: could not read the texture file");
+        }
+        else if ( cmd == "notexture" ) {
+            currentTexture = nullptr;
+        }
+        else if ( cmd == "bumpmap" ) {
+            char path[512] = {0};
+            double sx = 1, sy = 1, sz = 0.2;
+            const int fields = sscanf(javaLine.toCString(), "%*s %511s %lf %lf %lf", path, &sx, &sy, &sz);
+            if (fields != 1 && fields != 4)
+                fail("ReaderMitScene: bumpmap requires a file and optionally three scale factors");
+            currentNormalMap = loadNormalMap(unquote(path), Vector3Dd(sx, sy, sz), outScene);
+            if (currentNormalMap == nullptr) fail("ReaderMitScene: could not read the bump map file");
+        }
+        else if ( cmd == "nobumpmap" ) {
+            currentNormalMap = nullptr;
+        }
+        else if ( cmd == "backgroundcubemap" ) {
+            char directoryStr[512] = {0};
+            java::String directory("../../cubemaps/dorise1");
+            if (sscanf(javaLine.toCString(), "%*s %511s", directoryStr) == 1) directory = unquote(directoryStr);
+            RGBAImageUncompressed* faces[6];
+            for (int i = 0; i < 6; ++i) {
+                char name[32];
+                snprintf(name, sizeof(name), "/entorno%d.jpg", i);
+                faces[i] = ImagePersistence::importRGBA(java::File(resolveResource(directory + name)));
+                if (faces[i] != nullptr && (faces[i]->getXSize() <= 0 || faces[i]->getYSize() <= 0)) {
+                    delete faces[i];
+                    faces[i] = nullptr;
+                }
+                if (faces[i] == nullptr) {
+                    for (int j = 0; j < i; ++j) delete faces[j];
+                    fail("ReaderMitScene: could not read the cubemap faces");
                 }
             }
+            for (int i = 0; i < 6; ++i) outScene->addImage(faces[i]);
+            outScene->addBackground(new CubemapBackground(camera,
+                faces[0], faces[1], faces[2], faces[3], faces[4], faces[5]));
+            outScene->setActiveBackgroundIndex((int)outScene->getBackgrounds().size() - 1);
         }
+        else fail("ReaderMitScene: unsupported command");
     }
 
     if (polynomial) fail("ReaderMitScene: unterminated poly block");
@@ -494,9 +815,9 @@ void ReaderMitScene::importEnvironment(const char* fileName, SimpleScene* outSce
     if (hasPlacement) fail("ReaderMitScene: transform must be followed by a primitive");
     if (csgBody) fail("ReaderMitScene: unterminated csg block");
     fclose(file);
-    if (inTriangles) {
+    if (inTriangles || inQuads) {
         delete currentMaterial;
-        throw VSDKFatalException("ReaderMitScene: unterminated triangles block");
+        throw VSDKFatalException("ReaderMitScene: unterminated mesh block");
     }
 
     if ( hasEye ) {

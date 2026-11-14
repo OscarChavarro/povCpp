@@ -11,6 +11,8 @@
 #include "vsdk/toolkit/environment/geometry/element/Triangle.h"
 #include "vsdk/toolkit/environment/geometry/volume/Sphere.h"
 #include "vsdk/toolkit/environment/geometry/volume/Box.h"
+#include "vsdk/toolkit/environment/geometry/volume/QuadricRayExpansion.h"
+#include "vsdk/toolkit/environment/geometry/volume/QuadricSurface.h"
 #include "vsdk/toolkit/environment/geometry/volume/Torus.h"
 #include "vsdk/toolkit/environment/geometry/volume/PlanarHalfSpace.h"
 #include "vsdk/toolkit/environment/geometry/surface/InfinitePlane.h"
@@ -1946,4 +1948,50 @@ TEST(CsgPointClassificationContract, PreservesUncertaintyAndProvesMaskedResults)
     ASSERT_TRUE(malformed.addOperand(inside)); ASSERT_TRUE(malformed.addOperand(invalid));
     EXPECT_EQ(GeometryContainment::Outside,CsgPointClassification::classify(decisive,Vector3Dd(),0.1));
     EXPECT_EQ(GeometryContainment::InvalidInput,CsgPointClassification::classify(malformed,Vector3Dd(),0.1));
+}
+
+TEST(QuadricRayExpansionContract, ExpansionMatchesQuadricAlongRay) {
+    const QuadricSurface quadric(Vector3Dd(1.5, -0.75, 2.0), Vector3Dd(0.5, -1.25, 0.375),
+        Vector3Dd(-0.25, 1.0, 0.625), -3.0);
+    // Q(origin) < 0 and a > 0, so the ray crosses the surface twice.
+    const Vector3Dd origin(0.25, -0.125, 0.5);
+    const Vector3Dd direction(1.0, 0.25, 0.5);
+    const double a = QuadricRayExpansion::squareTerm(quadric, true,
+        direction.multiply(direction), QuadricRayExpansion::mixedProducts(direction, direction));
+    const double b = QuadricRayExpansion::linearTerm(quadric, origin.multiply(direction), direction,
+        QuadricRayExpansion::symmetricMixedProducts(origin, direction));
+    const double c = QuadricRayExpansion::constantTerm(quadric,
+        QuadricRayExpansion::constantTermWithoutMixed(quadric, origin.multiply(origin), origin),
+        QuadricRayExpansion::mixedProducts(origin, origin));
+    EXPECT_NEAR(c, quadric.evaluate(origin), 1e-12);
+    for ( int i = -4; i <= 4; i++ ) {
+        const double t = 0.75 * i;
+        EXPECT_NEAR((a*t + b)*t + c, quadric.evaluate(origin.add(direction.multiply(t))), 1e-11);
+    }
+    EXPECT_GT(a, 0.0);
+    EXPECT_LT(c, 0.0);
+    double first = 0, second = 0;
+    ASSERT_TRUE(QuadricSurface::solve(a, b, c, first, second));
+    EXPECT_GT(first, 0.0);
+    EXPECT_LT(second, 0.0);
+    EXPECT_NEAR(quadric.evaluate(origin.add(direction.multiply(first))), 0.0, 1e-9);
+    EXPECT_NEAR(quadric.evaluate(origin.add(direction.multiply(second))), 0.0, 1e-9);
+}
+
+TEST(QuadricRayExpansionContract, QuadricWithoutSquareTermsIsLinearAlongRay) {
+    const QuadricSurface plane(Vector3Dd(0, 0, 0), Vector3Dd(0, 0, 0), Vector3Dd(0, 0, 2), -1.0);
+    const Vector3Dd origin(0.25, 0.5, -1.5);
+    const Vector3Dd direction(0, 0.5, 1);
+    const double a = QuadricRayExpansion::squareTerm(plane, false,
+        direction.multiply(direction), QuadricRayExpansion::mixedProducts(direction, direction));
+    const double b = QuadricRayExpansion::linearTerm(plane, origin.multiply(direction), direction,
+        QuadricRayExpansion::symmetricMixedProducts(origin, direction));
+    const double c = QuadricRayExpansion::constantTerm(plane,
+        QuadricRayExpansion::constantTermWithoutMixed(plane, origin.multiply(origin), origin),
+        QuadricRayExpansion::mixedProducts(origin, origin));
+    EXPECT_EQ(a, 0.0);
+    double first = 0, second = 0;
+    ASSERT_TRUE(QuadricSurface::solve(a, b, c, first, second));
+    EXPECT_DOUBLE_EQ(first, 2.0);
+    EXPECT_DOUBLE_EQ(second, 2.0);
 }

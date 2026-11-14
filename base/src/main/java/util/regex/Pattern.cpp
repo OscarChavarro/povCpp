@@ -131,7 +131,8 @@ translate(const char *javaRegex, java::StringBuilder &out,
 
 //= CompiledExpression ====================================================
 
-CompiledExpression::CompiledExpression(const char *javaRegex)
+CompiledExpression::CompiledExpression(const char *javaRegex) :
+    references(1), expression(), posixGroupOfJavaGroup()
 {
     java::StringBuilder posixRegex;
     translate(javaRegex, posixRegex, posixGroupOfJavaGroup);
@@ -151,12 +152,49 @@ CompiledExpression::~CompiledExpression()
     regfree(&expression);
 }
 
+void
+CompiledExpression::retain()
+{
+    references.incrementAndGet();
+}
+
+void
+CompiledExpression::release()
+{
+    if ( references.decrementAndGet() == 0 ) {
+        delete this;
+    }
+}
+
 //= Pattern ===============================================================
 
 Pattern::Pattern(const java::String &regex) :
     patternText(regex),
     expression(new CompiledExpression(regex.c_str()))
 {
+}
+
+Pattern::Pattern(const Pattern &other) :
+    patternText(other.patternText), expression(other.expression)
+{
+    expression->retain();
+}
+
+Pattern &
+Pattern::operator=(const Pattern &other)
+{
+    if ( expression != other.expression ) {
+        other.expression->retain();
+        expression->release();
+        expression = other.expression;
+    }
+    patternText = other.patternText;
+    return *this;
+}
+
+Pattern::~Pattern()
+{
+    expression->release();
 }
 
 Pattern
@@ -198,17 +236,45 @@ Pattern::pattern() const
 
 //= Matcher ===============================================================
 
-Matcher::Matcher(const SharedPointer<CompiledExpression> &expression,
+Matcher::Matcher(CompiledExpression *expression,
                  const java::String &input) :
     expression(expression), input(input), match(), searchFrom(0),
     matched(false)
 {
+    expression->retain();
     regmatch_t empty;
     empty.rm_so = -1;
     empty.rm_eo = -1;
     for ( size_t i = 0; i < expression->expression.re_nsub + 1; i++ ) {
         match.add(empty);
     }
+}
+
+Matcher::Matcher(const Matcher &other) :
+    expression(other.expression), input(other.input), match(other.match),
+    searchFrom(other.searchFrom), matched(other.matched)
+{
+    expression->retain();
+}
+
+Matcher &
+Matcher::operator=(const Matcher &other)
+{
+    if ( expression != other.expression ) {
+        other.expression->retain();
+        expression->release();
+        expression = other.expression;
+    }
+    input = other.input;
+    match = other.match;
+    searchFrom = other.searchFrom;
+    matched = other.matched;
+    return *this;
+}
+
+Matcher::~Matcher()
+{
+    expression->release();
 }
 
 bool

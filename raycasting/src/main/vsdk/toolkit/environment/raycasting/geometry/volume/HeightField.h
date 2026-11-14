@@ -6,9 +6,12 @@
 #include "vsdk/toolkit/environment/geometry/volume/HeightFieldSolid.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/RayCastingGeometry.h"
 
-// PovRay height_field: a VITRAL HeightFieldSolid placed by an affine map. The
-// PovRay image rules (border and water level points at -10000, POT and TGA
-// fractional heights) are applied when the heights are loaded.
+// PovRay height_field: a VITRAL HeightFieldSolid in its grid coordinates. The
+// body that holds it places the grid (the parser scales it to the unit square
+// before the scene transforms). The PovRay image rules (border and water level
+// points at -10000, POT and TGA fractional heights) are applied when the
+// heights are loaded. PovRay ignores inverse on height fields, so typed
+// queries report the solid as given.
 class HeightField : public RayCastingGeometry {
   public:
     static constexpr int GIF = 0;
@@ -17,14 +20,17 @@ class HeightField : public RayCastingGeometry {
     // Height of points on the image border or at or below the water level.
     static constexpr double HIDDEN_HEIGHT = -10000.0;
 
-    HeightField(const Matrix4x4d &transformation,
-        const Matrix4x4d &transformationInverse, const Vector3Dd &minBounds,
+    // A grid of columns x rows heights at zero inside the given box.
+    HeightField(long columns, long rows, const Vector3Dd &minBounds,
         const Vector3Dd &maxBounds);
     HeightField(const HeightField &other);
     ~HeightField() override;
 
     void setWaterLevel(double level);
     const HeightFieldSolid *getSolid() const { return solid; }
+    const Geometry *getIntrinsicGeometry() const override { return solid; }
+    RaySolidQueryStatus classifyRay(const Ray& ray, const RayCrossingQuery& query,
+        RaySolidClassification& result) const override;
 
     static void findHfMinMax(HeightField *hField,
         const IndexedColorImageHDRUncompressed *image, int imageType);
@@ -50,14 +56,9 @@ class HeightField : public RayCastingGeometry {
     void computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
 
   private:
-    Matrix4x4d transformation;
-    Matrix4x4d transformationInverse;
-    Vector3Dd minBounds;
-    Vector3Dd maxBounds;
     HeightFieldSolid *solid;
 
     double imageHeight(double height) const;
-    void allocateGrid(int maxX, int maxZ);
     int traceCrossings(
         RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,

@@ -18,6 +18,11 @@ class PolynomialShape : public RayCastingGeometry {
     int getSturmFlag() const { return surface.usesSturmSequences() ? 1 : 0; }
     double *getCoeffs() { return surface.getCoefficients(); }
     const PolynomialSurface &getSurface() const { return surface; }
+    // The VITRAL solid for typed queries; inversion is reported separately.
+    const Geometry *getIntrinsicGeometry() const override { return &surface; }
+    // Typed ray classification of the VITRAL solid, complemented when inverted.
+    RaySolidQueryStatus classifyRay(const Ray& ray, const RayCrossingQuery& query,
+        RaySolidClassification& result) const override;
 
     int doIntersectionForAllRayCrossings(
         RayWithTracingState *ray,

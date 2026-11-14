@@ -26,6 +26,7 @@ class Quadric : public RayCastingGeometry {
     Vector3Dd &getObjectTerms() { return surface.linearCoefficients(); }
     const Vector3Dd &getObjectTerms() const { return surface.linearCoefficients(); }
     double getObjectConstant() const { return surface.constantCoefficient(); }
+    const QuadricSurface &getSurface() const { return surface; }
     void setObjectConstant(double value) { surface.constantCoefficient() = value; constantCached = false; }
     double getObjectVpConstant() const { return objectVpConstant; }
     void setObjectVpConstant(double value) const { objectVpConstant = value; }
@@ -53,6 +54,9 @@ class Quadric : public RayCastingGeometry {
 
     static int intersectQuadric(
         RayWithTracingState *ray, Quadric *shape, double *depth1, double *depth2);
+    // PovRay's render depth window [SMALL_TOLERANCE, MAX_DISTANCE]: a root
+    // outside it takes the other root's value; false when both are outside.
+    static bool clipToRenderDepths(double *depth1, double *depth2);
 
     int doIntersectionForAllRayCrossings(
         RayWithTracingState *ray,

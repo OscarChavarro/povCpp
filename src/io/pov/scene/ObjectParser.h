@@ -9,10 +9,10 @@ class ObjectParser {
   public:
     static SimpleBodyBuilder *parseShape();
     static SimpleBodyBuilder *parseShape(ParserContext &ctx);
-    static RayCastingBody *parseObject();
-    static RayCastingBody *parseObject(ParserContext &ctx);
-    static RayCastingBody *parseComposite();
-    static RayCastingBody *parseComposite(ParserContext &ctx);
+    static PovrayBody *parseObject();
+    static PovrayBody *parseObject(ParserContext &ctx);
+    static PovrayBody *parseComposite();
+    static PovrayBody *parseComposite(ParserContext &ctx);
 
   private:
     // An untextured object/composite starts out wearing the scene's shared
@@ -27,14 +27,14 @@ class ObjectParser {
     // replacing and layering.
     static Material *ensurePrivateTexture(Material *objectTexture);
 
-    static RayCastingBody *buildObject(
+    static PovrayBody *buildObject(
         RayCastingGeometry *geometry,
         Material *geometryMaterial,
         Material *objectTexture,
         ColorRgba *objectColor,
         bool noShadowFlag,
-        const java::ArrayList<RayCastingBody*> &boundingShapes,
-        const java::ArrayList<RayCastingBody*> &clippingShapes,
+        const java::ArrayList<PovrayBody*> &boundingShapes,
+        const java::ArrayList<PovrayBody*> &clippingShapes,
         Matrix4x4d *transformation = nullptr,
         Matrix4x4d *transformationInverse = nullptr,
         Matrix4x4d *geometryTransformation = nullptr,
@@ -48,23 +48,23 @@ class ObjectParser {
         Material *objectTexture,
         ColorRgba *objectColor,
         bool noShadowFlag,
-        const java::ArrayList<RayCastingBody*> &boundingShapes,
-        const java::ArrayList<RayCastingBody*> &clippingShapes,
-        const java::ArrayList<RayCastingBody*> &simpleBodies,
+        const java::ArrayList<PovrayBody*> &boundingShapes,
+        const java::ArrayList<PovrayBody*> &clippingShapes,
+        const java::ArrayList<PovrayBody*> &simpleBodies,
         Matrix4x4d *transformation = nullptr,
         Matrix4x4d *transformationInverse = nullptr,
         Matrix4x4d *geometryTransformation = nullptr,
         Matrix4x4d *geometryTransformationInverse = nullptr);
 
     static void extractObjectState(
-        RayCastingBody *object,
+        PovrayBody *object,
         RayCastingGeometry *&geometry,
         Material *&geometryMaterial,
         Material *&objectTexture,
         ColorRgba *&objectColor,
         bool &noShadowFlag,
-        java::ArrayList<RayCastingBody*> &boundingShapes,
-        java::ArrayList<RayCastingBody*> &clippingShapes,
+        java::ArrayList<PovrayBody*> &boundingShapes,
+        java::ArrayList<PovrayBody*> &clippingShapes,
         Matrix4x4d *&transformation,
         Matrix4x4d *&transformationInverse,
         Matrix4x4d *&geometryTransformation,
@@ -79,9 +79,9 @@ class ObjectParser {
         Material *&objectTexture,
         ColorRgba *&objectColor,
         bool &noShadowFlag,
-        java::ArrayList<RayCastingBody*> &boundingShapes,
-        java::ArrayList<RayCastingBody*> &clippingShapes,
-        java::ArrayList<RayCastingBody*> &simpleBodies,
+        java::ArrayList<PovrayBody*> &boundingShapes,
+        java::ArrayList<PovrayBody*> &clippingShapes,
+        java::ArrayList<PovrayBody*> &simpleBodies,
         Matrix4x4d *&transformation,
         Matrix4x4d *&transformationInverse,
         Matrix4x4d *&geometryTransformation,

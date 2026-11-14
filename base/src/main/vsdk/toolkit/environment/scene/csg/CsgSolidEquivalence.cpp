@@ -4,7 +4,7 @@
 #include "vsdk/toolkit/environment/geometry/volume/Box.h"
 #include "vsdk/toolkit/environment/geometry/volume/PlanarHalfSpace.h"
 #include "vsdk/toolkit/environment/geometry/volume/QuadricSurface.h"
-#include "vsdk/toolkit/environment/scene/SimpleBody.h"
+#include "vsdk/toolkit/environment/scene/SceneSolid.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgExactArithmetic.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgExactPlane.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgExactQuadric.h"
@@ -256,7 +256,7 @@ bool CsgSolidEquivalence::sameQuadric(const QuadricSurface& a, const Matrix4x4d&
     return proportional(av,bv,10);
 }
 
-bool CsgSolidEquivalence::same(const SimpleBody& a, const SimpleBody& b)
+bool CsgSolidEquivalence::same(const SceneSolid& a, const SceneSolid& b)
 {
     if (&a==&b) return true;
     // Each scene specialization explicitly exposes its unmodified core solid.

@@ -1,6 +1,6 @@
 #ifndef VSDK_CSG_SOLID_EQUIVALENCE_H
 #define VSDK_CSG_SOLID_EQUIVALENCE_H
-class SimpleBody;
+class SceneSolid;
 class Matrix4x4d;
 class Vector3Dd;
 class Box;
@@ -31,6 +31,6 @@ private:
     static bool sameQuadric(const QuadricSurface& a, const Matrix4x4d& pa,
         const QuadricSurface& b, const Matrix4x4d& pb);
 public:
-    static bool same(const SimpleBody& a, const SimpleBody& b);
+    static bool same(const SceneSolid& a, const SceneSolid& b);
 };
 #endif

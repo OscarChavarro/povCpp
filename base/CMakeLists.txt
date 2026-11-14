@@ -79,6 +79,7 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/environment/scene/csg/CsgSolidEquivalence.cpp
     src/main/vsdk/toolkit/environment/scene/csg/CsgTree.cpp
     src/main/vsdk/toolkit/environment/scene/csg/CsgPointClassification.cpp
+    src/main/vsdk/toolkit/environment/scene/csg/CsgPointWorkspace.cpp
     src/main/vsdk/toolkit/environment/scene/csg/CsgSolidBounds.cpp
     src/main/vsdk/toolkit/environment/scene/csg/CsgPointWitness.cpp
     src/main/vsdk/toolkit/environment/scene/csg/CsgPointAttribution.cpp
@@ -193,6 +194,7 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/environment/scene/SimpleScene.cpp
     src/main/vsdk/toolkit/environment/scene/SimpleSceneSnapshot.cpp
     src/main/vsdk/toolkit/environment/scene/SimpleBodyGroup.cpp
+    src/main/vsdk/toolkit/environment/scene/SceneSolid.cpp
     src/main/vsdk/toolkit/environment/scene/SimpleBody.cpp
     src/main/vsdk/toolkit/processing/StopWatch.cpp
     src/main/vsdk/toolkit/common/symbolicAlgebra/AlgebraicExpression.cpp
@@ -305,6 +307,7 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/io/geometry/ReaderAltimetry.cpp
     src/main/vsdk/toolkit/io/geometry/ReaderMitScene.cpp
     src/main/vsdk/toolkit/io/geometry/ReaderMitTriangleGroup.cpp
+    src/main/vsdk/toolkit/io/geometry/ReaderMitQuadGroup.cpp
     src/main/vsdk/toolkit/io/image/ImagePersistence.cpp
     src/main/java/io/BufferedOutputStream.cpp
     src/main/vsdk/toolkit/media/MediaEntity.h
@@ -341,6 +344,9 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/environment/material/RendererConfiguration.cpp
     src/main/vsdk/toolkit/processing/CurveModeler.cpp
     src/main/vsdk/toolkit/processing/ImageProcessing.cpp
+    src/main/vsdk/toolkit/processing/BezierPatchTessellator.cpp
+    src/main/vsdk/toolkit/processing/SolidBoundaryTessellationReport.cpp
+    src/main/vsdk/toolkit/processing/SolidBoundaryTessellator.cpp
     src/main/vsdk/toolkit/environment/background/CubemapBackground.cpp
     src/main/vsdk/toolkit/environment/background/FixedBackground.cpp
     src/main/vsdk/toolkit/environment/geometry/geometricProcessing/polyhedralBoundedSolidOperators/PolyhedralBoundedSolidModeler.cpp
@@ -454,6 +460,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     src/main/vsdk/toolkit/environment/geometry/volume/BlobComponent.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/BlobSolid.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/HeightFieldSolid.cpp
+    src/main/vsdk/toolkit/environment/scene/SceneSolid.cpp
     src/main/vsdk/toolkit/environment/scene/SimpleBody.cpp
     src/main/vsdk/toolkit/environment/geometry/element/GeometryBounds.cpp
     src/main/java/lang/Double.cpp
@@ -558,6 +565,10 @@ if(VITRAL_BUILD_TESTS)
     src/test/ray_affine_contract_tests.cpp
     src/test/ray_crossing_tests.cpp
     src/test/reader_mit_triangles_tests.cpp
+    src/test/reader_mit_scene_commands_tests.cpp
+    src/test/csg_point_workspace_tests.cpp
+    src/test/solid_boundary_tessellator_tests.cpp
+    src/test/TessellationMeshCheck.cpp
     src/test/triangle_mesh_contract_tests.cpp
     src/test/sphere_polyhedral_cache_tests.cpp
     src/test/box_cone_containment_tests.cpp
@@ -577,6 +588,10 @@ if(VITRAL_BUILD_TESTS)
   # Repository root, for the test data under `etc/` (fonts)
   target_compile_definitions(vitral_base_tests PRIVATE
       VITRAL_REPOSITORY_ROOT="${CMAKE_CURRENT_LIST_DIR}/../..")
+  # Tests that read JPEG files (cubemap faces) need the optional decoder.
+  if(WITH_JPEG)
+    target_compile_definitions(vitral_base_tests PRIVATE VITRAL_WITH_JPEG)
+  endif()
   include(GoogleTest)
   gtest_discover_tests(vitral_base_tests DISCOVERY_TIMEOUT 60)
 endif()

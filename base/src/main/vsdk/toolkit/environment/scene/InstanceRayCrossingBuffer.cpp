@@ -2,7 +2,7 @@
 #include "vsdk/toolkit/environment/scene/InstanceRayCrossingBuffer.h"
 
 InstanceRayCrossingBuffer::InstanceRayCrossingBuffer(const RayInstanceStep& value,
-    const SimpleBody* owner, Material* appearance) : instance(value), body(owner),
+    const SceneSolid* owner, Material* appearance) : instance(value), body(owner),
     material(appearance), failed(false) {}
 void InstanceRayCrossingBuffer::crossing(const RayCrossing& event)
 {

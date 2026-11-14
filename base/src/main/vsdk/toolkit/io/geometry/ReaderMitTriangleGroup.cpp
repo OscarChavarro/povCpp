@@ -33,9 +33,9 @@ bool ReaderMitTriangleGroup::addFace(const char* coordinates)
     return true;
 }
 
-void ReaderMitTriangleGroup::flush(SimpleScene* scene, const SimpleMaterial* material)
+SimpleBody* ReaderMitTriangleGroup::flush(SimpleScene* scene, const SimpleMaterial* material)
 {
-    if (triangles.isEmpty()) return;
+    if (triangles.isEmpty()) return nullptr;
     TriangleMesh* mesh = new TriangleMesh();
     mesh->initVertexPositionsArray((int)vertices.size());
     java::ArrayList<double>& positions = mesh->getVertexPositions();
@@ -52,4 +52,5 @@ void ReaderMitTriangleGroup::flush(SimpleScene* scene, const SimpleMaterial* mat
     body->setMaterial(new SimpleMaterial(*material));
     scene->addBody(body);
     triangles.clear();
+    return body;
 }

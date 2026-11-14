@@ -4,43 +4,46 @@
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgExpression.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgTree.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgBodyOperand.h"
 
+/**
+A POV CSG geometry: the shared VITRAL `CsgTree` over `CsgOperand` leaves (POV
+bodies), which this geometry owns, and one POV evaluation strategy chosen by
+the subclass. The operation and operand order are the tree's; the expression
+view delegates to it, so VITRAL evaluators and the POV render paths read the
+same structure. A nested CSG is a leaf whose geometry is another
+`ConstructiveSolidGeometry`, with the leaf's placement.
+*/
 class ConstructiveSolidGeometry : public RayCastingGeometry, public CsgExpression {
   private:
-    BooleanSetOperations geometryType;
+    CsgTree structure;
     java::ArrayList<CsgOperand*> operands{4};
-    long long structureVersion = 0;
+    java::ArrayList<CsgBodyOperand*> views{4};
 
   public:
     explicit ConstructiveSolidGeometry(BooleanSetOperations initialGeometryType = BooleanSetOperations::UNION);
     ~ConstructiveSolidGeometry() override;
 
-    CsgOperation getOperation() const override { return geometryType; }
-    long int getOperandCount() const override { return operands.size(); }
-    const CsgOperandView* getOperand(long int index) const override {
-        return index < 0 || index >= operands.size() ? nullptr : operands[index];
-    }
+    const CsgTree &getStructure() const { return structure; }
+    CsgOperation getOperation() const override { return structure.getOperation(); }
+    long int getOperandCount() const override { return structure.getOperandCount(); }
+    const CsgOperandView* getOperand(long int index) const override { return structure.getOperand(index); }
     // The POV evaluators share the Boolean solid of operation and operands;
     // their surface policies are evaluator choices, not a different solid.
     bool isStructuralTraversalSafe() const override;
-    bool queryStructureVersion(long long& version) const override { version = structureVersion; return true; }
-    BooleanSetOperations getGeometryType() const;
-    void setGeometryType(BooleanSetOperations value);
-    void addShape(RayCastingGeometry *shape, Material *material);
+    bool queryStructureVersion(long long& version) const override { return structure.queryStructureVersion(version); }
+    BooleanSetOperations getGeometryType() const { return structure.getOperation(); }
+    void setGeometryType(BooleanSetOperations value) { structure.setOperation(value); }
     void addShape(
         RayCastingGeometry *shape,
         Material *material,
-        Matrix4x4d *transformation,
-        Matrix4x4d *transformationInverse);
-    void addShape(
-        RayCastingGeometry *shape,
-        Material *material,
-        Matrix4x4d *transformation,
-        Matrix4x4d *transformationInverse,
-        const java::ArrayList<TransformStep> &steps);
+        Matrix4x4d *transformation = nullptr,
+        Matrix4x4d *transformationInverse = nullptr,
+        const java::ArrayList<TransformStep> &steps = java::ArrayList<TransformStep>());
+    // Takes ownership of the operand and appends it to the tree.
     void addOperand(CsgOperand *operand);
-    java::ArrayList<CsgOperand*> &getOperands();
-    const java::ArrayList<CsgOperand*> &getOperands() const;
+    const java::ArrayList<CsgOperand*> &getOperands() const { return operands; }
 
     void translate(Vector3Dd *vector);
     void rotate(Vector3Dd *vector);
@@ -58,65 +61,4 @@ class ConstructiveSolidGeometry : public RayCastingGeometry, public CsgExpressio
     void invertGeometry() override = 0;
 };
 
-inline BooleanSetOperations
-ConstructiveSolidGeometry::getGeometryType() const
-{
-    return geometryType;
-}
-
-inline void
-ConstructiveSolidGeometry::setGeometryType(BooleanSetOperations value)
-{
-    geometryType = value;
-    ++structureVersion;
-}
-
-inline void
-ConstructiveSolidGeometry::addShape(RayCastingGeometry *shape, Material *material)
-{
-    operands.add(new CsgOperand(shape, material));
-    ++structureVersion;
-}
-
-inline void
-ConstructiveSolidGeometry::addShape(
-    RayCastingGeometry *shape,
-    Material *material,
-    Matrix4x4d *transformation,
-    Matrix4x4d *transformationInverse)
-{
-    operands.add(new CsgOperand(shape, material, transformation, transformationInverse));
-    ++structureVersion;
-}
-
-inline void
-ConstructiveSolidGeometry::addShape(
-    RayCastingGeometry *shape,
-    Material *material,
-    Matrix4x4d *transformation,
-    Matrix4x4d *transformationInverse,
-    const java::ArrayList<TransformStep> &steps)
-{
-    operands.add(new CsgOperand(shape, material, transformation, transformationInverse, steps));
-    ++structureVersion;
-}
-
-inline void
-ConstructiveSolidGeometry::addOperand(CsgOperand *operand)
-{
-    operands.add(operand);
-    ++structureVersion;
-}
-
-inline java::ArrayList<CsgOperand*> &
-ConstructiveSolidGeometry::getOperands()
-{
-    return operands;
-}
-
-inline const java::ArrayList<CsgOperand*> &
-ConstructiveSolidGeometry::getOperands() const
-{
-    return operands;
-}
 #endif

@@ -3,6 +3,8 @@
 #include "vsdk/toolkit/environment/camera/Camera.h"
 #include "vsdk/toolkit/environment/camera/CameraSnapshot.h"
 #include "vsdk/toolkit/environment/light/Light.h"
+#include "vsdk/toolkit/media/Image.h"
+#include "vsdk/toolkit/media/NormalMap.h"
 #include "vsdk/toolkit/environment/scene/SimpleBody.h"
 #include "vsdk/toolkit/environment/scene/SimpleScene.h"
 #include "vsdk/toolkit/environment/scene/SimpleSceneSnapshot.h"
@@ -30,11 +32,20 @@ void SimpleScene::clearOwnedElements()
     for (long int i = 0; i < cameras.size(); ++i) {
         delete cameras[i];
     }
+    // Bodies and backgrounds referencing these resources are gone by now.
+    for (long int i = 0; i < images.size(); ++i) {
+        delete images[i];
+    }
+    for (long int i = 0; i < normalMaps.size(); ++i) {
+        delete normalMaps[i];
+    }
 
     simpleBodies.clear();
     lights.clear();
     backgrounds.clear();
     cameras.clear();
+    images.clear();
+    normalMaps.clear();
 
     activeCameraIndex = 0;
     activeBackgroundIndex = 0;
@@ -47,6 +58,8 @@ void SimpleScene::setActiveBackgroundIndex(int i) { activeBackgroundIndex = i; }
 
 void SimpleScene::addBody(SimpleBody* b) { simpleBodies.add(b); }
 void SimpleScene::addCamera(Camera* c) { cameras.add(c); }
+void SimpleScene::addImage(Image* image) { images.add(image); }
+void SimpleScene::addNormalMap(NormalMap* normalMap) { normalMaps.add(normalMap); }
 void SimpleScene::addBackground(Background* b) { backgrounds.add(b); }
 void SimpleScene::addLight(Light* l) { l->setId(static_cast<int>(lights.size())); lights.add(l); }
 

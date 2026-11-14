@@ -6,6 +6,7 @@
 #include "vsdk/toolkit/environment/geometry/element/Triangle.h"
 class SimpleMaterial;
 class SimpleScene;
+class SimpleBody;
 
 // One MIT triangles block; material changes flush faces while keeping vertices.
 class ReaderMitTriangleGroup {
@@ -18,6 +19,7 @@ public:
     void reset();
     bool addVertex(const Vector3Dd& vertex);
     bool addFace(const char* coordinates);
-    void flush(SimpleScene* scene, const SimpleMaterial* material);
+    // Adds the pending faces as one body and returns it, or null when none are pending.
+    SimpleBody* flush(SimpleScene* scene, const SimpleMaterial* material);
 };
 #endif

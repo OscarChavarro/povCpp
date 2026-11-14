@@ -4,7 +4,6 @@
 #include "java/lang/Exception.h"
 #include "java/util/concurrent/Callable.h"
 #include "java/util/concurrent/Future.h"
-#include "vsdk/toolkit/common/memoryManagement/SharedPointer.h"
 namespace java {
 
 class ExecutorService {
@@ -24,15 +23,19 @@ public:
     template<typename T>
     Future<T> submit(Callable<T>* callable)
     {
-        SharedPointer<typename Future<T>::SharedState> state(new typename Future<T>::SharedState());
+        // submit() owns one reference until the future is built; the task
+        // owns another, and the callable, until it is deleted.
+        typename Future<T>::SharedState* state = new typename Future<T>::SharedState();
 
         class TaskImpl : public TaskBase {
         private:
             Callable<T>* callable_;
-            SharedPointer<typename Future<T>::SharedState> state_;
+            typename Future<T>::SharedState* state_;
         public:
-            TaskImpl(Callable<T>* callable, const SharedPointer<typename Future<T>::SharedState>& state)
-                : callable_(callable), state_(state) {}
+            TaskImpl(Callable<T>* callable, typename Future<T>::SharedState* state)
+                : callable_(callable), state_(state) { state_->retain(); }
+
+            virtual ~TaskImpl() { delete callable_; state_->release(); }
 
             virtual void run()
             {
@@ -61,6 +64,7 @@ public:
                     pthread_mutex_unlock(&state_->mutex);
                 }
                 delete callable_;
+                callable_ = nullptr;
             }
         };
 
@@ -75,7 +79,9 @@ public:
             delete task;
         }
 
-        return Future<T>(state);
+        Future<T> result(state);
+        state->release();
+        return result;
     }
 };
 

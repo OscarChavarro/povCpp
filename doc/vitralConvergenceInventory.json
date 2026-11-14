@@ -447,30 +447,6 @@
       "policy": "One expression model; separate heuristic and interval evaluators, remove POV binding decisions."
     },
     {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/RaySegmentCrossing.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "geometry CSG expressions / evaluators",
-      "acceptance": "C1",
-      "policy": "One expression model; separate heuristic and interval evaluators, remove POV binding decisions."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/RaySegments.cpp",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "geometry CSG expressions / evaluators",
-      "acceptance": "C1",
-      "policy": "One expression model; separate heuristic and interval evaluators, remove POV binding decisions."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/RaySegments.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "geometry CSG expressions / evaluators",
-      "acceptance": "C1",
-      "policy": "One expression model; separate heuristic and interval evaluators, remove POV binding decisions."
-    },
-    {
       "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/polynomial/PolynomialShape.cpp",
       "destination": "VITRAL",
       "action": "move",
@@ -487,12 +463,12 @@
       "policy": "Expose mathematical data and operations; remove shadow-ray and parser/IO decisions before migration."
     },
     {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/RayCastingBody.cpp",
+      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/PovrayBody.cpp",
       "destination": "PovRay",
-      "action": "split",
-      "target": "PovraySolid (provisional name)",
+      "action": "move",
+      "target": "src/environment/scene/PovrayBody.cpp",
       "acceptance": "S1",
-      "policy": "Keep POV bindings in scene specialization; merge affine placement/ownership into VITRAL SimpleBody or minimal common contract."
+      "policy": "POV scene element implementing VITRAL SceneSolid; typed queries come from the contract through queryDenotedSolid; moves with its raycasting dependencies in J."
     },
     {
       "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/RayCastingCoreOperand.h",
@@ -511,12 +487,12 @@
       "policy": "POV clipped_by/bounded_by policy expressed as a shared CSG composition of the body's core solid; moves with the POV scene specialization."
     },
     {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/RayCastingBody.h",
+      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/PovrayBody.h",
       "destination": "PovRay",
-      "action": "split",
-      "target": "PovraySolid (provisional name)",
+      "action": "move",
+      "target": "src/environment/scene/PovrayBody.h",
       "acceptance": "S1",
-      "policy": "Keep POV bindings in scene specialization; merge affine placement/ownership into VITRAL SimpleBody or minimal common contract."
+      "policy": "POV scene element implementing VITRAL SceneSolid; typed queries come from the contract through queryDenotedSolid; moves with its raycasting dependencies in J."
     },
     {
       "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/RayCastingComposite.cpp",
