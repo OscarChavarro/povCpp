@@ -1,7 +1,7 @@
 #ifndef __OBJECT_PARSER__
 #define __OBJECT_PARSER__
 
-#include "vsdk/toolkit/environment/raycasting/scene/RayCastingComposite.h"
+#include "environment/scene/RayCastingComposite.h"
 #include "io/pov/geometry/SimpleBodyBuilder.h"
 #include "io/pov/scene/ParsedTransformOp.h"
 

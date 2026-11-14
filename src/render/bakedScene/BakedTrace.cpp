@@ -1,12 +1,12 @@
 
-#include "vsdk/toolkit/environment/raycasting/scene/RayCastingComposite.h"
+#include "environment/scene/RayCastingComposite.h"
 #include "render/bakedScene/BakedTrace.h"
 #include "render/bakedScene/CsgContainmentTest.h"
 #include "render/bakedScene/CsgFirstHitTrace.h"
 #include "render/bakedScene/CsgOperandTrace.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
-#include "vsdk/toolkit/environment/raycasting/geometry/element/PriorityQueuePool.txx"
+#include "environment/geometry/element/PriorityQueuePool.txx"
 
 bool
 BakedTrace::finalizeSimpleBodyCandidate(

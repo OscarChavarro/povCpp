@@ -1,7 +1,7 @@
 #ifndef __LIGHT_GEOMETRY_ADAPTER__
 #define __LIGHT_GEOMETRY_ADAPTER__
 
-#include "vsdk/toolkit/environment/raycasting/geometry/RayCastingGeometry.h"
+#include "environment/geometry/RayCastingGeometry.h"
 #include "vsdk/toolkit/environment/light/Light.h"
 
 class LightGeometryAdapter : public RayCastingGeometry {

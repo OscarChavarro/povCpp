@@ -1,7 +1,7 @@
 #ifndef __RAY_SHADER_PIPELINE__
 #define __RAY_SHADER_PIPELINE__
 
-#include "render/RenderContext.h"
+#include "render/PovRenderContext.h"
 #include "render/shaders/TraceService.h"
 
 class RayShaderPipeline {

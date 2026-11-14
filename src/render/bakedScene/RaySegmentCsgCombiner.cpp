@@ -4,7 +4,7 @@
 #include "render/bakedScene/CsgContainmentTest.h"
 #include "render/bakedScene/CsgOperandTrace.h"
 #include "render/bakedScene/SingleCorePlaneCsgTrace.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgSegmentClassification.txx"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"

@@ -4,7 +4,7 @@
 #include "render/bakedScene/BakedSceneKinds.h"
 #include "render/bakedScene/CsgOperandRecord.h"
 #include "render/bakedScene/OperandCullBins.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgOperation.h"
 
 // One compiled CSG node: algorithm/specialization chosen once at build
 // time, plus the operand-kind bucket arrays the fused-plan kernels
@@ -22,7 +22,7 @@ class CsgProgram {
     CsgProgram(
         BakedSceneCsgAlgorithm algorithm,
         BakedSceneCsgPlanKind planKind,
-        BooleanSetOperations geometryType,
+        CsgOperation geometryType,
         bool topLevel,
         bool specializationValid,
         int specializationCoreOperandIndex,
@@ -53,7 +53,7 @@ class CsgProgram {
 
     BakedSceneCsgAlgorithm getAlgorithm() const { return algorithm; }
     BakedSceneCsgPlanKind getPlanKind() const { return planKind; }
-    BooleanSetOperations getGeometryType() const { return geometryType; }
+    CsgOperation getGeometryType() const { return geometryType; }
     bool getTopLevel() const { return topLevel; }
     bool getSpecializationValid() const { return specializationValid; }
     int getSpecializationCoreOperandIndex() const { return specializationCoreOperandIndex; }
@@ -74,7 +74,7 @@ class CsgProgram {
   private:
     BakedSceneCsgAlgorithm algorithm;
     BakedSceneCsgPlanKind planKind;
-    BooleanSetOperations geometryType;
+    CsgOperation geometryType;
     bool topLevel;
     bool specializationValid;
     int specializationCoreOperandIndex;

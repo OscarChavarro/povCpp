@@ -1,9 +1,9 @@
 #include <stdexcept>
 
 
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
-#include "vsdk/toolkit/environment/raycasting/scene/RayCastingComposite.h"
-#include "vsdk/toolkit/environment/raycasting/scene/NativeGeometryBinding.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
+#include "environment/scene/RayCastingComposite.h"
+#include "environment/scene/NativeGeometryBinding.h"
 #include "render/bakedScene/BakedGeometryBaker.h"
 #include "render/bakedScene/BakedSceneBuilder.h"
 #include "java/util/ArrayList.txx"
@@ -121,15 +121,15 @@ BakedSceneBuilder::hasPairwiseDisjointFiniteOperands(
 
 void
 BakedSceneBuilder::classifyCsgProgramSpecialization(
-    BooleanSetOperations geometryType,
+    CsgOperation geometryType,
     bool topLevel,
     const java::ArrayList<CsgOperandRecord> &operands,
     BakedSceneCsgPlanKind &planKind,
     bool &specializationValid,
     int &specializationCoreOperandIndex)
 {
-    if (geometryType != BooleanSetOperations::DIFFERENCE &&
-        geometryType != BooleanSetOperations::INTERSECTION) {
+    if (geometryType != CsgOperation::DIFFERENCE &&
+        geometryType != CsgOperation::INTERSECTION) {
         bool allPlanes = operands.size() > 0;
         for (long int i = 0; i < operands.size(); i++) {
             if (!operands[i].getIsInfinitePlane()) {
@@ -148,7 +148,7 @@ BakedSceneBuilder::classifyCsgProgramSpecialization(
         return;
     }
 
-    if (geometryType != BooleanSetOperations::INTERSECTION || operands.size() < 2) {
+    if (geometryType != CsgOperation::INTERSECTION || operands.size() < 2) {
         return;
     }
 
@@ -843,7 +843,7 @@ BakedSceneBuilder::buildOperandCullBinsForBucket(
 CsgProgram *
 BakedSceneBuilder::bakeConstructiveSolidGeometry(ConstructiveSolidGeometry *geometry, BakedScene &out)
 {
-    BooleanSetOperations geometryType = geometry->getGeometryType();
+    CsgOperation geometryType = geometry->getGeometryType();
     BakedSceneCsgAlgorithm algorithm;
     bool topLevel;
     if (ConstructiveSolidGeometryByRaySegment *raySegment =
@@ -882,7 +882,7 @@ BakedSceneBuilder::bakeConstructiveSolidGeometry(ConstructiveSolidGeometry *geom
 
     const OperandCullBins *directPrimitiveCullBins = nullptr;
     const OperandCullBins *transformedPrimitiveCullBins = nullptr;
-    if (geometryType == BooleanSetOperations::UNION) {
+    if (geometryType == CsgOperation::UNION) {
         OperandCullBins *directBins = buildOperandCullBinsForBucket(directPrimitiveOperandIndices, operands);
         if (directBins != nullptr) {
             out.operandCullBinsStorage.add(directBins);
@@ -1040,7 +1040,7 @@ BakedSceneBuilder::accumulateStatistics(BakedScene &scene, long quadricViewpoint
             csgPlanFallback++;
             break;
         }
-        if (program->getGeometryType() == BooleanSetOperations::UNION) {
+        if (program->getGeometryType() == CsgOperation::UNION) {
             const long int operandCount = program->getOperands().size();
             int bucket;
             if (operandCount <= 4) {
@@ -1056,7 +1056,7 @@ BakedSceneBuilder::accumulateStatistics(BakedScene &scene, long quadricViewpoint
         }
         for (long int j = 0; j < program->getOperands().size(); j++) {
             const CsgOperandRecord *operand = &program->getOperands()[j];
-            if (program->getGeometryType() == BooleanSetOperations::UNION) {
+            if (program->getGeometryType() == CsgOperation::UNION) {
                 unionProgramOperandTotalCount++;
                 if (operand->getBounded() && operand->getCullSafe()) {
                     unionProgramOperandCullSafeCount++;

@@ -1,7 +1,7 @@
 #ifndef __RENDER_TASK__
 #define __RENDER_TASK__
 
-#include "vsdk/toolkit/environment/raycasting/geometry/element/IntersectionCandidate.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
 
 class RenderTask {
   public:

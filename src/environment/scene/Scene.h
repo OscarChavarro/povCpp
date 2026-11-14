@@ -3,7 +3,7 @@
 
 #include "vsdk/toolkit/environment/camera/CameraSnapshot.h"
 #include "vsdk/toolkit/environment/light/Light.h"
-#include "vsdk/toolkit/environment/raycasting/scene/PovrayBody.h"
+#include "environment/scene/PovrayBody.h"
 #include "vsdk/toolkit/environment/scene/SimpleScene.h"
 
 class Scene : public SimpleScene {

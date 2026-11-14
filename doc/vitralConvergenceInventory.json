@@ -1,538 +1,306 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "starting_revisions": {
     "povray": "30f0597dfad95758b2a1932c590e9731774a10e2",
     "vitral": "d004db78c5b952cf3ebd7299ed8daaeaebf84d76"
   },
-  "note": "Targets are responsibility destinations, not instructions to copy files unchanged. Split entries assign disjoint responsibilities, never duplicate implementations. Acceptance IDs are defined in vitralConvergenceExecution.md.",
+  "note": "The raycasting module was retired in stage J. Entries list the components that stage K removes so that PovRay keeps no wrapper over a VITRAL geometry, and the bounding-volume package that stage K moves to VITRAL; acceptance IDs are defined in vitralConvergenceExecution.md.",
   "files": [
     {
-      "source": "raycasting/tests/TestCrossingCollector.h",
-      "destination": "PovRay",
-      "action": "move",
-      "target": "test fixture",
-      "acceptance": "G1",
-      "policy": "Retain this collector with the compatibility binding tests."
-    },
-    {
-      "source": "raycasting/tests/TestCrossingCollector.cpp",
-      "destination": "PovRay",
-      "action": "move",
-      "target": "test fixture",
-      "acceptance": "G1",
-      "policy": "Retain this collector with the compatibility binding tests."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/NativeGeometryBinding.h",
-      "destination": "PovRay",
-      "action": "move",
-      "target": "scene compatibility binding",
-      "acceptance": "G1",
-      "policy": "Replace the temporary bridge as the scene model and render callbacks converge."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/NativeGeometryBinding.cpp",
-      "destination": "PovRay",
-      "action": "move",
-      "target": "scene compatibility binding",
-      "acceptance": "G1",
-      "policy": "Replace the temporary bridge as the scene model and render callbacks converge."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/NativeGeometryCrossingSink.h",
-      "destination": "PovRay",
-      "action": "move",
-      "target": "scene compatibility binding",
-      "acceptance": "G1",
-      "policy": "Replace this temporary queue conversion with the shared scene contract."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/NativeGeometryCrossingSink.cpp",
-      "destination": "PovRay",
-      "action": "move",
-      "target": "scene compatibility binding",
-      "acceptance": "G1",
-      "policy": "Replace this temporary queue conversion with the shared scene contract."
-    },
-    {
-      "source": "raycasting/tests/TestSlabGeometry.h",
-      "destination": "PovRay",
-      "action": "move",
-      "target": "test fixture",
-      "acceptance": "G1",
-      "policy": "Retain this contract fixture with the compatibility binding tests."
-    },
-    {
-      "source": "raycasting/tests/TestSlabGeometry.cpp",
-      "destination": "PovRay",
-      "action": "move",
-      "target": "test fixture",
-      "acceptance": "G1",
-      "policy": "Retain this contract fixture with the compatibility binding tests."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/element/SphereTrace.h",
-      "destination": "PovRay",
-      "action": "move",
-      "target": "render tracing policy",
-      "acceptance": "G1",
-      "policy": "Keep POV statistics and query limits in the renderer; the sphere root kernel belongs to VITRAL."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/element/SphereTrace.cpp",
-      "destination": "PovRay",
-      "action": "move",
-      "target": "render tracing policy",
-      "acceptance": "G1",
-      "policy": "Keep POV statistics and query limits in the renderer; the sphere root kernel belongs to VITRAL."
-    },
-    {
-      "source": "raycasting/CMakeLists.txt",
+      "source": "src/environment/geometry/volume/Quadric.h",
       "destination": "none",
       "action": "remove",
-      "target": "parent build targets",
-      "acceptance": "U1",
-      "policy": "Move source registration into owning targets and delete vitral_raycasting."
+      "target": "K-5 quadric",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
     },
     {
-      "source": "raycasting/README.md",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "geometry API documentation",
-      "acceptance": "U1",
-      "policy": "Retain mathematical algorithm documentation; application setup stays in PovRay docs."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/RayCastingGeometry.cpp",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "Geometry",
-      "acceptance": "G1",
-      "policy": "Remove the parallel geometry hierarchy; merge mathematical capabilities only."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/RayCastingGeometry.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "Geometry",
-      "acceptance": "G1",
-      "policy": "Remove the parallel geometry hierarchy; merge mathematical capabilities only."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/boundingVolumeHierarchy/AabbBoundingVolume.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "geometry bounds / acceleration",
-      "acceptance": "B1",
-      "policy": "Audit existing acceleration types; reuse a single bounds/slab kernel with explicit empty/unbounded state."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/boundingVolumeHierarchy/AxisAlignedBoundingBox.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "geometry bounds / acceleration",
-      "acceptance": "B1",
-      "policy": "Audit existing acceleration types; reuse a single bounds/slab kernel with explicit empty/unbounded state."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/boundingVolumeHierarchy/BoundingVolumeHierarchy.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "geometry bounds / acceleration",
-      "acceptance": "B1",
-      "policy": "Audit existing acceleration types; reuse a single bounds/slab kernel with explicit empty/unbounded state."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/element/DetailMask.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "SurfaceDetail",
-      "acceptance": "D1",
-      "policy": "Use the existing constants; no second mask vocabulary."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h",
-      "destination": "PovRay",
-      "action": "split",
-      "target": "render query policy",
-      "acceptance": "N1",
-      "policy": "Keep compatibility cutoffs in application query setup; solver tolerances belong to the corresponding VITRAL algorithm."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/element/GeometryIntersectionEmissionContext.h",
-      "destination": "PovRay",
-      "action": "split",
-      "target": "scene material binding",
-      "acceptance": "S1",
-      "policy": "Keep material override policy here; move geometric provenance into the shared result."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/element/IntersectionAttributes.h",
-      "destination": "PovRay",
-      "action": "split",
-      "target": "scene hit binding",
-      "acceptance": "S1",
-      "policy": "Keep texture/color/noShadow data here; extract leaf/instance provenance into VITRAL."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/element/IntersectionCandidate.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "RayCrossing and scene provenance",
-      "acceptance": "D1",
-      "policy": "One mathematical event; attach application metadata outside geometry."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/element/PostRayHitElement.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "Geometry / scene detail contract",
-      "acceptance": "D1",
-      "policy": "Remove duplicate detail hierarchy; preserve deferred evaluation and coordinates."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/element/PreRayHitElement.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "bounds query contract",
-      "acceptance": "B1",
-      "policy": "Use generic Ray and explicit interval, with no false negatives."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/element/PriorityQueuePool.h",
-      "destination": "VITRAL",
-      "action": "move",
-      "target": "common reusable query workspace",
-      "acceptance": "N1",
-      "policy": "Generic reusable allocation; no renderer state or material ownership."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/element/PriorityQueuePool.txx",
-      "destination": "VITRAL",
-      "action": "move",
-      "target": "common reusable query workspace",
-      "acceptance": "N1",
-      "policy": "Generic reusable allocation; no renderer state or material ownership."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/element/RayCastingHit.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "RayHit and scene hit result",
-      "acceptance": "D1",
-      "policy": "Unify mathematical detail; retain application appearance bindings in PovRay."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/element/RayCastingQueryAdapter.h",
+      "source": "src/environment/geometry/volume/Quadric.cpp",
       "destination": "none",
       "action": "remove",
-      "target": "shared query workspace",
-      "acceptance": "G1",
-      "policy": "Remove bridge once callers directly use shared queries; do not move its per-query renderer construction into VITRAL."
+      "target": "K-5 quadric",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
     },
     {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/element/RayWithTracingState.cpp",
-      "destination": "PovRay",
-      "action": "split",
-      "target": "render/query state",
-      "acceptance": "S1",
-      "policy": "Keep media/material/quality state here; extract mathematical caches into a VITRAL query workspace."
+      "source": "src/environment/geometry/volume/RayCastingBox.h",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-5 box",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
     },
     {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/element/RayWithTracingState.h",
-      "destination": "PovRay",
-      "action": "split",
-      "target": "render/query state",
-      "acceptance": "S1",
-      "policy": "Keep media/material/quality state here; extract mathematical caches into a VITRAL query workspace."
+      "source": "src/environment/geometry/volume/RayCastingBox.cpp",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-5 box",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
     },
     {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/element/TransformStep.h",
-      "destination": "PovRay",
-      "action": "retain",
-      "target": "parser transform history",
-      "acceptance": "S1",
-      "policy": "Preserve syntax ordering here; VITRAL owns the resulting affine placement."
+      "source": "src/environment/geometry/volume/BoxInvertedCrossingSink.h",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-4/K-5 box",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
     },
     {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingInfinitePlane.cpp",
+      "source": "src/environment/geometry/volume/BoxInvertedCrossingSink.cpp",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-4/K-5 box",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
+    },
+    {
+      "source": "src/environment/geometry/surface/RayCastingInfinitePlane.h",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-5 plane",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
+    },
+    {
+      "source": "src/environment/geometry/surface/RayCastingInfinitePlane.cpp",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-5 plane",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
+    },
+    {
+      "source": "src/environment/geometry/volume/polynomial/PolynomialShape.h",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-5 polynomial",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
+    },
+    {
+      "source": "src/environment/geometry/volume/polynomial/PolynomialShape.cpp",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-5 polynomial",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
+    },
+    {
+      "source": "src/environment/geometry/volume/Blob.h",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-5 blob",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
+    },
+    {
+      "source": "src/environment/geometry/volume/Blob.cpp",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-5 blob",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
+    },
+    {
+      "source": "src/environment/geometry/volume/HeightField.h",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-5 height field",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
+    },
+    {
+      "source": "src/environment/geometry/volume/HeightField.cpp",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-5 height field",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
+    },
+    {
+      "source": "src/environment/geometry/surface/parametric/RayCastingParametricBiCubicPatch.h",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-5 bicubic patch",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
+    },
+    {
+      "source": "src/environment/geometry/surface/parametric/ParametricPatch.cpp",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-5 bicubic patch",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
+    },
+    {
+      "source": "src/environment/geometry/surface/parametric/PatchScratch.h",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-5 bicubic patch",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
+    },
+    {
+      "source": "src/environment/scene/NativeGeometryBinding.h",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-5 sphere and meshes",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
+    },
+    {
+      "source": "src/environment/scene/NativeGeometryBinding.cpp",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-5 sphere and meshes",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
+    },
+    {
+      "source": "src/environment/scene/NativeGeometryCrossingSink.h",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-5 sphere and meshes",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
+    },
+    {
+      "source": "src/environment/scene/NativeGeometryCrossingSink.cpp",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-5 sphere and meshes",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
+    },
+    {
+      "source": "src/environment/scene/ProjectedTriangleTraversal.h",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-5 sphere and meshes",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
+    },
+    {
+      "source": "src/environment/scene/ProjectedTriangleTraversal.cpp",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-5 sphere and meshes",
+      "acceptance": "K",
+      "policy": "Adapter over one VITRAL geometry: the parser gives the VITRAL geometry to PovrayBody, inversion moves to the body, caches, tolerances and crossing emission move to the bake."
+    },
+    {
+      "source": "src/environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-6 POV CSG body over CsgTree",
+      "acceptance": "K",
+      "policy": "A CSG geometry wrapper: the POV CSG becomes a PovrayBody owning its CsgTree; the Morgan and Roth evaluators remain as render strategies over the tree."
+    },
+    {
+      "source": "src/environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.cpp",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-6 POV CSG body over CsgTree",
+      "acceptance": "K",
+      "policy": "A CSG geometry wrapper: the POV CSG becomes a PovrayBody owning its CsgTree; the Morgan and Roth evaluators remain as render strategies over the tree."
+    },
+    {
+      "source": "src/environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByMorganRules.h",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-6 POV CSG body over CsgTree",
+      "acceptance": "K",
+      "policy": "A CSG geometry wrapper: the POV CSG becomes a PovrayBody owning its CsgTree; the Morgan and Roth evaluators remain as render strategies over the tree."
+    },
+    {
+      "source": "src/environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByMorganRules.cpp",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-6 POV CSG body over CsgTree",
+      "acceptance": "K",
+      "policy": "A CSG geometry wrapper: the POV CSG becomes a PovrayBody owning its CsgTree; the Morgan and Roth evaluators remain as render strategies over the tree."
+    },
+    {
+      "source": "src/environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-6 POV CSG body over CsgTree",
+      "acceptance": "K",
+      "policy": "A CSG geometry wrapper: the POV CSG becomes a PovrayBody owning its CsgTree; the Morgan and Roth evaluators remain as render strategies over the tree."
+    },
+    {
+      "source": "src/environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.cpp",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-6 POV CSG body over CsgTree",
+      "acceptance": "K",
+      "policy": "A CSG geometry wrapper: the POV CSG becomes a PovrayBody owning its CsgTree; the Morgan and Roth evaluators remain as render strategies over the tree."
+    },
+    {
+      "source": "src/environment/geometry/RayCastingGeometry.h",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-7 removal of RayCastingGeometry",
+      "acceptance": "K",
+      "policy": "The POV render interface over geometries; removed once no subclass remains. Bounds come from Geometry::getBounds; light geometry becomes a scene element."
+    },
+    {
+      "source": "src/environment/geometry/RayCastingGeometry.cpp",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-7 removal of RayCastingGeometry",
+      "acceptance": "K",
+      "policy": "The POV render interface over geometries; removed once no subclass remains. Bounds come from Geometry::getBounds; light geometry becomes a scene element."
+    },
+    {
+      "source": "src/io/pov/light/LightGeometryAdapter.h",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-7 removal of RayCastingGeometry",
+      "acceptance": "K",
+      "policy": "The POV render interface over geometries; removed once no subclass remains. Bounds come from Geometry::getBounds; light geometry becomes a scene element."
+    },
+    {
+      "source": "src/io/pov/light/LightGeometryAdapter.cpp",
+      "destination": "none",
+      "action": "remove",
+      "target": "K-7 removal of RayCastingGeometry",
+      "acceptance": "K",
+      "policy": "The POV render interface over geometries; removed once no subclass remains. Light geometry becomes a scene element."
+    },
+    {
+      "source": "src/environment/geometry/element/PreRayHitElement.h",
       "destination": "VITRAL",
-      "action": "merge",
-      "target": "surface/InfinitePlane and HalfSpace",
-      "acceptance": "G2",
-      "policy": "Separate plane surface events from half-space membership."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingInfinitePlane.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "surface/InfinitePlane and HalfSpace",
-      "acceptance": "G2",
-      "policy": "Separate plane surface events from half-space membership."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/ProjectedTriangleTraversal.cpp",
-      "destination": "PovRay",
       "action": "move",
-      "target": "render projected triangle traversal",
-      "acceptance": "G2",
-      "policy": "Keep POV inversion, primary-ray caching and projected traversal while mathematical mesh data and kernels remain in VITRAL."
+      "target": "K-8 geometry/boundingVolumeHierarchy package",
+      "acceptance": "K",
+      "policy": "Bounding-volume package of doc/projectClosingSteps.md section 3; kept whole, its ray filters move from RayWithTracingState to a VITRAL ray."
     },
     {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/ProjectedTriangleTraversal.h",
-      "destination": "PovRay",
-      "action": "move",
-      "target": "render projected triangle traversal",
-      "acceptance": "G2",
-      "policy": "Keep POV inversion, primary-ray caching and projected traversal while mathematical mesh data and kernels remain in VITRAL."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricPatch.cpp",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "surface/ParametricBiCubicPatch processing",
-      "acceptance": "P1",
-      "policy": "Merge control points, subdivision, solving and scratch with existing patch implementation; no parallel patch geometry."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/surface/parametric/PatchScratch.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "surface/ParametricBiCubicPatch processing",
-      "acceptance": "P1",
-      "policy": "Merge control points, subdivision, solving and scratch with existing patch implementation; no parallel patch geometry."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/surface/parametric/RayCastingParametricBiCubicPatch.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "surface/ParametricBiCubicPatch",
-      "acceptance": "P1",
-      "policy": "One control-point definition and intersection implementation."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/Blob.cpp",
+      "source": "src/environment/geometry/boundingVolumeHierarchy/BoundingVolumeHierarchy.h",
       "destination": "VITRAL",
       "action": "move",
-      "target": "geometry/volume/Blob.cpp",
-      "acceptance": "P1",
-      "policy": "Expose mathematical data and operations; remove shadow-ray and parser/IO decisions before migration."
+      "target": "K-8 geometry/boundingVolumeHierarchy package",
+      "acceptance": "K",
+      "policy": "Bounding-volume package of doc/projectClosingSteps.md section 3; kept whole, its ray filters move from RayWithTracingState to a VITRAL ray."
     },
     {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/Blob.h",
+      "source": "src/environment/geometry/boundingVolumeHierarchy/AabbBoundingVolume.h",
       "destination": "VITRAL",
       "action": "move",
-      "target": "geometry/volume/Blob.h",
-      "acceptance": "P1",
-      "policy": "Expose mathematical data and operations; remove shadow-ray and parser/IO decisions before migration."
+      "target": "K-8 geometry/boundingVolumeHierarchy package",
+      "acceptance": "K",
+      "policy": "Bounding-volume package of doc/projectClosingSteps.md section 3; kept whole, its ray filters move from RayWithTracingState to a VITRAL ray."
     },
     {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/HeightField.cpp",
+      "source": "src/environment/geometry/boundingVolumeHierarchy/AxisAlignedBoundingBox.h",
       "destination": "VITRAL",
       "action": "move",
-      "target": "geometry/volume/HeightField.cpp",
-      "acceptance": "P1",
-      "policy": "Expose mathematical data and operations; remove shadow-ray and parser/IO decisions before migration."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/HeightField.h",
-      "destination": "VITRAL",
-      "action": "move",
-      "target": "geometry/volume/HeightField.h",
-      "acceptance": "P1",
-      "policy": "Expose mathematical data and operations; remove shadow-ray and parser/IO decisions before migration."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.cpp",
-      "destination": "VITRAL",
-      "action": "move",
-      "target": "geometry/volume/Quadric.cpp",
-      "acceptance": "P1",
-      "policy": "Expose mathematical data and operations; remove shadow-ray and parser/IO decisions before migration."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.h",
-      "destination": "VITRAL",
-      "action": "move",
-      "target": "geometry/volume/Quadric.h",
-      "acceptance": "P1",
-      "policy": "Expose mathematical data and operations; remove shadow-ray and parser/IO decisions before migration."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/RayCastingBox.cpp",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "volume/Box",
-      "acceptance": "G1",
-      "policy": "Unify slabs, detail, containment and bounds."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/RayCastingBox.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "volume/Box",
-      "acceptance": "G1",
-      "policy": "Unify slabs, detail, containment and bounds."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "geometry CSG expressions / evaluators",
-      "acceptance": "C1",
-      "policy": "One expression model; separate heuristic and interval evaluators, remove POV binding decisions."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.cpp",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "geometry CSG expressions / evaluators",
-      "acceptance": "C1",
-      "policy": "One expression model; separate heuristic and interval evaluators, remove POV binding decisions."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "geometry CSG expressions / evaluators",
-      "acceptance": "C1",
-      "policy": "One expression model; separate heuristic and interval evaluators, remove POV binding decisions."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByMorganRules.cpp",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "geometry CSG expressions / evaluators",
-      "acceptance": "C1",
-      "policy": "One expression model; separate heuristic and interval evaluators, remove POV binding decisions."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByMorganRules.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "geometry CSG expressions / evaluators",
-      "acceptance": "C1",
-      "policy": "One expression model; separate heuristic and interval evaluators, remove POV binding decisions."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.cpp",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "geometry CSG expressions / evaluators",
-      "acceptance": "C1",
-      "policy": "One expression model; separate heuristic and interval evaluators, remove POV binding decisions."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "geometry CSG expressions / evaluators",
-      "acceptance": "C1",
-      "policy": "One expression model; separate heuristic and interval evaluators, remove POV binding decisions."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/CsgOperand.cpp",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "geometry CSG expressions / evaluators",
-      "acceptance": "C1",
-      "policy": "One expression model; separate heuristic and interval evaluators, remove POV binding decisions."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/CsgOperand.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "geometry CSG expressions / evaluators",
-      "acceptance": "C1",
-      "policy": "One expression model; separate heuristic and interval evaluators, remove POV binding decisions."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/polynomial/PolynomialShape.cpp",
-      "destination": "VITRAL",
-      "action": "move",
-      "target": "geometry/volume/polynomial/PolynomialShape.cpp",
-      "acceptance": "P1",
-      "policy": "Expose mathematical data and operations; remove shadow-ray and parser/IO decisions before migration."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/polynomial/PolynomialShape.h",
-      "destination": "VITRAL",
-      "action": "move",
-      "target": "geometry/volume/polynomial/PolynomialShape.h",
-      "acceptance": "P1",
-      "policy": "Expose mathematical data and operations; remove shadow-ray and parser/IO decisions before migration."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/PovrayBody.cpp",
-      "destination": "PovRay",
-      "action": "move",
-      "target": "src/environment/scene/PovrayBody.cpp",
-      "acceptance": "S1",
-      "policy": "POV scene element implementing VITRAL SceneSolid; typed queries come from the contract through queryDenotedSolid; moves with its raycasting dependencies in J."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/RayCastingCoreOperand.h",
-      "destination": "PovRay",
-      "action": "move",
-      "target": "PovraySolid (provisional name) region policy",
-      "acceptance": "S1",
-      "policy": "POV clipped_by/bounded_by policy expressed as a shared CSG composition of the body's core solid; moves with the POV scene specialization."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/RayCastingCoreOperand.cpp",
-      "destination": "PovRay",
-      "action": "move",
-      "target": "PovraySolid (provisional name) region policy",
-      "acceptance": "S1",
-      "policy": "POV clipped_by/bounded_by policy expressed as a shared CSG composition of the body's core solid; moves with the POV scene specialization."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/PovrayBody.h",
-      "destination": "PovRay",
-      "action": "move",
-      "target": "src/environment/scene/PovrayBody.h",
-      "acceptance": "S1",
-      "policy": "POV scene element implementing VITRAL SceneSolid; typed queries come from the contract through queryDenotedSolid; moves with its raycasting dependencies in J."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/RayCastingComposite.cpp",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "scene grouping",
-      "acceptance": "S1",
-      "policy": "Merge grouping with SimpleBodyGroup; POV inheritance policy remains in parser/scene specialization."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/scene/RayCastingComposite.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "scene grouping",
-      "acceptance": "S1",
-      "policy": "Merge grouping with SimpleBodyGroup; POV inheritance policy remains in parser/scene specialization."
-    },
-    {
-      "source": "raycasting/tests/sharedEnvironment.cpp",
-      "destination": "VITRAL",
-      "action": "split",
-      "target": "base tests",
-      "acceptance": "G1",
-      "policy": "Keep generic queries as VITRAL tests; POV interoperability assertions go to PovRay tests."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/BoxInvertedCrossingSink.h",
-      "destination": "PovRay",
-      "action": "move",
-      "target": "scene complement event policy",
-      "acceptance": "G2",
-      "policy": "Adapt oriented events for the complemented POV solid while VITRAL owns the box geometry."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/BoxInvertedCrossingSink.cpp",
-      "destination": "PovRay",
-      "action": "move",
-      "target": "scene complement event policy",
-      "acceptance": "G2",
-      "policy": "Adapt oriented events for the complemented POV solid while VITRAL owns the box geometry."
+      "target": "K-8 geometry/boundingVolumeHierarchy package",
+      "acceptance": "K",
+      "policy": "Bounding-volume package of doc/projectClosingSteps.md section 3; kept whole, its ray filters move from RayWithTracingState to a VITRAL ray."
     }
   ]
 }

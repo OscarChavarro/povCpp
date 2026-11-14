@@ -1,7 +1,7 @@
 #ifndef __CSG_PARSER__
 #define __CSG_PARSER__
 
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgOperation.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/geometry/SimpleBodyBuilder.h"
 
@@ -14,7 +14,7 @@ class CsgParser {
     // ConstructiveSolidGeometryByRaySegment::topLevel's doc comment for why
     // this distinction matters under -csgRoth.
     static SimpleBodyBuilder *parse(
-        BooleanSetOperations booleanSetOperation,
+        CsgOperation booleanSetOperation,
         ParserContext &ctx,
         bool isNested = false);
 };

@@ -2,8 +2,8 @@
 
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/Blob.h"
+#include "environment/geometry/element/GeometryConfig.h"
+#include "environment/geometry/volume/Blob.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/pov/geometry/BlobParser.h"

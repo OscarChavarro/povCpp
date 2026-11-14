@@ -1,6 +1,6 @@
 
 
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/RayCastingBox.h"
+#include "environment/geometry/volume/RayCastingBox.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/pov/geometry/BoxParser.h"

@@ -1,6 +1,6 @@
 
 
-#include "vsdk/toolkit/environment/raycasting/geometry/surface/parametric/RayCastingParametricBiCubicPatch.h"
+#include "environment/geometry/surface/parametric/RayCastingParametricBiCubicPatch.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/pov/geometry/BicubicPatchParser.h"

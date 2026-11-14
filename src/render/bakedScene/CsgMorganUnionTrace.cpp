@@ -40,12 +40,12 @@ CsgMorganUnionTrace::traceMorganCsg(
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
-    if (bakedCsg->getGeometryType() == BooleanSetOperations::INTERSECTION) {
+    if (bakedCsg->getGeometryType() == CsgOperation::INTERSECTION) {
         return traceMorganIntersection(
             bakedCsg, bakedCsgs, scratch, ray, depthQueue, materialOverride);
     }
 
-    if (bakedCsg->getGeometryType() == BooleanSetOperations::UNION &&
+    if (bakedCsg->getGeometryType() == CsgOperation::UNION &&
         bakedCsg->getPlanKind() == BakedScene::CsgPlanKind::GenericMorgan) {
         if (bakedCsg->getDirectPrimitiveCullBins() != nullptr ||
             bakedCsg->getTransformedPrimitiveCullBins() != nullptr) {

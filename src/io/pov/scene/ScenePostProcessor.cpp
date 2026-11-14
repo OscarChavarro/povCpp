@@ -1,7 +1,7 @@
 
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "vsdk/toolkit/environment/light/SpotLight.h"
-#include "vsdk/toolkit/environment/raycasting/scene/RayCastingComposite.h"
+#include "environment/scene/RayCastingComposite.h"
 #include "io/pov/light/LightGeometryAdapter.h"
 #include "io/pov/scene/ScenePostProcessor.h"
 #include "java/util/ArrayList.txx"

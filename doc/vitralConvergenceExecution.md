@@ -2129,3 +2129,36 @@ baseline-identical images in 117 seconds and 1424.27 user CPU seconds. The
 Roth re-render kept the seven accepted discrepancies, with `pool`, `snail` and
 `wg5` inside their run-to-run ranges, and the audit mapped 66 raycasting files
 and found all 161 copied base files identical to VITRAL.
+
+### Stage J: retirement of `./raycasting` (J-1)
+
+- After stages H and I, every `./raycasting` file was checked for geometric
+  data or kernels of its own. The adapters hold one VITRAL geometry each and
+  call `QuadricRayExpansion` and `QuadricSurface::solve`,
+  `Box::intersectBounds`, `InfinitePlane::intersectionDepth`, `SphereTrace`,
+  `BlobSolid::intersect`, `PolynomialSurface::intersect`,
+  `HeightFieldSolid::traceFirstHit` and `SubdividedBezierPatch::intersect`;
+  `HeightField` keeps PovRay 1.0's integer-truncated containment test.
+  `AxisAlignedBoundingBox` is the render culling box and transforms its
+  corners with `GeometryBounds`. The rest is POV render state and the POV
+  scene elements.
+- The files moved to `src/environment/geometry` and `src/environment/scene`
+  and compile in `povray_core`; the module's tests became
+  `povray_geometry_tests`. `vitral_raycasting`, its CMake file and its README
+  were removed; the README's content is in `vitralImplementation.md`.
+  `BooleanSetOperations` was replaced by `CsgOperation`, and
+  `render/RenderContext.h` was renamed `render/PovRenderContext.h` after its
+  class.
+- `auditVitralConvergence.py` now checks that `./raycasting` does not exist,
+  that VITRAL sources include no PovRay header, that no PovRay class repeats a
+  VITRAL class name and that the inventory's pending entries exist, besides the
+  base mirror. The inventory (schema 2) lists only the adapters awaiting J-2.
+
+POV passed 333 tests, with the JPEG cubemap case skipped. The example capture,
+after rebuilding the cleaned VITRAL example builds, produced 64 images, all
+identical to the I-4 capture. `renderAll.sh` produced all 108
+baseline-identical images in 117 seconds and 1430.14 user CPU seconds. The
+Roth re-render kept the seven accepted discrepancies, with `pool`, `snail` and
+`wg5` inside their run-to-run ranges, and the audit reported 15 pending
+components, no reverse dependency or duplicated class, and all 161 copied base
+files identical to VITRAL.

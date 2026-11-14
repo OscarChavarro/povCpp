@@ -145,7 +145,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
             case Tokenizer::INTERSECTION_TOKEN:
                 constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
-                    (char *)CsgParser::parse(BooleanSetOperations::INTERSECTION, ctx));
+                    (char *)CsgParser::parse(CsgOperation::INTERSECTION, ctx));
                 constantPtr->setConstantType(ParseGlobals::CSG_INTERSECTION_CONSTANT);
                 localExitFlag = true;
                 break;
@@ -153,7 +153,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
             case Tokenizer::UNION_TOKEN:
                 constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
-                    (char *)CsgParser::parse(BooleanSetOperations::UNION, ctx));
+                    (char *)CsgParser::parse(CsgOperation::UNION, ctx));
                 constantPtr->setConstantType(ParseGlobals::CSG_UNION_CONSTANT);
                 localExitFlag = true;
                 break;
@@ -161,7 +161,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
             case Tokenizer::DIFFERENCE_TOKEN:
                 constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
-                    (char *)CsgParser::parse(BooleanSetOperations::DIFFERENCE, ctx));
+                    (char *)CsgParser::parse(CsgOperation::DIFFERENCE, ctx));
                 constantPtr->setConstantType(ParseGlobals::CSG_DIFFERENCE_CONSTANT);
                 localExitFlag = true;
                 break;

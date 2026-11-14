@@ -1,7 +1,7 @@
 
 
 #include "vsdk/toolkit/environment/geometry/volume/Sphere.h"
-#include "vsdk/toolkit/environment/raycasting/scene/NativeGeometryBinding.h"
+#include "environment/scene/NativeGeometryBinding.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/pov/geometry/SphereParser.h"

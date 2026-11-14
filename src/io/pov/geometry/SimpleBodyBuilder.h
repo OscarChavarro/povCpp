@@ -2,8 +2,8 @@
 #define __SIMPLE_BODY_BUILDER__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/RayCastingGeometry.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/element/TransformStep.h"
+#include "environment/geometry/RayCastingGeometry.h"
+#include "environment/geometry/element/TransformStep.h"
 
 class SimpleBodyBuilder {
   private:

@@ -4,7 +4,7 @@
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/environment/geometry/volume/QuadricRayExpansion.h"
 #include "vsdk/toolkit/environment/geometry/volume/QuadricSurface.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 

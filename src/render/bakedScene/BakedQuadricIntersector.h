@@ -1,7 +1,7 @@
 #ifndef __BAKED_QUADRIC_INTERSECTOR__
 #define __BAKED_QUADRIC_INTERSECTOR__
 
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.h"
+#include "environment/geometry/volume/Quadric.h"
 #include "render/raySharedCache/RaySharedCache.h"
 
 // Ray-quadric intersection for baked CSG operands, with the shared

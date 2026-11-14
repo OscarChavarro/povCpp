@@ -66,7 +66,7 @@ CsgFirstHitTrace::traceFirstHitWithScratch(
         return false;
     }
 
-    if (bakedCsg->getGeometryType() == BooleanSetOperations::INTERSECTION) {
+    if (bakedCsg->getGeometryType() == CsgOperation::INTERSECTION) {
         if (bakedCsg->getPlanKind() ==
                 BakedScene::CsgPlanKind::SingleCorePlaneIntersection &&
             bakedCsg->getSpecializationValid()) {

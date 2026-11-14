@@ -1,9 +1,9 @@
 #ifndef __CSG_OPERAND_TRACE__
 #define __CSG_OPERAND_TRACE__
 
-#include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/element/SphereTrace.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
+#include "environment/geometry/element/GeometryConfig.h"
+#include "environment/geometry/element/SphereTrace.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
 #include "render/bakedScene/AabbCullingSupport.h"
 #include "render/bakedScene/BakedPlaneIntersector.h"
 #include "render/bakedScene/BakedQuadricIntersector.h"
