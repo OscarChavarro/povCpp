@@ -1840,3 +1840,55 @@ new CSG images are byte-identical sequentially and in parallel, with SHA-256
 build of `cpp/base` with isolated output ran the 15 CSG evaluator, version,
 workspace, `CsgBody` and MIT reader tests without errors or leaks, and left the
 shared `vitral_base` library unchanged.
+
+### Stage H: catalog families
+
+Each family has one VITRAL implementation and a POV adapter that keeps only
+render state and PovRay tolerances; the POV scenes of every family are
+byte-identical to the baseline.
+
+- Polynomials: `PolynomialSurface` over `ImplicitSolid`. `torus`, `steiner`,
+  `witch`, `monkey`, `lemnisca`, `hyptorus`, `tcubic`, `quarcyl`, `folium`
+  and `trough` are byte-identical. `PolynomialSurfaceContract` checks term
+  indices, the ray polynomials against the field, torus crossings,
+  classification and detail.
+- Blobs: `BlobSolid` and `BlobComponent`. `blob.pov` is byte-identical
+  sequentially and in parallel. Newton polishing of solver roots removed a
+  self-shadow acne in 2,675 of 40,000 probe rays. `BlobSolidContract` checks
+  the one-component threshold sphere and merged and carved components.
+- Height fields: `HeightFieldSolid` and `ReaderAltimetry`. `hfclip`, `mtmand`
+  and `sunsethf` are byte-identical. With the box spanning the whole grid the
+  PovRay traversal missed 28 of 400 probe hits that the exact classification
+  found; with the box one unit inside the grid it missed none. It also reported
+  a hit at z = 0.86 below a box starting at z = 1. `HeightFieldSolidContract`
+  checks exact crossings, normals and containment on a plane field,
+  traversal against exact classification and point membership on hills,
+  certified boxes and an invalid grid; `ReaderAltimetryFormat` checks a grid
+  and five malformed files.
+- Bicubic patches: `SubdividedBezierPatch`. `bezier`, `bezier0` and `teapot`
+  are byte-identical; the adapter's per-thread hit budget is required for
+  that. On a MIT dome the VITRAL renderer showed dark speckles because
+  `doExtraInformation` matched the hit depth exactly against a ray the renderer
+  rebuilds; it now takes the nearest depth within 10⁻⁶ relative. The PovRay
+  smooth subdivision gave reversed and NaN normals; typed normals face the
+  u×v side and fall back to the triangle normal. A ray exactly along a shared
+  45° cell edge misses both triangles of the PovRay crossing test.
+  `SubdividedBezierPatchContract` checks every subdivision against the Bezier
+  surface, crossings, bounds, the hit budget, copies and invalid input.
+
+`ReaderMitPrimitives` checks the four new scenes and rejects malformed `poly`,
+`transform`, `heightfield` and `patch` input. VITRAL passed 311 tests with one
+pre-existing disabled test; POV passed 312. The example capture produced 64
+images, eight more from the four new scenes, and the 56 references matched.
+`renderAll.sh` produced all 108 baseline-identical images in 113 seconds and
+1414.37 user CPU seconds. The Roth re-render kept the seven accepted
+discrepancies, and the audit mapped 69 raycasting files and found all 161
+copied base files identical to VITRAL. `runAll.sh` rendered 29 scenes in
+129.39 seconds sequentially and 9.82 in parallel, with identical images; the
+25 earlier scenes are unchanged. The new images have SHA-256
+`7c28666d42e4a098aa4cd520160d32365b02141bc12bff0a02f46523ecf87a25`
+(`poly_surfaces`), `ecc354e69690642af3f468ebb3ce199291fafb16cbb64ff539cce1c3c73db864`
+(`blob_molecule`), `745fb758436684f4ed16f6c62b630cf91c12e82471f4a81691fec5d5de9c8c5c`
+(`heightfield_terrain`) and
+`e888d391804afa0a4d85bf0dc9ff615e042e012c5f50fbb94268e49c2e2dc746`
+(`bezier_patches`).

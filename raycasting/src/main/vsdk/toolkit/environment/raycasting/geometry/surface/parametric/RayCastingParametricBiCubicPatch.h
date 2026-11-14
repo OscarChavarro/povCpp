@@ -1,52 +1,25 @@
 #ifndef __POV_PARAMETRIC_BI_CUBIC_PATCH__
 #define __POV_PARAMETRIC_BI_CUBIC_PATCH__
 
+#include "vsdk/toolkit/environment/geometry/surface/SubdividedBezierPatch.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/RayCastingGeometry.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricControlPoints.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricPatchChild.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/surface/parametric/PatchScratch.h"
 
+// PovRay bicubic_patch over a VITRAL SubdividedBezierPatch. PovRay shares a
+// budget of MAX_BICUBIC_INTERSECTIONS hits per patch and thread between the
+// rays traced since the last primary ray, and keeps their points and normals
+// for the later normal query; that render state lives here.
 class RayCastingParametricBiCubicPatch : public RayCastingGeometry {
   public:
-    static constexpr int MAX_BICUBIC_INTERSECTIONS = 32;
+    static constexpr int MAX_BICUBIC_INTERSECTIONS = SubdividedBezierPatch::MAXIMUM_HITS;
 
-    RayCastingParametricBiCubicPatch();
+    // patchType is the PovRay type 0 to 4 (see BezierPatchSubdivision).
     RayCastingParametricBiCubicPatch(int patchType, int uSteps, int vSteps,
         double flatnessValue, const Vector3Dd (&controlPoints)[4][4]);
     RayCastingParametricBiCubicPatch(const RayCastingParametricBiCubicPatch &other);
     ~RayCastingParametricBiCubicPatch() override;
 
-    int getPatchType() const;
-    int getUSteps() const;
-    int getVSteps() const;
-    Vector3Dd (*getControlPoints())[4];
-    const Vector3Dd (*getControlPoints() const)[4];
-    Vector3Dd &getBoundingSphereCenter();
-    double getBoundingSphereRadius() const;
-    int getIntersectionCount() const;
-    void setIntersectionCount(int count);
-    void incrementIntersectionCount();
-    Vector3Dd &getNormalVectorAt(int index);
-    Vector3Dd &getIntersectionPointAt(int index);
-    Vector3Dd **getInterpolatedGrid() const;
-    Vector3Dd **getInterpolatedNormals() const;
-    Vector3Dd **getSmoothNormals() const;
-    double **getInterpolatedD() const;
-    ParametricPatchNode *getNodeTree() const;
-
-    static void precomputePatchValues(RayCastingParametricBiCubicPatch *shape);
-
-    static void parametricValue(Vector3Dd *result, double u, double v,
-        Vector3Dd (*controlPoints)[4][4]);
-    static void findAverage(
-        int vectorCount, Vector3Dd *vectors, Vector3Dd *center, double *radius);
-    static void parametricSubDivider(const RayWithTracingState *ray,
-        RayCastingParametricBiCubicPatch *object, Vector3Dd (*patch)[4][4], double u0,
-        double u1, double v0, double v1, int recursionDepth, int *depthCount,
-        double *depths, double *uValues, double *vValues);
-    static void parametricTreeWalker(const RayWithTracingState *ray,
-        RayCastingParametricBiCubicPatch *shape, ParametricPatchNode *node, int depth,
-        int *depthCount, double *depths);
+    const SubdividedBezierPatch &getPatch() const { return patch; }
 
     BoundingVolumeHierarchy *createBoundingVolume() const override;
 
@@ -72,153 +45,14 @@ class RayCastingParametricBiCubicPatch : public RayCastingGeometry {
         const RendererConfiguration *config) override;
 
   private:
-    static int maxDepthReached;
+    SubdividedBezierPatch patch;
 
-    // Per-ray scratch a patch needs between doIntersectionForAllRayCrossings()
-    // (which fills it in) and the later computeSurfaceNormal() call for the
-    // winning hit (which reads it back by matching the intersection point -
-    // see RayCastingParametricBiCubicPatch::computeSurfaceNormal's doc comment). Used to live as plain
-    // instance fields on the shared, scene-wide RayCastingParametricBiCubicPatch
-    // object; under `-parallel`, two threads hitting the same patch
-    // concurrently tore each other's writes (the speckled/missing-pixel
-    // corruption on bezier.pov/teapot.pov - see doc/CSGPerformance.md's
-    // sibling investigation for the analogous Blob bug). Keyed by patch
-    // identity *and* scoped thread-local: within one thread, the existing
-    // "store now, look up later by point" design is still exactly correct
-    // (a single thread only works on one ray, hence one patch's hits, at a
-    // time), so this only needs to stop *different threads* from sharing
-    // the same backing storage - it does not change the single-threaded
-    // behaviour at all.
     static PatchScratch &patchScratchFor(const RayCastingParametricBiCubicPatch *patch);
-    static void applyPatchAttributes(
-        RayCastingParametricBiCubicPatch *patch,
+    static BezierPatchSubdivision subdivisionOf(int patchType);
+    int traceCrossings(RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
-        int newCount,
         Material *materialOverride,
         const GeometryIntersectionEmissionContext *context);
-
-    const int patchType;
-    const int uSteps;
-    const int vSteps;
-    Vector3Dd controlPoints[4][4];
-    Vector3Dd boundingSphereCenter;
-    double boundingSphereRadius;
-    const double flatnessValue;
-    // intersectionCount/normalVector/intersectionPoint used to live here as
-    // plain instance fields: scratch space written by doIntersectionForAllRayCrossings() and
-    // read back later by computeSurfaceNormal() (and by ParametricBiCubicSolver, which
-    // stores the *hit point itself* through getIntersectionPointAt() - see
-    // ParametricBiCubicSolver::allParametricBiCubicPatchIntersections).
-    // That is safe only when one thread touches one patch instance at a
-    // time; under `-parallel`, two threads hitting the SAME shared patch
-    // object concurrently tear each other's writes, which is exactly the
-    // speckled/missing-pixel corruption seen on bezier.pov/teapot.pov. The
-    // getters/setters below keep the exact same call-site contract but are
-    // now backed by thread-local storage keyed on `this` (see the .cpp), so
-    // each thread sees its own scratch state per patch instance instead of
-    // racing on a shared one.
-    Vector3Dd **interpolatedGrid;
-    Vector3Dd **interpolatedNormals;
-    Vector3Dd **smoothNormals;
-    double **interpolatedD;
-    ParametricPatchNode *nodeTree;
-
-    static void parametricPartial(
-        Vector3Dd *result, double u, double v, RayCastingParametricBiCubicPatch *shape);
-    static double determineSubPatchFlatness(Vector3Dd (*patch)[4][4]);
-    static int flatEnough(
-        RayCastingParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4]);
-    static void parametricBoundingSphere(
-        Vector3Dd (*patch)[4][4], Vector3Dd *center, double *radiusSquared);
-    static void parametricSubPatchIntersect(const RayWithTracingState *ray,
-        RayCastingParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4],
-        int *depthCount, double *depths);
-    static void parametricSplitLeftRight(Vector3Dd (*patch)[4][4],
-        Vector3Dd (*left)[4][4], Vector3Dd (*right)[4][4]);
-    static void parametricSplitUpDown(Vector3Dd (*patch)[4][4],
-        Vector3Dd (*lower)[4][4], Vector3Dd (*upper)[4][4]);
-    static void parametricTreeDeleter(ParametricPatchNode *node);
-    static ParametricPatchNode *parametricTreeBuilder(
-        RayCastingParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4], int depth);
-    static ParametricPatchNode *createNewParametricPatchNode();
-    static ParametricControlPoints *createParametricControlPointsBlock();
-    static ParametricPatchChild *createParametricPatchChildBlock();
 };
-
-inline int
-RayCastingParametricBiCubicPatch::getPatchType() const
-{
-    return patchType;
-}
-
-inline int
-RayCastingParametricBiCubicPatch::getUSteps() const
-{
-    return uSteps;
-}
-
-inline int
-RayCastingParametricBiCubicPatch::getVSteps() const
-{
-    return vSteps;
-}
-
-inline Vector3Dd (*
-RayCastingParametricBiCubicPatch::getControlPoints())[4]
-{
-    return controlPoints;
-}
-
-inline const Vector3Dd (*
-RayCastingParametricBiCubicPatch::getControlPoints() const)[4]
-{
-    return controlPoints;
-}
-
-inline Vector3Dd &
-RayCastingParametricBiCubicPatch::getBoundingSphereCenter()
-{
-    return boundingSphereCenter;
-}
-
-inline double
-RayCastingParametricBiCubicPatch::getBoundingSphereRadius() const
-{
-    return boundingSphereRadius;
-}
-
-// getIntersectionCount/setIntersectionCount/incrementIntersectionCount/
-// getNormalVectorAt/getIntersectionPointAt are defined in the .cpp (thread-
-// local backing storage, see the private section's comment above).
-
-inline Vector3Dd **
-RayCastingParametricBiCubicPatch::getInterpolatedGrid() const
-{
-    return interpolatedGrid;
-}
-
-inline Vector3Dd **
-RayCastingParametricBiCubicPatch::getInterpolatedNormals() const
-{
-    return interpolatedNormals;
-}
-
-inline Vector3Dd **
-RayCastingParametricBiCubicPatch::getSmoothNormals() const
-{
-    return smoothNormals;
-}
-
-inline double **
-RayCastingParametricBiCubicPatch::getInterpolatedD() const
-{
-    return interpolatedD;
-}
-
-inline ParametricPatchNode *
-RayCastingParametricBiCubicPatch::getNodeTree() const
-{
-    return nodeTree;
-}
 
 #endif

@@ -301,8 +301,22 @@ Preserve MIT scenes and both offline execution paths. Provide fixtures or
 programmatic scene selection for the expanded catalog; extend MIT only if its
 format warrants it, without making the example depend on `.pov`. The MIT format
 has CSG blocks, `csg union|intersection|difference [roth|pov]` … `end`, which
-nest and take `sphere`, `box`, `halfspace` and `quadric` operands; they build a
-`CsgBody` (see the G status).
+nest and take `sphere`, `box`, `halfspace`, `quadric`, `poly`, `blob` and
+`heightfield` operands; they build a `CsgBody` (see the G status). The stage H
+families have their own lines and blocks:
+
+| MIT syntax | Geometry |
+|---|---|
+| `transform m00 … m23` | Twelve numbers, the rows of a 3×4 affine map applied to the next primitive or outermost `csg` block |
+| `poly <order> [sturm]`, `term <coefficient> <x> <y> <z>` lines, `end` | `PolynomialSurface` of order 2 to 7; repeated terms add up |
+| `blob <threshold> [sturm]`, `component <strength> <radius> <x> <y> <z>` lines, `end` | `BlobSolid` |
+| `heightfield <file> [water <level>]` | `HeightFieldSolid` read by `ReaderAltimetry` from a file resolved from the scene's directory; `water` raises the box floor |
+| `patch <uniform\|grid\|adaptive\|tree\|smooth> <uSteps> <vSteps> [flatness <value>]`, 16 `control <x> <y> <z>` lines, `end` | `SubdividedBezierPatch`; not a `csg` operand |
+
+An altimetry file is the header `altimetry <columns> <rows>` followed by the
+heights row by row from z = 0, with `#` comments. Malformed lines, a
+non-invertible or dangling transform, a degenerate blob component and an
+unreadable altimetry file are rejected.
 
 The POV parser will directly construct VITRAL geometries and compatible scene
 instances. It will resolve materials, defaults, and language decisions outside
@@ -567,6 +581,52 @@ mirror audit):
   against the grouped policy, and coincident spheres show the
   boundary-inclusive heuristic against Roth.
 
+#### Stage H status
+
+- **Complete (H-1 polynomials):** `ImplicitSolid` is a `Solid` F < 0 of a
+  scalar field whose ray roots a subclass supplies. It provides first hit,
+  crossings, ray classification, certified point and box containment, and
+  detail with the normal grad F / |grad F|. Solver roots are polished by
+  Newton steps on F, and membership between roots is the sign of F inside each
+  segment, so tangent double roots do not split segments and a zero sample is
+  `Indeterminate`. `PolynomialSurface` holds orders 2 to 7 in the PovRay term
+  order, solved by Sturm sequences or, for quartics, in closed form; POV
+  `PolynomialShape` (`poly`, `cubic`, `quartic`) adapts it and keeps the
+  PovRay shadow and containment tolerances. The quartic ray polynomial uses
+  the correct sign of its `xx*y3` term, and the degenerate linear case no
+  longer reads outside its coefficients.
+- **Complete (H-2 blobs):** `BlobSolid` is F = threshold − density over
+  `BlobComponent`s, with the PovRay interval intersection, certified enclosures
+  of the exact falloff and bounds from the positive components (unbounded for
+  a negative threshold). POV `Blob` adapts it.
+- **Complete (H-3 height fields):** `HeightFieldSolid` stores single-precision
+  heights on an integer grid, interpolated over two triangles per cell, and is
+  the part of its box below the surface. Typed ray queries cut the ray at cell
+  edges and diagonals, where the height difference is linear, so their
+  crossings are exact up to rounding; certified containment uses corner height
+  ranges. `traceFirstHit` is the PovRay block traversal: it needs the box one
+  unit inside the grid and can report hits on the cells just outside it.
+  POV `HeightField` adapts it and applies the PovRay image rules (border and
+  water-level points, POT and TGA fractions); `ReaderAltimetry` reads text
+  grids for VITRAL scenes.
+- **Complete (H-4 bicubic patches):** `SubdividedBezierPatch` is the PovRay
+  `bicubic_patch`: the open surface of the flat triangles that a
+  `BezierPatchSubdivision` (uniform or precomputed grid, adaptive, adaptive
+  tree, smooth grid) makes of a 4×4 Bezier net. It reports first hits, detail
+  and `Unclassified` crossings; ray classification and containment are
+  `Unsupported`. Typed normals face the u×v side of their triangle, and the
+  legacy first hit ignores hits nearer than 0.001, as PovRay does, because the
+  overlapping pieces of an adaptive subdivision would shadow themselves.
+  `ParametricBiCubicPatch` remains the exact Bezier surface. POV
+  `RayCastingParametricBiCubicPatch` adapts the patch and keeps the PovRay hit
+  budget shared per patch and thread since the last primary ray.
+- **Complete:** meshes are `TriangleMesh` (stage D).
+- **Examples:** `RaytracingOfflineExample` renders `poly_surfaces.ray`,
+  `blob_molecule.ray`, `heightfield_terrain.ray` (with `terrain.alt`) and
+  `bezier_patches.ray` from `etc/geometry/mitscenes`. Raster representations
+  of these families for the OpenGL examples are not provided; no OpenGL example
+  draws the stage D quadrics either, so they belong to the consumer work in I.
+
 Stage E is complete. The optional numerical estimator remains explicitly
 approximate and is never used as a guarantee.
 
@@ -625,12 +685,10 @@ The scene foundations of stage C are consolidated in I; scene adaptation is not
 entirely deferred until the end. Each family in H will be integrated individually
 with its tests. Do not move all of `raycasting` as a block and call that convergence.
 
-The stage D CSG structural scaffold does not itself evaluate expressions or
-render them. In stage G, connect the shared expression to the evaluators and the
-offline reader/renderer, and add `.ray` scenes demonstrating union,
-intersection and difference of spheres. Verify the actual surfaces and boundary
-orientation, including sequential and parallel renders; do not count silently
-ignored CSG syntax or placeholder primitive renders as these examples.
+The stage D CSG structure does not evaluate expressions itself. The stage G
+evaluators do, and `CsgBody` connects them to the offline reader and renderers,
+with `.ray` scenes of union, intersection and difference whose surfaces,
+orientation and sequential and parallel renders are verified (G-6).
 
 During stages H–I, investigate and correct the currently failing special cases in
 `RaytracingOfflineExample`: textures, bump mapping and `PolyhedralBoundedSolid`.

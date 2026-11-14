@@ -1,5 +1,8 @@
 
 
+#include "java/lang/Math.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/Blob.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
@@ -60,8 +63,7 @@ BlobParser::parseBlob(ParserContext &ctx)
             case Tokenizer::COMPONENT_TOKEN:
             {
                 double threshold = 1.0;
-                int npoints = 0;
-                java::ArrayList<BlobElement *> blobComponents;
+                java::ArrayList<BlobComponent> blobComponents;
                 ctx.tokenStream().ungetToken();
 
                 // Here is where we get the blob coefficients
@@ -77,20 +79,11 @@ BlobParser::parseBlob(ParserContext &ctx)
 
                         case Tokenizer::COMPONENT_TOKEN:
                         {
-                            BlobElement *blobComponent = new BlobElement;
-                            if (blobComponent == nullptr) {
-                                ParseErrorReporter::reportError(
-                                    "Out of Memory! Cannot allocate blob "
-                                    "component", ctx);
-                            }
-                            blobComponent->getCoeffs()[2] =
-                                PrimitiveParser::parseFloat(ctx);
-                            blobComponent->setRadius2(
-                                PrimitiveParser::parseFloat(ctx));
-                            PrimitiveParser::parseVector(
-                                &blobComponent->getPos(), ctx);
-                            blobComponents.add(blobComponent);
-                            npoints++;
+                            const double strength = PrimitiveParser::parseFloat(ctx);
+                            const double radius = PrimitiveParser::parseFloat(ctx);
+                            Vector3Dd center;
+                            PrimitiveParser::parseVector(&center, ctx);
+                            blobComponents.add(BlobComponent(center, radius, strength));
                             break;
                         }
 
@@ -102,7 +95,18 @@ BlobParser::parseBlob(ParserContext &ctx)
                     }
                 }
 
-                localShape = new Blob(threshold, &blobComponents, npoints, 0);
+                if (blobComponents.isEmpty()) {
+                    Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Need at least one component in a blob\n");
+                }
+                BlobSolid solid(threshold, false);
+                for (long int i = 0; i < blobComponents.size(); i++) {
+                    if (java::Math::abs(blobComponents[i].getStrength()) < GeometryConfig::INTERSECTION_EPSILON ||
+                        blobComponents[i].getRadius() < GeometryConfig::INTERSECTION_EPSILON) {
+                        Logger::reportMessage("Blob", Logger::ERROR, "", "Degenerate blob element\n");
+                    }
+                    solid.addComponent(blobComponents[i]);
+                }
+                localShape = new Blob(solid);
                 body = SceneBuilder::wrap(localShape);
                 Exit_Flag = true;
                 break;

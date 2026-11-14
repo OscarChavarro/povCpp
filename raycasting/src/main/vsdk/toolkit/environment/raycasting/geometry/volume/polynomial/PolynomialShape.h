@@ -2,7 +2,10 @@
 #define __POLYNOMIAL_SHAPE__
 
 #include "vsdk/toolkit/environment/raycasting/geometry/RayCastingGeometry.h"
+#include "vsdk/toolkit/environment/geometry/volume/PolynomialSurface.h"
 
+// PovRay adapter of the VITRAL PolynomialSurface: it keeps the PovRay
+// candidate emission, shadow-ray root threshold and inversion flag.
 class PolynomialShape : public RayCastingGeometry {
   public:
     explicit PolynomialShape(int initialOrder);
@@ -11,12 +14,10 @@ class PolynomialShape : public RayCastingGeometry {
     ~PolynomialShape() override;
 
     bool isInverted() const { return inverted; }
-    bool hasInternalTransformation() const { return transformation != nullptr; }
-    int getOrder() const { return order; }
-    int getSturmFlag() const { return sturmFlag; }
-    double *getCoeffs() const { return Coeffs; }
-
-    static const int *termCountsByOrder();
+    int getOrder() const { return surface.getOrder(); }
+    int getSturmFlag() const { return surface.usesSturmSequences() ? 1 : 0; }
+    double *getCoeffs() { return surface.getCoefficients(); }
+    const PolynomialSurface &getSurface() const { return surface; }
 
     int doIntersectionForAllRayCrossings(
         RayWithTracingState *ray,
@@ -36,28 +37,12 @@ class PolynomialShape : public RayCastingGeometry {
     void computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
 
   private:
-    Matrix4x4d *transformation = nullptr;
-    Matrix4x4d *transformationInverse = nullptr;
+    PolynomialSurface surface;
     bool inverted;
-    const int order;
-    const int sturmFlag;
-    double *const Coeffs;
 
-    static void transform(int order, double *coeffs, Matrix4x4d *q);
-    static int roll(int order, int x, int y, int z);
-    static void unroll(int order, int index, int *x, int *y, int *z, int *w);
-    static int intersect(const RayWithTracingState *ray, int order,
-        const double *coeffs, double *depths);
-    static int intersectQuartic(const RayWithTracingState *ray,
-        const PolynomialShape *shape, double *depths);
-    static void quarticNormal(Vector3Dd *result, const PolynomialShape *shape,
-        const Vector3Dd *intersectionPoint);
-    static double evaluatePolynomial(
-        const Vector3Dd *point, int order, const double *coeffs);
-    static void normalp(Vector3Dd *result, int order, const double *coeffs,
-        const Vector3Dd *intersectionPoint);
-    static double doPartialTerm(
-        const Matrix4x4d *q, int row, int pwr, int i, int j, int k, int l);
+    int traceCrossings(RayWithTracingState *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        Material *materialOverride, const GeometryIntersectionEmissionContext *context);
 };
 
 #endif

@@ -6,7 +6,7 @@
 
 class GeometryBuilder {
   public:
-    static PolynomialShape *getPolyShape(int order, const int *termCounts);
+    static PolynomialShape *getPolyShape(int order);
     static ConstructiveSolidGeometry *getCsgUnion();
     static ConstructiveSolidGeometry *getCsgIntersection();
 };

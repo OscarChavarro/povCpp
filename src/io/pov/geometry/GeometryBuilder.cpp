@@ -5,10 +5,8 @@
 #include "io/pov/geometry/GeometryBuilder.h"
 
 PolynomialShape *
-GeometryBuilder::getPolyShape(int order, const int *termCounts)
+GeometryBuilder::getPolyShape(int order)
 {
-    (void)termCounts;
-
     PolynomialShape *newShape = new PolynomialShape(order);
     if (newShape == nullptr) {
         Logger::reportMessage("GeometryBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");

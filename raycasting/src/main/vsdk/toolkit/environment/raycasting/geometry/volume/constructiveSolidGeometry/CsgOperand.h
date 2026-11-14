@@ -9,6 +9,7 @@
 #include "vsdk/toolkit/environment/scene/AffinePlacement.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/Blob.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/HeightField.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/RayCastingBox.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.h"
 #include "vsdk/toolkit/environment/geometry/volume/Sphere.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/element/TransformStep.h"

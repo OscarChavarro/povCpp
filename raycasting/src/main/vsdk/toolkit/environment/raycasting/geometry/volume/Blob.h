@@ -2,32 +2,20 @@
 #define __BLOB__
 
 #include "vsdk/toolkit/environment/raycasting/geometry/RayCastingGeometry.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/BlobElement.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/BlobInterval.h"
+#include "vsdk/toolkit/environment/geometry/volume/BlobSolid.h"
 
+// PovRay adapter of the VITRAL BlobSolid: it keeps the PovRay candidate
+// emission, shadow-ray root threshold, influence start, containment margin
+// and inversion flag.
 class Blob : public RayCastingGeometry {
   private:
-    static constexpr double COEFFICIENT_LIMIT = 1.0e-20;
     static constexpr double INSIDE_TOLERANCE = 1.0e-6;
     static constexpr double SHADOW_ROOT_MIN_DISTANCE = 0.05;
+    static constexpr double INFLUENCE_START = 0.01;
 
-    static BlobElement *allocateBlobElements(int count);
-
-    Matrix4x4d *transformation;
-    Matrix4x4d *transformationInverse;
+    BlobSolid solid;
     bool inverted;
-    const int count;
-    const double threshold;
-    BlobElement *const list;
-    const int sturmFlag;
 
-    // intervals is supplied by the caller (doIntersectionForAllRayCrossings), sized to
-    // 2*blob->count, rather than read from a shared instance field: see
-    // BlobElement.h's comment on the analogous tcoeffs removal.
-    static int determineInfluences(const Vector3Dd *p, const Vector3Dd *d,
-        const Blob *blob, double minimumDistance, BlobInterval *intervals);
-    static double calculateFieldValue(const Blob *blob, const Vector3Dd *pos);
-    static bool validateHit(const Blob *blob, const Vector3Dd *p);
     int traceCrossings(
         RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
@@ -35,18 +23,12 @@ class Blob : public RayCastingGeometry {
         const GeometryIntersectionEmissionContext *context);
 
   public:
-    Blob();
-    Blob(double thresholdValue,
-        java::ArrayList<BlobElement *> *blobElements, int numberOfPoints,
-        int sturmFlagValue);
-    Blob(const Matrix4x4d *transformationValue,
-        const Matrix4x4d *transformationInverseValue, bool invertedValue,
-        int countValue, double thresholdValue, const BlobElement *listValue,
-        int sturmFlagValue);
+    explicit Blob(const BlobSolid &solidValue);
     Blob(const Blob &other);
     ~Blob() override;
 
-    int getSturmFlag() const { return sturmFlag; }
+    int getSturmFlag() const { return solid.usesSturmSequences() ? 1 : 0; }
+    const BlobSolid &getSolid() const { return solid; }
     Blob *copyWithSturmFlag(int flag) const;
 
     BoundingVolumeHierarchy *createBoundingVolume() const override;
@@ -67,17 +49,5 @@ class Blob : public RayCastingGeometry {
   protected:
     void computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
 };
-
-inline
-Blob::Blob() :
-    transformation(nullptr),
-    transformationInverse(nullptr),
-    inverted(false),
-    count(0),
-    threshold(0.0),
-    list(nullptr),
-    sturmFlag(0)
-{
-}
 
 #endif

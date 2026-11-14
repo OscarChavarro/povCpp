@@ -1,6 +1,6 @@
 
 
-#include "vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricPatch.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/surface/parametric/RayCastingParametricBiCubicPatch.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/pov/geometry/BicubicPatchParser.h"
@@ -60,8 +60,6 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                 localShape = new RayCastingParametricBiCubicPatch(
                     patchType, uSteps, vSteps, flatnessValue, controlPoints);
                 body = SceneBuilder::wrap(localShape);
-                RayCastingParametricBiCubicPatch::precomputePatchValues(
-                    localShape); // interpolated mesh coords
                 Exit_Flag = true;
                 break;
             }

@@ -160,9 +160,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
 
             case Tokenizer::WATER_LEVEL_TOKEN:
             {
-                localShape->getBoundingBox()->getBounds()[0] =
-                    localShape->getBoundingBox()->getBounds()[0].withY(
-                        PrimitiveParser::parseFloat(ctx));
+                localShape->setWaterLevel(PrimitiveParser::parseFloat(ctx));
                 break;
             }
 
@@ -222,9 +220,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
     } else if (directImage != nullptr) {
         HeightField::findHfMinMax(localShape, directImage, imageType);
     }
-    // indexedImage/directImage are scratch buffers: their pixel data is read
-    // into localShape's own block/Map arrays by allocateHfBlocks()/
-    // findHfMinMax() above, never aliased or referenced afterwards.
+    // The images are scratch buffers copied into the height grid above.
     delete indexedImage;
     delete directImage;
     return body;

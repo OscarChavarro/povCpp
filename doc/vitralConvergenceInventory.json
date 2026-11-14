@@ -287,71 +287,7 @@
       "policy": "Keep POV inversion, primary-ray caching and projected traversal while mathematical mesh data and kernels remain in VITRAL."
     },
     {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricBiCubicIntersection.cpp",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "surface/ParametricBiCubicPatch processing",
-      "acceptance": "P1",
-      "policy": "Merge control points, subdivision, solving and scratch with existing patch implementation; no parallel patch geometry."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricBiCubicIntersection.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "surface/ParametricBiCubicPatch processing",
-      "acceptance": "P1",
-      "policy": "Merge control points, subdivision, solving and scratch with existing patch implementation; no parallel patch geometry."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricBiCubicSolver.cpp",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "surface/ParametricBiCubicPatch processing",
-      "acceptance": "P1",
-      "policy": "Merge control points, subdivision, solving and scratch with existing patch implementation; no parallel patch geometry."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricBiCubicSolver.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "surface/ParametricBiCubicPatch processing",
-      "acceptance": "P1",
-      "policy": "Merge control points, subdivision, solving and scratch with existing patch implementation; no parallel patch geometry."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricControlPoints.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "surface/ParametricBiCubicPatch processing",
-      "acceptance": "P1",
-      "policy": "Merge control points, subdivision, solving and scratch with existing patch implementation; no parallel patch geometry."
-    },
-    {
       "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricPatch.cpp",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "surface/ParametricBiCubicPatch processing",
-      "acceptance": "P1",
-      "policy": "Merge control points, subdivision, solving and scratch with existing patch implementation; no parallel patch geometry."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricPatch.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "surface/ParametricBiCubicPatch processing",
-      "acceptance": "P1",
-      "policy": "Merge control points, subdivision, solving and scratch with existing patch implementation; no parallel patch geometry."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricPatchChild.h",
-      "destination": "VITRAL",
-      "action": "merge",
-      "target": "surface/ParametricBiCubicPatch processing",
-      "acceptance": "P1",
-      "policy": "Merge control points, subdivision, solving and scratch with existing patch implementation; no parallel patch geometry."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricPatchNode.h",
       "destination": "VITRAL",
       "action": "merge",
       "target": "surface/ParametricBiCubicPatch processing",
@@ -391,22 +327,6 @@
       "policy": "Expose mathematical data and operations; remove shadow-ray and parser/IO decisions before migration."
     },
     {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/BlobElement.h",
-      "destination": "VITRAL",
-      "action": "move",
-      "target": "geometry/volume/BlobElement.h",
-      "acceptance": "P1",
-      "policy": "Expose mathematical data and operations; remove shadow-ray and parser/IO decisions before migration."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/BlobInterval.h",
-      "destination": "VITRAL",
-      "action": "move",
-      "target": "geometry/volume/BlobInterval.h",
-      "acceptance": "P1",
-      "policy": "Expose mathematical data and operations; remove shadow-ray and parser/IO decisions before migration."
-    },
-    {
       "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/HeightField.cpp",
       "destination": "VITRAL",
       "action": "move",
@@ -419,22 +339,6 @@
       "destination": "VITRAL",
       "action": "move",
       "target": "geometry/volume/HeightField.h",
-      "acceptance": "P1",
-      "policy": "Expose mathematical data and operations; remove shadow-ray and parser/IO decisions before migration."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/HeightFieldBlock.h",
-      "destination": "VITRAL",
-      "action": "move",
-      "target": "geometry/volume/HeightFieldBlock.h",
-      "acceptance": "P1",
-      "policy": "Expose mathematical data and operations; remove shadow-ray and parser/IO decisions before migration."
-    },
-    {
-      "source": "raycasting/src/main/vsdk/toolkit/environment/raycasting/geometry/volume/HeightFieldTraversalState.h",
-      "destination": "VITRAL",
-      "action": "move",
-      "target": "geometry/volume/HeightFieldTraversalState.h",
       "acceptance": "P1",
       "policy": "Expose mathematical data and operations; remove shadow-ray and parser/IO decisions before migration."
     },
