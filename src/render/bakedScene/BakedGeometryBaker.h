@@ -1,9 +1,9 @@
 #ifndef __BAKED_GEOMETRY_BAKER__
 #define __BAKED_GEOMETRY_BAKER__
 
-#include "vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingInfinitePlane.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/element/TransformStep.h"
+#include "environment/geometry/surface/RayCastingInfinitePlane.h"
+#include "environment/geometry/volume/Quadric.h"
+#include "environment/geometry/element/TransformStep.h"
 
 class BakedGeometryBaker {
   public:

@@ -3,7 +3,7 @@
 
 #include "render/bakedScene/BakedScene.h"
 #include "render/bakedScene/CullSafeEntry.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 
 class BakedSceneBuilder {
   public:
@@ -26,7 +26,7 @@ class BakedSceneBuilder {
     static bool hasPairwiseDisjointFiniteOperands(
         const java::ArrayList<CsgOperandRecord> &operands);
     static void classifyCsgProgramSpecialization(
-        BooleanSetOperations geometryType,
+        CsgOperation geometryType,
         bool topLevel,
         const java::ArrayList<CsgOperandRecord> &operands,
         BakedSceneCsgPlanKind &planKind,

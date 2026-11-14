@@ -1,7 +1,7 @@
 
 #include "io/pov/geometry/SimpleBodyBuilder.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
-#include "vsdk/toolkit/environment/raycasting/scene/RayCastingComposite.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+#include "environment/scene/RayCastingComposite.h"
 #include "io/pov/material/PovRayMaterialUtils.h"
 #include "environment/scene/Scene.h"
 #include "io/pov/context/ParserContext.h"

@@ -297,8 +297,7 @@ computation. Appearance stays out of the contract.
   geometry and object layers into the placement, and holds POV appearance, quick
   color, `noShadow`, inversion, and `bounded_by`/`clipped_by` regions. Its
   denoted solid is the VITRAL solid of its geometry adapter with the adapter's
-  inversion, when it has no regions. It lives in `./raycasting` with the code it
-  depends on and moves to PovRay `src/environment/scene` in J. The POV `Scene`
+  inversion, when it has no regions. It lives in PovRay `src/environment/scene`. The POV `Scene`
   owns its `PovrayBody` list; from `SimpleScene` it uses lights and resources.
   VITRAL renderers draw `SimpleBody` bodies, not POV bodies.
 - CSG leaves are `SceneSolid`s: `CsgBodyOperand` takes a `SceneSolid`, and VITRAL
@@ -434,7 +433,8 @@ duplicated algorithms and will have an explicit removal stage.
 | G. CSG evaluators | Adopt the shared composition and query contracts in the POV heuristic and Roth evaluators, including their distinct classification, provenance and boundary policies | Tests cover both algorithms and their legitimate differences; no primitive requires an implementation per strategy. Any indeterminate result is propagated or handled by an explicitly specified alternative, never silently classified |
 | H. Complete catalog | Generic blobs, heightfields, quartics/polynomials, meshes, and patches; fixtures and visualization representations | All POV objects available in VITRAL and consumed by examples without a PovRay dependency |
 | I. Final scene model and consumers | `SceneSolid` contract, `PovrayBody`, separate materials, adapted snapshots, parser, renderers, and the PovRay-side bake | A single geometric graph (`CsgTree` with `SceneSolid` leaves), consistent placement, and shared kernels and CSG steps in the bake as well |
-| J. Removal and completion | Relocate remaining components; remove transitional wrappers (including the POV geometry adapters, whose render caches move to the bake or per-ray caches and whose inversion moves to the body), algorithm copies, and the `raycasting` target/directory | Full gates and uniqueness/dependency audit pass, with no components awaiting a destination |
+| J. Retirement of `./raycasting` | Relocate the remaining components to their single home, remove algorithm copies and dead code, and remove the `raycasting` target/directory | The module is gone, VITRAL has no reference to PovRay, no class is defined in both projects, and the gates pass |
+| K. POV render over VITRAL geometries | The POV scene references VITRAL geometries directly: no `RayCastingGeometry` subclass wraps a VITRAL geometry, POV CSG is a scene body over `CsgTree`, inversion lives in `PovrayBody`, and the POV-specific render state (per-viewpoint caches, historical tolerances, crossing emission) lives in the bake; the bounding-volume package moves to VITRAL | PovRay defines no `Geometry` subclass; the original POV render and the Roth render keep their gates; full uniqueness/dependency audit with no component awaiting a destination |
 
 Stage D is complete for the basic-primitive scope above. The explicitly listed
 scene-policy and future-catalog follow-ups are handled in F; the evaluators and
@@ -774,8 +774,8 @@ mirror audit):
   placement. The height field parser builds the `HeightFieldSolid` grid and puts
   the grid normalization in the body as its first scale step, with
   byte-identical `hfclip`, `mtmand` and `sunsethf`. Removing the adapters
-  themselves, so that the parser references VITRAL geometries directly, is the
-  wrapper removal of stage J.
+  themselves, so that the parser references VITRAL geometries directly, is
+  stage K.
 - **Complete (I-7 POV bake and render paths):** the bake is PovRay's, compiles
   its records from the `PovrayBody` list and the CSG trees, and calls shared
   kernels. `QuadricRayExpansion` (inline, in VITRAL `geometry/volume`) expands a
@@ -820,7 +820,126 @@ mirror audit):
   time.
 
 Stage I is complete. The POV geometry adapters remain as POV render wrappers
-until stage J removes them.
+until stage K removes them.
+
+#### Stage J status
+
+- **Complete (J-1 retirement of `./raycasting`):** the `vitral_raycasting`
+  target and the `./raycasting` directory no longer exist. After stages H and I
+  their files held no geometric data or kernel of their own: they are the POV
+  render code of VITRAL geometries (the `RayCastingGeometry` render interface,
+  crossing queues and per-ray state, render bounding volumes, the fast CSG
+  evaluators over `CsgTree`, `PovrayBody`, `CsgOperand` and the instance
+  composites). They are compiled in `povray_core` from PovRay
+  `src/environment/geometry` and `src/environment/scene`, and their tests in
+  `povray_geometry_tests`. The `BooleanSetOperations` alias was replaced by
+  `CsgOperation`. The audit checks that the module does not return, that VITRAL
+  includes no PovRay code, that no PovRay class repeats a VITRAL class name and
+  that the base mirror is identical; the inventory lists only the components that
+  stage K removes.
+- **Complete (J-2 dead code):** POV code without callers found while auditing
+  the relocated module was removed: `ConstructiveSolidGeometry::getStructure`
+  and the unused per-viewpoint constant accessors of `Quadric`. The
+  bounding-volume structure (`PreRayHitElement`, `BoundingVolumeHierarchy`,
+  `AabbBoundingVolume`, `AxisAlignedBoundingBox`) is kept whole, including
+  members not yet called: it is the bounding-volume package designed for
+  VITRAL (`doc/projectClosingSteps.md` §3), not dead code.
+
+Stage J is complete. Dead code found in any later stage is removed as soon as
+it is identified. The removal of the POV geometry adapters, which J listed, is
+a structural change of the POV render and is stage K.
+
+#### Stage K plan
+
+Objective: PovRay keeps no wrapper over a VITRAL geometry. The parser builds
+VITRAL geometries (`Sphere`, `Box`, `PlanarHalfSpace`, `QuadricSurface`,
+`PolynomialSurface`, `BlobSolid`, `HeightFieldSolid`, `SubdividedBezierPatch`,
+`TriangleMesh`) and gives them to `PovrayBody` through `SceneSolid`; the
+geometry model is VITRAL's and common to both projects. What the adapters hold
+today moves to its owner: inversion to `PovrayBody`; per-viewpoint caches
+(`Quadric`'s constant term without mixed products, the plane's viewpoint dot
+product) and PovRay's historical tolerances (`GeometryConfig`, the blob shadow
+root distance, the box depth clipping, the height field's truncated
+containment) to the bake's records and per-ray caches; crossing emission and
+normal evaluation to bake kernels that call the VITRAL geometry.
+
+Starting point (after J): `RayCastingGeometry` is the POV render interface
+(`doIntersectionForAllRayCrossings`, `doIntersectionForAllRayCrossingsAnnotated`,
+`doIntersectionFirstHit`, `doContainmentTest`, `doExtraInformation`,
+`createBoundingVolume`, `invertGeometry`, `computeSurfaceNormal`). Its
+subclasses are the adapters `Quadric`, `RayCastingBox`,
+`RayCastingInfinitePlane`, `PolynomialShape`, `Blob`, `HeightField`,
+`RayCastingParametricBiCubicPatch` and `NativeGeometryBinding` (spheres and
+meshes), the CSG geometry `ConstructiveSolidGeometry` with its Morgan and Roth
+subclasses, and the parser's `LightGeometryAdapter`. The bake already compiles
+most objects into records, choosing kernels by `dynamic_cast` on the adapters
+(`BakedSceneBuilder`); the remaining objects go through the parsed scene's
+virtual calls, counted as baked fallbacks (`doc/bakedSceneFallbacks.md`).
+`IntersectionCandidate` attributes a hit to a `RayCastingGeometry` and resolves
+detail through the `PostRayHitElement` chain.
+
+Risks, which decide the order:
+
+- **Byte-identical gates.** The original POV render and the Roth render must
+  stay identical. Any change to the order of floating-point operations
+  (composing operand transforms of nested CSG into leaves, moving a constant
+  term, renormalizing a normal) changes images. Each family keeps its
+  arithmetic exactly; nested CSG keeps its placement chain instead of folding
+  matrices.
+- **Performance.** The adapters' virtual calls are the hot path. Kernels taken
+  from VITRAL stay inline in headers (an out-of-line VITRAL kernel cost 50% in
+  I-7); dispatch by family happens once, at bake time, not per ray.
+- **Fallback coverage.** Objects that are not baked today (bounding/clipping
+  regions, light geometry, composite paths) need a baked kernel before their
+  adapter can go; otherwise the render would need a per-ray type switch.
+- **Attribution.** Hit records, shaders, texture evaluation and the detail
+  chain identify the hit by its `RayCastingGeometry`; they must identify it by
+  VITRAL geometry and owning body first.
+
+Subphases, each with the full gates (original render, Roth render, examples,
+audit, tests) and dead code removed as it appears:
+
+- **K-1 Inventory and measurement.** Map every caller of every
+  `RayCastingGeometry` virtual (parser, scene, bake, `RenderEngine`, shaders,
+  light linking, tests) and count, per gate scene, the baked fallbacks and the
+  objects whose kernels are chosen by adapter type. Output: the per-family
+  migration table with its byte-identity risks. No code change.
+- **K-2 Hit attribution without adapters.** `IntersectionCandidate` and the
+  detail chain carry the VITRAL geometry and the owning `PovrayBody`/operand;
+  detail is resolved by a bake kernel per family. Adapters still exist but are
+  no longer how a hit is identified.
+- **K-3 Complete bake coverage.** Every object, region and light geometry is
+  compiled into a bake record; the baked fallbacks reach zero on every gate
+  scene and the fallback path is deleted.
+- **K-4 Inversion in `PovrayBody`.** The body's inversion flag replaces the
+  adapters' (`RayCastingBox`, `PolynomialShape`, `Blob`, `NativeGeometryBinding`)
+  and `invertGeometry`; quadric and plane inversion stays in their
+  coefficients, as POV encodes it.
+- **K-5 Families, one at a time.** In order of increasing risk: plane, box,
+  sphere and meshes (`NativeGeometryBinding`, `ProjectedTriangleTraversal`),
+  quadric, polynomial, blob, height field, bicubic patch. For each: the parser
+  builds the VITRAL geometry, the bake record holds the family's caches and
+  tolerances, the adapter is deleted.
+- **K-6 POV CSG as a scene body.** A POV CSG becomes a `PovrayBody` that owns
+  its `CsgTree` and `CsgOperand` leaves, as VITRAL `CsgBody` does;
+  `ConstructiveSolidGeometry` and its subclasses stop being geometries and the
+  Morgan and Roth evaluators become render strategies over the tree. Nested
+  CSG keeps each level's placement (`CsgPlacedExpression` or a placed tree
+  node) so that the composition order is unchanged.
+- **K-7 Removal of `RayCastingGeometry`.** With no subclass left, the
+  interface, `LightGeometryAdapter` (light geometry becomes a scene element)
+  and the bridge helpers are deleted. The audit adds the check that PovRay
+  defines no `Geometry` subclass.
+- **K-8 Bounding-volume package in VITRAL.** `PreRayHitElement`,
+  `BoundingVolumeHierarchy`, `AabbBoundingVolume` and `AxisAlignedBoundingBox`
+  move to VITRAL `environment/geometry/boundingVolumeHierarchy`, with the
+  dependency layout of `doc/projectClosingSteps.md` §3: the package depends
+  only on geometry elements, and its ray filters take a VITRAL ray instead of
+  PovRay's `RayWithTracingState`. VITRAL geometries create their bounding
+  volume; the bake keeps its derived culling boxes. The structure is kept whole
+  until then.
+- **K-9 Completion.** The closing criteria of §10, and the documentation of
+  the public APIs and their correspondence to the literature.
 
 Stage E is complete. The optional numerical estimator remains explicitly
 approximate and is never used as a guarantee.
@@ -949,7 +1068,9 @@ The plan is complete only when:
 3. Blobs, heightfields, quartics, and the rest of the POV catalog can be constructed
    and used in VITRAL without POV parsers, shaders, or materials.
 4. Application specializations reside in scene, IO, or rendering/materials, without
-   requiring duplicated primitives or permanent graph conversions.
+   requiring duplicated primitives or permanent graph conversions. PovRay defines
+   no `Geometry` subclass: its scene references VITRAL geometries and its render
+   state lives in the bake.
 5. `./raycasting` and its target disappear. Its entire inventory has a final
    destination, and each implementation is maintained only once.
 6. No references from VITRAL to PovRay remain, nor duplicated geometric kernels or

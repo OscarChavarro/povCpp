@@ -1,5 +1,5 @@
-#include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/element/RayCastingHit.h"
+#include "environment/geometry/element/GeometryConfig.h"
+#include "environment/geometry/element/RayCastingHit.h"
 #include "render/RayShaderPipeline.h"
 #include "render/shaders/BumpNormalShader.h"
 #include "render/shaders/ExponentialFogShader.h"

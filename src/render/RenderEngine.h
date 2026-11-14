@@ -4,11 +4,11 @@
 #include <atomic>
 
 #include "render/AdaptiveAntiAliasing.h"
-#include "render/RenderContext.h"
+#include "render/PovRenderContext.h"
 #include "render/RenderImageWriter.h"
 #include "render/RenderOutput.h"
 #include "render/RenderTargetImage.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/element/IntersectionCandidate.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
 
 class RenderEngine {
   private:

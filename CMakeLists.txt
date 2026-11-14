@@ -20,9 +20,28 @@ endif()
 set(VITRAL_BASE_ISOLATED_OUTPUT ON CACHE BOOL "Isolate external base artifacts" FORCE)
 add_subdirectory("${VITRAL_CPP_ROOT}/base" "${CMAKE_BINARY_DIR}/vitral-base")
 
-add_subdirectory(raycasting)
-
 add_library(povray_core OBJECT
+    src/environment/geometry/RayCastingGeometry.cpp
+    src/environment/geometry/element/RayWithTracingState.cpp
+    src/environment/geometry/element/SphereTrace.cpp
+    src/environment/geometry/surface/RayCastingInfinitePlane.cpp
+    src/environment/geometry/surface/parametric/ParametricPatch.cpp
+    src/environment/geometry/volume/Blob.cpp
+    src/environment/geometry/volume/HeightField.cpp
+    src/environment/geometry/volume/Quadric.cpp
+    src/environment/geometry/volume/BoxInvertedCrossingSink.cpp
+    src/environment/geometry/volume/RayCastingBox.cpp
+    src/environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.cpp
+    src/environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByMorganRules.cpp
+    src/environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.cpp
+    src/environment/geometry/volume/constructiveSolidGeometry/CsgOperand.cpp
+    src/environment/geometry/volume/polynomial/PolynomialShape.cpp
+    src/environment/scene/PovrayBody.cpp
+    src/environment/scene/RayCastingCoreOperand.cpp
+    src/environment/scene/NativeGeometryBinding.cpp
+    src/environment/scene/NativeGeometryCrossingSink.cpp
+    src/environment/scene/ProjectedTriangleTraversal.cpp
+    src/environment/scene/RayCastingComposite.cpp
     src/render/shaders/PovRayRenderStatistics.cpp
     src/environment/material/povray/PovRayMaterial.cpp
     src/io/pov/material/PovRayMaterialUtils.cpp
@@ -138,7 +157,7 @@ target_include_directories(povray_core PUBLIC
 )
 target_compile_options(povray_core PRIVATE -O3 -Wall -pedantic)
 
-target_link_libraries(povray_core PUBLIC vitral_raycasting vitral_base m)
+target_link_libraries(povray_core PUBLIC vitral_base m)
 add_executable(povray src/app/main.cpp)
 target_link_libraries(povray PRIVATE povray_core)
 target_compile_options(povray PRIVATE -O3 -Wall -pedantic)
@@ -149,6 +168,10 @@ if(POVRAY_BUILD_INTEGRATION_TESTS)
     add_executable(povray_environment_tests tests/environmentIntegration.cpp)
     target_link_libraries(povray_environment_tests PRIVATE povray_core)
     add_test(NAME povray_shared_environment COMMAND povray_environment_tests)
+    add_executable(povray_geometry_tests tests/sharedEnvironment.cpp
+        tests/TestSlabGeometry.cpp tests/TestCrossingCollector.cpp)
+    target_link_libraries(povray_geometry_tests PRIVATE povray_core)
+    add_test(NAME povray_geometry_environment COMMAND povray_geometry_tests)
 endif()
 
 # LTO measured at -2.6% (drums) / -3.5% (iortest) wall-clock, byte-identical
@@ -159,7 +182,6 @@ endif()
 include(CheckIPOSupported)
 check_ipo_supported(RESULT ipo_supported OUTPUT ipo_error LANGUAGES CXX)
 if(ipo_supported)
-    set_property(TARGET vitral_raycasting PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
     set_property(TARGET povray_core PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
     set_property(TARGET povray PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
     set_property(TARGET vitral_base PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)

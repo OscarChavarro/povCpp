@@ -1,9 +1,9 @@
 
 #include "render/bakedScene/BakedPlaneIntersector.h"
 
-#include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/environment/geometry/surface/InfinitePlane.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 

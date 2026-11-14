@@ -1,6 +1,6 @@
 
 
-#include "vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingInfinitePlane.h"
+#include "environment/geometry/surface/RayCastingInfinitePlane.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/pov/geometry/PlaneParser.h"

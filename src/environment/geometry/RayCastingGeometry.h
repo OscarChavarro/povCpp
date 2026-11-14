@@ -1,0 +1,73 @@
+#ifndef __POV_GEOMETRY__
+#define __POV_GEOMETRY__
+
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
+#include "vsdk/toolkit/environment/geometry/Geometry.h"
+#include "environment/geometry/element/RayWithTracingState.h"
+#include "environment/geometry/boundingVolumeHierarchy/BoundingVolumeHierarchy.h"
+#include "environment/geometry/element/PostRayHitElement.h"
+#include "environment/geometry/element/GeometryIntersectionEmissionContext.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
+#include "environment/geometry/element/RayCastingHit.h"
+#include "vsdk/toolkit/processing/Containment.h"
+
+class RayCastingGeometry : public Geometry, public PostRayHitElement {
+  public:
+    RayCrossingSupport emitRayCrossings(const Ray& ray,
+        const RayCrossingQuery& query, RayCrossingSink& sink) const override;
+    bool doIntersectionFirstHit(const Ray& ray, RayHit* hit) override;
+    void doExtraInformation(const Ray& ray, double t, RayHit* hit) override;
+    double* getMinMax() override;
+    static constexpr int INSIDE = static_cast<int>(Containment::INSIDE);
+    static constexpr int LIMIT = static_cast<int>(Containment::LIMIT);
+    static constexpr int OUTSIDE = static_cast<int>(Containment::OUTSIDE);
+
+    virtual int doIntersectionForAllRayCrossings(
+        RayWithTracingState *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        Material *materialOverride = nullptr) { (void)ray; (void)depthQueue; (void)materialOverride; return 0; }
+    virtual int doIntersectionForAllRayCrossingsAnnotated(
+        RayWithTracingState *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        const GeometryIntersectionEmissionContext &context);
+    virtual bool hasNativeAnnotatedCrossings() const { return false; }
+    virtual bool doIntersectionFirstHit(
+        RayWithTracingState *ray,
+        IntersectionCandidate &out,
+        Material *materialOverride = nullptr)
+    {
+        (void)ray;
+        (void)out;
+        (void)materialOverride;
+        return false;
+    }
+    virtual int doContainmentTest(const Vector3Dd &point, double distanceTolerance) { (void)point; (void)distanceTolerance; return OUTSIDE; }
+    virtual void doExtraInformation(const RayWithTracingState &ray, double t, RayCastingHit *hit) override;
+    virtual BoundingVolumeHierarchy *createBoundingVolume() const;
+    // The leaf used for mathematical provenance may outlive a single query,
+    // but is owned by this adapter and has the same lifetime as the adapter.
+    virtual const Geometry *getIntrinsicGeometry() const { return this; }
+    static const Geometry *resolveIntrinsicGeometry(const PostRayHitElement *element);
+    virtual void *copy() = 0;
+    virtual ~RayCastingGeometry() {}
+
+    virtual void invertGeometry() {}
+
+  protected:
+    virtual void computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint) {}
+    virtual void computeSurfaceNormal(
+        Vector3Dd *result,
+        Vector3Dd *intersectionPoint,
+        const RendererConfiguration *config)
+    {
+        (void)config;
+        computeSurfaceNormal(result, intersectionPoint);
+    }
+
+  private:
+    static void applyAnnotatedEmissionContext(
+        IntersectionCandidate &candidate,
+        const GeometryIntersectionEmissionContext &context);
+};
+
+#endif

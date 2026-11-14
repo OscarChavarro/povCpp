@@ -1,7 +1,7 @@
 #ifndef __LAMBERT_SHADER__
 #define __LAMBERT_SHADER__
 
-#include "vsdk/toolkit/environment/raycasting/geometry/element/RayWithTracingState.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/material/povray/PovRayMaterial.h"
 
 class LambertShader {

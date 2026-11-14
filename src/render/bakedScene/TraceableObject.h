@@ -3,9 +3,9 @@
 
 #include "render/bakedScene/BakedSceneKinds.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingInfinitePlane.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.h"
-#include "vsdk/toolkit/environment/raycasting/scene/PovrayBody.h"
+#include "environment/geometry/surface/RayCastingInfinitePlane.h"
+#include "environment/geometry/volume/Quadric.h"
+#include "environment/scene/PovrayBody.h"
 
 // One traceable object: a plain PovrayBody, a CSG-wrapping PovrayBody,
 // or a RayCastingComposite (in which case `compositeIndex` points at the extra

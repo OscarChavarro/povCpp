@@ -1,7 +1,7 @@
 #ifndef __COMPOSITE_RECORD__
 #define __COMPOSITE_RECORD__
 
-#include "vsdk/toolkit/environment/raycasting/scene/RayCastingComposite.h"
+#include "environment/scene/RayCastingComposite.h"
 
 class CompositeRecord {
   public:

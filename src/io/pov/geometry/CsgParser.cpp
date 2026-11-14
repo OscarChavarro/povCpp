@@ -12,7 +12,7 @@ ConstructiveSolidGeometryByRaySegment nodes instead, which do implement
 environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h).
 */
 #include "io/pov/geometry/CsgParser.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
 #include "io/pov/geometry/SceneBuilder.h"
 #include "io/pov/geometry/GeometryBuilder.h"
 #include "io/pov/geometry/BicubicPatchParser.h"
@@ -25,8 +25,8 @@ environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryB
 #include "io/pov/geometry/SphereParser.h"
 #include "io/pov/geometry/TriangleParser.h"
 #include "vsdk/toolkit/environment/geometry/surface/TriangleMesh.h"
-#include "vsdk/toolkit/environment/raycasting/scene/NativeGeometryBinding.h"
-#include "vsdk/toolkit/environment/raycasting/scene/ProjectedTriangleTraversal.h"
+#include "environment/scene/NativeGeometryBinding.h"
+#include "environment/scene/ProjectedTriangleTraversal.h"
 #include "io/pov/light/LightGeometryAdapter.h"
 #include "io/pov/light/LightSourceParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
@@ -104,7 +104,7 @@ flushPendingTriangles(
 }
 
 SimpleBodyBuilder *
-CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, bool isNested)
+CsgParser::parse(CsgOperation booleanSetOperation, ParserContext &ctx, bool isNested)
 {
     ConstructiveSolidGeometry *container = nullptr;
     SimpleBodyBuilder *containerShape = nullptr;
@@ -122,11 +122,11 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
         rothContainer->setTopLevel(!isNested);
         container = rothContainer;
 
-    } else if (booleanSetOperation == BooleanSetOperations::UNION) {
+    } else if (booleanSetOperation == CsgOperation::UNION) {
         container = GeometryBuilder::getCsgUnion();
 
-    } else if ((booleanSetOperation == BooleanSetOperations::INTERSECTION) ||
-               (booleanSetOperation == BooleanSetOperations::DIFFERENCE)) {
+    } else if ((booleanSetOperation == CsgOperation::INTERSECTION) ||
+               (booleanSetOperation == CsgOperation::DIFFERENCE)) {
         container = GeometryBuilder::getCsgIntersection();
     }
 
@@ -173,7 +173,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
             case Tokenizer::LIGHT_SOURCE_TOKEN:
                 localShape = SceneBuilder::wrap(
                     new LightGeometryAdapter(LightSourceParser::parseLightSource(ctx)));
-                if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed &&
+                if ((booleanSetOperation == CsgOperation::DIFFERENCE) && firstShapeParsed &&
                     !ctx.usesCsgRoth()) {
                     localShape->invert();
                 }
@@ -183,7 +183,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
 
             case Tokenizer::SPHERE_TOKEN:
                 localShape = SphereParser::parseSphere(ctx);
-                if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed &&
+                if ((booleanSetOperation == CsgOperation::DIFFERENCE) && firstShapeParsed &&
                     !ctx.usesCsgRoth()) {
                     localShape->invert();
                 }
@@ -193,7 +193,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
 
             case Tokenizer::PLANE_TOKEN:
                 localShape = PlaneParser::parsePlane(ctx);
-                if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed &&
+                if ((booleanSetOperation == CsgOperation::DIFFERENCE) && firstShapeParsed &&
                     !ctx.usesCsgRoth()) {
                     localShape->invert();
                 }
@@ -203,7 +203,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
 
             case Tokenizer::TRIANGLE_TOKEN:
                 localShape = TriangleParser::parseTriangle(ctx);
-                if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed &&
+                if ((booleanSetOperation == CsgOperation::DIFFERENCE) && firstShapeParsed &&
                     !ctx.usesCsgRoth()) {
                     localShape->invert();
                 }
@@ -214,7 +214,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
 
             case Tokenizer::QUADRIC_TOKEN:
                 localShape = QuadricParser::parseQuadric(ctx);
-                if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed &&
+                if ((booleanSetOperation == CsgOperation::DIFFERENCE) && firstShapeParsed &&
                     !ctx.usesCsgRoth()) {
                     localShape->invert();
                 }
@@ -224,7 +224,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
 
             case Tokenizer::HEIGHT_FIELD_TOKEN:
                 localShape = HeightFieldParser::parseHeightField(ctx);
-                if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed &&
+                if ((booleanSetOperation == CsgOperation::DIFFERENCE) && firstShapeParsed &&
                     !ctx.usesCsgRoth()) {
                     localShape->invert();
                 }
@@ -234,7 +234,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
 
             case Tokenizer::CUBIC_TOKEN:
                 localShape = PolyParser::parsePoly(3, ctx);
-                if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed &&
+                if ((booleanSetOperation == CsgOperation::DIFFERENCE) && firstShapeParsed &&
                     !ctx.usesCsgRoth()) {
                     localShape->invert();
                 }
@@ -244,7 +244,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
 
             case Tokenizer::QUARTIC_TOKEN:
                 localShape = PolyParser::parsePoly(4, ctx);
-                if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed &&
+                if ((booleanSetOperation == CsgOperation::DIFFERENCE) && firstShapeParsed &&
                     !ctx.usesCsgRoth()) {
                     localShape->invert();
                 }
@@ -254,7 +254,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
 
             case Tokenizer::POLY_TOKEN:
                 localShape = PolyParser::parsePoly(0, ctx);
-                if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed &&
+                if ((booleanSetOperation == CsgOperation::DIFFERENCE) && firstShapeParsed &&
                     !ctx.usesCsgRoth()) {
                     localShape->invert();
                 }
@@ -264,7 +264,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
 
             case Tokenizer::BOX_TOKEN:
                 localShape = BoxParser::parseBox(ctx);
-                if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed &&
+                if ((booleanSetOperation == CsgOperation::DIFFERENCE) && firstShapeParsed &&
                     !ctx.usesCsgRoth()) {
                     localShape->invert();
                 }
@@ -274,7 +274,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
 
             case Tokenizer::BLOB_TOKEN:
                 localShape = BlobParser::parseBlob(ctx);
-                if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed &&
+                if ((booleanSetOperation == CsgOperation::DIFFERENCE) && firstShapeParsed &&
                     !ctx.usesCsgRoth()) {
                     localShape->invert();
                 }
@@ -284,7 +284,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
 
             case Tokenizer::BICUBIC_PATCH_TOKEN:
                 localShape = BicubicPatchParser::parseBicubicPatch(ctx);
-                if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed &&
+                if ((booleanSetOperation == CsgOperation::DIFFERENCE) && firstShapeParsed &&
                     !ctx.usesCsgRoth()) {
                     localShape->invert();
                 }
@@ -293,8 +293,8 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                 break;
 
             case Tokenizer::UNION_TOKEN:
-                localShape = CsgParser::parse(BooleanSetOperations::UNION, ctx, true);
-                if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed &&
+                localShape = CsgParser::parse(CsgOperation::UNION, ctx, true);
+                if ((booleanSetOperation == CsgOperation::DIFFERENCE) && firstShapeParsed &&
                     !ctx.usesCsgRoth()) {
                     localShape->invert();
                 }
@@ -303,8 +303,8 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                 break;
 
             case Tokenizer::INTERSECTION_TOKEN:
-                localShape = CsgParser::parse(BooleanSetOperations::INTERSECTION, ctx, true);
-                if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed &&
+                localShape = CsgParser::parse(CsgOperation::INTERSECTION, ctx, true);
+                if ((booleanSetOperation == CsgOperation::DIFFERENCE) && firstShapeParsed &&
                     !ctx.usesCsgRoth()) {
                     localShape->invert();
                 }
@@ -313,8 +313,8 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                 break;
 
             case Tokenizer::DIFFERENCE_TOKEN:
-                localShape = CsgParser::parse(BooleanSetOperations::DIFFERENCE, ctx, true);
-                if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed &&
+                localShape = CsgParser::parse(CsgOperation::DIFFERENCE, ctx, true);
+                if ((booleanSetOperation == CsgOperation::DIFFERENCE) && firstShapeParsed &&
                     !ctx.usesCsgRoth()) {
                     localShape->invert();
                 }

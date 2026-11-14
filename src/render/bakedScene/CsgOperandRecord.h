@@ -2,10 +2,10 @@
 #define __CSG_OPERAND_RECORD__
 
 #include "render/bakedScene/BakedSceneKinds.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingInfinitePlane.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/element/TransformStep.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
+#include "environment/geometry/surface/RayCastingInfinitePlane.h"
+#include "environment/geometry/volume/Quadric.h"
+#include "environment/geometry/element/TransformStep.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
 #include "vsdk/toolkit/environment/material/Material.h"
 
 // Bake-time record for one CSG operand, stored **by value** in a contiguous

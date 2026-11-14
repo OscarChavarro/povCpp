@@ -1,6 +1,6 @@
 
 
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "environment/material/povray/DefaultTextureAliasTracker.h"
 #include "io/pov/material/PovRayMaterialUtils.h"
 #include "io/pov/geometry/SceneBuilder.h"
@@ -303,17 +303,17 @@ ObjectParser::parseShape(ParserContext &ctx)
                 break;
 
             case Tokenizer::UNION_TOKEN:
-                localShape = CsgParser::parse(BooleanSetOperations::UNION, ctx);
+                localShape = CsgParser::parse(CsgOperation::UNION, ctx);
                 Exit_Flag = true;
                 break;
 
             case Tokenizer::INTERSECTION_TOKEN:
-                localShape = CsgParser::parse(BooleanSetOperations::INTERSECTION, ctx);
+                localShape = CsgParser::parse(CsgOperation::INTERSECTION, ctx);
                 Exit_Flag = true;
                 break;
 
             case Tokenizer::DIFFERENCE_TOKEN:
-                localShape = CsgParser::parse(BooleanSetOperations::DIFFERENCE, ctx);
+                localShape = CsgParser::parse(CsgOperation::DIFFERENCE, ctx);
                 Exit_Flag = true;
                 break;
 

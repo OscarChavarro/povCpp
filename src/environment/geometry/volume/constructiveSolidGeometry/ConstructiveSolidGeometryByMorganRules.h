@@ -1,0 +1,34 @@
+#ifndef __CONSTRUCTIVE_SOLID_GEOMETRY_BY_MORGAN_RULES__
+#define __CONSTRUCTIVE_SOLID_GEOMETRY_BY_MORGAN_RULES__
+
+#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+
+class ConstructiveSolidGeometryByMorganRules : public ConstructiveSolidGeometry {
+  private:
+    static int insideCsgChild(Vector3Dd *point, CsgOperand *operand);
+    int allCsgUnionIntersections(
+        RayWithTracingState *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        Material *materialOverride);
+    int allCsgIntersectIntersections(
+        RayWithTracingState *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        Material *materialOverride);
+    int insideCsgUnion(Vector3Dd *point);
+    int insideCsgIntersection(Vector3Dd *point);
+
+  public:
+    explicit ConstructiveSolidGeometryByMorganRules(
+        CsgOperation initialGeometryType = CsgOperation::UNION);
+    ConstructiveSolidGeometryByMorganRules(const ConstructiveSolidGeometryByMorganRules &other);
+
+    int doIntersectionForAllRayCrossings(
+        RayWithTracingState *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        Material *materialOverride = nullptr) override;
+    int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
+    void *copy() override;
+    void invertGeometry() override;
+};
+
+#endif

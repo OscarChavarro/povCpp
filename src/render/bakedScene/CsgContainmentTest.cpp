@@ -1,7 +1,7 @@
 
 #include "render/bakedScene/CsgContainmentTest.h"
 
-#include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "render/bakedScene/AabbCullingSupport.h"
 #include "render/bakedScene/BakedPlaneIntersector.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgMembershipRule.h"
@@ -84,7 +84,7 @@ CsgContainmentTest::candidateInsideOperandsCoreFirst(
             GeometryConfig::SMALL_TOLERANCE) != RayCastingGeometry::OUTSIDE;
     };
     return CsgCrossingSelection<decltype(inside)>::isSelected(
-        BooleanSetOperations::INTERSECTION, skipIndex, operands.size(), coreIndex, inside);
+        CsgOperation::INTERSECTION, skipIndex, operands.size(), coreIndex, inside);
 }
 
 int
@@ -118,7 +118,7 @@ CsgContainmentTest::containmentTest(
 
     // The Roth fold of the POV evaluators, stopping where the remaining
     // operands cannot change the result.
-    const BooleanSetOperations operation = bakedCsg->getGeometryType();
+    const CsgOperation operation = bakedCsg->getGeometryType();
     bool isInside = containmentTestOperand(
         &bakedCsg->getOperands()[0], bakedCsgs, point, distanceTolerance) != RayCastingGeometry::OUTSIDE;
     for (long int i = 1; i < bakedCsg->getOperands().size(); i++) {

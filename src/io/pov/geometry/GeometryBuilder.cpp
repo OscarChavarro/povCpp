@@ -1,6 +1,6 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByMorganRules.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByMorganRules.h"
 
 #include "io/pov/geometry/GeometryBuilder.h"
 
@@ -17,7 +17,7 @@ GeometryBuilder::getPolyShape(int order)
 ConstructiveSolidGeometry *
 GeometryBuilder::getCsgUnion()
 {
-    ConstructiveSolidGeometry *newShape = new ConstructiveSolidGeometryByMorganRules(BooleanSetOperations::UNION);
+    ConstructiveSolidGeometry *newShape = new ConstructiveSolidGeometryByMorganRules(CsgOperation::UNION);
     if (newShape == nullptr) {
         Logger::reportMessage("GeometryBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
@@ -27,7 +27,7 @@ GeometryBuilder::getCsgUnion()
 ConstructiveSolidGeometry *
 GeometryBuilder::getCsgIntersection()
 {
-    ConstructiveSolidGeometry *newShape = new ConstructiveSolidGeometryByMorganRules(BooleanSetOperations::INTERSECTION);
+    ConstructiveSolidGeometry *newShape = new ConstructiveSolidGeometryByMorganRules(CsgOperation::INTERSECTION);
     if (newShape == nullptr) {
         Logger::reportMessage("GeometryBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }

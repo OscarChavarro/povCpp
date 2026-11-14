@@ -1,4 +1,4 @@
-#include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
+#include "environment/geometry/element/GeometryConfig.h"
 #include "render/shaders/PovRayRenderStatistics.h"
 #include "render/PovRayRendererConfiguration.h"
 #include "render/shaders/BlinnPhongSpecularShader.h"
@@ -11,7 +11,7 @@
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
-#include "vsdk/toolkit/environment/raycasting/geometry/element/PriorityQueuePool.txx"
+#include "environment/geometry/element/PriorityQueuePool.txx"
 
 static constexpr double SHADOW_TOLERANCE = 0.05;
 
