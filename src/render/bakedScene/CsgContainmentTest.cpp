@@ -18,7 +18,7 @@ CsgContainmentTest::containmentTestOperand(
 {
     switch (operand->getKind()) {
     case BakedScene::CsgOperandKind::Empty:
-        return RayCastingGeometry::OUTSIDE;
+        return RayCastingContainment::OUTSIDE;
 
     case BakedScene::CsgOperandKind::DirectPlane:
         return BakedPlaneIntersector::planeContainmentTest(operand, point, distanceTolerance);
@@ -52,11 +52,11 @@ CsgContainmentTest::containmentTestOperand(
 
     case BakedScene::CsgOperandKind::DirectAnnotatedPrimitive:
     case BakedScene::CsgOperandKind::DirectPrimitive:
-        return operand->getGeometry() != nullptr ?
+        return operand->hasGeometry() ?
             operand->containment(point, distanceTolerance) :
-            RayCastingGeometry::OUTSIDE;
+            RayCastingContainment::OUTSIDE;
     }
-    return RayCastingGeometry::OUTSIDE;
+    return RayCastingContainment::OUTSIDE;
 }
 
 bool
@@ -80,7 +80,7 @@ CsgContainmentTest::candidateInsideOperandsCoreFirst(
     const java::ArrayList<CsgOperandRecord> &operands = bakedCsg->getOperands();
     auto inside = [&operands, &bakedCsgs, &point](long int j) {
         return containmentTestOperand(&operands[j], bakedCsgs, point,
-            GeometryConfig::SMALL_TOLERANCE) != RayCastingGeometry::OUTSIDE;
+            GeometryConfig::SMALL_TOLERANCE) != RayCastingContainment::OUTSIDE;
     };
     return CsgCrossingSelection<decltype(inside)>::isSelected(
         CsgOperation::INTERSECTION, skipIndex, operands.size(), coreIndex, inside);
@@ -94,7 +94,7 @@ CsgContainmentTest::containmentTest(
     double distanceTolerance)
 {
     if (bakedCsg->getOperands().size() == 0) {
-        return RayCastingGeometry::OUTSIDE;
+        return RayCastingContainment::OUTSIDE;
     }
 
     if (bakedCsg->getPlanKind() ==
@@ -108,18 +108,18 @@ CsgContainmentTest::containmentTest(
                     operand,
                     bakedCsgs,
                     point,
-                    distanceTolerance) != RayCastingGeometry::OUTSIDE) {
-                return RayCastingGeometry::INSIDE;
+                    distanceTolerance) != RayCastingContainment::OUTSIDE) {
+                return RayCastingContainment::INSIDE;
             }
         }
-        return RayCastingGeometry::OUTSIDE;
+        return RayCastingContainment::OUTSIDE;
     }
 
     // The Roth fold of the POV evaluators, stopping where the remaining
     // operands cannot change the result.
     const CsgOperation operation = bakedCsg->getGeometryType();
     bool isInside = containmentTestOperand(
-        &bakedCsg->getOperands()[0], bakedCsgs, point, distanceTolerance) != RayCastingGeometry::OUTSIDE;
+        &bakedCsg->getOperands()[0], bakedCsgs, point, distanceTolerance) != RayCastingContainment::OUTSIDE;
     for (long int i = 1; i < bakedCsg->getOperands().size(); i++) {
         if (CsgMembershipRule::isDecided(operation, isInside)) {
             break;
@@ -127,7 +127,7 @@ CsgContainmentTest::containmentTest(
         isInside = CsgMembershipRule::combine(operation, isInside,
             containmentTestOperand(
                 &bakedCsg->getOperands()[i], bakedCsgs, point, distanceTolerance) !=
-                RayCastingGeometry::OUTSIDE);
+                RayCastingContainment::OUTSIDE);
     }
-    return isInside ? RayCastingGeometry::INSIDE : RayCastingGeometry::OUTSIDE;
+    return isInside ? RayCastingContainment::INSIDE : RayCastingContainment::OUTSIDE;
 }

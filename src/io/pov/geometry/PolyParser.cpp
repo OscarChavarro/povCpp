@@ -14,15 +14,26 @@
 #include "java/util/PriorityQueue.txx"
 
 SimpleBodyBuilder *
-PolyParser::rebuildBodyWithGeometry(SimpleBodyBuilder *body, RayCastingGeometry *geometry)
+PolyParser::rebuildBodyWithGeometry(SimpleBodyBuilder *body, Geometry *geometry)
 {
     Material *clonedMaterial = (body->getMaterial() != nullptr) ?
         new PovRayMaterial(*static_cast<PovRayMaterial *>(body->getMaterial())) : nullptr;
     ColorRgba *clonedShapeColor = (body->getShapeColor() != nullptr) ?
         new ColorRgba(*body->getShapeColor()) : nullptr;
     SimpleBodyBuilder *newBody = new SimpleBodyBuilder(geometry, clonedMaterial, clonedShapeColor);
+    newBody->setSurfaceInverted(body->isSurfaceInverted());
     delete body;
     return newBody;
+}
+
+PolynomialSurface *
+PolyParser::copyWithSturmSequences(const PolynomialSurface &surface)
+{
+    PolynomialSurface *copy = new PolynomialSurface(surface.getOrder(), true);
+    for (int i = 0; i < PolynomialSurface::getTermCount(surface.getOrder()); i++) {
+        copy->getCoefficients()[i] = surface.getCoefficients()[i];
+    }
+    return copy;
 }
 
 void
@@ -56,7 +67,7 @@ SimpleBodyBuilder *
 PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
 {
     (void)ctx;
-    PolynomialShape *localShape;
+    PolynomialSurface *localShape;
     SimpleBodyBuilder *body = nullptr;
     Vector3Dd localVector;
     int constantId;
@@ -99,7 +110,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                 if (localShape == nullptr) {
                     Logger::reportMessage("PolyParser", Logger::WARNING, "", "Need the order of the Poly");
                 }
-                parseCoeffs(localShape->getOrder(), &(localShape->getCoeffs()[0]), ctx);
+                parseCoeffs(localShape->getOrder(), &(localShape->getCoefficients()[0]), ctx);
                 Exit_Flag = true;
                 break;
 
@@ -117,7 +128,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                         body = new SimpleBodyBuilder(
                                 *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
                                     .getConstantData());
-                        localShape = (PolynomialShape *)body->getGeometry();
+                        localShape = static_cast<PolynomialSurface *>(body->getGeometry());
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -145,10 +156,9 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                 break;
 
             case Tokenizer::STURM_TOKEN:
-                if (localShape->getSturmFlag() == 0) {
-                    body = rebuildBodyWithGeometry(
-                        body, localShape->copyWithSturmFlag(1));
-                    localShape = (PolynomialShape *)body->getGeometry();
+                if (!localShape->usesSturmSequences()) {
+                    body = rebuildBodyWithGeometry(body, copyWithSturmSequences(*localShape));
+                    localShape = static_cast<PolynomialSurface *>(body->getGeometry());
                 }
                 break;
 

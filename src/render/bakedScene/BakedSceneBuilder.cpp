@@ -1,9 +1,8 @@
 #include <stdexcept>
 
 
-#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
+#include "environment/scene/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "environment/scene/RayCastingComposite.h"
-#include "environment/scene/NativeGeometryBinding.h"
 #include "render/bakedScene/BakedGeometryBaker.h"
 #include "render/bakedScene/BakedSceneBuilder.h"
 #include "java/util/ArrayList.txx"
@@ -37,13 +36,14 @@ BakedSceneBuilder::classifyTraceableObject(bool hasGeometry, bool boundedOrClipp
 
 BakedSceneCsgOperandKind
 BakedSceneBuilder::classifyOperandKind(
-    RayCastingGeometry *geometry,
+    bool hasGeometry,
+    SurfaceDetailFamily family,
     int nestedCsgProgramIndex,
     bool hasTransform,
     bool isInfinitePlane,
-    Quadric *quadricGeometry)
+    bool isQuadric)
 {
-    if (geometry == nullptr) {
+    if (!hasGeometry) {
         return BakedSceneCsgOperandKind::Empty;
     }
     if (nestedCsgProgramIndex >= 0) {
@@ -57,15 +57,15 @@ BakedSceneBuilder::classifyOperandKind(
             BakedSceneCsgOperandKind::DirectPlane;
     }
     if (hasTransform) {
-        if (quadricGeometry != nullptr) {
+        if (isQuadric) {
             return BakedSceneCsgOperandKind::TransformedQuadric;
         }
-        if (dynamic_cast<const Sphere *>(geometry->getIntrinsicGeometry()) != nullptr) {
+        if (family == SurfaceDetailFamily::Sphere) {
             return BakedSceneCsgOperandKind::TransformedSphere;
         }
         return BakedSceneCsgOperandKind::TransformedPrimitive;
     }
-    return geometry->hasNativeAnnotatedCrossings() ?
+    return family != SurfaceDetailFamily::None ?
         BakedSceneCsgOperandKind::DirectAnnotatedPrimitive :
         BakedSceneCsgOperandKind::DirectPrimitive;
 }
@@ -77,15 +77,11 @@ BakedSceneBuilder::hasFiniteInteriorBounds(const CsgOperandRecord *operand)
         return false;
     }
 
-    const RayCastingGeometry *geometry = operand->getGeometry();
-    if (const NativeGeometryBinding *binding = dynamic_cast<const NativeGeometryBinding *>(geometry)) {
-        if (dynamic_cast<const Sphere *>(binding->getIntrinsicGeometry()) != nullptr)
-            return !binding->isInverted();
+    const SurfaceDetailFamily family = operand->getDetailFamily();
+    if (family != SurfaceDetailFamily::Sphere && family != SurfaceDetailFamily::Box) {
+        return false;
     }
-    if (const RayCastingBox *box = dynamic_cast<const RayCastingBox *>(geometry)) {
-        return !box->isInverted();
-    }
-    return false;
+    return !operand->getOperand()->isSurfaceInverted();
 }
 
 bool
@@ -295,7 +291,7 @@ BakedSceneBuilder::cloneOperandWithCompiledPlan(
     const java::ArrayList<int> &compiledNestedContainmentOperandIndices)
 {
     return CsgOperandRecord(
-        base->getKind(), base->getOperand(), base->getOriginalGeometry(),
+        base->getKind(), base->getOperand(),
         base->getOriginalQuadricGeometry(), base->getMaterial(), base->getNestedCsgProgramIndex(),
         base->getBakedBounds(), base->getObjectToLocal(), base->getLocalToObject(),
         base->getHasTransform(), base->getBounded(), base->getCullSafe(), base->getIsInfinitePlane(),
@@ -313,7 +309,7 @@ BakedSceneBuilder::cloneOperandWithViewpointSlots(
     const CsgOperandRecord *base, int quadricViewpointSlot, int planeViewpointSlot)
 {
     return CsgOperandRecord(
-        base->getKind(), base->getOperand(), base->getOriginalGeometry(),
+        base->getKind(), base->getOperand(),
         base->getOriginalQuadricGeometry(), base->getMaterial(), base->getNestedCsgProgramIndex(),
         base->getBakedBounds(), base->getObjectToLocal(), base->getLocalToObject(),
         base->getHasTransform(), base->getBounded(), base->getCullSafe(), base->getIsInfinitePlane(),
@@ -336,16 +332,16 @@ BakedSceneBuilder::cloneOperandWithPushdownBake(
     const Matrix4x4d &objectToLocal,
     const Matrix4x4d &localToObject,
     bool pushdownFolded,
-    const Quadric &bakedQuadricStorage,
+    const QuadricSurface &bakedQuadricStorage,
     bool hasBakedQuadric,
-    const RayCastingInfinitePlane &bakedPlaneStorage,
+    const PlanarHalfSpace &bakedPlaneStorage,
     bool hasBakedPlane,
     const Vector3Dd &planeNormal,
     double planeDistance,
     const java::ArrayList<TransformStep> &pushdownAccumulatedSteps)
 {
     return CsgOperandRecord(
-        kind, base->getOperand(), base->getOriginalGeometry(), base->getOriginalQuadricGeometry(),
+        kind, base->getOperand(), base->getOriginalQuadricGeometry(),
         base->getMaterial(), base->getNestedCsgProgramIndex(), bakedBounds, objectToLocal, localToObject,
         hasTransform, bounded, base->getCullSafe(), base->getIsInfinitePlane(), planeNormal, planeDistance,
         base->getQuadricViewpointSlot(), base->getPlaneViewpointSlot(), bakedQuadricStorage, hasBakedQuadric,
@@ -360,7 +356,7 @@ TraceableObject *
 BakedSceneBuilder::cloneObjectWithViewpointSlot(const TraceableObject *base, int quadricViewpointSlot)
 {
     return new TraceableObject(
-        base->getKind(), base->getObject(), base->getOriginalGeometry(),
+        base->getKind(), base->getObject(),
         base->getOriginalQuadricGeometry(), base->getGeometryMaterial(), base->getObjectTexture(),
         base->getObjectColor(), base->getWorldBounds(), base->getBounded(), base->getCastsShadow(),
         base->getNoShadowFlag(), base->getCsgProgramIndex(), base->getCompositeIndex(),
@@ -411,8 +407,9 @@ BakedSceneBuilder::compileTracingObjects(
 TraceableObject *
 BakedSceneBuilder::bakeSimpleBody(PovrayBody *object, BakedScene &out)
 {
-    RayCastingGeometry *originalGeometry = object->getGeometry();
-    Quadric *originalQuadricGeometry = dynamic_cast<Quadric *>(originalGeometry);
+    QuadricSurface *originalQuadricGeometry =
+        object->getSurfaceFamily() == SurfaceDetailFamily::Quadric ?
+        static_cast<QuadricSurface *>(object->getSurface()) : nullptr;
     Material *geometryMaterial = object->getGeometryMaterial();
     Material *objectTexture = object->getObjectTexture();
     ColorRgba *objectColor = object->getObjectColor();
@@ -432,9 +429,9 @@ BakedSceneBuilder::bakeSimpleBody(PovrayBody *object, BakedScene &out)
     Matrix4x4d geometryToWorld = objectToWorld.multiply(geometryToObject);
     Matrix4x4d worldToGeometry = objectToGeometry.multiply(worldToObject);
 
-    Quadric bakedQuadricStorage;
+    QuadricSurface bakedQuadricStorage = QuadricSurface(Vector3Dd(1.0, 1.0, 1.0), Vector3Dd(0.0, 0.0, 0.0), Vector3Dd(0.0, 0.0, 0.0), 1.0);
     bool hasBakedQuadric = false;
-    RayCastingInfinitePlane bakedPlaneStorage;
+    PlanarHalfSpace bakedPlaneStorage(0.0, 1.0, 0.0, 0.0);
     bool hasBakedPlane = false;
 
     if (!hasBoundingShapes && !hasClippingShapes && !object->hasArbitraryAffineTransform() &&
@@ -455,8 +452,9 @@ BakedSceneBuilder::bakeSimpleBody(PovrayBody *object, BakedScene &out)
                 hasObjectTransform = false;
                 hasGeometryTransform = false;
                 object->setBakedTransformFolded(true);
-            } else if (RayCastingInfinitePlane *plane = dynamic_cast<RayCastingInfinitePlane *>(originalGeometry)) {
-                bakedPlaneStorage = BakedGeometryBaker::bakePlane(*plane, combinedSteps);
+            } else if (object->getSurfaceFamily() == SurfaceDetailFamily::Plane) {
+                bakedPlaneStorage = BakedGeometryBaker::bakePlane(
+                    *static_cast<const PlanarHalfSpace *>(object->getSurface()), combinedSteps);
                 hasBakedPlane = true;
                 hasObjectTransform = false;
                 hasGeometryTransform = false;
@@ -466,8 +464,7 @@ BakedSceneBuilder::bakeSimpleBody(PovrayBody *object, BakedScene &out)
     }
 
     int csgProgramIndex = -1;
-    if (ConstructiveSolidGeometry *csg =
-            dynamic_cast<ConstructiveSolidGeometry *>(originalGeometry)) {
+    if (ConstructiveSolidGeometry *csg = object->getCsg()) {
         csgProgramIndex = compileConstructiveSolidGeometry(csg, out);
     }
 
@@ -477,10 +474,10 @@ BakedSceneBuilder::bakeSimpleBody(PovrayBody *object, BakedScene &out)
     compileTracingObjects(object->getClippingShapes(), out, clippingObjectIndices);
 
     BakedSceneTraceKind kind = classifyTraceableObject(
-        originalGeometry != nullptr, hasBoundingShapes || hasClippingShapes, csgProgramIndex >= 0);
+        object->hasShape(), hasBoundingShapes || hasClippingShapes, csgProgramIndex >= 0);
 
     return new TraceableObject(
-        kind, object, originalGeometry, originalQuadricGeometry, geometryMaterial, objectTexture,
+        kind, object, originalQuadricGeometry, geometryMaterial, objectTexture,
         objectColor, worldBounds, bounded, castsShadow, noShadowFlag, csgProgramIndex, -1,
         objectToWorld, worldToObject, geometryToObject, objectToGeometry, geometryToWorld,
         worldToGeometry, hasObjectTransform, hasGeometryTransform, hasBoundingShapes,
@@ -530,8 +527,9 @@ BakedSceneBuilder::pushDownStepsIntoProgram(
         AxisAlignedBoundingBox bakedBounds = operand->getBakedBounds();
         bool bounded = operand->getBounded();
         if (!bakedBounds.isUnbounded()) {
+            const Matrix4x4d placement = parentForwardTransform.transpose();
             bakedBounds = AxisAlignedBoundingBox::fromTransformedCorners(
-                bakedBounds.getMin(), bakedBounds.getMax(), &parentForwardTransform);
+                bakedBounds.getMin(), bakedBounds.getMax(), &placement);
             bounded = !bakedBounds.isUnbounded();
         }
 
@@ -577,9 +575,9 @@ BakedSceneBuilder::pushDownStepsIntoProgram(
             combinedSteps.add(parentSteps[s]);
         }
 
-        Quadric bakedQuadricStorage = operand->getBakedQuadricStorage();
+        QuadricSurface bakedQuadricStorage = operand->getBakedQuadricStorage();
         bool hasBakedQuadric = operand->getHasBakedQuadric();
-        RayCastingInfinitePlane bakedPlaneStorage = operand->getBakedPlaneStorage();
+        PlanarHalfSpace bakedPlaneStorage = operand->getBakedPlaneStorage();
         bool hasBakedPlane = operand->getHasBakedPlane();
         Vector3Dd planeNormal = operand->getPlaneNormal();
         double planeDistance = operand->getPlaneDistance();
@@ -589,24 +587,20 @@ BakedSceneBuilder::pushDownStepsIntoProgram(
                 *operand->getOriginalQuadricGeometry(), combinedSteps);
             hasBakedQuadric = true;
         } else {
-            RayCastingInfinitePlane *plane = static_cast<RayCastingInfinitePlane *>(operand->getOriginalGeometry());
-            bakedPlaneStorage = BakedGeometryBaker::bakePlane(*plane, combinedSteps);
+            bakedPlaneStorage = BakedGeometryBaker::bakePlane(
+                *static_cast<const PlanarHalfSpace *>(operand->getOperand()->getSurface()), combinedSteps);
             hasBakedPlane = true;
-            planeNormal = bakedPlaneStorage.getNormalVector();
-            planeDistance = bakedPlaneStorage.getDistance();
+            planeNormal = bakedPlaneStorage.getBoundaryPlane().getCoefficients();
+            planeDistance = bakedPlaneStorage.getBoundaryPlane().getConstantCoefficient();
         }
         if (operand->getOperand() != nullptr) {
             operand->getOperand()->setBakedTransformFolded(true);
         }
 
-        RayCastingGeometry *effectiveGeometry =
-            hasBakedQuadric ? static_cast<RayCastingGeometry *>(&bakedQuadricStorage) :
-                (hasBakedPlane ? static_cast<RayCastingGeometry *>(&bakedPlaneStorage) : operand->getOriginalGeometry());
-        Quadric *effectiveQuadricGeometry =
-            hasBakedQuadric ? &bakedQuadricStorage : operand->getOriginalQuadricGeometry();
         BakedSceneCsgOperandKind newKind = classifyOperandKind(
-            effectiveGeometry, operand->getNestedCsgProgramIndex(), false,
-            operand->getIsInfinitePlane(), effectiveQuadricGeometry);
+            operand->getOperand()->hasShape(), operand->getDetailFamily(),
+            operand->getNestedCsgProgramIndex(), false, operand->getIsInfinitePlane(),
+            hasBakedQuadric || operand->getOriginalQuadricGeometry() != nullptr);
 
         newOperands.add(cloneOperandWithPushdownBake(
             operand, bakedBounds, bounded, newKind, false,
@@ -649,25 +643,27 @@ BakedSceneBuilder::pushDownStepsIntoProgram(
 CsgOperandRecord
 BakedSceneBuilder::bakeCsgOperand(CsgOperand *operand, BakedScene &out)
 {
-    RayCastingGeometry *originalGeometry = operand->getGeometry();
     Material *material = operand->getMaterial();
     bool hasTransform = operand->getTransformation() != nullptr;
     Matrix4x4d objectToLocal = copyOrIdentity(operand->getTransformation());
     Matrix4x4d localToObject = copyOrIdentity(operand->getTransformationInverse());
     AxisAlignedBoundingBox bakedBounds = operand->getBakedBounds();
     bool bounded = operand->hasBoundedBakedBounds();
-    bool isInfinitePlane = dynamic_cast<RayCastingInfinitePlane *>(originalGeometry) != nullptr;
-    Quadric *originalQuadricGeometry = dynamic_cast<Quadric *>(originalGeometry);
+    bool isInfinitePlane = operand->getSurfaceFamily() == SurfaceDetailFamily::Plane;
+    QuadricSurface *originalQuadricGeometry =
+        operand->getSurfaceFamily() == SurfaceDetailFamily::Quadric ?
+        static_cast<QuadricSurface *>(operand->getSurface()) : nullptr;
     Vector3Dd planeNormal(0.0, 1.0, 0.0);
     double planeDistance = 0.0;
-    if (RayCastingInfinitePlane *plane = dynamic_cast<RayCastingInfinitePlane *>(originalGeometry)) {
-        planeNormal = plane->getNormalVector();
-        planeDistance = plane->getDistance();
+    if (isInfinitePlane) {
+        const PlanarHalfSpace *plane = static_cast<const PlanarHalfSpace *>(operand->getSurface());
+        planeNormal = plane->getBoundaryPlane().getCoefficients();
+        planeDistance = plane->getBoundaryPlane().getConstantCoefficient();
     }
 
-    Quadric bakedQuadricStorage;
+    QuadricSurface bakedQuadricStorage = QuadricSurface(Vector3Dd(1.0, 1.0, 1.0), Vector3Dd(0.0, 0.0, 0.0), Vector3Dd(0.0, 0.0, 0.0), 1.0);
     bool hasBakedQuadric = false;
-    RayCastingInfinitePlane bakedPlaneStorage;
+    PlanarHalfSpace bakedPlaneStorage(0.0, 1.0, 0.0, 0.0);
     bool hasBakedPlane = false;
     java::ArrayList<TransformStep> pushdownAccumulatedSteps;
 
@@ -682,12 +678,12 @@ BakedSceneBuilder::bakeCsgOperand(CsgOperand *operand, BakedScene &out)
             pushdownAccumulatedSteps = operand->getSteps();
             operand->setBakedTransformFolded(true);
         } else if (isInfinitePlane) {
-            RayCastingInfinitePlane *plane = static_cast<RayCastingInfinitePlane *>(originalGeometry);
-            bakedPlaneStorage = BakedGeometryBaker::bakePlane(*plane, operand->getSteps());
+            bakedPlaneStorage = BakedGeometryBaker::bakePlane(
+                *static_cast<const PlanarHalfSpace *>(operand->getSurface()), operand->getSteps());
             hasBakedPlane = true;
             hasTransform = false;
-            planeNormal = bakedPlaneStorage.getNormalVector();
-            planeDistance = bakedPlaneStorage.getDistance();
+            planeNormal = bakedPlaneStorage.getBoundaryPlane().getCoefficients();
+            planeDistance = bakedPlaneStorage.getBoundaryPlane().getConstantCoefficient();
             pushdownAccumulatedSteps = operand->getSteps();
             operand->setBakedTransformFolded(true);
         }
@@ -695,17 +691,15 @@ BakedSceneBuilder::bakeCsgOperand(CsgOperand *operand, BakedScene &out)
 
     bool cullSafe =
         bounded &&
-        ((originalGeometry != nullptr &&
-          dynamic_cast<const Sphere *>(originalGeometry->getIntrinsicGeometry()) != nullptr) ||
-         dynamic_cast<RayCastingBox *>(originalGeometry) != nullptr ||
-         dynamic_cast<Blob *>(originalGeometry) != nullptr ||
-         dynamic_cast<Quadric *>(originalGeometry) != nullptr ||
-         dynamic_cast<HeightField *>(originalGeometry) != nullptr);
+        (operand->getSurfaceFamily() == SurfaceDetailFamily::Sphere ||
+         operand->getSurfaceFamily() == SurfaceDetailFamily::Box ||
+         operand->getSurfaceFamily() == SurfaceDetailFamily::Blob ||
+         operand->getSurfaceFamily() == SurfaceDetailFamily::Quadric ||
+         operand->getSurfaceFamily() == SurfaceDetailFamily::HeightField);
 
     int nestedCsgProgramIndex = -1;
     bool pushdownFolded = false;
-    if (ConstructiveSolidGeometry *nestedCsg =
-            dynamic_cast<ConstructiveSolidGeometry *>(originalGeometry)) {
+    if (ConstructiveSolidGeometry *nestedCsg = operand->getCsg()) {
         nestedCsgProgramIndex = compileConstructiveSolidGeometry(nestedCsg, out);
         cullSafe = false;
         isInfinitePlane = false;
@@ -725,33 +719,16 @@ BakedSceneBuilder::bakeCsgOperand(CsgOperand *operand, BakedScene &out)
         }
     }
 
-    RayCastingGeometry *effectiveGeometry =
-        hasBakedQuadric ? static_cast<RayCastingGeometry *>(&bakedQuadricStorage) :
-            (hasBakedPlane ? static_cast<RayCastingGeometry *>(&bakedPlaneStorage) : originalGeometry);
-    Quadric *effectiveQuadricGeometry = hasBakedQuadric ? &bakedQuadricStorage : originalQuadricGeometry;
     BakedSceneCsgOperandKind kind = classifyOperandKind(
-        effectiveGeometry, nestedCsgProgramIndex, hasTransform, isInfinitePlane, effectiveQuadricGeometry);
+        operand->hasShape(), operand->getSurfaceFamily(), nestedCsgProgramIndex,
+        hasTransform, isInfinitePlane, hasBakedQuadric || originalQuadricGeometry != nullptr);
 
     return CsgOperandRecord(
-        kind, operand, originalGeometry, originalQuadricGeometry, material, nestedCsgProgramIndex,
+        kind, operand, originalQuadricGeometry, material, nestedCsgProgramIndex,
         bakedBounds, objectToLocal, localToObject, hasTransform, bounded, cullSafe, isInfinitePlane,
         planeNormal, planeDistance, -1, -1, bakedQuadricStorage, hasBakedQuadric, bakedPlaneStorage,
         hasBakedPlane, false, -1, false, false,
         java::ArrayList<int>(), java::ArrayList<int>(), pushdownAccumulatedSteps, pushdownFolded);
-}
-
-void
-BakedSceneBuilder::sortCullSafeEntriesByKey(java::ArrayList<CullSafeEntry> &entries)
-{
-    for (long int i = 1; i < entries.size(); i++) {
-        const CullSafeEntry pivot = entries[i];
-        long int j = i - 1;
-        while (j >= 0 && entries[j].getKey() > pivot.getKey()) {
-            entries[j + 1] = entries[j];
-            j--;
-        }
-        entries[j + 1] = pivot;
-    }
 }
 
 OperandCullBins *
@@ -765,78 +742,22 @@ BakedSceneBuilder::buildOperandCullBinsForBucket(
     }
 
     java::ArrayList<int> alwaysTestedPositions;
-    java::ArrayList<CullSafeEntry> cullSafeByAxis{bucketSize};
-    Vector3Dd lo(1e30, 1e30, 1e30);
-    Vector3Dd hi(-1e30, -1e30, -1e30);
+    java::ArrayList<AxisAlignedBoundingBox> cullSafeBounds{bucketSize};
+    java::ArrayList<int> cullSafePositions{bucketSize};
     for (long int p = 0; p < bucketSize; p++) {
         const CsgOperandRecord *operand = &operands[bucket[p]];
         if (operand->getBounded() && operand->getCullSafe()) {
-            const Vector3Dd c = operand->getBakedBounds().centroid();
-            cullSafeByAxis.add(CullSafeEntry{0.0, (int)p});
-            lo = Vector3Dd(
-                std::fmin(lo.x(), c.x()), std::fmin(lo.y(), c.y()), std::fmin(lo.z(), c.z()));
-            hi = Vector3Dd(
-                std::fmax(hi.x(), c.x()), std::fmax(hi.y(), c.y()), std::fmax(hi.z(), c.z()));
+            cullSafeBounds.add(operand->getBakedBounds());
+            cullSafePositions.add((int)p);
         } else {
             alwaysTestedPositions.add((int)p);
         }
     }
 
-    if (cullSafeByAxis.size() < kOperandCullBinThreshold) {
+    if (cullSafePositions.size() < kOperandCullBinThreshold) {
         return nullptr;
     }
-
-    const double spreadX = hi.x() - lo.x();
-    const double spreadY = hi.y() - lo.y();
-    const double spreadZ = hi.z() - lo.z();
-    int axis = 0;
-    if (spreadY > spreadX && spreadY >= spreadZ) {
-        axis = 1;
-    } else if (spreadZ > spreadX && spreadZ > spreadY) {
-        axis = 2;
-    }
-
-    for (long int i = 0; i < cullSafeByAxis.size(); i++) {
-        const CullSafeEntry &entry = cullSafeByAxis[i];
-        const Vector3Dd c = operands[bucket[entry.getPosition()]].getBakedBounds().centroid();
-        const double key = axis == 0 ? c.x() : (axis == 1 ? c.y() : c.z());
-        cullSafeByAxis[i] = CullSafeEntry(key, entry.getPosition());
-    }
-    sortCullSafeEntriesByKey(cullSafeByAxis);
-
-    const int total = (int)cullSafeByAxis.size();
-    int numBins = (int)std::sqrt((double)total);
-    if (numBins < 1) {
-        numBins = 1;
-    }
-    if (numBins > 64) {
-        numBins = 64;
-    }
-    const int base = total / numBins;
-    const int remainder = total % numBins;
-
-    java::ArrayList<AxisAlignedBoundingBox> binBounds;
-    java::ArrayList<int> binMemberStart;
-    java::ArrayList<int> binMemberCount;
-    java::ArrayList<int> binMembers;
-    binMembers.reserve(total);
-    int cursor = 0;
-    for (int b = 0; b < numBins; b++) {
-        const int count = base + (b < remainder ? 1 : 0);
-        AxisAlignedBoundingBox aggregate = AxisAlignedBoundingBox::empty();
-        const int start = (int)binMembers.size();
-        for (int k = 0; k < count; k++) {
-            const int pos = cullSafeByAxis[cursor].getPosition();
-            binMembers.add(pos);
-            aggregate = aggregate.enclosing(operands[bucket[pos]].getBakedBounds());
-            cursor++;
-        }
-        binBounds.add(aggregate);
-        binMemberStart.add(start);
-        binMemberCount.add(count);
-    }
-    return new OperandCullBins(
-        true, binBounds, binMemberStart, binMemberCount, binMembers, alwaysTestedPositions);
+    return new OperandCullBins(cullSafeBounds, cullSafePositions, alwaysTestedPositions);
 }
 
 CsgProgram *
@@ -845,10 +766,9 @@ BakedSceneBuilder::bakeConstructiveSolidGeometry(ConstructiveSolidGeometry *geom
     CsgOperation geometryType = geometry->getGeometryType();
     BakedSceneCsgAlgorithm algorithm;
     bool topLevel;
-    if (ConstructiveSolidGeometryByRaySegment *raySegment =
-            dynamic_cast<ConstructiveSolidGeometryByRaySegment *>(geometry)) {
+    if (geometry->getEvaluator() == CsgBodyEvaluator::ROTH) {
         algorithm = BakedSceneCsgAlgorithm::RaySegments;
-        topLevel = raySegment->isTopLevel();
+        topLevel = geometry->isTopLevel();
     } else {
         algorithm = BakedSceneCsgAlgorithm::MorganRules;
         topLevel = false;
@@ -961,7 +881,7 @@ BakedSceneBuilder::compileTracingObject(PovrayBody *object, BakedScene &out)
         out.composites.set(compositeIndex, bakedComposite);
 
         TraceableObject *entry = new TraceableObject(
-            BakedSceneTraceKind::RayCastingComposite, composite, nullptr, nullptr, nullptr, nullptr, nullptr,
+            BakedSceneTraceKind::RayCastingComposite, composite, nullptr, nullptr, nullptr, nullptr,
             bakedComposite->getWorldBounds(), bakedComposite->getBounded(),
             !bakedComposite->getNoShadowFlag(), bakedComposite->getNoShadowFlag(), -1, compositeIndex,
             bakedComposite->getObjectToWorld(), bakedComposite->getWorldToObject(),
@@ -970,7 +890,7 @@ BakedSceneBuilder::compileTracingObject(PovrayBody *object, BakedScene &out)
             bakedComposite->getHasObjectTransform(), false,
             bakedComposite->getHasBoundingShapes(), bakedComposite->getHasClippingShapes(),
             java::ArrayList<int>(), java::ArrayList<int>(),
-            Quadric(), false, RayCastingInfinitePlane(), false, -1);
+            QuadricSurface(Vector3Dd(1.0, 1.0, 1.0), Vector3Dd(0.0, 0.0, 0.0), Vector3Dd(0.0, 0.0, 0.0), 1.0), false, PlanarHalfSpace(0.0, 1.0, 0.0, 0.0), false, -1);
         out.traceableObjects.set(index, entry);
         return index;
     }

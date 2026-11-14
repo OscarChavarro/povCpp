@@ -10,6 +10,14 @@
 #include "environment/geometry/trace/BlobTrace.h"
 #include "environment/geometry/trace/HeightFieldTrace.h"
 #include "environment/geometry/trace/BicubicPatchTrace.h"
+#include "vsdk/toolkit/environment/geometry/volume/Box.h"
+#include "vsdk/toolkit/environment/geometry/volume/Sphere.h"
+#include "vsdk/toolkit/environment/geometry/volume/BlobSolid.h"
+#include "vsdk/toolkit/environment/geometry/volume/PolynomialSurface.h"
+#include "vsdk/toolkit/environment/geometry/volume/HeightFieldSolid.h"
+#include "vsdk/toolkit/environment/geometry/volume/PlanarHalfSpace.h"
+#include "vsdk/toolkit/environment/geometry/volume/QuadricSurface.h"
+#include "vsdk/toolkit/environment/geometry/surface/SubdividedBezierPatch.h"
 
 int
 SurfaceTraceKernel::emitCrossings(Geometry *surface, SurfaceDetailFamily family,
@@ -129,4 +137,42 @@ SurfaceTraceKernel::containment(Geometry *surface, SurfaceDetailFamily family,
         break;
     }
     throw java::IllegalStateException("Surface has no trace kernel");
+}
+
+SurfaceDetailFamily
+SurfaceTraceKernel::familyOf(const Geometry *surface)
+{
+    if (dynamic_cast<const QuadricSurface *>(surface) != nullptr) return SurfaceDetailFamily::Quadric;
+    if (dynamic_cast<const PlanarHalfSpace *>(surface) != nullptr) return SurfaceDetailFamily::Plane;
+    if (dynamic_cast<const Box *>(surface) != nullptr) return SurfaceDetailFamily::Box;
+    if (dynamic_cast<const Sphere *>(surface) != nullptr) return SurfaceDetailFamily::Sphere;
+    if (dynamic_cast<const PolynomialSurface *>(surface) != nullptr) return SurfaceDetailFamily::Polynomial;
+    if (dynamic_cast<const BlobSolid *>(surface) != nullptr) return SurfaceDetailFamily::Blob;
+    if (dynamic_cast<const HeightFieldSolid *>(surface) != nullptr) return SurfaceDetailFamily::HeightField;
+    if (dynamic_cast<const SubdividedBezierPatch *>(surface) != nullptr) {
+        return SurfaceDetailFamily::BicubicPatch;
+    }
+    return SurfaceDetailFamily::Generic;
+}
+
+void
+SurfaceTraceKernel::initializeState(const Geometry *surface, SurfaceDetailFamily family,
+    SurfaceTraceState &state)
+{
+    if (family == SurfaceDetailFamily::Quadric) {
+        state.setNonZeroSquareTerm(
+            QuadricTrace::hasNonZeroSquareTerm(*static_cast<const QuadricSurface *>(surface)));
+    }
+}
+
+void
+SurfaceTraceKernel::invertGeometry(Geometry *surface, SurfaceDetailFamily family)
+{
+    if (family == SurfaceDetailFamily::Quadric) {
+        QuadricTrace::invert(*static_cast<QuadricSurface *>(surface));
+    } else if (family == SurfaceDetailFamily::Plane) {
+        PlaneTrace::invert(*static_cast<PlanarHalfSpace *>(surface));
+    } else if (invertsByState(family)) {
+        throw java::IllegalStateException("This surface family is inverted by its body");
+    }
 }

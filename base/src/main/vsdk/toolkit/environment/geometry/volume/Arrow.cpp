@@ -8,142 +8,9 @@
 #include "vsdk/toolkit/environment/geometry/volume/Arrow.h"
 #include "vsdk/toolkit/environment/geometry/volume/Cone.h"
 #include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolid.h"
+#include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolidEulerConstructions.h"
 #include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolidEulerOperators.h"
-#include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolidGeometricValidator.h"
-#include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolidValidationEngine.h"
-#include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/nodes/_PolyhedralBoundedSolidEdge.h"
-#include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/nodes/_PolyhedralBoundedSolidFace.h"
-#include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/nodes/_PolyhedralBoundedSolidHalfEdge.h"
-#include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/nodes/_PolyhedralBoundedSolidLoop.h"
-#include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/nodes/_PolyhedralBoundedSolidVertex.h"
 const double Arrow::NO_HIT = 1e308;
-
-int Arrow::normalizedSweepSides()
-{
-    return 36 / 4;
-}
-
-double Arrow::snapSweepCoordinate(double value)
-{
-    return std::round(value * 1.0e10) / 1.0e10;
-}
-
-void Arrow::addArcToExistingFace(
-    PolyhedralBoundedSolid* solid,
-    int faceId,
-    int vertexId,
-    double cx,
-    double cy,
-    double radius,
-    double height,
-    double phi1,
-    double phi2,
-    int steps)
-{
-    double angle = phi1 * M_PI / 180.0;
-    double inc = ((phi2 - phi1) / static_cast<double>(steps)) * M_PI / 180.0;
-    int prev = vertexId;
-
-    for ( int i = 0; i < steps; ++i ) {
-        angle += inc;
-        double x = snapSweepCoordinate(cx + radius * std::cos(angle));
-        double y = snapSweepCoordinate(cy + radius * std::sin(angle));
-        int nextVertexId = solid->getMaxVertexId() + 1;
-        PolyhedralBoundedSolidEulerOperators::smev(
-            solid, faceId, prev, nextVertexId, Vector3Dd(x, y, height));
-        prev = nextVertexId;
-    }
-}
-
-PolyhedralBoundedSolid* Arrow::createCircularLamina(
-    double cx, double cy, double radius, double height, int sides)
-{
-    PolyhedralBoundedSolid* solid = new PolyhedralBoundedSolid();
-    PolyhedralBoundedSolidEulerOperators::mvfs(
-        solid, Vector3Dd(cx + radius, cy, height), 1, 1);
-    addArcToExistingFace(
-        solid, 1, 1, cx, cy, radius, height, 0.0,
-        (sides - 1) * 360.0 / static_cast<double>(sides), sides - 1);
-    PolyhedralBoundedSolidEulerOperators::smef(solid, 1, sides, 1, 2);
-    return solid;
-}
-
-void Arrow::translationalSweepExtrudeFacePlanar(
-    PolyhedralBoundedSolid* solid,
-    _PolyhedralBoundedSolidFace* face,
-    const Matrix4x4d& transformationMatrix)
-{
-    if ( solid == 0 || face == 0 ) {
-        return;
-    }
-
-    java::ArrayList<int> newFaces;
-    for ( long i = 0; i < face->boundariesList.size(); ++i ) {
-        _PolyhedralBoundedSolidLoop* loop = face->boundariesList.get(i);
-        if ( loop == 0 || loop->boundaryStartHalfEdge == 0 ) {
-            continue;
-        }
-
-        _PolyhedralBoundedSolidHalfEdge* first = loop->boundaryStartHalfEdge;
-        _PolyhedralBoundedSolidHalfEdge* scan = first->next();
-        if ( scan == 0 || scan->startingVertex == 0 ) {
-            continue;
-        }
-        Vector3Dd newPos = transformationMatrix.multiply(scan->startingVertex->position);
-        PolyhedralBoundedSolidEulerOperators::lmev(
-            solid, scan, scan, solid->getMaxVertexId() + 1, newPos);
-        while ( scan != first ) {
-            _PolyhedralBoundedSolidHalfEdge* scanNext = scan->next();
-            if ( scanNext == 0 || scanNext->startingVertex == 0 ) {
-                return;
-            }
-
-            newPos = transformationMatrix.multiply(scanNext->startingVertex->position);
-            PolyhedralBoundedSolidEulerOperators::lmev(
-                solid, scanNext, scanNext, solid->getMaxVertexId() + 1, newPos);
-            int newFaceId = solid->getMaxFaceId() + 1;
-            PolyhedralBoundedSolidEulerOperators::lmef(
-                solid, scan->previous(), scan->next()->next(), newFaceId);
-            newFaces.add(newFaceId);
-
-            _PolyhedralBoundedSolidHalfEdge* mirror = scan->next()->mirrorHalfEdge();
-            if ( mirror == 0 ) {
-                return;
-            }
-            scan = mirror->next();
-            if ( scan == 0 ) {
-                return;
-            }
-        }
-
-        int newFaceId = solid->getMaxFaceId() + 1;
-        PolyhedralBoundedSolidEulerOperators::lmef(
-            solid, scan->previous(), scan->next()->next(), newFaceId);
-        newFaces.add(newFaceId);
-    }
-
-    for ( long i = 0; i < newFaces.size(); ++i ) {
-        int newFaceId = newFaces.get(i);
-        _PolyhedralBoundedSolidFace* newFace = solid->findFace(newFaceId);
-        if ( newFace == 0 ) {
-            continue;
-        }
-        if ( !PolyhedralBoundedSolidGeometricValidator::validateFaceIsPlanar(newFace) ) {
-            _PolyhedralBoundedSolidLoop* loop = newFace->boundariesList.get(0);
-            if ( loop == 0 || loop->boundaryStartHalfEdge == 0 ) {
-                continue;
-            }
-            _PolyhedralBoundedSolidHalfEdge* scan = loop->boundaryStartHalfEdge;
-            PolyhedralBoundedSolidEulerOperators::lmef(
-                solid,
-                scan->next(),
-                scan->previous(),
-                solid->getMaxFaceId() + 1);
-        }
-    }
-
-    PolyhedralBoundedSolidValidationEngine::validateIntermediate(solid);
-}
 
 Arrow::Arrow(double bl, double hl, double br, double hr)
     : baseLength(bl), headLength(hl), baseRadius(br), headRadius(hr) {
@@ -311,19 +178,19 @@ PolyhedralBoundedSolid* Arrow::buildPolyhedralBoundedSolid(
     int nsides, int heightDivisions)
 {
     PolyhedralBoundedSolid* solid =
-        createCircularLamina(0.0, 0.0, baseRadius, 0.0, nsides);
+        PolyhedralBoundedSolidEulerConstructions::createCircularLamina(0.0, 0.0, baseRadius, 0.0, nsides);
 
     Matrix4x4d transform;
     double cylinderZStep = baseLength / static_cast<double>(heightDivisions);
     for ( int i = 0; i < heightDivisions; ++i ) {
         transform = transform.translation(0.0, 0.0, cylinderZStep);
-        translationalSweepExtrudeFacePlanar(solid, solid->findFace(1), transform);
+        PolyhedralBoundedSolidEulerConstructions::translationalSweepExtrudeFacePlanar(solid, solid->findFace(1), transform);
     }
 
     double scaleFactor = headRadius / baseRadius;
     Matrix4x4d scaleTransform;
     scaleTransform = scaleTransform.scale(scaleFactor, scaleFactor, 1.0);
-    translationalSweepExtrudeFacePlanar(solid, solid->findFace(1), scaleTransform);
+    PolyhedralBoundedSolidEulerConstructions::translationalSweepExtrudeFacePlanar(solid, solid->findFace(1), scaleTransform);
 
     double prevRadius = headRadius;
     double coneZStep = headLength / static_cast<double>(heightDivisions);
@@ -334,7 +201,7 @@ PolyhedralBoundedSolid* Arrow::buildPolyhedralBoundedSolid(
             nextRadius / prevRadius : 0.0;
         transform = transform.translation(0.0, 0.0, coneZStep);
         scaleTransform = scaleTransform.scale(coneScale, coneScale, 1.0);
-        translationalSweepExtrudeFacePlanar(
+        PolyhedralBoundedSolidEulerConstructions::translationalSweepExtrudeFacePlanar(
             solid, solid->findFace(1), transform.multiply(scaleTransform));
         prevRadius = nextRadius;
     }

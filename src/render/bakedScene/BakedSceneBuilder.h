@@ -2,8 +2,7 @@
 #define __BAKED_SCENE_BUILDER__
 
 #include "render/bakedScene/BakedScene.h"
-#include "render/bakedScene/CullSafeEntry.h"
-#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+#include "environment/scene/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 
 class BakedSceneBuilder {
   public:
@@ -15,11 +14,12 @@ class BakedSceneBuilder {
     static BakedSceneTraceKind classifyTraceableObject(
         bool hasGeometry, bool boundedOrClipped, bool hasCsg);
     static BakedSceneCsgOperandKind classifyOperandKind(
-        RayCastingGeometry *geometry,
+        bool hasGeometry,
+        SurfaceDetailFamily family,
         int nestedCsgProgramIndex,
         bool hasTransform,
         bool isInfinitePlane,
-        Quadric *quadricGeometry);
+        bool isQuadric);
     static bool hasFiniteInteriorBounds(const CsgOperandRecord *operand);
     static bool areSeparated(
         const AxisAlignedBoundingBox &left, const AxisAlignedBoundingBox &right);
@@ -81,9 +81,9 @@ class BakedSceneBuilder {
         const Matrix4x4d &objectToLocal,
         const Matrix4x4d &localToObject,
         bool pushdownFolded,
-        const Quadric &bakedQuadricStorage,
+        const QuadricSurface &bakedQuadricStorage,
         bool hasBakedQuadric,
-        const RayCastingInfinitePlane &bakedPlaneStorage,
+        const PlanarHalfSpace &bakedPlaneStorage,
         bool hasBakedPlane,
         const Vector3Dd &planeNormal,
         double planeDistance,
@@ -103,12 +103,6 @@ class BakedSceneBuilder {
 
     static constexpr long int kOperandCullBinThreshold = 17;
     static constexpr bool kEnableOperandCullBins = true;
-
-    // Ascending insertion sort by key. Bake-time only, called once per wide
-    // union bucket (never on the per-ray path) - same complexity trade-off
-    // already accepted by AabbCullingSupport::sortPositionsDescending for
-    // small per-ray arrays, here applied to a larger but still one-shot list.
-    static void sortCullSafeEntriesByKey(java::ArrayList<CullSafeEntry> &entries);
 
     // Bake-time only. Returns nullptr when the bucket is too small to bin
     // (see OperandCullBins - stores bucket *positions*, never operand

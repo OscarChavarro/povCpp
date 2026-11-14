@@ -3,7 +3,16 @@
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/RayCastingGeometry.h"
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
+#include "vsdk/toolkit/environment/geometry/Geometry.h"
+#include "environment/geometry/element/RayWithTracingState.h"
+#include "vsdk/toolkit/environment/geometry/boundingVolumeHierarchy/BoundingVolumeHierarchy.h"
+#include "environment/geometry/element/SurfaceDetailFamily.h"
+#include "environment/geometry/SurfaceTraceState.h"
+#include "environment/geometry/element/GeometryIntersectionEmissionContext.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
+#include "environment/geometry/element/RayCastingHit.h"
+#include "environment/geometry/element/RayCastingContainment.h"
 
 class TriangleMesh;
 

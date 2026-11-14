@@ -3,9 +3,7 @@
 //=            Ray Tracing News, volume 3, number 3, july 13 1990.          =
 //= [FOLE1992] Foley, vanDam, Feiner, Hughes. "Computer Graphics, princi-   =
 //=            ples and practice" - second edition, Addison Wesley, 1992.   =
-//= [POVR1993] POV-Ray 1.0/2.x "bezier.c" bicubic_patch implementation, as  =
-//=            ported to C++ in the povCpp project (ParametricPatch.cpp,    =
-//=            ParametricBiCubicIntersection.cpp).                          =
+//= [POVR1993] POV-Ray 1.0/2.x "bezier.c" bicubic_patch implementation.     =
 
 #ifndef __PARAMETRIC_BI_CUBIC_PATCH_INTERSECTOR__
 #define __PARAMETRIC_BI_CUBIC_PATCH_INTERSECTOR__

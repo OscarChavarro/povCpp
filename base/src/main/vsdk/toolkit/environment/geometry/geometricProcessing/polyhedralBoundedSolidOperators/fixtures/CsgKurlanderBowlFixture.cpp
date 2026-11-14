@@ -4,6 +4,8 @@
 
 #include "java/lang/Math.h"
 #include "java/util/ArrayList.txx"
+#include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolidEulerConstructions.h"
+#include "vsdk/toolkit/environment/geometry/volume/Cone.h"
 #include "vsdk/toolkit/environment/geometry/geometricProcessing/polyhedralBoundedSolidOperators/PolyhedralBoundedSolidModeler.h"
 #include "vsdk/toolkit/environment/geometry/geometricProcessing/polyhedralBoundedSolidOperators/fixtures/CsgKurlanderBowlFixture.h"
 #include "vsdk/toolkit/environment/geometry/volume/Sphere.h"
@@ -83,11 +85,9 @@ PolyhedralBoundedSolid* CsgKurlanderBowlFixture::createSphere(double radius,
 PolyhedralBoundedSolid* CsgKurlanderBowlFixture::createCylinder(double radius,
     double height, const Vector3Dd& translation)
 {
-    PolyhedralBoundedSolid* solid = Modeler::createCircularLamina(
-        0.0, 0.0, radius, 0.0, CYLINDER_SIDES);
-    Matrix4x4d sweep;
-    sweep = sweep.translation(0.0, 0.0, height);
-    Modeler::translationalSweepExtrudeFacePlanar(solid, solid->findFace(1), sweep);
+    Cone cylinder(radius, radius, height);
+    PolyhedralBoundedSolid* solid =
+        cylinder.exportToPolyhedralBoundedSolid(CYLINDER_SIDES, 1);
 
     Matrix4x4d move;
     move = move.translation(translation);
@@ -111,7 +111,7 @@ PolyhedralBoundedSolid* CsgKurlanderBowlFixture::createExtrudedPolygon(
 
     Matrix4x4d t;
     t = t.translation(0.0, 0.0, thickness);
-    Modeler::translationalSweepExtrudeFacePlanar(solid, solid->findFace(1), t);
+    PolyhedralBoundedSolidEulerConstructions::translationalSweepExtrudeFacePlanar(solid, solid->findFace(1), t);
     return solid;
 }
 

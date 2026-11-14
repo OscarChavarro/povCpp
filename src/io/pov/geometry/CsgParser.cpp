@@ -3,16 +3,14 @@ This file parses POV-style constructive solid geometry blocks.
 
 Note on algorithmic scope: by default the parsed CSG tree is evaluated by
 collecting surface intersections and filtering them with point-membership
-inside tests (ConstructiveSolidGeometryByMorganRules), not by merging full
+inside tests (CsgMorganRulesEvaluator), not by merging full
 in/out ray classifications as in [ROTH1982] Scott D. Roth, "Ray Casting for
 Modeling Solids", Computer Graphics and Image Processing 18, 109-144 (1982).
-When ParserContext::usesCsgRoth() is set (-csgRoth), this builds
-ConstructiveSolidGeometryByRaySegment nodes instead, which do implement
-[ROTH1982]'s ray-segment classification (see
-environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h).
+When ParserContext::usesCsgRoth() is set (-csgRoth), the CSG nodes use the
+ROTH evaluator instead, which implements [ROTH1982]'s ray-segment
+classification (see CsgRaySegmentEvaluator).
 */
 #include "io/pov/geometry/CsgParser.h"
-#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
 #include "io/pov/geometry/SceneBuilder.h"
 #include "io/pov/geometry/GeometryBuilder.h"
 #include "io/pov/geometry/BicubicPatchParser.h"
@@ -25,9 +23,8 @@ environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryB
 #include "io/pov/geometry/SphereParser.h"
 #include "io/pov/geometry/TriangleParser.h"
 #include "vsdk/toolkit/environment/geometry/surface/TriangleMesh.h"
-#include "environment/scene/NativeGeometryBinding.h"
 #include "environment/scene/ProjectedTriangleTraversal.h"
-#include "io/pov/light/LightGeometryAdapter.h"
+#include "environment/scene/ProjectedTriangleTraversal.h"
 #include "io/pov/light/LightSourceParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
@@ -37,13 +34,7 @@ environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryB
 static void
 addCsgShape(ConstructiveSolidGeometry *container, SimpleBodyBuilder *shape)
 {
-    container->addShape(
-        shape->releaseGeometry(),
-        shape->releaseMaterial(),
-        shape->releaseTransformation(),
-        shape->releaseTransformationInverse(),
-        shape->getSteps());
-    delete shape->releaseShapeColor();
+    shape->addToCsg(container);
     delete shape;
 }
 
@@ -80,20 +71,15 @@ flushPendingTriangles(
         return;
     }
 
-    NativeGeometryBinding *mergedMesh = new NativeGeometryBinding(new TriangleMesh());
-    mergedMesh->enableProjectedTriangleTraversal();
-    for (long int i = 0; i < pendingTriangles.size(); i++) {
-        NativeGeometryBinding *source =
-            static_cast<NativeGeometryBinding *>(pendingTriangles[i]->getGeometry());
-        mergedMesh->getProjectedTriangleTraversal()->appendFrom(*source->getProjectedTriangleTraversal(), 0);
-    }
-
     for (long int i = 1; i < pendingTriangles.size(); i++) {
         pendingTriangles[i]->releaseMaterial();
     }
-    Material * const mergedMaterial = pendingTriangles[0]->releaseMaterial();
-    SimpleBodyBuilder *mergedBuilder =
-        new SimpleBodyBuilder(mergedMesh, mergedMaterial, nullptr);
+    SimpleBodyBuilder *mergedBuilder = new SimpleBodyBuilder(
+        new TriangleMesh(), pendingTriangles[0]->releaseMaterial(), nullptr);
+    ProjectedTriangleTraversal *mergedMesh = mergedBuilder->enableProjectedTriangleTraversal();
+    for (long int i = 0; i < pendingTriangles.size(); i++) {
+        mergedMesh->appendFrom(*pendingTriangles[i]->getTriangleTraversal(), 0);
+    }
 
     for (long int i = 0; i < pendingTriangles.size(); i++) {
         delete pendingTriangles[i];
@@ -114,11 +100,11 @@ CsgParser::parse(CsgOperation booleanSetOperation, ParserContext &ctx, bool isNe
 
     if (ctx.usesCsgRoth()) {
         // The Roth (ray-segment) algorithm needs DIFFERENCE kept as a
-        // distinct geometryType (see ConstructiveSolidGeometryByRaySegment),
+        // distinct geometryType (see CsgRaySegmentEvaluator),
         // unlike the point-membership path below which folds it into an
         // INTERSECTION container plus per-child invert().
-        ConstructiveSolidGeometryByRaySegment *rothContainer =
-            new ConstructiveSolidGeometryByRaySegment(booleanSetOperation);
+        ConstructiveSolidGeometry *rothContainer =
+            new ConstructiveSolidGeometry(booleanSetOperation, CsgBodyEvaluator::ROTH);
         rothContainer->setTopLevel(!isNested);
         container = rothContainer;
 
@@ -159,8 +145,7 @@ CsgParser::parse(CsgOperation booleanSetOperation, ParserContext &ctx, bool isNe
                         containerShape = new SimpleBodyBuilder(
                             *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
                                 .getConstantData());
-                        container = static_cast<ConstructiveSolidGeometry *>(
-                            containerShape->getGeometry());
+                        container = containerShape->getCsg();
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -171,8 +156,7 @@ CsgParser::parse(CsgOperation booleanSetOperation, ParserContext &ctx, bool isNe
             }
 
             case Tokenizer::LIGHT_SOURCE_TOKEN:
-                localShape = SceneBuilder::wrap(
-                    new LightGeometryAdapter(LightSourceParser::parseLightSource(ctx)));
+                localShape = SceneBuilder::wrap(LightSourceParser::parseLightSource(ctx));
                 if ((booleanSetOperation == CsgOperation::DIFFERENCE) && firstShapeParsed &&
                     !ctx.usesCsgRoth()) {
                     localShape->invert();

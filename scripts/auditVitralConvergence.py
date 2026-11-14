@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check the migration inventory, the retired raycasting module, VITRAL's independence from
-PovRay, class uniqueness across both trees and byte equality of the local base mirror."""
+PovRay, class uniqueness across both trees, that PovRay defines no geometry, and byte
+equality of the local base mirror."""
 import argparse
 import json
 from pathlib import Path
@@ -49,6 +50,31 @@ def main():
         return names
     for name in sorted(class_names(root / 'src') & class_names(args.vitral_root / 'base/src/main')):
         errors.append('Class defined in both PovRay and VITRAL: ' + name)
+    # The geometry model is VITRAL's: no PovRay class derives from Geometry.
+    def class_bases(directory):
+        bases = {}
+        for header in directory.rglob('*.h'):
+            for line in header.read_text(errors='replace').splitlines():
+                words = line.split()
+                if len(words) < 2 or words[0] != 'class' or ':' not in line or line.rstrip().endswith(';'):
+                    continue
+                name = words[1].rstrip(':')
+                parents = line.split(':', 1)[1].replace('{', ' ').replace(',', ' ').split()
+                bases[name] = {word for word in parents
+                               if word not in ('public', 'protected', 'private', 'virtual')}
+        return bases
+    vitral_bases = class_bases(args.vitral_root / 'base/src/main')
+    geometries = {'Geometry'}
+    grown = True
+    while grown:
+        grown = False
+        for name, parents in vitral_bases.items():
+            if name not in geometries and parents & geometries:
+                geometries.add(name)
+                grown = True
+    for name, parents in sorted(class_bases(root / 'src').items()):
+        if parents & geometries:
+            errors.append('PovRay class derives from a VITRAL geometry: ' + name)
     mirror = root / 'base/src/main'
     files = sorted(p for p in mirror.rglob('*') if p.is_file())
     if not files:
@@ -63,7 +89,8 @@ def main():
     if errors:
         return 1
     print(f'{len(entries)} components pending in stage K; no raycasting module; '
-          f'no reverse dependency or duplicated class; {len(files)} base files identical to VITRAL.')
+          f'no reverse dependency, duplicated class or PovRay geometry; '
+          f'{len(files)} base files identical to VITRAL.')
     return 0
 
 

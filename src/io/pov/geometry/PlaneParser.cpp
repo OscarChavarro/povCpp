@@ -1,6 +1,6 @@
 
 
-#include "environment/geometry/surface/RayCastingInfinitePlane.h"
+#include "vsdk/toolkit/environment/geometry/volume/PlanarHalfSpace.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/pov/geometry/PlaneParser.h"
@@ -21,15 +21,12 @@ PlaneParser::parsePlane()
 SimpleBodyBuilder *
 PlaneParser::parsePlane(ParserContext &ctx)
 {
-    RayCastingInfinitePlane *localShape;
     SimpleBodyBuilder *body = nullptr;
     int constantId;
     Vector3Dd localVector;
     Vector3Dd localNormal;
     double localDistance;
     PovRayMaterial *localTexture;
-
-    localShape = nullptr;
 
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
@@ -43,8 +40,8 @@ PlaneParser::parsePlane(ParserContext &ctx)
                 ctx.tokenStream().ungetToken();
                 PrimitiveParser::parseVector(&localNormal, ctx);
                 localDistance = PrimitiveParser::parseFloat(ctx);
-                localShape = new RayCastingInfinitePlane(localNormal, localDistance * -1.0);
-                body = SceneBuilder::wrap(localShape);
+                body = SceneBuilder::wrap(new PlanarHalfSpace(
+                    localNormal.x(), localNormal.y(), localNormal.z(), localDistance * -1.0));
                 Exit_Flag = true;
                 break;
 
@@ -55,7 +52,6 @@ PlaneParser::parsePlane(ParserContext &ctx)
                         body = new SimpleBodyBuilder(
                                 *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
                                     .getConstantData());
-                        localShape = (RayCastingInfinitePlane *)body->getGeometry();
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }

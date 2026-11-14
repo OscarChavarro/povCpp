@@ -17,8 +17,9 @@ class ScenePostProcessor {
         CsgOperand *operand,
         java::ArrayList<Light*> &lights,
         java::ArrayList<const Matrix4x4d*> &transforms);
+    // Links the lights of a body's CSG operands or light geometry.
     static void linkLightsInShape(
-        RayCastingGeometry *shape,
+        PovrayBody *body,
         java::ArrayList<Light*> &lights,
         java::ArrayList<const Matrix4x4d*> &transforms);
 };

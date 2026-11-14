@@ -4,7 +4,7 @@
 #include "render/bakedScene/CsgContainmentTest.h"
 #include "render/bakedScene/CsgOperandTrace.h"
 #include "render/bakedScene/SingleCorePlaneCsgTrace.h"
-#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
+#include "environment/scene/constructiveSolidGeometry/CsgRaySegmentEvaluator.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgSegmentClassification.txx"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
@@ -32,10 +32,10 @@ RaySegmentCsgCombiner::buildRaySegments(
         CsgContainmentTest::containmentTestOperand(
             operand,
             bakedCsgs,
-            ConstructiveSolidGeometryByRaySegment::classificationPoint(*ray, *localDepthQueue),
-            0.0) == RayCastingGeometry::INSIDE;
+            CsgRaySegmentEvaluator::classificationPoint(*ray, *localDepthQueue),
+            0.0) == RayCastingContainment::INSIDE;
     CsgSegmentClassification<IntersectionCandidate> result =
-        ConstructiveSolidGeometryByRaySegment::segmentsFromCrossings(*localDepthQueue, initialInside);
+        CsgRaySegmentEvaluator::segmentsFromCrossings(*localDepthQueue, initialInside);
 
     scratch.returnQueue(localDepthQueue);
     return result;

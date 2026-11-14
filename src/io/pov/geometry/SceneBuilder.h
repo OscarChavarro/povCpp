@@ -5,7 +5,9 @@
 
 class SceneBuilder {
   public:
-    static SimpleBodyBuilder *wrap(RayCastingGeometry *geometry);
+    static SimpleBodyBuilder *wrap(Geometry *geometry);
+    static SimpleBodyBuilder *wrap(ConstructiveSolidGeometry *csg);
+    static SimpleBodyBuilder *wrap(Light *light);
 };
 
 #endif

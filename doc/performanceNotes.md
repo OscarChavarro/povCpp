@@ -146,6 +146,11 @@ interpreter depth on generic-morgan programs.
   render gate (about 139 s vs the 123 s baseline), so it was replaced by the
   wrapper. The post-wrapper correctness gate was byte-exact (`renderAll.sh`,
   123 s total, followed by `testAgainstGoldenImages.sh`).
+- The package lives in VITRAL, and PovRay links `vitral_base` as a shared
+  library, so LTO does not inline calls into it. Moving the slab-reciprocal
+  constructors out of line cost about 6% of renderAll user time (1531 s vs
+  1441-1463 s); the box filters of the render path are therefore defined
+  inline in their headers (1465 s, 123 s wall).
 - Measurement discipline: interleave runs within one session (absolute
   timings drift across sessions); `CMakeLists.txt` forces the runtime
   output dir to `build/`, so an instrumented (`-pg`) build silently

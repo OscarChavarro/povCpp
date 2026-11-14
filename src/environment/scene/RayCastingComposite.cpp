@@ -51,7 +51,7 @@ RayCastingComposite::doIntersectionForAllRayCrossings(
             IntersectionCandidate _boundingHit;
             if (!boundingShape->doIntersectionFirstHitViaCrossings(compositeRay, _boundingHit) &&
                 boundingShape->doContainmentTest(rayOrigin, GeometryConfig::SMALL_TOLERANCE) ==
-                    RayCastingGeometry::OUTSIDE) {
+                    RayCastingContainment::OUTSIDE) {
                 return (false);
             }
         }
@@ -90,7 +90,7 @@ RayCastingComposite::doIntersectionForAllRayCrossings(
             stats.incrementClippingRegionTests();
             if (clippingShape->doContainmentTest(
                     localIntersection.getIntersection().point,
-                    GeometryConfig::SMALL_TOLERANCE) == RayCastingGeometry::OUTSIDE) {
+                    GeometryConfig::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
                 intersectionFound = false;
                 break;
             }
@@ -131,28 +131,28 @@ RayCastingComposite::doContainmentTest(const Vector3Dd &point, double distanceTo
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
 
-        if (boundingShape->doContainmentTest(point, distanceTolerance) == RayCastingGeometry::OUTSIDE) {
-            return RayCastingGeometry::OUTSIDE;
+        if (boundingShape->doContainmentTest(point, distanceTolerance) == RayCastingContainment::OUTSIDE) {
+            return RayCastingContainment::OUTSIDE;
         }
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         clippingShape = this->getClippingShapes()[i];
 
-        if (clippingShape->doContainmentTest(point, distanceTolerance) == RayCastingGeometry::OUTSIDE) {
-            return RayCastingGeometry::OUTSIDE;
+        if (clippingShape->doContainmentTest(point, distanceTolerance) == RayCastingContainment::OUTSIDE) {
+            return RayCastingContainment::OUTSIDE;
         }
     }
 
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];
 
-        if (localObject->doContainmentTest(localPoint, distanceTolerance) != RayCastingGeometry::OUTSIDE) {
-            return RayCastingGeometry::INSIDE;
+        if (localObject->doContainmentTest(localPoint, distanceTolerance) != RayCastingContainment::OUTSIDE) {
+            return RayCastingContainment::INSIDE;
         }
     }
 
-    return RayCastingGeometry::OUTSIDE;
+    return RayCastingContainment::OUTSIDE;
 }
 
 RayCastingComposite::RayCastingComposite(const RayCastingComposite &other) :
@@ -169,13 +169,6 @@ RayCastingComposite::~RayCastingComposite()
     for (long int i = 0; i < simpleBodies.size(); i++) {
         delete simpleBodies[i];
     }
-}
-
-void
-RayCastingComposite::detachOwnership()
-{
-    PovrayBody::detachOwnership();
-    simpleBodies.clear();
 }
 
 void *

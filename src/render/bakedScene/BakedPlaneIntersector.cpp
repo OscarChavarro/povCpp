@@ -3,7 +3,7 @@
 
 #include "environment/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/environment/geometry/surface/InfinitePlane.h"
-#include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
+#include "environment/scene/constructiveSolidGeometry/CsgOperand.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 
@@ -52,7 +52,7 @@ BakedPlaneIntersector::planeContainmentTest(
 {
     const double signedDistance =
         point.dotProduct(operand->getPlaneNormal()) + operand->getPlaneDistance();
-    return signedDistance <= distanceTolerance ? RayCastingGeometry::INSIDE : RayCastingGeometry::OUTSIDE;
+    return signedDistance <= distanceTolerance ? RayCastingContainment::INSIDE : RayCastingContainment::OUTSIDE;
 }
 
 bool
@@ -64,7 +64,7 @@ BakedPlaneIntersector::tracePlaneOperandCandidate(
     IntersectionCandidate &candidate)
 {
     if (!operand->getIsInfinitePlane() || operand->getNestedCsgProgramIndex() >= 0 ||
-        operand->getGeometry() == nullptr) {
+        !operand->hasGeometry()) {
         return false;
     }
 
@@ -140,7 +140,7 @@ BakedPlaneIntersector::tracePlaneOperandCandidateInRaySpace(
     IntersectionCandidate &candidate)
 {
     if (!operand->getIsInfinitePlane() || operand->getNestedCsgProgramIndex() >= 0 ||
-        operand->getGeometry() == nullptr) {
+        !operand->hasGeometry()) {
         return false;
     }
 

@@ -29,6 +29,24 @@ class SurfaceTraceKernel {
         Material *materialOverride);
     static int containment(Geometry *surface, SurfaceDetailFamily family,
         const SurfaceTraceState &state, const Vector3Dd &point, double distanceTolerance);
+    // The family of a VITRAL geometry bound directly to a body (no adapter);
+    // a triangle mesh without projected traversal is generic.
+    static SurfaceDetailFamily familyOf(const Geometry *surface);
+    // The parts of a trace state derived from a directly bound geometry.
+    static void initializeState(const Geometry *surface, SurfaceDetailFamily family,
+        SurfaceTraceState &state);
+    // POV inverse of a family that encodes it in the geometry (quadric and
+    // plane coefficients); a no-op where PovRay ignores inverse.
+    static void invertGeometry(Geometry *surface, SurfaceDetailFamily family);
+    // Whether the family keeps inversion as the trace state flag (box,
+    // polynomial, blob, sphere, generic); the other families encode it in
+    // their geometry or ignore it.
+    static bool invertsByState(SurfaceDetailFamily family)
+    {
+        return family == SurfaceDetailFamily::Box || family == SurfaceDetailFamily::Polynomial ||
+            family == SurfaceDetailFamily::Blob || family == SurfaceDetailFamily::Sphere ||
+            family == SurfaceDetailFamily::Generic;
+    }
 };
 
 #endif

@@ -1,8 +1,7 @@
 
-#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+#include "environment/scene/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "vsdk/toolkit/environment/light/SpotLight.h"
 #include "environment/scene/RayCastingComposite.h"
-#include "io/pov/light/LightGeometryAdapter.h"
 #include "io/pov/scene/ScenePostProcessor.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
@@ -62,7 +61,7 @@ ScenePostProcessor::linkLights(
             ScenePostProcessor::linkLights(simpleBodies[i], lights, transforms);
         }
     } else {
-        ScenePostProcessor::linkLightsInShape(object->getGeometry(), lights, transforms);
+        ScenePostProcessor::linkLightsInShape(object, lights, transforms);
     }
 
     while (transforms.size() > baseSize) {
@@ -80,7 +79,7 @@ ScenePostProcessor::linkLightsInOperand(
     if (operand->getTransformation() != nullptr) {
         transforms.add(operand->getTransformation());
     }
-    ScenePostProcessor::linkLightsInShape(operand->getGeometry(), lights, transforms);
+    ScenePostProcessor::linkLightsInShape(operand, lights, transforms);
     while (transforms.size() > baseSize) {
         transforms.remove(transforms.size() - 1);
     }
@@ -88,18 +87,19 @@ ScenePostProcessor::linkLightsInOperand(
 
 void
 ScenePostProcessor::linkLightsInShape(
-    RayCastingGeometry *shape,
+    PovrayBody *body,
     java::ArrayList<Light*> &lights,
     java::ArrayList<const Matrix4x4d*> &transforms)
 {
-    if (ConstructiveSolidGeometry *csg = dynamic_cast<ConstructiveSolidGeometry *>(shape)) {
+    if (ConstructiveSolidGeometry *csg = body->getCsg()) {
         const java::ArrayList<CsgOperand*> &operands = csg->getOperands();
         for (long int i = 0; i < operands.size(); i++) {
             ScenePostProcessor::linkLightsInOperand(operands[i], lights, transforms);
         }
-    } else if (LightGeometryAdapter *lightAdapter =
-                   dynamic_cast<LightGeometryAdapter *>(shape)) {
-        ScenePostProcessor::applyTransformsToLight(lightAdapter->getLight(), transforms);
-        lights.add(lightAdapter->releaseLight());
+    } else if (body->getLight() != nullptr) {
+        // The scene receives a placed copy; the body keeps its light.
+        Light *linked = body->getLight()->copy();
+        ScenePostProcessor::applyTransformsToLight(linked, transforms);
+        lights.add(linked);
     }
 }

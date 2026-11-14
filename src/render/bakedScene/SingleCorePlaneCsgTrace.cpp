@@ -37,7 +37,7 @@ SingleCorePlaneCsgTrace::candidateInsideCompiledSingleCorePlaneOperands(
                 &bakedCsg->getOperands()[coreIndex],
                 bakedCsgs,
                 point,
-                GeometryConfig::SMALL_TOLERANCE) == RayCastingGeometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
             return false;
         }
     }
@@ -52,7 +52,7 @@ SingleCorePlaneCsgTrace::candidateInsideCompiledSingleCorePlaneOperands(
                 &bakedCsg->getOperands()[operandIndex],
                 bakedCsgs,
                 point,
-                GeometryConfig::SMALL_TOLERANCE) == RayCastingGeometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
             return false;
         }
     }
@@ -79,7 +79,7 @@ SingleCorePlaneCsgTrace::candidateInsideCompiledNestedContainmentSequence(
                 &nestedCsg->getOperands()[operandIndex],
                 bakedCsgs,
                 point,
-                GeometryConfig::SMALL_TOLERANCE) == RayCastingGeometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
             return false;
         }
     }
@@ -106,7 +106,7 @@ SingleCorePlaneCsgTrace::candidateInsideDirectDescriptorOperands(
         if (BakedPlaneIntersector::planeContainmentTest(
                 &nestedCsg->getOperands()[planeIdx],
                 point,
-                GeometryConfig::SMALL_TOLERANCE) == RayCastingGeometry::OUTSIDE) {
+                GeometryConfig::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
             return false;
         }
     }
@@ -114,11 +114,11 @@ SingleCorePlaneCsgTrace::candidateInsideDirectDescriptorOperands(
     // would be checked last in a reversed iteration).
     const long int coreIndex = parentOperand->getCompiledNestedCoreOperandIndex();
     if (skipIndex != coreIndex) {
-        Quadric *quadric = nestedCsg->getOperands()[coreIndex].getQuadricGeometry();
+        QuadricSurface *quadric = nestedCsg->getOperands()[coreIndex].getQuadricGeometry();
         if (quadric == nullptr ||
-            QuadricTrace::containment(quadric->getSurface(), point,
+            QuadricTrace::containment(*quadric, point,
                 GeometryConfig::SMALL_TOLERANCE) ==
-                RayCastingGeometry::OUTSIDE) {
+                RayCastingContainment::OUTSIDE) {
             return false;
         }
     }
@@ -134,11 +134,11 @@ SingleCorePlaneCsgTrace::traceCompiledCoreOperandAllCrossings(
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
-    if (operand->getGeometry() == nullptr) {
+    if (!operand->hasGeometry()) {
         return false;
     }
     if (operand->getBounded() && operand->getCullSafe() &&
-        !operand->getBakedBounds().intersectsRayForward(*ray)) {
+        !operand->getBakedBounds().intersectsRayForward(*ray, ray->getAabbSlabReciprocals())) {
         return false;
     }
 
@@ -178,7 +178,7 @@ SingleCorePlaneCsgTrace::traceCompiledCoreOperandAllCrossings(
             return false;
         }
         if (!BakedQuadricIntersector::intersectBakedQuadric(
-                *operand->getQuadricGeometry(),
+                *operand->getQuadricGeometry(), operand->getQuadricSquareTerm(),
                 ray,
                 localOrigin,
                 localDirection,
@@ -309,11 +309,11 @@ SingleCorePlaneCsgTrace::traceTransformedQuadricCorePlaneIntersection(
         BakedScene::CsgOperandKind::TransformedQuadric) {
         return false;
     }
-    if (coreOperand->getGeometry() == nullptr) {
+    if (!coreOperand->hasGeometry()) {
         return false;
     }
     if (coreOperand->getBounded() && coreOperand->getCullSafe() &&
-        !coreOperand->getBakedBounds().intersectsRayForward(*ray)) {
+        !coreOperand->getBakedBounds().intersectsRayForward(*ray, ray->getAabbSlabReciprocals())) {
         return false;
     }
 
@@ -330,7 +330,7 @@ SingleCorePlaneCsgTrace::traceTransformedQuadricCorePlaneIntersection(
         return false;
     }
     if (!BakedQuadricIntersector::intersectBakedQuadricWithTrueMiss(
-            *coreOperand->getQuadricGeometry(),
+            *coreOperand->getQuadricGeometry(), coreOperand->getQuadricSquareTerm(),
             ray,
             localOrigin,
             localDirection,
@@ -461,7 +461,7 @@ SingleCorePlaneCsgTrace::traceTransformedNestedSingleCorePlaneOperandAllCrossing
         return false;
     }
     const CsgOperandRecord *coreOperand = &nestedCsg->getOperands()[coreIndex];
-    Quadric *directCoreQuadric =
+    QuadricSurface *directCoreQuadric =
         coreOperand->getKind() ==
             BakedScene::CsgOperandKind::DirectAnnotatedPrimitive ?
         coreOperand->getQuadricGeometry() :
@@ -515,7 +515,7 @@ SingleCorePlaneCsgTrace::traceTransformedNestedSingleCorePlaneOperandAllCrossing
     if (directCoreQuadric != nullptr) {
         bool trueMiss = false;
         const bool quadricHit = BakedQuadricIntersector::intersectBakedQuadricWithTrueMiss(
-            *directCoreQuadric,
+            *directCoreQuadric, coreOperand->getQuadricSquareTerm(),
             parentRay,
             coreRayOrigin,
             coreRayDirection,
@@ -584,7 +584,7 @@ SingleCorePlaneCsgTrace::traceTransformedNestedSingleCorePlaneOperandAllCrossing
     } else {
         // Transformed-quadric path: keep original code path.
         if (BakedQuadricIntersector::intersectBakedQuadric(
-                *coreOperand->getQuadricGeometry(),
+                *coreOperand->getQuadricGeometry(), coreOperand->getQuadricSquareTerm(),
                 parentRay,
                 coreRayOrigin,
                 coreRayDirection,
@@ -701,7 +701,7 @@ SingleCorePlaneCsgTrace::traceSingleCorePlaneIntersection(
                 coreOperand->getQuadricGeometry() != nullptr) {
                 double d1, d2;
                 BakedQuadricIntersector::intersectBakedQuadricWithTrueMiss(
-                    *coreOperand->getQuadricGeometry(), ray,
+                    *coreOperand->getQuadricGeometry(), coreOperand->getQuadricSquareTerm(), ray,
                     ray->getOrigin(), ray->getDirection(),
                     true, scratch.getCache(), coreOperand->getQuadricViewpointSlot(),
                     &d1, &d2, coreTrueMiss);
@@ -896,7 +896,7 @@ SingleCorePlaneCsgTrace::traceCompiledCoreFirstHitCandidates(
             return false;
         }
         if (coreOperand->getBounded() && coreOperand->getCullSafe() &&
-            !coreOperand->getBakedBounds().intersectsRayForward(*ray)) {
+            !coreOperand->getBakedBounds().intersectsRayForward(*ray, ray->getAabbSlabReciprocals())) {
             return false;
         }
 
@@ -908,7 +908,7 @@ SingleCorePlaneCsgTrace::traceCompiledCoreFirstHitCandidates(
         double depth1;
         double depth2;
         if (!BakedQuadricIntersector::intersectBakedQuadricWithTrueMiss(
-                *coreOperand->getQuadricGeometry(),
+                *coreOperand->getQuadricGeometry(), coreOperand->getQuadricSquareTerm(),
                 ray,
                 localOrigin,
                 localDirection,
@@ -989,7 +989,7 @@ SingleCorePlaneCsgTrace::traceCompiledCoreFirstHitCandidates(
         coreOperand->getQuadricGeometry() != nullptr) {
         double d1, d2;
         BakedQuadricIntersector::intersectBakedQuadricWithTrueMiss(
-            *coreOperand->getQuadricGeometry(), ray,
+            *coreOperand->getQuadricGeometry(), coreOperand->getQuadricSquareTerm(), ray,
             ray->getOrigin(), ray->getDirection(),
             true, scratch.getCache(), coreOperand->getQuadricViewpointSlot(),
             &d1, &d2, coreTrueMiss);

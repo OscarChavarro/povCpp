@@ -412,18 +412,18 @@ override, its own `transformation`/`transformationInverse` pair with
 `TransformStep` log (§4.2), and a cached transformed AABB used to cull union
 operands.
 
-Two strategies implement the same interface.
+`ConstructiveSolidGeometry` runs one of two evaluators, chosen by its `CsgBodyEvaluator`.
 
 ### 6.1. Morgan-rules strategy
 
-`ConstructiveSolidGeometryByMorganRules` gathers child crossings and filters
+`CsgMorganRulesEvaluator` gathers child crossings and filters
 candidate points through `doContainmentTest` against the other children.
 
 This strategy depends on reliable point containment near boundaries.
 
 ### 6.2. Ray-segment strategy
 
-`ConstructiveSolidGeometryByRaySegment` builds `RaySegments` from ordered
+`CsgRaySegmentEvaluator` builds `RaySegments` from ordered
 crossings and merges intervals for union, intersection and difference. This is
 selected through the `CSG_ROTH` configuration option exposed by the `-csgRoth`
 command-line path.
@@ -548,37 +548,42 @@ equivalent render-feature semantics.
 
 ## 10. Bounding information
 
-VITRAL requires every `Geometry` to implement:
+VITRAL `Geometry` gives its extent through `getBounds` (`GeometryBounds`:
+finite, empty, unbounded or unsupported) and the legacy `getMinMax()`.
 
-```cpp
-virtual double* getMinMax() = 0;
-```
+The render culling volume is the VITRAL package
+`environment/geometry/boundingVolumeHierarchy`, which depends only on geometry
+elements and linear algebra:
 
-povCpp `Geometry` now exposes a bounding-volume factory directly on the base,
-as a non-pure virtual with an unbounded default:
+- `PreRayHitElement`: conservative ray filter (`mayIntersect`,
+  `mayIntersectBefore`) over a VITRAL `Ray`.
+- `BoundingVolumeHierarchy`: the bounding-volume contract (`containsPoint`,
+  `isUnbounded`, `axisAlignedExtent`, `copy`); `AabbBoundingVolume` is its one
+  implementation, over an `AxisAlignedBoundingBox` value without a vptr.
+- `AxisAlignedBoundingBox`: box value with explicit unbounded semantics, the
+  Kay-Kajiya slab tests and the point test (defined inline in the header),
+  `fromTransformedCorners`, which takes a matrix in VITRAL's column-vector
+  convention, and `fromGeometryBounds`, which keeps finite `GeometryBounds`
+  and gives the unbounded box for any other kind.
+- `AabbBinHierarchy`: two-level hierarchy over primitive boxes in flat,
+  index-linked arrays (bins of consecutive primitives along the axis of widest
+  centroid spread), whose query lists the caller ids of the primitives whose
+  box the ray crosses, in bin and member order.
+- `RaySlabReciprocals`: the reciprocals of a ray direction, with components
+  under `1e-12` marked degenerate; the forward slab test has an overload that
+  takes them precomputed.
 
-```cpp
-virtual BoundingVolumeHierarchy *createBoundingVolume() const;
-```
-
-Concrete povCpp geometries overriding it: `Sphere`, `Box`, `Blob`, `Quadric`,
-`HeightField`, `TriangleMesh`, `ParametricBiCubicPatch` and
-`ConstructiveSolidGeometry` (which unions its operands' transformed extents).
-`CsgOperand` caches the child's bounds transformed by its operand matrix for
-union culling; `SimpleBody::getAABB()` returns the intersection of
-bounding-shape AABBs when bounding regions exist, otherwise the wrapped
-geometry AABB.
-
-Alignment status: the **owner is no longer name-aligned** — VITRAL still
-exposes `getMinMax()` on `Geometry`, while povCpp now exposes
-`createBoundingVolume()` on `Geometry`. The povCpp return is stronger: a
-polymorphic `BoundingVolumeHierarchy`; its naive implementation is
-`AabbBoundingVolume`, which wraps a vptr-free `AxisAlignedBoundingBox` value
-with explicit unbounded semantics.
-
-Required alignment item: agree the shared bounding contract. povCpp's
-`BoundingVolumeHierarchy`/`AabbBoundingVolume`/`AxisAlignedBoundingBox` split is
-the proposed winner.
+PovRay culls with this package: `RayWithTracingState` caches one
+`RaySlabReciprocals` per ray direction, and the bake and CSG traces pass it to
+the forward slab test; the culling index of a wide union (`OperandCullBins`)
+is an `AabbBinHierarchy` over its cull-safe operands plus the positions always
+tested. PovRay's render volume of a traced surface is
+`SurfaceBoundingVolume::create`: `fromGeometryBounds` except for the families
+whose PovRay box differs (box, blob, height field, meshes with unbounded
+faces, bodies without a surface); `ConstructiveSolidGeometry`
+unions its operands' transformed extents, `CsgOperand` caches its bounds
+transformed by its operand matrix, and `PovrayBody::getAABB()` intersects the
+bounding-shape boxes when bounding regions exist.
 
 ---
 
@@ -718,11 +723,9 @@ statistics layer needs a common event taxonomy against VITRAL's
    differs.
 3. Unify or bridge hit-detail masks so point, normal, UV and tangent laziness
    have the same owner and semantics.
-4. Define a shared bounding API. The owner is aligned at `Geometry`, but the
-   contract is not: VITRAL still uses `getMinMax()`, while povCpp now uses
-   `createBoundingVolume()` (§10). The proposed winner is povCpp's
-   `BoundingVolumeHierarchy` contract with `AabbBoundingVolume` wrapping
-   `AxisAlignedBoundingBox` as the naive implementation.
+4. The bounding-volume package is VITRAL's (§10). `SurfaceBoundingVolume`
+   keeps PovRay's box for box, blob and height field, which differ from their
+   `Geometry::getBounds`.
 5. Keep `CameraSnapshot` as the shared render-time camera record and treat ray
    generation differences as intentional unless a visual-parity task requires
    alignment.

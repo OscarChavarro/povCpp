@@ -7,7 +7,7 @@
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/environment/geometry/Geometry.h"
 #include "vsdk/toolkit/environment/geometry/element/Vertex2D.h"
-#include "vsdk/toolkit/environment/geometry/geometricProcessing/polygonClipper/PolygonProcessor.h"
+#include "vsdk/toolkit/environment/geometry/surface/polygon/Polygon2D.h"
 #include "vsdk/toolkit/processing/ComputationalGeometry.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 #include "vsdk/toolkit/environment/geometry/element/RayHit.h"
@@ -52,7 +52,7 @@ int dominantCoordinateForPlane(const InfinitePlane* plane)
 
 /**
 Point in face test used by ray intersection: each loop is classified with
-`PolygonProcessor::isPointInsidePolygon2D` in the dominant projection plane,
+`Polygon2D::isPointInsideContour` in the dominant projection plane,
 and the point is inside when it is inside an odd number of loops.
 @param face face to test
 @param plane containing plane of `face`
@@ -111,7 +111,7 @@ int testPointInsideForRayIntersection(
             he = he->next();
         } while ( he != start );
 
-        loopStatus = PolygonProcessor::isPointInsidePolygon2D(
+        loopStatus = Polygon2D::isPointInsideContour(
             projectedPoint2D, projectedLoopVertices);
         if ( loopStatus == 0 ) {
             return Geometry::LIMIT;

@@ -10,10 +10,11 @@ build proceden del checkout externo.
 
 ```text
 VITRAL base
-  Geometry <- RayCastingGeometry          [PovRay src/environment/geometry]
+  Geometry (todas las geometrías)         [VITRAL; PovRay no define ninguna]
   SceneSolid <- SimpleBody <- CsgBody     [VITRAL scene]
   SceneSolid <- PovrayBody <- CsgOperand  [PovRay src/environment]
   CsgTree (CsgBodyOperand)                [CSG de VITRAL y de PovRay]
+  CsgExpression <- ConstructiveSolidGeometry [PovRay src/environment/scene]
   SimpleScene <- Scene                    [PovRay src/environment/scene]
   SimpleSceneSnapshot / Material / CameraSnapshot / Light
 
@@ -33,29 +34,51 @@ la representación derivada y específica del renderer POV.
 El CSG de PovRay es un `CsgTree` de VITRAL: `ConstructiveSolidGeometry` posee
 sus hojas `CsgOperand` (un `PovrayBody` con una sola capa de colocación y el
 material del operando) y las ve como `CsgBodyOperand`; la operación y el orden
-de operandos son los del árbol. Un CSG anidado es una hoja cuya geometría es otro
-`ConstructiveSolidGeometry`. Los evaluadores rápidos del render (la mezcla de
+de operandos son los del árbol. El CSG no es una geometría: lo posee su cuerpo
+(`PovrayBody::getCsg`, `setCsg`), que lo traza, prueba contención, copia,
+invierte y acota a través de él. Un CSG anidado es una hoja (`CsgOperand`) que
+posee otro `ConstructiveSolidGeometry`; su vista en el árbol
+(`CsgOperandBodyView`) lo expone como expresión hija. El evaluador lo elige el parser con el
+`CsgBodyEvaluator` de VITRAL: `CROSSING_MEMBERSHIP` usa `CsgMorganRulesEvaluator`
+(la heurística de PovRay 1.0) y `ROTH` (`-csgRoth`) usa `CsgRaySegmentEvaluator`.
+Los evaluadores rápidos del render (la mezcla de
 Roth y el filtro de cruces de la heurística) usan las plantillas de VITRAL
 `CsgSegmentClassification` y `CsgCrossingSelection` sobre los eventos de PovRay,
 tanto en los evaluadores POV como en el bake.
 
 ## Código de render de PovRay
 
-`src/environment/geometry` contiene la interfaz de render POV de las
-geometrías (`RayCastingGeometry`), sus colas de cruces y estado por rayo
-(`RayWithTracingState`, `IntersectionCandidate`, `PriorityQueuePool`), los
-volúmenes de acotación del render (`AxisAlignedBoundingBox`, que transforma
-sus esquinas con `GeometryBounds`) y los evaluadores CSG POV con `CsgOperand`.
-`src/environment/scene` contiene `PovrayBody`, los composites de instancias
-(`RayCastingComposite`) y el enlace de render de esferas, mallas y otras
-geometrías VITRAL (`NativeGeometryBinding`).
+`src/environment/geometry` contiene el trazado POV de las geometrías VITRAL:
+las colas de cruces y el estado por rayo (`RayWithTracingState`,
+`IntersectionCandidate`, `PriorityQueuePool`), los códigos de contención
+(`RayCastingContainment`), los kernels por familia (`trace`, con
+`PatchScratch` del parche) y el detalle de superficie (`SurfaceDetailKernel`).
+Los volúmenes de acotación del render son el paquete VITRAL
+`environment/geometry/boundingVolumeHierarchy` (`PreRayHitElement`,
+`BoundingVolumeHierarchy`, `AabbBoundingVolume`, `AxisAlignedBoundingBox`,
+`RaySlabReciprocals`, `AabbBinHierarchy`); `RayWithTracingState` guarda los
+recíprocos de la dirección de cada rayo para la prueba de placas, y los bins
+de operandos de una unión ancha (`OperandCullBins`) son un `AabbBinHierarchy`. `src/environment/scene` contiene
+`PovrayBody`, los composites de instancias (`RayCastingComposite`), el CSG POV
+(`constructiveSolidGeometry`), el recorrido proyectado de triángulos
+(`ProjectedTriangleTraversal`), el orden invertido de cruces de un cuerpo
+invertido (`BoxInvertedCrossingSink`) y el paso de cruces VITRAL a la cola POV
+(`NativeGeometryCrossingSink`). PovRay no define subclases de `Geometry`
+(`scripts/auditVitralConvergence.py` lo comprueba).
 
 El trazado POV de una superficie VITRAL se elige por su familia
 (`SurfaceDetailFamily`) en `SurfaceTraceKernel`: emisión de cruces, primer
 impacto y contención con el estado POV de la superficie (`SurfaceTraceState`:
 inversión, término cuadrado no nulo, caché por punto de vista de los rayos
 primarios y recorrido proyectado de mallas) y las tolerancias históricas de
-PovRay. Las familias son `QuadricTrace`, `BoxTrace`, `PlaneTrace`,
+PovRay. Ese estado pertenece al cuerpo: `PovrayBody` (y por tanto
+`CsgOperand`) guarda la superficie VITRAL, su familia y su
+`SurfaceTraceState`, y traza con el kernel de la familia; los registros del
+bake leen el estado del cuerpo. La inversión de caja, polinomio, blob, esfera
+y geometría genérica es el indicador del estado
+(`SurfaceTraceKernel::invertsByState`); la cuádrica y el plano la codifican en
+sus coeficientes, la malla en su recorrido proyectado, el CSG POV por De
+Morgan, y PovRay la ignora en campos de altura, parches y luces. Las familias son `QuadricTrace`, `BoxTrace`, `PlaneTrace`,
 `PolynomialTrace`, `BlobTrace`, `HeightFieldTrace`, `BicubicPatchTrace`
 (`src/environment/geometry/trace`), `NativeSurfaceTrace` (esferas y geometrías
 genéricas) y `ProjectedTriangleTraversal` (mallas); la geometría de luces es la
@@ -65,12 +88,20 @@ familia vacía. Sus núcleos numéricos son de VITRAL: `QuadricRayExpansion` y
 `PolynomialSurface::intersect`, `HeightFieldSolid::traceFirstHit` y
 `SubdividedBezierPatch::intersect`. La contención de campos de altura conserva
 la prueba truncada a enteros de PovRay 1.0. Los registros del bake guardan
-superficie, familia y estado al construirse y llaman al kernel sin pasar por
-el adaptador; solo un CSG POV trazado como objeto genérico usa su propio
-evaluador. Los adaptadores (`Quadric`, `RayCastingBox`,
-`RayCastingInfinitePlane`, `PolynomialShape`, `Blob`, `HeightField`,
-`RayCastingParametricBiCubicPatch`, `LightGeometryAdapter`) contienen la
-geometría VITRAL y su estado, y delegan en los mismos kernels.
+superficie, familia y estado al construirse y llaman directamente al kernel
+de la familia; solo un CSG POV trazado como objeto genérico usa su propio
+evaluador. El parser construye directamente las geometrías VITRAL
+(`PlanarHalfSpace`, `Box`, `Sphere`, `TriangleMesh`, `QuadricSurface`,
+`PolynomialSurface`, `BlobSolid`, `HeightFieldSolid`, `SubdividedBezierPatch`)
+y `PovrayBody` y `SimpleBodyBuilder` guardan un `Geometry`. El cuerpo elige
+por familia el volumen envolvente (`SurfaceBoundingVolume`), la copia, la
+inversión de coeficientes y el estado inicial (`SurfaceTraceKernel`); una malla
+de triángulos POV es un `TriangleMesh` con el `ProjectedTriangleTraversal` que
+posee el cuerpo. Las reglas de imagen de los campos de altura (borde y nivel de
+agua, alturas fraccionarias POT y TGA) y los tipos de subdivisión del parche
+son del parser. Una `light_source` dentro de un objeto es un cuerpo que posee
+la luz (`PovrayBody::getLight`, familia vacía: sin cruces ni interior); el
+enlace de luces entrega a la escena una copia colocada.
 
 Un impacto se identifica por la superficie VITRAL en la que cae y su familia
 (`IntersectionAttributes::getHitSurface` y `SurfaceDetailFamily`), por el
@@ -79,7 +110,7 @@ composites, que implementan `PostRayHitElement`). `SurfaceDetailKernel`
 calcula la normal según la familia con las reglas de normalización y de normal
 degenerada de PovRay; los adaptadores no intervienen en el detalle. Los
 registros del bake obtienen la superficie de su almacenamiento horneado
-(cuádrica o plano) o del adaptador original.
+(un `QuadricSurface` o un `PlanarHalfSpace`) o de su cuerpo.
 
 Materiales, pigmentos, normales, shaders, parser `.pov`, configuración y la
 extensión `Scene` (niebla, IOR atmosférico, dimensiones, antialias y vida de la
@@ -124,9 +155,10 @@ el entorno compartido y el de PovRay: cruces CSG, atribución de hoja, material 
 cuerpo, desborde de la cadena de detalle y render serial/paralelo con los
 raytracers de VITRAL. La auditoría comprueba que no existe el módulo
 `raycasting`, que VITRAL no incluye código de PovRay, que ninguna clase de PovRay
-repite el nombre de una clase de VITRAL, que las entradas pendientes del
-inventario (`doc/vitralConvergenceInventory.json`) existen y que la copia local
-de `base/src/main` es idéntica a VITRAL.
+repite el nombre de una clase de VITRAL ni deriva de una geometría de VITRAL
+(las subclases transitivas de `Geometry`), que el inventario
+(`doc/vitralConvergenceInventory.json`, hoy vacío) solo nombra archivos
+existentes y que la copia local de `base/src/main` es idéntica a VITRAL.
 
 Desde `/home/jedilink/VITRAL/vitral/cpp`:
 
@@ -136,3 +168,25 @@ cmake -S . -B build -DWITH_JPEG=ON \
 cmake --build build -j12
 ctest --test-dir build --output-on-failure
 ```
+
+## Correspondencia con la literatura
+
+Las APIs públicas de VITRAL que usa la convergencia y el algoritmo publicado
+que implementan. Las etiquetas son las de los comentarios del código; donde el
+código nombra el método sin etiqueta se da la referencia completa.
+
+| API de VITRAL | Algoritmo | Referencia |
+|---|---|---|
+| `CsgRothRayClassifier`, `CsgSegmentClassification`, `CsgMembershipRule`, `CsgBodyEvaluator::ROTH` | Clasificación de rayos sobre el árbol CSG: segmentos IN/OUT por hoja combinados por las tablas de las operaciones (§2.2, §3.3, tabla 3) | [ROTH1982] Roth, S. D. "Ray Casting for Modeling Solids", *Computer Graphics and Image Processing* 18(2), 1982 |
+| `CsgCrossingMembershipFilter`, `CsgBodyEvaluator::CROSSING_MEMBERSHIP` | Heurística CSG de POV-Ray 1.0: cada cruce de una hoja se conserva según la pertenencia del punto a los operandos hermanos | Código fuente de POV-Ray 1.0 (`doc/references/originalPovray1Authors.md`) |
+| `AxisAlignedBoundingBox::intersectsRayForward`, `intersectsRayBefore`, `RaySlabReciprocals` | Prueba de placas rayo/caja con recíprocos de la dirección | Kay, T. L., Kajiya, J. T. "Ray Tracing Complex Scenes", *Computer Graphics* (SIGGRAPH '86) 20(4), 1986 |
+| `AabbBinHierarchy` | Jerarquía de dos niveles: bins de primitivas consecutivas por centroide sobre el eje de mayor dispersión | Sin referencia publicada; equivale a una estructura de nivel inferior de cajas procedurales de Vulkan (`VK_GEOMETRY_TYPE_AABBS_KHR`) |
+| `Triangle` (consulta rayo/triángulo) | Intersección rayo/triángulo sin almacenamiento adicional | Möller, T., Trumbore, B. "Fast, Minimum Storage Ray-Triangle Intersection", *Journal of Graphics Tools* 2(1), 1997 |
+| `SubdividedBezierPatch`, `ParametricBiCubicPatch`, `_ParametricBiCubicPatchIntersector` | Parche bicúbico: red de control de Bézier, subdivisión de de Casteljau y árbol de esferas envolventes; inversa de la matriz de base de Bézier (11.28) | [WAYN1990] Knapp, W. "Ray with Bicubic Patch Intersection Problem", *Ray Tracing News* 3(3), 1990; [FOLE1992] Foley, van Dam, Feiner, Hughes, *Computer Graphics: Principles and Practice*, 2.ª ed., 1992; [POVR1993] `bezier.c` de POV-Ray 1.0/2.x |
+| `PolynomialSurface`, `BlobSolid` | Raíces reales sobre el rayo por secuencias de Sturm (o la fórmula cerrada de la cuártica) | El código no cita una referencia |
+| `PolyhedralBoundedSolid`, `PolyhedralBoundedSolidEulerConstructions`, `Cone` | Representación por semiaristas y operadores de Euler (`mvfs`, `smev`, `smef`, `lmev`, `lmef`); lámina circular y barrido traslacional (12.2, 12.3.1) | [MANT1988] Mäntylä, M. *An Introduction to Solid Modeling*, Computer Science Press, 1988 |
+| `_PolyhedralBoundedSolidSetOperator` y clasificadores de `polyhedralBoundedSolidOperators/booleans` | Operaciones booleanas de 2-variedades por clasificación de vecindades de vértices | [MANT1986] Mäntylä, M. "Boolean Operations of 2-Manifolds through Vertex Neighborhood Classification", *ACM Transactions on Graphics* 5(1), 1986; [MANT1988] |
+| `MonotoneDecompositionTriangulator` | Descomposición trapezoidal incremental aleatorizada y triangulación de polígonos | [SEID1991] Seidel, R. "A Simple and Fast Incremental Randomized Algorithm for Computing Trapezoidal Decompositions and for Triangulating Polygons", *Computational Geometry: Theory and Applications* 1(1), 1991 |
+| `VoxelVolume` | Conversión a vóxeles y recorrido incremental de la grilla | [KAUF1987] Kaufman, A., SIGGRAPH '87; [SNYD1987] Snyder, J., Barr, A., SIGGRAPH '87; [AMAN1987] Amanatides, J., Woo, A., Eurographics '87 |
+| `ProceduralNoise` | Ruido de gradiente y turbulencia; hipertextura | [PERL1985] Perlin, K. "An Image Synthesizer", SIGGRAPH '85; [PERL1989] Perlin, K., Hoffert, E. "Hypertexture", SIGGRAPH '89 |
+| `AffineEllipsoidMinimumDistance`, `AffineEllipsoidDistanceBounds` | Distancia certificada a esferas bajo transformaciones afines | `doc/vitralCertifiedEllipsoidBounds.md` |

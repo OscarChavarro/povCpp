@@ -1,7 +1,6 @@
 
 
 #include "vsdk/toolkit/environment/geometry/volume/Sphere.h"
-#include "environment/scene/NativeGeometryBinding.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/pov/geometry/SphereParser.h"
@@ -39,7 +38,7 @@ SphereParser::parseSphere(ParserContext &ctx)
                 ctx.tokenStream().ungetToken();
                 PrimitiveParser::parseVector(&localCenter, ctx);
                 localRadius = PrimitiveParser::parseFloat(ctx);
-                body = SceneBuilder::wrap(new NativeGeometryBinding(new Sphere(localRadius)));
+                body = SceneBuilder::wrap(new Sphere(localRadius));
                 // The radius is intrinsic to the VITRAL sphere; only
                 // the center is accumulated on the owner transform, kept
                 // separate from the material/texture transform path.

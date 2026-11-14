@@ -1,22 +1,22 @@
 #ifndef __BAKED_GEOMETRY_BAKER__
 #define __BAKED_GEOMETRY_BAKER__
 
-#include "environment/geometry/surface/RayCastingInfinitePlane.h"
-#include "environment/geometry/volume/Quadric.h"
+#include "vsdk/toolkit/environment/geometry/volume/PlanarHalfSpace.h"
+#include "vsdk/toolkit/environment/geometry/volume/QuadricSurface.h"
 #include "environment/geometry/element/TransformStep.h"
 
 class BakedGeometryBaker {
   public:
-    static Quadric bakeQuadric(
-        const Quadric &original, const java::ArrayList<TransformStep> &steps);
-    static RayCastingInfinitePlane bakePlane(
-        const RayCastingInfinitePlane &original, const java::ArrayList<TransformStep> &steps);
+    static QuadricSurface bakeQuadric(
+        const QuadricSurface &original, const java::ArrayList<TransformStep> &steps);
+    static PlanarHalfSpace bakePlane(
+        const PlanarHalfSpace &original, const java::ArrayList<TransformStep> &steps);
 
   private:
-    static void quadricToMatrix(const Quadric &quadric, Matrix4x4d *matrix);
-    static Quadric matrixToQuadric(const Matrix4x4d &matrix);
-    static Quadric transformQuadric(
-        const Quadric &shape, const Matrix4x4d &transformationInverse);
+    static void quadricToMatrix(const QuadricSurface &quadric, Matrix4x4d *matrix);
+    static QuadricSurface matrixToQuadric(const Matrix4x4d &matrix);
+    static QuadricSurface transformQuadric(
+        const QuadricSurface &shape, const Matrix4x4d &transformationInverse);
 };
 
 #endif

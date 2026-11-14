@@ -24,17 +24,18 @@ areas showed up unplanned, as by-products of decoupling/performance work rather
 than conceptual design, and will likely absorb most of the churn that follows:
 
 - **`geometry/element`** (`src/environment/geometry/element/`) — the
-  supporting types around a ray-geometry hit (`PreRayHitElement`,
-  `PostRayHitElement`, `DetailMask`, `GeometryConfig`,
+  supporting types around a ray-geometry hit (`PostRayHitElement`, `DetailMask`, `GeometryConfig`,
   `GeometryIntersectionEmissionContext`, `IntersectionAttributes`,
   `IntersectionCandidate`, `PovRayHit`, `RayWithTracingState`,
   `TransformStep`, `PriorityQueuePool`).
   This package grew ad hoc, driven by whatever the last performance or
   decoupling pass needed, without a governing concept.
-- **`geometry/boundingVolumeHierarchy`** (`src/environment/geometry/
-  boundingVolumeHierarchy/`) — the pre-hit bounding-volume contract
-  (`BoundingVolumeHierarchy`) and its naive concrete implementation
-  (`AxisAlignedBoundingBox`).
+- **`geometry/boundingVolumeHierarchy`** (VITRAL `vsdk/toolkit/environment/
+  geometry/boundingVolumeHierarchy/`) — the pre-hit filter
+  (`PreRayHitElement`), the bounding-volume contract
+  (`BoundingVolumeHierarchy`), its naive implementation
+  (`AabbBoundingVolume` over `AxisAlignedBoundingBox`) and the per-ray slab
+  reciprocals (`RaySlabReciprocals`).
 - **`render/bakedScene`** and **`render/raySharedCache`** — the baked-CSG and
   per-ray-cache machinery built during the performance plans
   (`performanceNotes.md`). Also ad hoc, also likely to be touched by whatever
@@ -63,7 +64,7 @@ at that point* (surface normal, UV, material references, etc.)? That is a
 **post-hit** query.
 
 The **pre-hit** question is now represented by `PreRayHitElement`
-(`src/environment/geometry/element/PreRayHitElement.h`): *what is the fastest
+(VITRAL `vsdk/toolkit/environment/geometry/boundingVolumeHierarchy/PreRayHitElement.h`): *what is the fastest
 possible bound I can test a ray against before doing exact geometry math?*
 Its contract is conservative: false positives are allowed, false negatives are
 not.
@@ -111,22 +112,20 @@ boundingVolumeHierarchy    geometry
                                        other way around)
 ```
 
-Current state:
+Current state (VITRAL package `vsdk/toolkit/environment/geometry/boundingVolumeHierarchy`):
 
-- `AxisAlignedBoundingBox` has moved out of `geometry/element` into
-  `geometry/boundingVolumeHierarchy`.
-- `BoundingVolumeHierarchy` is an interface implementing
-  `PreRayHitElement`) that `AxisAlignedBoundingBox` becomes one implementation
-  of — explicitly the **naive** one. It is a single box, not a hierarchy, but
-  it is the placeholder for the interface until real hierarchies exist.
-- `boundingVolumeHierarchy` depends only on `element` (for the
-  `PreRayHitElement` interface and shared primitives like `Vector3Dd`), never
-  on `geometry`.
-- `geometry` depends on `boundingVolumeHierarchy` for constructing bounds, but
-  the dependency never goes the other direction.
+- `PreRayHitElement` is the conservative filter over a VITRAL `Ray`;
+  `BoundingVolumeHierarchy` extends it, and `AabbBoundingVolume` is its
+  **naive** implementation: a single `AxisAlignedBoundingBox`, not a
+  hierarchy, kept as the placeholder until real hierarchies exist.
+- The package depends only on geometry elements (`Ray`, `GeometryBounds`) and
+  linear algebra, never on `Geometry`.
 - The slab and point-in-box tests are methods on `AxisAlignedBoundingBox`
   (`intersectsRayForward`, `intersectsRayBefore`,
-  `containsPointWithTolerance`).
+  `containsPointWithTolerance`); the slab tests are defined inline in the
+  header, and the forward test has an overload taking the direction
+  reciprocals precomputed (`RaySlabReciprocals`), which PovRay caches per ray
+  in `RayWithTracingState`.
 - Future implementations — BSP trees, k-d trees, voxel grids reusing vitral's
   existing `VoxelVolume`/`geometricProcessing` voxelizers — become siblings of
   `AxisAlignedBoundingBox` under the same interface, swappable per scene or

@@ -1,6 +1,6 @@
 #include "environment/geometry/trace/BicubicPatchTrace.h"
 #include "environment/geometry/element/GeometryConfig.h"
-#include "environment/geometry/surface/parametric/PatchScratch.h"
+#include "environment/geometry/trace/PatchScratch.h"
 #include "java/util/PriorityQueue.txx"
 
 int

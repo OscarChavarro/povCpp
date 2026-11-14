@@ -2307,3 +2307,291 @@ rebuilds it (`buildObject`, six sites); `CsgParser` builds operands from the
 builder's geometry with `addShape`. A body-level flag would be lost in those
 cycles, so K-4 was split: K-4.1 makes the parser keep bodies whole, K-4.2 moves
 the surface state (inversion included) to the body.
+
+## Stage K: parser over bodies (K-4.1)
+
+`ObjectParser::parseObject` and `parseComposite` build the `PovrayBody` or
+`RayCastingComposite` once, from the shape or from a copy of the declared
+object, and `parseObjectModifiers` edits it in place: regions are added to its
+lists, color, texture and `no_shadow` are set on it, and each transform or
+`inverse` is applied to it. `extractObjectState`, `extractCompositeState`,
+`buildObject`, `buildComposite`, `PovrayBody::detachOwnership` and its
+composite override were removed, as was the dead `ParsedTransformOp` history.
+`SimpleBodyBuilder` is consumed whole by `buildBody`, `buildRegion` or
+`addToCsg`; its individual `release*` accessors were removed except the
+material one used by triangle fusion. The `PovrayBody` copy keeps the object
+texture releaser (a copied texture is never a registered constant, so the
+release is a plain delete as before). Replacing a color now deletes the
+previous one, and a declared composite that replaces earlier content of its
+block releases that content.
+
+Gates: examples 64/64, renderAll 108/108 byte-identical (120 s), Roth 7 known
+(trough RMSE 0.052355), audit 37 pending/161 identical, POV ctest 333.
+
+## Stage K: body-owned surface state (K-4.2)
+
+`PovrayBody` (and so `CsgOperand`) binds, whenever its geometry is set, the
+traced VITRAL surface, its `SurfaceDetailFamily` and a `SurfaceTraceState`
+filled by `RayCastingGeometry::initializeTraceState` (the quadric square-term
+flag, the mesh traversal). Bodies and operands trace and test containment
+through `SurfaceTraceKernel` with that state; geometry without a family (a POV
+CSG) still traces itself. Bake records read surface, family and state from
+their body or operand; the baked quadric and plane storage keep a state of
+their own in the record. `PovrayBody::invertSurface` flips the state flag for
+the families of `SurfaceTraceKernel::invertsByState` (box, polynomial, blob,
+sphere, generic) and otherwise inverts the geometry and drops the viewpoint
+cache. `SimpleBodyBuilder` keeps the flag until the body, region or operand is
+built; the `sturm` rebuild of blobs and polynomials carries it.
+
+The adapters no longer hold any state: `getTraceState`, the inversion flags and
+accessors of box, binding, polynomial and blob, the viewpoint constructor
+arguments and cache accessors of quadric and plane, and
+`PovrayBody::queryWrappedSolid` were removed. Inverting a box, polynomial,
+blob or non-mesh binding directly throws. The body applies its inversion to
+its VITRAL queries (`queryCoreSolid`, `classifyCoreRay`, `emitRayCrossings`,
+`classifyPoint`, `getWorldBounds`, `getSurfaceBounds`), which the adapters did
+before. Tests that inverted a standalone adapter invert a body.
+
+Gates: examples 64/64, renderAll 108/108 byte-identical (118 s), Roth 7 known
+(trough RMSE 0.052355), audit 37 pending/161 identical, POV ctest 333.
+
+## Stage K: body over a VITRAL geometry (K-5.0)
+
+`PovrayBody`, `CsgOperand` and `SimpleBodyBuilder` take a `Geometry`.
+`PovrayBody::getRenderGeometry` returns the `RayCastingGeometry` when the
+geometry is one (remaining adapters, POV CSG, light geometry) and null for a
+plain VITRAL geometry, whose surface is the geometry itself, its family
+`SurfaceTraceKernel::familyOf`, its state `SurfaceTraceKernel::initializeState`
+(quadric square-term flag). Copy uses `copyGeometry` for a plain geometry,
+inversion `SurfaceTraceKernel::invertGeometry` (quadric and plane
+coefficients; the other families keep the body flag), and the render culling
+volume `SurfaceBoundingVolume::create`, which also serves the adapters
+(per-family code moved out of `RayCastingBox`, `Quadric`, `Blob`,
+`HeightField`, `ParametricPatch` and `NativeGeometryBinding`). Adapter-type
+checks became family checks: `PovrayBody::emitRayCrossings`, CSG operand cull
+safety (`CsgOperand::ensureBakedBounds`, `BakedSceneBuilder::bakeCsgOperand`),
+`isUnionOfBarePlanes` of the Roth CSG and `BakedSceneBuilder::classifyOperandKind`
+(now on family, quadric and plane flags). Light linking reads the render
+geometry.
+
+Gates: examples 64/64, renderAll 108/108 byte-identical (118 s), Roth 7 known
+(trough RMSE 0.052355), audit 35 pending/161 identical, POV ctest 333.
+
+## Stage K: plane family (K-5.1)
+
+`PlaneParser` builds a VITRAL `PlanarHalfSpace` (coefficients as written,
+constant negated) and gives it to the body. The bake folds placement into a
+`PlanarHalfSpace` value (`BakedGeometryBaker::bakePlane`, same arithmetic on
+the raw coefficients) and the bake records hold that value; records report
+`hasGeometry()` from their surface or render geometry instead of returning an
+adapter. Records read surface, family and state from the body whether or not
+it has a render geometry. `RayCastingInfinitePlane` and its inventory entries
+were deleted. Plane tests use `PlanarHalfSpace` and a `PovrayBody` (inversion
+in the coefficients, independent copies).
+
+## Stage K: box, spheres and meshes (K-5.2, K-5.3)
+
+`BoxParser` builds a VITRAL `Box`, `SphereParser` a `Sphere`, `TriangleParser`
+a `TriangleMesh` whose `ProjectedTriangleTraversal` is held by the
+`SimpleBodyBuilder` (`enableProjectedTriangleTraversal`) and handed to the
+body (`PovrayBody::setTriangleTraversal`); the CSG triangle run merge appends
+traversals in a new builder. The body owns the traversal: it makes the
+surface family `Mesh`, is copied with the mesh, takes the mesh inversion, and
+makes the body's bounds unbounded when a face is. VITRAL queries on a mesh
+body are unsupported for points and ray classification, as before, and its
+crossings come from the traversal inside the body's placement
+(`PovrayBody::emitMeshCrossings`). `RayCastingBox`, `NativeGeometryBinding`
+and their inventory entries were deleted; standalone binding tests became
+body tests.
+
+Gates (K-5.1 to K-5.3): renderAll 108/108 byte-identical (123 s), Roth 7
+known (trough RMSE 0.052355), POV ctest 333.
+
+The bake marked an object without a render geometry as empty
+(`classifyTraceableObject` read the render geometry); it reads the body's
+geometry. The first K-5.1/K-5.2 gate run showed it (76 scenes differing).
+
+## Stage K: quadric, polynomial, blob, height field, patch (K-5.4 to K-5.8)
+
+The parsers build `QuadricSurface`, `PolynomialSurface`, `BlobSolid`,
+`HeightFieldSolid` and `SubdividedBezierPatch`. The `sturm` rebuild copies
+the VITRAL polynomial or blob with Sturm sequences
+(`PolyParser::copyWithSturmSequences`, `BlobParser::copyWithSturmSequences`).
+The height field image rules (border and water level heights, POT and TGA
+fractions, water level as the grid floor) and the bicubic patch subdivision
+type are private to `HeightFieldParser` and `BicubicPatchParser`. The bake
+folds placement into a `QuadricSurface` value (`BakedGeometryBaker`); the
+records keep the square-term flag (`getQuadricSquareTerm`) that
+`BakedQuadricIntersector` takes with the surface. A bicubic patch body keeps
+the POV crossing path and reports no VITRAL solid, as the adapter did.
+`PovrayBody::queryCoreSolid` reports the body's geometry for every plain
+VITRAL geometry and none for a render geometry. `Quadric`, `PolynomialShape`,
+`Blob`, `HeightField`, `RayCastingParametricBiCubicPatch` (with
+`ParametricPatch.cpp`) and their inventory entries were deleted, as were the
+`RayCastingGeometry` virtuals left without callers (`getIntrinsicGeometry`,
+`getDetailSurface`, `initializeTraceState`, `hasNativeAnnotatedCrossings`).
+
+Gates (K-5.4 to K-5.8): renderAll 108/108 byte-identical (120 s), Roth 7 known
+(trough RMSE 0.052355), audit 21 pending/161 identical, POV ctest 333. Run
+again after the dead virtuals were removed: 108/108 (123 s), Roth 7 known. The
+example captures run only VITRAL binaries and were not repeated for these
+PovRay-only steps (last capture, K-5.0: 64/64).
+
+## Stage K: CSG evaluators (K-6.1)
+
+K-6 was split in three steps (plan §K-6): evaluators, CSG held by the body,
+cleanup. VITRAL `CsgBody` places nested nodes at identity and cannot hold
+POV's per-level placement, so the POV CSG stays a PovRay class over the shared
+`CsgTree`. `CsgMorganRulesEvaluator` and `CsgRaySegmentEvaluator` hold the
+crossing, containment and De Morgan inversion code over the operand list;
+`ConstructiveSolidGeometry` is one concrete class with the VITRAL
+`CsgBodyEvaluator` and the Roth top-level flag. Its copy keeps the order each
+evaluator had (reversed operands for the POV-Ray 1.0 one). The bake reads the
+evaluator instead of a `dynamic_cast`. `ConstructiveSolidGeometryByMorganRules`
+and `ConstructiveSolidGeometryByRaySegment` and their inventory entries were
+deleted.
+
+Gates (K-6.1): renderAll 108/108 byte-identical (121 s), Roth 7 known (trough
+RMSE 0.052355), audit 17 pending/161 identical, POV ctest 333.
+
+## Stage K: CSG held by the body (K-6.2, K-6.3)
+
+`ConstructiveSolidGeometry` is a `CsgExpression` and no longer a geometry.
+`PovrayBody` owns it (`setCsg`, `getCsg`, `hasShape`) and routes crossings,
+containment, copy, De Morgan inversion and bounds to it; the parser builder
+keeps it apart from the geometry, the bake reads it from the body
+(`TraceableObject` and `CsgOperandRecord` keep it for the evaluator fallback of
+`BakedSurfaceTrace`), and light linking walks the body's CSG. The annotated
+crossings that only the CSG used moved from `RayCastingGeometry` to it, and
+`invertGeometry` was deleted. `CsgOperandBodyView` (a VITRAL `CsgBodyOperand`)
+returns the nested CSG of a leaf as its child expression, which VITRAL found
+before by casting the leaf geometry. The package moved to
+`src/environment/scene/constructiveSolidGeometry`; its two inventory entries
+were removed.
+
+Gates (K-6.2): renderAll 108/108 byte-identical (119 s), Roth 7 known, POV
+ctest 333. Gates (K-6.3): renderAll 108/108 byte-identical (122 s), Roth 7 known
+(trough RMSE 0.052355), audit 15 pending/161 identical, POV ctest 333.
+
+## Stage K: removal of RayCastingGeometry (K-7)
+
+A `light_source` inside an object or CSG is a `PovrayBody` that owns the light
+(`setLight`, `getLight`): family `Empty`, no crossings, containment outside,
+unsupported bounds, nothing to invert, as `LightGeometryAdapter` had. Light
+linking gives the scene a placed copy (`Light::copy`) and the body keeps its
+light, so the body stays a shape for the bake as the adapter did after its
+light was released. `RayCastingGeometry`, `LightGeometryAdapter` and their
+inventory entries were deleted; the containment codes are
+`RayCastingContainment`. The audit now fails when a PovRay class derives from
+a VITRAL geometry (the transitive subclasses of `Geometry`, 29 classes).
+`BoxInvertedCrossingSink` moved to `scene` and `PatchScratch` to `trace`; they,
+`NativeGeometryCrossingSink` and `ProjectedTriangleTraversal` are POV render
+code and left the inventory, which now lists the four bounding-volume files
+of K-8.
+
+Gates (K-7): renderAll 108/108 byte-identical (122 s), Roth 7 known (trough
+RMSE 0.052355), POV ctest 333. After moving the two helpers: renderAll
+108/108 (120 s), Roth 7 known, audit 4 pending/161 identical with no PovRay
+geometry, ctest 333.
+
+## VITRAL: cone construction over Euler operators
+
+`Cone` built its boundary representation through `PolyhedralBoundedSolidModeler`
+(`createCircularLamina`, `translationalSweepExtrudeFacePlanar`), while the
+modeler's cylinder fallback instantiates `Cone`, a cycle between the volume and
+the processing layers. The arc, the circular lamina and the translational
+sweeps ([MANT1988] 12.2 and 12.3.1, composed only of `mvfs`, `smev`, `smef`,
+`lmev` and `lmef`) are now `PolyhedralBoundedSolidEulerConstructions` in
+`volume/polyhedralBoundedSolid`, and left the modeler. `Cone` and `Arrow`
+(which had private copies of the lamina and the planar sweep, deleted) build on
+it; the cylinders of `CsgKurlanderBowlFixture` and of the reference-pairs test
+are made by instantiating `Cone` and exporting its solid. `Cone` and `Arrow`
+no longer include `geometricProcessing`.
+
+Gates: VITRAL ctest 332/332, example captures 64/64 identical, renderAll
+108/108 byte-identical (121 s), Roth 7 known (trough RMSE 0.052355), audit 4
+pending/161 identical, PovRay ctest 333.
+
+## VITRAL: polygon predicates in Polygon2D
+
+`PolygonProcessor` (`geometricProcessing/polygonClipper`) held the point in
+contour test, the contour in contour test and the hole classification of a
+`Polygon2D`, and `Polygon2D::eraseLastLoop` called it back through a local
+redeclaration, a cycle between the surface and the polygon clipper groups.
+The predicates are now `Polygon2D::isPointInsideContour` (1 inside, 0 on the
+border, -1 outside), the private `isPointOnSegment` and
+`isContourInsideContour`, and the member `classifyContourHoles`;
+`PolyhedralBoundedSolid` (point in face) and the tangible-interface marker
+tool use them. `polygon2DSimplify` had no caller and was deleted with the
+class.
+
+Gates: VITRAL ctest 332/332, dependency analysis (`vitralCpp`) 1043 nodes, no
+orphan and no backward group relation, example captures 64/64 identical,
+renderAll 108/108 byte-identical (123 s), Roth 7 known (trough RMSE 0.052355).
+
+## Stage K: bounding-volume package in VITRAL (K-8)
+
+The package is VITRAL `environment/geometry/boundingVolumeHierarchy`
+(dependency group `22_GEOMETRY_BOUNDING_VOLUME_HIERARCHY`, over geometry
+elements and linear algebra only):
+
+- `PreRayHitElement`, `BoundingVolumeHierarchy` and `AabbBoundingVolume` take
+  a VITRAL `Ray`.
+- `RaySlabReciprocals` holds the reciprocals of a direction with the PovRay
+  degeneracy rule (`|d| < 1e-12`, reciprocal stored as zero).
+- `AxisAlignedBoundingBox` has the forward slab test with and without
+  precomputed reciprocals, the bounded slab test, the point test,
+  `fromTransformedCorners` over a column-vector matrix (PovRay callers pass
+  the transpose of their row-vector placements, which the old PovRay copy
+  transposed internally) and `fromGeometryBounds`.
+- `AabbBinHierarchy` is the culling index formerly built inside
+  `BakedSceneBuilder`: flat arrays of bin boxes, member ranges, member ids and
+  member boxes, the same centroid axis choice, stable insertion sort and
+  `sqrt(n)` bins capped at 64. `OperandCullBins` keeps PovRay's policy
+  (threshold 17, cull-safe selection, positions always tested);
+  `CullSafeEntry` and `BakedSceneBuilder::sortCullSafeEntriesByKey` were
+  deleted, and so was the never-read `built` flag.
+
+`RayWithTracingState` caches a `RaySlabReciprocals`; the twelve forward
+filter calls pass it. `SurfaceBoundingVolume` keeps the PovRay boxes of box
+(raw corners), blob (every component sphere), height field (whole grid),
+meshes with unbounded faces and bodies without a surface; planes,
+polynomials, patches, quadrics, spheres, meshes and generic surfaces use
+`fromGeometryBounds` (for planes and polynomials `getBounds` is never finite,
+and for patches it is the control point box, as before). The PovRay copies of the four classes and the inventory entries were
+deleted; the inventory is empty.
+
+Measurement: with the reciprocal constructors and the point test out of line
+in `vitral_base` (a shared library, so LTO does not inline them), renderAll
+was byte-identical but took 128 s and 126 s (user 1531 s and 1522 s, against
+1441-1463 s for K-6 to K-7). Inline definitions in the headers restored
+123 s (user 1465 s).
+
+Gates (K-8.1/K-8.2, out-of-line constructors): example captures 64/64,
+renderAll 108/108 byte-identical (128 s), Roth 7 known, audit 0 pending/161
+identical. Final (K-8.1 to K-8.4): VITRAL ctest 341/341, PovRay ctest 342/342,
+dependency analysis 1055 nodes with no orphan and no backward group relation,
+example captures 64/64 identical, renderAll 108/108 byte-identical (123 s
+alone, user 1465 s; 125 s, user 1483 s, inside the gate after the captures),
+Roth 7 known (trough RMSE 0.052355), audit 0 pending/161 identical.
+
+## Stage K: completion (K-9)
+
+The closing criteria of §10 of the plan, with the evidence of the K-8 gates:
+
+1. One implementation per geometry: the audit finds no class defined in both
+   trees; the three programs use the VITRAL geometries.
+2. Both CSG approaches are VITRAL's (`CsgRothRayClassifier` and
+   `CsgCrossingMembershipFilter`, contracts in `vitralGeometryContracts.md`);
+   PovRay's evaluators call VITRAL's CSG steps (`CsgCrossingSelection`,
+   `CsgMembershipRule`, `CsgSegmentClassification`).
+3. The POV catalog (blob, height field, polynomial, quadric, patch, mesh and
+   the basic primitives) is built in VITRAL without POV code (stage H).
+4. PovRay defines no `Geometry` subclass (audit); its render state lives in
+   the bake and in `PovrayBody`.
+5. `./raycasting` is gone (audit) and the inventory is empty.
+6. VITRAL does not include PovRay code (audit) and offers no baking; the
+   bounding-volume package is VITRAL's.
+7. Example captures 64/64, renderAll 108/108 byte-identical, Roth 7 known;
+   the public APIs and their literature are in `vitralImplementation.md`
+   ("Correspondencia con la literatura").

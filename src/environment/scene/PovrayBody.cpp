@@ -19,15 +19,16 @@
 #include "vsdk/toolkit/environment/geometry/volume/AffineEllipsoidDistance.h"
 #include "vsdk/toolkit/environment/geometry/volume/AffineEllipsoidMinimumDistance.h"
 #include "environment/geometry/element/GeometryConfig.h"
-#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+#include "environment/scene/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+#include "vsdk/toolkit/environment/light/Light.h"
 #include "environment/scene/PovrayBody.h"
-#include "environment/scene/NativeGeometryBinding.h"
-#include "environment/geometry/volume/RayCastingBox.h"
-#include "environment/geometry/volume/Quadric.h"
-#include "environment/geometry/surface/RayCastingInfinitePlane.h"
-#include "environment/geometry/volume/Blob.h"
-#include "environment/geometry/volume/HeightField.h"
-#include "environment/geometry/volume/polynomial/PolynomialShape.h"
+#include "environment/scene/ProjectedTriangleTraversal.h"
+#include "vsdk/toolkit/environment/scene/InstanceRayCrossingBuffer.h"
+#include "vsdk/toolkit/environment/geometry/element/RayInstanceStep.h"
+#include "vsdk/toolkit/environment/geometry/surface/TriangleMesh.h"
+#include "environment/scene/SurfaceTraceKernel.h"
+#include "environment/scene/SurfaceBoundingVolume.h"
+#include "environment/scene/BoxInvertedCrossingSink.h"
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
@@ -85,7 +86,7 @@ PovrayBody::doIntersectionForAllRayCrossings(
             IntersectionCandidate _boundingHit;
             if (!boundingShape->doIntersectionFirstHitViaCrossings(objectRay, _boundingHit) &&
                 boundingShape->doContainmentTest(rayOrigin, GeometryConfig::SMALL_TOLERANCE) ==
-                    RayCastingGeometry::OUTSIDE) {
+                    RayCastingContainment::OUTSIDE) {
                 return (false);
             }
         }
@@ -98,11 +99,9 @@ PovrayBody::doIntersectionForAllRayCrossings(
         this->getGeometryMaterial() != nullptr ?
             this->getGeometryMaterial() : materialOverride;
     if (hasGeometryLocalSpace) {
-        this->getGeometry()->doIntersectionForAllRayCrossings(
-            &geometryLocalRay, localDepthQueue, effectiveGeometryMaterial);
+        traceSurfaceCrossings(&geometryLocalRay, localDepthQueue, effectiveGeometryMaterial);
     } else {
-        this->getGeometry()->doIntersectionForAllRayCrossings(
-            objectRay, localDepthQueue, effectiveGeometryMaterial);
+        traceSurfaceCrossings(objectRay, localDepthQueue, effectiveGeometryMaterial);
     }
 
     // Mutate each crossing in place in the scratch queue (drained and recycled
@@ -149,7 +148,7 @@ PovrayBody::doIntersectionForAllRayCrossings(
             stats.incrementClippingRegionTests();
             if (clippingShape->doContainmentTest(
                     clipTestPoint,
-                    GeometryConfig::SMALL_TOLERANCE) == RayCastingGeometry::OUTSIDE) {
+                    GeometryConfig::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
                 intersectionFound = false;
                 break;
             }
@@ -189,8 +188,8 @@ PovrayBody::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
         boundingShape = this->getBoundingShapes()[i];
 
         if (boundingShape->doContainmentTest(
-                point, distanceTolerance) == RayCastingGeometry::OUTSIDE) {
-            return RayCastingGeometry::OUTSIDE;
+                point, distanceTolerance) == RayCastingContainment::OUTSIDE) {
+            return RayCastingContainment::OUTSIDE;
         }
     }
 
@@ -198,23 +197,23 @@ PovrayBody::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
         clippingShape = this->getClippingShapes()[i];
 
         if (clippingShape->doContainmentTest(
-                point, distanceTolerance) == RayCastingGeometry::OUTSIDE) {
-            return RayCastingGeometry::OUTSIDE;
+                point, distanceTolerance) == RayCastingContainment::OUTSIDE) {
+            return RayCastingContainment::OUTSIDE;
         }
     }
 
-    if (this->getGeometry()->doContainmentTest(
+    if (surfaceContainment(
             objectPointToGeometryLocal(localPoint),
-            distanceTolerance) != RayCastingGeometry::OUTSIDE) {
-        return RayCastingGeometry::INSIDE;
+            distanceTolerance) != RayCastingContainment::OUTSIDE) {
+        return RayCastingContainment::INSIDE;
     }
-    return RayCastingGeometry::OUTSIDE;
+    return RayCastingContainment::OUTSIDE;
 }
 
 void
 PovrayBody::doExtraInformation(const RayWithTracingState &ray, double t, RayCastingHit *hit)
 {
-    const bool hasDetailSource = hit->hitSurface != nullptr || getGeometry() != nullptr;
+    const bool hasDetailSource = hit->hitSurface != nullptr || hasShape();
     const bool bakedLeaf = bakedTransformFolded;
     // Consume the detail-owner chain outermost-first (popDetailOwnerBack): the
     // owners were pushed innermost-first while collecting the hit, so for a
@@ -282,12 +281,25 @@ PovrayBody::PovrayBody(const PovrayBody &other) :
         new ColorRgba(*other.getObjectColor()) : nullptr),
     objectTexture(other.getObjectTexture() != nullptr ?
         other.getObjectTexture()->copy() : nullptr),
+    objectTextureReleaser(other.objectTextureReleaser),
     bodySteps(other.getBodySteps()),
     geometrySteps(other.getGeometrySteps()),
     arbitraryAffineTransform(other.arbitraryAffineTransform)
 {
-    setGeometry(other.getGeometry() != nullptr ?
-        static_cast<RayCastingGeometry*>(other.getGeometry()->copy()) : nullptr);
+    if (other.csg != nullptr) {
+        setCsg(other.csg->copy());
+    } else if (other.light != nullptr) {
+        setLight(other.light->copy());
+    } else {
+        setGeometry(other.geometry != nullptr ? other.geometry->copyGeometry() : nullptr);
+    }
+    if (other.triangleTraversal != nullptr) {
+        setTriangleTraversal(new ProjectedTriangleTraversal(*other.triangleTraversal,
+            static_cast<TriangleMesh*>(geometry)));
+    }
+    surfaceState.setInverted(other.surfaceState.isInverted());
+    surfaceState.setViewpointValue(other.surfaceState.getViewpointValue());
+    surfaceState.setViewpointCached(other.surfaceState.isViewpointCached());
     for (long int i = other.getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShapes.add(
             (PovrayBody *)other.getBoundingShapes()[i]->copy());
@@ -300,6 +312,9 @@ PovrayBody::PovrayBody(const PovrayBody &other) :
 
 PovrayBody::~PovrayBody()
 {
+    delete csg;
+    delete light;
+    delete triangleTraversal;
     delete geometryMaterial;
     delete transformation;
     delete transformationInverse;
@@ -563,18 +578,12 @@ PovrayBody::localNormalToWorld(const Vector3Dd &normal) const
 }
 
 void
-PovrayBody::detachOwnership()
+PovrayBody::setObjectColor(ColorRgba *color)
 {
-    geometry = nullptr;
-    geometryMaterial = nullptr;
-    transformation = nullptr;
-    transformationInverse = nullptr;
-    geometryTransformation = nullptr;
-    geometryTransformationInverse = nullptr;
-    objectColor = nullptr;
-    objectTexture = nullptr;
-    boundingShapes.clear();
-    clippingShapes.clear();
+    if (color != objectColor) {
+        delete objectColor;
+        objectColor = color;
+    }
 }
 
 void *
@@ -721,8 +730,8 @@ PovrayBody::invert()
         localShape = this->getClippingShapes()[i];
         localShape->invert();
     }
-    if (this->getGeometry() != nullptr) {
-        this->getGeometry()->invertGeometry();
+    if (hasShape()) {
+        invertSurface();
         geometrySteps.add(TransformStep(TransformStep::Kind::Invert, Vector3Dd(0.0, 0.0, 0.0)));
     }
 }
@@ -793,45 +802,16 @@ bool PovrayBody::queryCoreSolid(const Geometry*& intrinsic, bool& inverted) cons
 {
     intrinsic=nullptr; inverted=false;
     if (!preservesCoreSolid()) return false;
-    return queryWrappedSolid(getGeometry(),intrinsic,inverted);
+    if (!geometry) return false;
+    // A POV CSG (no geometry) and light geometry have no VITRAL solid.
+    // A bicubic patch is not a solid.
+    if (surfaceFamily==SurfaceDetailFamily::BicubicPatch) return false;
+    intrinsic=geometry;
+    inverted=surfaceState.isInverted();
+    return true;
 }
 
 bool PovrayBody::preservesCoreSolid() const { return typeid(*this)==typeid(PovrayBody); }
-
-bool PovrayBody::queryWrappedSolid(const RayCastingGeometry* wrapper, const Geometry*& intrinsic, bool& inverted)
-{
-    intrinsic=nullptr; inverted=false;
-    if (!wrapper) return false;
-    const NativeGeometryBinding* native=dynamic_cast<const NativeGeometryBinding*>(wrapper);
-    if (native && typeid(*native)==typeid(NativeGeometryBinding)) {
-        intrinsic=native->getIntrinsicGeometry(); inverted=native->isInverted();
-        return intrinsic!=nullptr;
-    }
-    const RayCastingBox* box=dynamic_cast<const RayCastingBox*>(wrapper);
-    if (box && typeid(*box)==typeid(RayCastingBox)) {
-        intrinsic=box->getIntrinsicGeometry(); inverted=box->isInverted();
-        return true;
-    }
-    // Quadric and plane inversion is encoded in their coefficients.
-    const Quadric* quadric=dynamic_cast<const Quadric*>(wrapper);
-    if (quadric && typeid(*quadric)==typeid(Quadric)) { intrinsic=quadric->getIntrinsicGeometry(); return true; }
-    const RayCastingInfinitePlane* plane=dynamic_cast<const RayCastingInfinitePlane*>(wrapper);
-    if (plane && typeid(*plane)==typeid(RayCastingInfinitePlane)) { intrinsic=plane->getIntrinsicGeometry(); return true; }
-    const PolynomialShape* polynomial=dynamic_cast<const PolynomialShape*>(wrapper);
-    if (polynomial && typeid(*polynomial)==typeid(PolynomialShape)) {
-        intrinsic=polynomial->getIntrinsicGeometry(); inverted=polynomial->isInverted();
-        return true;
-    }
-    const Blob* blob=dynamic_cast<const Blob*>(wrapper);
-    if (blob && typeid(*blob)==typeid(Blob)) {
-        intrinsic=blob->getIntrinsicGeometry(); inverted=blob->isInverted();
-        return true;
-    }
-    // The body places the grid; PovRay ignores inverse on height fields.
-    const HeightField* field=dynamic_cast<const HeightField*>(wrapper);
-    if (field && typeid(*field)==typeid(HeightField)) { intrinsic=field->getIntrinsicGeometry(); return true; }
-    return false;
-}
 
 bool PovrayBody::queryDenotedSolid(const Geometry*& intrinsic, bool& inverted) const
 {
@@ -974,22 +954,25 @@ PovrayBody::getAABB() const
             result = result.intersection(boundingShapes[i]->getAABB());
         }
         if (transformation != nullptr && !result.isUnbounded()) {
+            const Matrix4x4d placement = transformation->transpose();
             return AxisAlignedBoundingBox::fromTransformedCorners(
-                result.getMin(), result.getMax(), transformation);
+                result.getMin(), result.getMax(), &placement);
         }
         return result;
     }
-    if (geometry != nullptr) {
-        BoundingVolumeHierarchy *bounds = getGeometry()->createBoundingVolume();
+    if (hasShape()) {
+        BoundingVolumeHierarchy *bounds = createSurfaceBoundingVolume();
         AxisAlignedBoundingBox box = bounds->axisAlignedExtent();
         delete bounds;
         if (geometryTransformation != nullptr && !box.isUnbounded()) {
+            const Matrix4x4d placement = geometryTransformation->transpose();
             box = AxisAlignedBoundingBox::fromTransformedCorners(
-                box.getMin(), box.getMax(), geometryTransformation);
+                box.getMin(), box.getMax(), &placement);
         }
         if (transformation != nullptr && !box.isUnbounded()) {
+            const Matrix4x4d placement = transformation->transpose();
             return AxisAlignedBoundingBox::fromTransformedCorners(
-                box.getMin(), box.getMax(), transformation);
+                box.getMin(), box.getMax(), &placement);
         }
         return box;
     }
@@ -1025,7 +1008,15 @@ void PovrayBody::doExtraInformation(const Ray& source, double t, RayHit* out) co
 RaySolidQueryStatus PovrayBody::classifyCoreRay(const Ray& ray,
     const RayCrossingQuery& query, RaySolidClassification& result) const
 {
-    return SceneSolid::classifyRay(ray,query,result);
+    if (triangleTraversal != nullptr) { result.clear(); return RaySolidQueryStatus::Unsupported; }
+    const RaySolidQueryStatus status=SceneSolid::classifyRay(ray,query,result);
+    if (status==RaySolidQueryStatus::Supported && surfaceState.isInverted()) {
+        for (long int i=0; i<result.insideSegments.size(); ++i)
+            result.insideSegments[i] = !result.insideSegments[i];
+        for (long int i=0; i<result.boundaries.size(); ++i)
+            result.boundaries[i].normalReversed = !result.boundaries[i].normalReversed;
+    }
+    return status;
 }
 
 RaySolidQueryStatus PovrayBody::classifyRay(const Ray& ray,
@@ -1052,12 +1043,18 @@ RaySolidQueryStatus PovrayBody::classifyRay(const Ray& ray,
 RayCrossingSupport PovrayBody::emitRayCrossings(const Ray& source,
     const RayCrossingQuery& query, RayCrossingSink& sink) const
 {
-    const NativeGeometryBinding* binding = dynamic_cast<const NativeGeometryBinding*>(geometry);
-    const bool typedLeaf = binding ||
-        dynamic_cast<const RayCastingBox*>(geometry) || dynamic_cast<const Quadric*>(geometry) ||
-        dynamic_cast<const RayCastingInfinitePlane*>(geometry);
-    if (typedLeaf && boundingShapes.size() == 0 && clippingShapes.size() == 0)
-        return SceneSolid::emitRayCrossings(source, query, sink);
+    // A projected mesh is traced by POV's traversal, not by the VITRAL mesh.
+    const bool typedLeaf = geometry != nullptr && surfaceFamily != SurfaceDetailFamily::Mesh &&
+        surfaceFamily != SurfaceDetailFamily::BicubicPatch;
+    if (surfaceFamily == SurfaceDetailFamily::Mesh &&
+        boundingShapes.size() == 0 && clippingShapes.size() == 0) {
+        return emitMeshCrossings(source, query, sink);
+    }
+    if (typedLeaf && boundingShapes.size() == 0 && clippingShapes.size() == 0) {
+        if (!surfaceState.isInverted()) return SceneSolid::emitRayCrossings(source, query, sink);
+        BoxInvertedCrossingSink reversed(sink);
+        return SceneSolid::emitRayCrossings(source, query, reversed);
+    }
     RayCastingQueryAdapter context(source);
     auto* queue = context.pool.pop(128);
     const_cast<PovrayBody*>(this)->doIntersectionForAllRayCrossings(&context.ray, queue);
@@ -1076,17 +1073,188 @@ RayCrossingSupport PovrayBody::emitRayCrossings(const Ray& source,
     return RayCrossingSupport::Supported;
 }
 
+RayCrossingSupport PovrayBody::emitMeshCrossings(const Ray& source,
+    const RayCrossingQuery& query, RayCrossingSink& sink) const
+{
+    Matrix4x4d forward, inverse;
+    const AffinePlacementStatus status = queryAffinePlacement(forward, inverse);
+    if (status == AffinePlacementStatus::Unsupported) return RayCrossingSupport::Unsupported;
+    if (status == AffinePlacementStatus::Invalid) return RayCrossingSupport::InvalidInput;
+    if (status == AffinePlacementStatus::Indeterminate) return RayCrossingSupport::Indeterminate;
+    const Ray local = Ray::fromAffine(inverse.multiply(source.getOrigin()),
+        inverse.withoutTranslation().multiply(source.getDirection()), source.getT());
+    InstanceRayCrossingBuffer buffer(RayInstanceStep(this, forward, inverse), this,
+        getSurfaceMaterial());
+    RayCastingQueryAdapter context(local);
+    auto* queue = context.pool.pop(128);
+    SurfaceTraceKernel::emitCrossings(surface, surfaceFamily,
+        const_cast<SurfaceTraceState&>(surfaceState), &context.ray, queue, nullptr, nullptr);
+    while (queue->size() > 0) {
+        const IntersectionCandidate candidate = queue->poll();
+        const double t = candidate.getIntersection().t;
+        if (t < query.minT || t > query.maxT) continue;
+        RayCrossing event(t, candidate.getAttributes().getHitSurface(),
+            RayCrossing::Kind::Unclassified);
+        event.surfaceIndex = candidate.getAttributes().getSurfaceIndex();
+        event.material = candidate.getAttributes().getMaterial();
+        buffer.crossing(event);
+    }
+    context.pool.push(queue);
+    if (!buffer.isValid()) return RayCrossingSupport::Indeterminate;
+    buffer.deliver(sink);
+    return RayCrossingSupport::Supported;
+}
+
 void PovrayBody::setGeometry(Geometry* value)
 {
-    if (value && !dynamic_cast<RayCastingGeometry*>(value))
-        throw std::invalid_argument("PovrayBody requires a RayCastingGeometry");
+    delete triangleTraversal;
+    triangleTraversal = nullptr;
+    delete csg;
+    csg = nullptr;
+    delete light;
+    light = nullptr;
     SceneSolid::setGeometry(value);
+    bindSurface();
+}
+
+void PovrayBody::setCsg(ConstructiveSolidGeometry* value)
+{
+    setGeometry(nullptr);
+    csg = value;
+    bindSurface();
+}
+
+void PovrayBody::setLight(Light* value)
+{
+    setGeometry(nullptr);
+    light = value;
+    bindSurface();
 }
 
 void PovrayBody::setGeometryReference(Geometry* value)
 {
-    if (value && !dynamic_cast<RayCastingGeometry*>(value))
-        throw std::invalid_argument("PovrayBody requires a RayCastingGeometry");
+    delete triangleTraversal;
+    triangleTraversal = nullptr;
+    delete csg;
+    csg = nullptr;
+    delete light;
+    light = nullptr;
     SceneSolid::setGeometryReference(value);
+    bindSurface();
+}
+
+void PovrayBody::setTriangleTraversal(ProjectedTriangleTraversal* value)
+{
+    if (value != nullptr && dynamic_cast<TriangleMesh*>(geometry) == nullptr)
+        throw java::IllegalStateException("A projected traversal needs a triangle mesh geometry");
+    delete triangleTraversal;
+    triangleTraversal = value;
+    bindSurface();
+}
+
+void PovrayBody::bindSurface()
+{
+    surfaceState = SurfaceTraceState();
+    if (csg != nullptr) {
+        surface = nullptr;
+        surfaceFamily = SurfaceDetailFamily::None;
+    } else if (light != nullptr) {
+        surface = nullptr;
+        surfaceFamily = SurfaceDetailFamily::Empty;
+    } else if (geometry != nullptr && triangleTraversal != nullptr) {
+        surface = geometry;
+        surfaceFamily = SurfaceDetailFamily::Mesh;
+        surfaceState.setTriangleTraversal(triangleTraversal);
+    } else if (geometry != nullptr) {
+        surface = geometry;
+        surfaceFamily = SurfaceTraceKernel::familyOf(geometry);
+        SurfaceTraceKernel::initializeState(geometry, surfaceFamily, surfaceState);
+    } else {
+        surface = nullptr;
+        surfaceFamily = SurfaceDetailFamily::None;
+    }
+}
+
+BoundingVolumeHierarchy* PovrayBody::createSurfaceBoundingVolume() const
+{
+    if (csg != nullptr) return csg->createBoundingVolume();
+    return SurfaceBoundingVolume::create(surface, surfaceFamily, surfaceState);
+}
+
+int PovrayBody::traceSurfaceCrossings(RayWithTracingState* ray,
+    java::PriorityQueue<IntersectionCandidate>* depthQueue, Material* materialOverride)
+{
+    if (csg != nullptr)
+        return csg->doIntersectionForAllRayCrossings(ray, depthQueue, materialOverride);
+    return SurfaceTraceKernel::emitCrossings(surface, surfaceFamily, surfaceState, ray, depthQueue,
+        materialOverride, nullptr);
+}
+
+int PovrayBody::surfaceContainment(const Vector3Dd& point, double distanceTolerance)
+{
+    if (csg != nullptr)
+        return csg->doContainmentTest(point, distanceTolerance);
+    return SurfaceTraceKernel::containment(surface, surfaceFamily, surfaceState, point,
+        distanceTolerance);
+}
+
+void PovrayBody::invertSurface()
+{
+    if (SurfaceTraceKernel::invertsByState(surfaceFamily)) {
+        surfaceState.setInverted(!surfaceState.isInverted());
+        return;
+    }
+    // Light geometry has nothing to invert.
+    if (csg != nullptr) csg->invert();
+    else if (triangleTraversal != nullptr) triangleTraversal->invert();
+    else if (light == nullptr) SurfaceTraceKernel::invertGeometry(surface, surfaceFamily);
+    surfaceState.setViewpointCached(false);
+}
+
+void PovrayBody::setSurfaceInverted(bool value)
+{
+    if (value && !SurfaceTraceKernel::invertsByState(surfaceFamily))
+        throw java::IllegalStateException("This surface family is not inverted by its body");
+    surfaceState.setInverted(value);
+}
+
+void PovrayBody::getSurfaceBounds(GeometryBounds& result) const
+{
+    // An inverted projected triangle can extend to infinity.
+    if (surfaceState.isInverted() ||
+        (triangleTraversal != nullptr && triangleTraversal->hasUnboundedFaces())) {
+        result.setUnbounded(); return;
+    }
+    if (csg != nullptr) csg->getBounds(result);
+    else if (light != nullptr) result.setUnsupported();
+    else getGeometry()->getBounds(result);
+}
+
+void PovrayBody::getWorldBounds(GeometryBounds& result) const
+{
+    if (geometry != nullptr && (surfaceState.isInverted() ||
+        (triangleTraversal != nullptr && triangleTraversal->hasUnboundedFaces()))) {
+        result.setUnbounded(); return;
+    }
+    if (light != nullptr) { result.setUnsupported(); return; }
+    if (csg != nullptr) {
+        GeometryBounds local;
+        csg->getBounds(local);
+        result = local.transformed(getAffinePlacement());
+        return;
+    }
+    SceneSolid::getWorldBounds(result);
+}
+
+GeometryContainment PovrayBody::classifyPoint(const Vector3Dd& point, double distanceTolerance) const
+{
+    if (triangleTraversal != nullptr) return GeometryContainment::Unsupported;
+    const GeometryContainment side = SceneSolid::classifyPoint(point, distanceTolerance);
+    // A positive tolerance is answered by classifyPointCertified, which
+    // already orients the side; the zero-tolerance path asks the geometry.
+    if (distanceTolerance != 0 || !surfaceState.isInverted()) return side;
+    if (side == GeometryContainment::Inside) return GeometryContainment::Outside;
+    if (side == GeometryContainment::Outside) return GeometryContainment::Inside;
+    return side;
 }
 

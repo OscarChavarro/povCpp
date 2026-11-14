@@ -4,8 +4,9 @@
 #include "render/bakedScene/BakedSceneKinds.h"
 #include "render/bakedScene/BakedSurfaceTrace.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "environment/geometry/surface/RayCastingInfinitePlane.h"
-#include "environment/geometry/volume/Quadric.h"
+#include "vsdk/toolkit/environment/geometry/volume/PlanarHalfSpace.h"
+#include "vsdk/toolkit/environment/geometry/volume/QuadricSurface.h"
+#include "environment/geometry/trace/QuadricTrace.h"
 #include "environment/scene/PovrayBody.h"
 
 // One traceable object: a plain PovrayBody, a CSG-wrapping PovrayBody,
@@ -19,8 +20,7 @@ class TraceableObject {
     TraceableObject(
         BakedSceneTraceKind kind,
         PovrayBody *object,
-        RayCastingGeometry *originalGeometry,
-        Quadric *originalQuadricGeometry,
+        QuadricSurface *originalQuadricGeometry,
         Material *geometryMaterial,
         Material *objectTexture,
         ColorRgba *objectColor,
@@ -42,18 +42,18 @@ class TraceableObject {
         bool hasClippingShapes,
         const java::ArrayList<int> &boundingObjectIndices,
         const java::ArrayList<int> &clippingObjectIndices,
-        const Quadric &bakedQuadricStorage,
+        const QuadricSurface &bakedQuadricStorage,
         bool hasBakedQuadric,
-        const RayCastingInfinitePlane &bakedPlaneStorage,
+        const PlanarHalfSpace &bakedPlaneStorage,
         bool hasBakedPlane,
         int quadricViewpointSlot) :
         kind(kind),
         object(object),
-        originalGeometry(originalGeometry),
-        detailSurface(originalGeometry != nullptr ? originalGeometry->getDetailSurface() : nullptr),
-        detailFamily(originalGeometry != nullptr ? originalGeometry->getDetailFamily() :
-            SurfaceDetailFamily::None),
-        traceState(originalGeometry != nullptr ? originalGeometry->getTraceState() : nullptr),
+        csg(object->getCsg()),
+        selfTraced(object->getCsg() != nullptr || object->getLight() != nullptr),
+        detailSurface(object->getSurface()),
+        detailFamily(object->getSurfaceFamily()),
+        traceState(object->getSurfaceTraceState()),
         originalQuadricGeometry(originalQuadricGeometry),
         geometryMaterial(geometryMaterial),
         objectTexture(objectTexture),
@@ -81,31 +81,31 @@ class TraceableObject {
         bakedPlaneStorage(bakedPlaneStorage),
         hasBakedPlane(hasBakedPlane),
         quadricViewpointSlot(quadricViewpointSlot)
-    {}
+    {
+        if (hasBakedQuadric) {
+            bakedStorageState.setNonZeroSquareTerm(
+                QuadricTrace::hasNonZeroSquareTerm(this->bakedQuadricStorage));
+        }
+        quadricSquareTerm = getTraceState() != nullptr && getTraceState()->hasNonZeroSquareTerm();
+    }
 
     BakedSceneTraceKind getKind() const { return kind; }
     PovrayBody *getObject() const { return object; }
-    RayCastingGeometry *getGeometry() const
+    // Whether the record traces a shape: a family surface, a POV CSG or light
+    // geometry.
+    bool hasGeometry() const { return selfTraced || detailSurface != nullptr; }
+    bool getQuadricSquareTerm() const { return quadricSquareTerm; }
+    QuadricSurface *getQuadricGeometry() const
     {
-        if (hasBakedQuadric) {
-            return const_cast<Quadric *>(&bakedQuadricStorage);
-        }
-        if (hasBakedPlane) {
-            return const_cast<RayCastingInfinitePlane *>(&bakedPlaneStorage);
-        }
-        return originalGeometry;
-    }
-    Quadric *getQuadricGeometry() const
-    {
-        return hasBakedQuadric ? const_cast<Quadric *>(&bakedQuadricStorage) : originalQuadricGeometry;
+        return hasBakedQuadric ? const_cast<QuadricSurface *>(&bakedQuadricStorage) : originalQuadricGeometry;
     }
     Geometry *getDetailSurface() const
     {
         if (hasBakedQuadric) {
-            return const_cast<Quadric &>(bakedQuadricStorage).getDetailSurface();
+            return const_cast<QuadricSurface *>(&bakedQuadricStorage);
         }
         if (hasBakedPlane) {
-            return const_cast<RayCastingInfinitePlane &>(bakedPlaneStorage).getDetailSurface();
+            return const_cast<PlanarHalfSpace *>(&bakedPlaneStorage);
         }
         return detailSurface;
     }
@@ -121,11 +121,8 @@ class TraceableObject {
     }
     SurfaceTraceState *getTraceState() const
     {
-        if (hasBakedQuadric) {
-            return const_cast<Quadric &>(bakedQuadricStorage).getTraceState();
-        }
-        if (hasBakedPlane) {
-            return const_cast<RayCastingInfinitePlane &>(bakedPlaneStorage).getTraceState();
+        if (hasBakedQuadric || hasBakedPlane) {
+            return const_cast<SurfaceTraceState *>(&bakedStorageState);
         }
         return traceState;
     }
@@ -133,30 +130,29 @@ class TraceableObject {
         java::PriorityQueue<IntersectionCandidate> *depthQueue, Material *materialOverride) const
     {
         return BakedSurfaceTrace::emitCrossings(getDetailSurface(), getDetailFamily(),
-            getTraceState(), getGeometry(), ray, depthQueue, materialOverride);
+            getTraceState(), csg, ray, depthQueue, materialOverride);
     }
     int emitCrossingsAnnotated(RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         const GeometryIntersectionEmissionContext &context) const
     {
         return BakedSurfaceTrace::emitCrossingsAnnotated(getDetailSurface(), getDetailFamily(),
-            getTraceState(), getGeometry(), ray, depthQueue, context);
+            getTraceState(), csg, ray, depthQueue, context);
     }
     bool firstHit(RayWithTracingState *ray, IntersectionCandidate &out,
         Material *materialOverride) const
     {
         return BakedSurfaceTrace::firstHit(getDetailSurface(), getDetailFamily(),
-            getTraceState(), getGeometry(), ray, out, materialOverride);
+            getTraceState(), csg, ray, out, materialOverride);
     }
     int containment(const Vector3Dd &point, double distanceTolerance) const
     {
         return BakedSurfaceTrace::containment(getDetailSurface(), getDetailFamily(),
-            getTraceState(), getGeometry(), point, distanceTolerance);
+            getTraceState(), csg, point, distanceTolerance);
     }
-    RayCastingGeometry *getOriginalGeometry() const { return originalGeometry; }
-    Quadric *getOriginalQuadricGeometry() const { return originalQuadricGeometry; }
-    const Quadric &getBakedQuadricStorage() const { return bakedQuadricStorage; }
-    const RayCastingInfinitePlane &getBakedPlaneStorage() const { return bakedPlaneStorage; }
+    QuadricSurface *getOriginalQuadricGeometry() const { return originalQuadricGeometry; }
+    const QuadricSurface &getBakedQuadricStorage() const { return bakedQuadricStorage; }
+    const PlanarHalfSpace &getBakedPlaneStorage() const { return bakedPlaneStorage; }
     Material *getGeometryMaterial() const { return geometryMaterial; }
     Material *getObjectTexture() const { return objectTexture; }
     ColorRgba *getObjectColor() const { return objectColor; }
@@ -185,11 +181,14 @@ class TraceableObject {
   private:
     BakedSceneTraceKind kind;
     PovrayBody *object;
-    RayCastingGeometry *originalGeometry;
+    ConstructiveSolidGeometry *csg;
+    bool selfTraced;
     Geometry *detailSurface;
     SurfaceDetailFamily detailFamily;
     SurfaceTraceState *traceState;
-    Quadric *originalQuadricGeometry;
+    // Trace state of the baked quadric or plane storage, owned by the record.
+    SurfaceTraceState bakedStorageState;
+    QuadricSurface *originalQuadricGeometry;
     Material *geometryMaterial;
     Material *objectTexture;
     ColorRgba *objectColor;
@@ -211,9 +210,11 @@ class TraceableObject {
     bool hasClippingShapes;
     java::ArrayList<int> boundingObjectIndices;
     java::ArrayList<int> clippingObjectIndices;
-    Quadric bakedQuadricStorage;
+    QuadricSurface bakedQuadricStorage;
+    // Whether the traced quadric has a nonzero square or mixed coefficient.
+    bool quadricSquareTerm = false;
     bool hasBakedQuadric;
-    RayCastingInfinitePlane bakedPlaneStorage;
+    PlanarHalfSpace bakedPlaneStorage;
     bool hasBakedPlane;
     int quadricViewpointSlot;
 };

@@ -2,7 +2,7 @@
 
 This document analyzes the performance-improvement prospects of giving
 `BoundingVolumeHierarchy`
-(`src/environment/geometry/boundingVolumeHierarchy/BoundingVolumeHierarchy.h`)
+(VITRAL `vsdk/toolkit/environment/geometry/boundingVolumeHierarchy/BoundingVolumeHierarchy.h`)
 concrete implementations other than the current single axis-aligned box, and
 compares the resulting design space with the conceptual model of the Vulkan
 ray-tracing API (`VK_KHR_acceleration_structure`), whose two-level split into
@@ -38,8 +38,9 @@ through the interface:
    known defect: those bounds are composite-local, not world
    (`performanceNotes.md`, "Known defects").
 3. **CSG union operands** — `OperandCullBins` + `AabbCullingSupport`
-   (`src/render/bakedScene/AabbCullingSupport.h`): a bake-time, one-level
-   binned index over wide union operand lists (activation threshold 17,
+   (`src/render/bakedScene/AabbCullingSupport.h`) over VITRAL's
+   `AabbBinHierarchy`: a bake-time, one-level binned index over wide union
+   operand lists (activation threshold 17,
    tuned against a real `iortest` regression at 8). Survivors are re-sorted
    descending to reproduce the plain scan's iteration order exactly.
 4. **Per-primitive factories** — each `Geometry` implements

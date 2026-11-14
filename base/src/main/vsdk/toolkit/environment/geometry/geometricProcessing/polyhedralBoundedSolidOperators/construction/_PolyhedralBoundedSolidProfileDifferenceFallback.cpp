@@ -1,8 +1,8 @@
 
 #include "java/util/ArrayList.txx"
 #include "java/util/Collections.h"
+#include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolidEulerConstructions.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "vsdk/toolkit/environment/geometry/geometricProcessing/polyhedralBoundedSolidOperators/PolyhedralBoundedSolidModeler.h"
 #include "vsdk/toolkit/environment/geometry/geometricProcessing/polyhedralBoundedSolidOperators/construction/_PolyhedralBoundedSolidProfileDifferenceFallback.h"
 #include "vsdk/toolkit/environment/geometry/geometricProcessing/polyhedralBoundedSolidOperators/fallbacks/_PolyhedralBoundedSolidFallbackGeometry.h"
 #include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolid.h"
@@ -92,7 +92,7 @@ PolyhedralBoundedSolid* ProfileFallback::buildProfileDifferenceFallback(
     PolyhedralBoundedSolidEulerOperators::mef(solid, 1, 1, n, n - 1, 1, 2, 2);
 
     translation = translation.translation(spec->xMax - spec->xCut, 0, 0);
-    PolyhedralBoundedSolidModeler::translationalSweepExtrudeFacePlanar(
+    PolyhedralBoundedSolidEulerConstructions::translationalSweepExtrudeFacePlanar(
         solid, solid->findFace(1), translation);
     PolyhedralBoundedSolidTopologyEditing::compactIds(solid);
     return solid;

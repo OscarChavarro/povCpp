@@ -3,11 +3,9 @@
 
 #include "vsdk/toolkit/environment/geometry/volume/Solid.h"
 class Cone;
-class Matrix4x4d;
 class PolyhedralBoundedSolid;
 class Ray;
 class RayHit;
-class _PolyhedralBoundedSolidFace;
 
 class Arrow : public Solid {
 private:
@@ -29,25 +27,6 @@ private:
     bool doIntersectionDistanceOnly(const Ray& inRay, RayHit* outHit);
     static void closeTopFaceToApex(
         PolyhedralBoundedSolid* solid, int nsides, double apexZ);
-    static int normalizedSweepSides();
-    static double snapSweepCoordinate(double value);
-    static void addArcToExistingFace(
-        PolyhedralBoundedSolid* solid,
-        int faceId,
-        int vertexId,
-        double cx,
-        double cy,
-        double radius,
-        double height,
-        double phi1,
-        double phi2,
-        int steps);
-    static PolyhedralBoundedSolid* createCircularLamina(
-        double cx, double cy, double radius, double height, int sides);
-    static void translationalSweepExtrudeFacePlanar(
-        PolyhedralBoundedSolid* solid,
-        _PolyhedralBoundedSolidFace* face,
-        const Matrix4x4d& transformationMatrix);
     PolyhedralBoundedSolid* buildPolyhedralBoundedSolid(
         int nsides, int heightDivisions);
 

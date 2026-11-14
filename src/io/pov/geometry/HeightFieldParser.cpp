@@ -1,6 +1,5 @@
 
 
-#include "environment/geometry/volume/HeightField.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/image/GifFormat.h"
@@ -24,7 +23,7 @@ SimpleBodyBuilder *
 HeightFieldParser::parseHeightField(ParserContext &ctx)
 {
     (void)ctx;
-    HeightField *localShape = nullptr;
+    HeightFieldSolid *localShape = nullptr;
     SimpleBodyBuilder *body = nullptr;
     Vector3Dd localVector;
     IndexedColorImageHDRUncompressed *indexedImage = nullptr;
@@ -42,7 +41,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                                         // other image types
             case Tokenizer::GIF_TOKEN:
             {
-                imageType = HeightField::GIF;
+                imageType = GIF;
                 indexedImage = new IndexedColorImageHDRUncompressed;
                 if (indexedImage == nullptr) {
                     ParseErrorReporter::reportError("Out of memory. Cannot allocate "
@@ -58,7 +57,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 // The body scales the grid to the unit square.
                 localVector = Vector3Dd(1.0 / indexedImage->getXSize(),
                     1.0 / 256.0, 1.0 / indexedImage->getYSize());
-                localShape = new HeightField(indexedImage->getXSize() + 1,
+                localShape = new HeightFieldSolid(indexedImage->getXSize() + 1,
                     indexedImage->getYSize() + 1, minBounds, maxBounds);
                 body = SceneBuilder::wrap(localShape);
                 body->scaleOwnerOnly(&localVector);
@@ -68,7 +67,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
 
             case Tokenizer::POT_TOKEN:
             {
-                imageType = HeightField::POT;
+                imageType = POT;
                 indexedImage = new IndexedColorImageHDRUncompressed;
                 if (indexedImage == nullptr) {
                     ParseErrorReporter::reportError("Out of memory. Cannot allocate "
@@ -83,7 +82,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 // A POT image holds the high and low height bytes side by side.
                 localVector = Vector3Dd(2.0 / indexedImage->getXSize(),
                     1.0 / 256.0, 1.0 / indexedImage->getYSize());
-                localShape = new HeightField(indexedImage->getXSize() / 2 + 1,
+                localShape = new HeightFieldSolid(indexedImage->getXSize() / 2 + 1,
                     indexedImage->getYSize() + 1, minBounds, maxBounds);
                 body = SceneBuilder::wrap(localShape);
                 body->scaleOwnerOnly(&localVector);
@@ -93,7 +92,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
 
             case Tokenizer::TGA_TOKEN:
             {
-                imageType = HeightField::TGA;
+                imageType = TGA;
                 directImage = new RGBAImageHDRUncompressed;
                 if (directImage == nullptr) {
                     ParseErrorReporter::reportError("Cannot allocate space for "
@@ -107,7 +106,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                     directImage->getYSize() - 2.0);
                 localVector = Vector3Dd(1.0 / directImage->getXSize(),
                     1.0 / 256.0, 1.0 / directImage->getYSize());
-                localShape = new HeightField(directImage->getXSize() + 1,
+                localShape = new HeightFieldSolid(directImage->getXSize() + 1,
                     directImage->getYSize() + 1, minBounds, maxBounds);
                 body = SceneBuilder::wrap(localShape);
                 body->scaleOwnerOnly(&localVector);
@@ -124,7 +123,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                         body = new SimpleBodyBuilder(
                                 *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
                                     .getConstantData());
-                        localShape = (HeightField *)body->getGeometry();
+                        localShape = static_cast<HeightFieldSolid *>(body->getGeometry());
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -153,7 +152,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
 
             case Tokenizer::WATER_LEVEL_TOKEN:
             {
-                localShape->setWaterLevel(PrimitiveParser::parseFloat(ctx));
+                setWaterLevel(localShape, PrimitiveParser::parseFloat(ctx));
                 break;
             }
 
@@ -209,12 +208,73 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
     }
 
     if (indexedImage != nullptr) {
-        HeightField::findHfMinMax(localShape, indexedImage, imageType);
+        findHfMinMax(localShape, indexedImage, imageType);
     } else if (directImage != nullptr) {
-        HeightField::findHfMinMax(localShape, directImage, imageType);
+        findHfMinMax(localShape, directImage, imageType);
     }
     // The images are scratch buffers copied into the height grid above.
     delete indexedImage;
     delete directImage;
     return body;
+}
+
+void
+HeightFieldParser::setWaterLevel(HeightFieldSolid *solid, double level)
+{
+    solid->setBounds(solid->getMinimum().withY(level), solid->getMaximum());
+    solid->updateBlocks();
+}
+
+double
+HeightFieldParser::imageHeight(const HeightFieldSolid *solid, double height)
+{
+    return height <= solid->getMinimum().y() ? HIDDEN_HEIGHT : height;
+}
+
+void
+HeightFieldParser::findHfMinMax(HeightFieldSolid *solid,
+    const IndexedColorImageHDRUncompressed *image, int imageType)
+{
+    int maxX = image->getXSize();
+    if (imageType == POT) {
+        maxX = maxX / 2;
+    }
+    const int maxZ = image->getYSize();
+    for (int z = 0; z <= maxZ; z++) {
+        for (int x = 0; x <= maxX; x++) {
+            double height = HIDDEN_HEIGHT;
+            if ((x > 1) && (x < maxX - 1) && (z > 1) && (z < maxZ - 1)) {
+                const int temp1 = image->getPixel(x, maxZ - z - 1);
+                if (imageType == POT) {
+                    const int temp2 = image->getPixel(x + maxX, maxZ - z - 1);
+                    height = imageHeight(solid, (double)temp1 + (double)temp2 / 256.0);
+                } else {
+                    height = imageHeight(solid, (double)temp1);
+                }
+            }
+            solid->setHeight(x, z, height);
+        }
+    }
+    solid->updateBlocks();
+}
+
+void
+HeightFieldParser::findHfMinMax(HeightFieldSolid *solid,
+    const RGBAImageHDRUncompressed *image, int imageType)
+{
+    (void)imageType;
+    const int maxX = image->getXSize();
+    const int maxZ = image->getYSize();
+    for (int z = 0; z <= maxZ; z++) {
+        for (int x = 0; x <= maxX; x++) {
+            double height = HIDDEN_HEIGHT;
+            if ((x > 1) && (x < maxX - 1) && (z > 1) && (z < maxZ - 1)) {
+                RGBAPixelHDR pixel;
+                image->getPixel(x, maxZ - z - 1, &pixel);
+                height = imageHeight(solid, (double)pixel.r + (double)pixel.g / 256.0);
+            }
+            solid->setHeight(x, z, height);
+        }
+    }
+    solid->updateBlocks();
 }

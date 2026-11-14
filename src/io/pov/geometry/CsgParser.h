@@ -11,8 +11,8 @@ class CsgParser {
     // on itself, when a union/intersection/difference token appears inside
     // another CSG block's own body; every other call site (an `object { ... }`
     // body, or a top-level `#declare`) leaves it at the default false. See
-    // ConstructiveSolidGeometryByRaySegment::topLevel's doc comment for why
-    // this distinction matters under -csgRoth.
+    // CsgRaySegmentEvaluator's bare-planes union for why this distinction
+    // matters under -csgRoth.
     static SimpleBodyBuilder *parse(
         CsgOperation booleanSetOperation,
         ParserContext &ctx,

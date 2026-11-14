@@ -60,7 +60,7 @@ public:
             bool trueMiss = false;
             double d1, d2;
             const bool hit = BakedQuadricIntersector::intersectBakedQuadricWithCoeffs(
-                *op->getQuadricGeometry(), ray, localOrigin, localDirection,
+                *op->getQuadricGeometry(), op->getQuadricSquareTerm(), ray, localOrigin, localDirection,
                 false, scratch.getCache(), op->getQuadricViewpointSlot(),
                 &d1, &d2, polyA, polyB, polyC, trueMiss);
             if (trueMiss && polyA > 0.0) {
@@ -131,7 +131,7 @@ public:
         Material *materialOverride,
         bool &anyFound)
     {
-        if (operand->getGeometry() == nullptr) {
+        if (!operand->hasGeometry()) {
             return;
         }
         Material *effectiveMaterial =
@@ -165,7 +165,7 @@ public:
         bool &anyFound)
     {
         if (operand->getKind() == BakedScene::CsgOperandKind::TransformedQuadric) {
-            if (operand->getGeometry() == nullptr || operand->getQuadricGeometry() == nullptr) {
+            if (!operand->hasGeometry() || operand->getQuadricGeometry() == nullptr) {
                 return;
             }
             Material *effectiveMaterial =
@@ -177,7 +177,7 @@ public:
             double depth1;
             double depth2;
             if (!BakedQuadricIntersector::intersectBakedQuadric(
-                    *operand->getQuadricGeometry(), ray, localOrigin, localDirection,
+                    *operand->getQuadricGeometry(), operand->getQuadricSquareTerm(), ray, localOrigin, localDirection,
                     false, scratch.getCache(), operand->getQuadricViewpointSlot(),
                     &depth1, &depth2)) {
                 return;
@@ -227,11 +227,11 @@ public:
              d >= 0; d--) {
             const CsgOperandRecord *operand =
                 &bakedCsg->getOperands()[bakedCsg->getDirectPrimitiveOperandIndices()[d]];
-            if (operand->getGeometry() == nullptr) {
+            if (!operand->hasGeometry()) {
                 continue;
             }
             if (operand->getBounded() && operand->getCullSafe() &&
-                !operand->getBakedBounds().intersectsRayForward(*ray)) {
+                !operand->getBakedBounds().intersectsRayForward(*ray, ray->getAabbSlabReciprocals())) {
                 continue;
             }
             Material *effectiveMaterial =
@@ -275,11 +275,11 @@ public:
             const CsgOperandRecord *operand =
                 &bakedCsg->getOperands()[bakedCsg->getTransformedPrimitiveOperandIndices()[t]];
             if (operand->getKind() == BakedScene::CsgOperandKind::TransformedQuadric) {
-                if (operand->getGeometry() == nullptr || operand->getQuadricGeometry() == nullptr) {
+                if (!operand->hasGeometry() || operand->getQuadricGeometry() == nullptr) {
                     continue;
                 }
                 if (operand->getBounded() && operand->getCullSafe() &&
-                    !operand->getBakedBounds().intersectsRayForward(*ray)) {
+                    !operand->getBakedBounds().intersectsRayForward(*ray, ray->getAabbSlabReciprocals())) {
                     continue;
                 }
                 Material *effectiveMaterial =
@@ -291,7 +291,7 @@ public:
                 double depth1;
                 double depth2;
                 if (!BakedQuadricIntersector::intersectBakedQuadric(
-                        *operand->getQuadricGeometry(), ray, localOrigin, localDirection,
+                        *operand->getQuadricGeometry(), operand->getQuadricSquareTerm(), ray, localOrigin, localDirection,
                         false, scratch.getCache(), operand->getQuadricViewpointSlot(),
                         &depth1, &depth2)) {
                     continue;
@@ -349,8 +349,6 @@ public:
         if (bakedCsg->getDirectPrimitiveCullBins() != nullptr) {
             directCount = AabbCullingSupport::gatherCullSurvivors(
                 *bakedCsg->getDirectPrimitiveCullBins(),
-                bakedCsg->getDirectPrimitiveOperandIndices(),
-                bakedCsg->getOperands(),
                 *ray, directPositions, AabbCullingSupport::OPERAND_CULL_SCRATCH_CAPACITY);
             if (directCount >= 0) {
                 AabbCullingSupport::sortPositionsDescending(directPositions, directCount);
@@ -369,7 +367,7 @@ public:
                 const CsgOperandRecord *operand =
                     &bakedCsg->getOperands()[bakedCsg->getDirectPrimitiveOperandIndices()[d]];
                 if (operand->getBounded() && operand->getCullSafe() &&
-                    !operand->getBakedBounds().intersectsRayForward(*ray)) {
+                    !operand->getBakedBounds().intersectsRayForward(*ray, ray->getAabbSlabReciprocals())) {
                     continue;
                 }
                 dispatchDirectPrimitiveOperand(
@@ -396,8 +394,6 @@ public:
         if (bakedCsg->getTransformedPrimitiveCullBins() != nullptr) {
             transformedCount = AabbCullingSupport::gatherCullSurvivors(
                 *bakedCsg->getTransformedPrimitiveCullBins(),
-                bakedCsg->getTransformedPrimitiveOperandIndices(),
-                bakedCsg->getOperands(),
                 *ray, transformedPositions, AabbCullingSupport::OPERAND_CULL_SCRATCH_CAPACITY);
             if (transformedCount >= 0) {
                 AabbCullingSupport::sortPositionsDescending(transformedPositions, transformedCount);
@@ -417,7 +413,7 @@ public:
                     &bakedCsg->getOperands()[bakedCsg->getTransformedPrimitiveOperandIndices()[t]];
                 if (operand->getKind() == BakedScene::CsgOperandKind::TransformedQuadric &&
                     operand->getBounded() && operand->getCullSafe() &&
-                    !operand->getBakedBounds().intersectsRayForward(*ray)) {
+                    !operand->getBakedBounds().intersectsRayForward(*ray, ray->getAabbSlabReciprocals())) {
                     continue;
                 }
                 dispatchTransformedPrimitiveOperand(

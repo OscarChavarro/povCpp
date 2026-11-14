@@ -1,4 +1,5 @@
 #include "java/util/ArrayList.txx"
+#include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolidEulerConstructions.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/environment/geometry/geometricProcessing/polyhedralBoundedSolidOperators/PolyhedralBoundedSolidModeler.h"
@@ -24,7 +25,7 @@ PolyhedralBoundedSolid* SimpleTestGeometryLibrary::createTestObjectMANT1986_1()
 
     Matrix4x4d T;
     T = T.translation(0, -0.4, 0);
-    PolyhedralBoundedSolidModeler::translationalSweepExtrudeFacePlanar(
+    PolyhedralBoundedSolidEulerConstructions::translationalSweepExtrudeFacePlanar(
         solid, solid->findFace(1), T);
 
     return solid;
@@ -159,7 +160,7 @@ java::ArrayList<PolyhedralBoundedSolid*> SimpleTestGeometryLibrary::createTestOb
 
     Matrix4x4d T;
     T = T.translation(0, -0.42, 0);
-    PolyhedralBoundedSolidModeler::translationalSweepExtrudeFacePlanar(
+    PolyhedralBoundedSolidEulerConstructions::translationalSweepExtrudeFacePlanar(
         a, a->findFace(1), T);
 
     //-----------------------------------------------------------------
@@ -189,7 +190,7 @@ java::ArrayList<PolyhedralBoundedSolid*> SimpleTestGeometryLibrary::createTestOb
 
     T = Matrix4x4d();
     T = T.translation(0, -1.0, 0);
-    PolyhedralBoundedSolidModeler::translationalSweepExtrudeFacePlanar(
+    PolyhedralBoundedSolidEulerConstructions::translationalSweepExtrudeFacePlanar(
         leftView, leftView->findFace(1), T);
 
     //-----------------------------------------------------------------
@@ -206,7 +207,7 @@ java::ArrayList<PolyhedralBoundedSolid*> SimpleTestGeometryLibrary::createTestOb
 
     T = Matrix4x4d();
     T = T.translation(1, 0, 0);
-    PolyhedralBoundedSolidModeler::translationalSweepExtrudeFacePlanar(
+    PolyhedralBoundedSolidEulerConstructions::translationalSweepExtrudeFacePlanar(
         frontView, frontView->findFace(1), T);
 
     operands.add(leftView);
@@ -231,7 +232,7 @@ java::ArrayList<PolyhedralBoundedSolid*> SimpleTestGeometryLibrary::createTestOb
 
     T = Matrix4x4d();
     T = T.translation(0, -1.0, 0);
-    PolyhedralBoundedSolidModeler::translationalSweepExtrudeFacePlanar(
+    PolyhedralBoundedSolidEulerConstructions::translationalSweepExtrudeFacePlanar(
         leftView, leftView->findFace(1), T);
 
     //-----------------------------------------------------------------
@@ -246,7 +247,7 @@ java::ArrayList<PolyhedralBoundedSolid*> SimpleTestGeometryLibrary::createTestOb
 
     T = Matrix4x4d();
     T = T.translation(1, 0, 0);
-    PolyhedralBoundedSolidModeler::translationalSweepExtrudeFacePlanar(
+    PolyhedralBoundedSolidEulerConstructions::translationalSweepExtrudeFacePlanar(
         frontView, frontView->findFace(1), T);
 
     operands.add(leftView);
@@ -290,7 +291,7 @@ java::ArrayList<PolyhedralBoundedSolid*> SimpleTestGeometryLibrary::createTestOb
 
     Matrix4x4d transformationMatrix;
     transformationMatrix = transformationMatrix.translation(0.775, 0, 0);
-    PolyhedralBoundedSolidModeler::translationalSweepExtrudeFacePlanar(
+    PolyhedralBoundedSolidEulerConstructions::translationalSweepExtrudeFacePlanar(
         wedge, wedge->findFace(1), transformationMatrix);
 
     operands.add(block);

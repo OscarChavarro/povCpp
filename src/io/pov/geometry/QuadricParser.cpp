@@ -1,6 +1,6 @@
 
 
-#include "environment/geometry/volume/Quadric.h"
+#include "vsdk/toolkit/environment/geometry/volume/QuadricSurface.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/pov/geometry/QuadricParser.h"
@@ -14,7 +14,6 @@
 SimpleBodyBuilder *
 QuadricParser::parseQuadric(ParserContext &ctx)
 {
-    Quadric *localShape;
     SimpleBodyBuilder *body = nullptr;
     Vector3Dd localVector;
     Vector3Dd object2Terms;
@@ -23,8 +22,6 @@ QuadricParser::parseQuadric(ParserContext &ctx)
     double objectConstant;
     int constantId;
     PovRayMaterial *localTexture;
-
-    localShape = nullptr;
 
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
@@ -40,9 +37,8 @@ QuadricParser::parseQuadric(ParserContext &ctx)
                 PrimitiveParser::parseVector(&objectMixedTerms, ctx);
                 PrimitiveParser::parseVector(&objectTerms, ctx);
                 objectConstant = PrimitiveParser::parseFloat(ctx);
-                localShape = new Quadric(
-                    object2Terms, objectMixedTerms, objectTerms, objectConstant);
-                body = SceneBuilder::wrap(localShape);
+                body = SceneBuilder::wrap(new QuadricSurface(
+                    object2Terms, objectMixedTerms, objectTerms, objectConstant));
                 Exit_Flag = true;
                 break;
 
@@ -53,7 +49,6 @@ QuadricParser::parseQuadric(ParserContext &ctx)
                         body = new SimpleBodyBuilder(
                                 *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
                                     .getConstantData());
-                        localShape = (Quadric *)body->getGeometry();
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }

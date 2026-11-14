@@ -13,7 +13,7 @@
 #include "vsdk/toolkit/environment/geometry/surface/SubdividedBezierPatch.h"
 #include "environment/geometry/SurfaceDetailKernel.h"
 #include "environment/geometry/element/GeometryConfig.h"
-#include "environment/geometry/surface/parametric/PatchScratch.h"
+#include "environment/geometry/trace/PatchScratch.h"
 
 void
 SurfaceDetailKernel::resolve(const RayWithTracingState &ray, double t, RayCastingHit *hit)

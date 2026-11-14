@@ -5,12 +5,12 @@
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 #include "vsdk/toolkit/environment/geometry/element/RayHit.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "vsdk/toolkit/environment/geometry/geometricProcessing/polyhedralBoundedSolidOperators/PolyhedralBoundedSolidModeler.h"
 #include "vsdk/toolkit/environment/geometry/volume/Cone.h"
 #include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
 #include "java/lang/Double.h"
 #include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolid.h"
 #include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolidEulerOperators.h"
+#include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolidEulerConstructions.h"
 #include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/nodes/_PolyhedralBoundedSolidFace.h"
 #include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/nodes/_PolyhedralBoundedSolidHalfEdge.h"
 #include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/nodes/_PolyhedralBoundedSolidLoop.h"
@@ -315,7 +315,7 @@ PolyhedralBoundedSolid* Cone::buildPolyhedralBoundedSolid(int nsides,
     Matrix4x4d S;
     Matrix4x4d M;
 
-    solid = PolyhedralBoundedSolidModeler::createCircularLamina(
+    solid = PolyhedralBoundedSolidEulerConstructions::createCircularLamina(
         0.0, 0.0, bottomRadius, 0.0, nsides);
 
     if ( topRadius > VSDK::EPSILON && bottomRadius > VSDK::EPSILON ) {
@@ -331,7 +331,7 @@ PolyhedralBoundedSolid* Cone::buildPolyhedralBoundedSolid(int nsides,
             S = Matrix4x4d();
             S = S.scale(f, f, 1.0);
             M = T.multiply(S);
-            PolyhedralBoundedSolidModeler::translationalSweepExtrudeFacePlanar(
+            PolyhedralBoundedSolidEulerConstructions::translationalSweepExtrudeFacePlanar(
                 solid, solid->findFace(1), M);
             prevRadius = nextRadius;
         }
@@ -350,7 +350,7 @@ PolyhedralBoundedSolid* Cone::buildPolyhedralBoundedSolid(int nsides,
             S = Matrix4x4d();
             S = S.scale(f, f, 1.0);
             M = T.multiply(S);
-            PolyhedralBoundedSolidModeler::translationalSweepExtrudeFacePlanar(
+            PolyhedralBoundedSolidEulerConstructions::translationalSweepExtrudeFacePlanar(
                 solid, solid->findFace(1), M);
             prevRadius = nextRadius;
         }

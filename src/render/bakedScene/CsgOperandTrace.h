@@ -3,7 +3,7 @@
 
 #include "environment/geometry/element/GeometryConfig.h"
 #include "environment/geometry/element/SphereTrace.h"
-#include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
+#include "environment/scene/constructiveSolidGeometry/CsgOperand.h"
 #include "render/bakedScene/AabbCullingSupport.h"
 #include "render/bakedScene/BakedPlaneIntersector.h"
 #include "render/bakedScene/BakedQuadricIntersector.h"
@@ -98,11 +98,11 @@ public:
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride)
     {
-        if (operand->getGeometry() == nullptr) {
+        if (!operand->hasGeometry()) {
             return false;
         }
         if (operand->getBounded() && operand->getCullSafe() &&
-            !operand->getBakedBounds().intersectsRayForward(*ray)) {
+            !operand->getBakedBounds().intersectsRayForward(*ray, ray->getAabbSlabReciprocals())) {
             return false;
         }
 
@@ -193,7 +193,7 @@ public:
                     return false;
                 }
                 if (!BakedQuadricIntersector::intersectBakedQuadric(
-                        *operand->getQuadricGeometry(),
+                        *operand->getQuadricGeometry(), operand->getQuadricSquareTerm(),
                         ray,
                         localOrigin,
                         localDirection,

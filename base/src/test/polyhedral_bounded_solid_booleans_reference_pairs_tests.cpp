@@ -4,6 +4,7 @@
 #include "java/lang/StringBuilder.h"
 #include <gtest/gtest.h>
 #include "java/lang/Math.h"
+#include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolidEulerConstructions.h"
 #include "vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolidEulerOperators.h"
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
@@ -400,11 +401,9 @@ private:
     static PolyhedralBoundedSolid* createCylinder(double radius, double height,
         const Vector3Dd& translation)
     {
-        PolyhedralBoundedSolid* solid = Modeler::createCircularLamina(
-            0.0, 0.0, radius, 0.0, CYLINDER_SIDES);
-        Matrix4x4d sweep;
-        sweep = sweep.translation(0.0, 0.0, height);
-        Modeler::translationalSweepExtrudeFacePlanar(solid, solid->findFace(1), sweep);
+        Cone cylinder(radius, radius, height);
+        PolyhedralBoundedSolid* solid =
+            cylinder.exportToPolyhedralBoundedSolid(CYLINDER_SIDES, 1);
         Matrix4x4d move;
         move = move.translation(translation);
         Modeler::applyTransformation(solid, move);
@@ -423,7 +422,7 @@ private:
         PolyhedralBoundedSolidEulerOperators::smef(solid, 1, n, 1, 2);
         Matrix4x4d t;
         t = t.translation(0.0, 0.0, thickness);
-        Modeler::translationalSweepExtrudeFacePlanar(solid, solid->findFace(1), t);
+        PolyhedralBoundedSolidEulerConstructions::translationalSweepExtrudeFacePlanar(solid, solid->findFace(1), t);
         return solid;
     }
 

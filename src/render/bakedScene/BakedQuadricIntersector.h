@@ -1,7 +1,8 @@
 #ifndef __BAKED_QUADRIC_INTERSECTOR__
 #define __BAKED_QUADRIC_INTERSECTOR__
 
-#include "environment/geometry/volume/Quadric.h"
+#include "vsdk/toolkit/environment/geometry/volume/QuadricSurface.h"
+#include "environment/geometry/element/RayWithTracingState.h"
 #include "render/raySharedCache/RaySharedCache.h"
 
 // Ray-quadric intersection for baked CSG operands, with the shared
@@ -12,7 +13,8 @@
 class BakedQuadricIntersector {
 public:
     static bool intersectBakedQuadric(
-        const Quadric &shape,
+        const QuadricSurface &surface,
+        bool nonZeroSquareTerm,
         RayWithTracingState *ray,
         const Vector3Dd &origin,
         const Vector3Dd &direction,
@@ -30,7 +32,8 @@ public:
     // intersectBakedQuadricWithCoeffs are not needed and would add register
     // pressure on every call.
     static bool intersectBakedQuadricWithTrueMiss(
-        const Quadric &shape,
+        const QuadricSurface &surface,
+        bool nonZeroSquareTerm,
         RayWithTracingState *ray,
         const Vector3Dd &origin,
         const Vector3Dd &direction,
@@ -48,7 +51,8 @@ public:
     // trueMiss=false and the function returns false, the ray may be inside
     // the quadric.
     static bool intersectBakedQuadricWithCoeffs(
-        const Quadric &shape,
+        const QuadricSurface &surface,
+        bool nonZeroSquareTerm,
         RayWithTracingState *ray,
         const Vector3Dd &origin,
         const Vector3Dd &direction,
@@ -65,7 +69,8 @@ public:
 private:
     // The coefficients of the shared QuadricRayExpansion along the ray.
     static void expand(
-        const Quadric &shape,
+        const QuadricSurface &surface,
+        bool nonZeroSquareTerm,
         RayWithTracingState *ray,
         const Vector3Dd &origin,
         const Vector3Dd &direction,

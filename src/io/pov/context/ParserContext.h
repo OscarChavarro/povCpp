@@ -39,8 +39,8 @@ class ParserContext {
 
     // Selects the CSG classification algorithm at parse time: false
     // (default) keeps point-membership classification
-    // (ConstructiveSolidGeometryByMorganRules), true makes CsgParser build
-    // ConstructiveSolidGeometryByRaySegment nodes instead ([ROTH1982]).
+    // (CsgMorganRulesEvaluator), true makes CsgParser build CSG nodes with
+    // the ROTH evaluator instead ([ROTH1982], CsgRaySegmentEvaluator).
     // Decoupled from PovRayRendererConfiguration for the same reason as
     // setDiagnostics().
     void setCsgRoth(bool value) { mCsgRoth = value; }

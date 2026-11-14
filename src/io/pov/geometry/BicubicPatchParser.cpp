@@ -1,6 +1,6 @@
 
 
-#include "environment/geometry/surface/parametric/RayCastingParametricBiCubicPatch.h"
+#include "java/lang/IllegalArgumentException.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/pov/geometry/BicubicPatchParser.h"
@@ -22,7 +22,6 @@ SimpleBodyBuilder *
 BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
 {
     (void)ctx;
-    RayCastingParametricBiCubicPatch *localShape = nullptr;
     SimpleBodyBuilder *body = nullptr;
     Vector3Dd localVector;
     Vector3Dd controlPoints[4][4];
@@ -57,9 +56,8 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                         PrimitiveParser::parseVector(&controlPoints[i][j], ctx);
                     }
                 }
-                localShape = new RayCastingParametricBiCubicPatch(
-                    patchType, uSteps, vSteps, flatnessValue, controlPoints);
-                body = SceneBuilder::wrap(localShape);
+                body = SceneBuilder::wrap(new SubdividedBezierPatch(
+                    subdivisionOf(patchType), uSteps, vSteps, flatnessValue, controlPoints));
                 Exit_Flag = true;
                 break;
             }
@@ -72,7 +70,6 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                         body = new SimpleBodyBuilder(
                                 *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
                                     .getConstantData());
-                        localShape = (RayCastingParametricBiCubicPatch *)body->getGeometry();
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -140,4 +137,18 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
     }
 
     return body;
+}
+
+BezierPatchSubdivision
+BicubicPatchParser::subdivisionOf(int patchType)
+{
+    switch (patchType) {
+    case 0: return BezierPatchSubdivision::UniformGrid;
+    case 1: return BezierPatchSubdivision::PrecomputedGrid;
+    case 2: return BezierPatchSubdivision::Adaptive;
+    case 3: return BezierPatchSubdivision::AdaptiveTree;
+    case 4: return BezierPatchSubdivision::SmoothGrid;
+    default: break;
+    }
+    throw java::IllegalArgumentException("bicubic_patch type must be 0 to 4");
 }

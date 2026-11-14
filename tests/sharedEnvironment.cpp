@@ -5,8 +5,7 @@
 #include <stdexcept>
 #include "environment/scene/PovrayBody.h"
 #include "environment/scene/RayCastingComposite.h"
-#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
-#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByMorganRules.h"
+#include "environment/scene/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/environment/scene/csg/CsgCrossingMembershipFilter.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgRayClassification.h"
@@ -30,14 +29,12 @@
 #include "vsdk/toolkit/media/RGBPixel.h"
 #include "vsdk/toolkit/render/raytracing/SimpleRaytracer.h"
 #include "vsdk/toolkit/render/raytracing/ParallelRaytracer.h"
-#include "environment/scene/NativeGeometryBinding.h"
+#include "environment/scene/ProjectedTriangleTraversal.h"
 #include "environment/geometry/element/RayCastingQueryAdapter.h"
 #include "vsdk/toolkit/environment/geometry/volume/Box.h"
-#include "environment/geometry/volume/RayCastingBox.h"
-#include "environment/geometry/volume/Quadric.h"
+#include "vsdk/toolkit/environment/geometry/volume/QuadricSurface.h"
 #include "vsdk/toolkit/environment/geometry/surface/InfinitePlane.h"
 #include "vsdk/toolkit/environment/geometry/surface/TriangleMesh.h"
-#include "environment/geometry/surface/RayCastingInfinitePlane.h"
 #include "environment/scene/ProjectedTriangleTraversal.h"
 #include "vsdk/toolkit/environment/geometry/volume/Torus.h"
 #include "vsdk/toolkit/environment/geometry/volume/PlanarHalfSpace.h"
@@ -47,56 +44,65 @@
 #include "TestCrossingCollector.h"
 
 int main() {
-    NativeGeometryBinding slab(new TestSlabGeometry());
+    java::ArrayList<PovrayBody*> bindingRegions;
+    PovrayBody slab(new TestSlabGeometry(), nullptr, nullptr, nullptr, false, bindingRegions, bindingRegions);
     const Ray slabRay = Ray::fromAffine(Vector3Dd(-3,0,0), Vector3Dd(1,0,0));
-    Quadric sharedQuadric(Vector3Dd(1,1,1), Vector3Dd(), Vector3Dd(), -1);
+    PovrayBody sharedQuadric(new QuadricSurface(Vector3Dd(1,1,1), Vector3Dd(), Vector3Dd(), -1),
+        nullptr, nullptr, nullptr, false, bindingRegions, bindingRegions);
     GeometryBounds sharedQuadricBounds;
-    sharedQuadric.getBounds(sharedQuadricBounds);
-    BoundingVolumeHierarchy* sharedQuadricCulling = sharedQuadric.createBoundingVolume();
-    const AxisAlignedBoundingBox sharedQuadricBox = sharedQuadricCulling->axisAlignedExtent();
-    delete sharedQuadricCulling;
+    sharedQuadric.getSurfaceBounds(sharedQuadricBounds);
+    const AxisAlignedBoundingBox sharedQuadricBox = sharedQuadric.getAABB();
     if (sharedQuadricBounds.getKind() != GeometryBounds::Kind::Finite ||
         sharedQuadricBounds.getMinimum().x() != -1 || sharedQuadricBox.getMin().x() != -1 ||
         sharedQuadricBounds.getMaximum().x() != 1 || sharedQuadricBox.getMax().x() != 1) return 115;
     RaySolidClassification quadricSegments;
-    if (dynamic_cast<const QuadricSurface*>(sharedQuadric.getIntrinsicGeometry()) == nullptr ||
+    if (dynamic_cast<const QuadricSurface*>(sharedQuadric.getSurface()) == nullptr ||
         sharedQuadric.classifyRay(slabRay, RayCrossingQuery(0,10), quadricSegments) != RaySolidQueryStatus::Supported ||
         quadricSegments.boundaries.size() != 2 ||
-        quadricSegments.boundaries[0].geometry != sharedQuadric.getIntrinsicGeometry() ||
+        quadricSegments.boundaries[0].geometry != sharedQuadric.getSurface() ||
         quadricSegments.boundaries[0].t != 2 || quadricSegments.boundaries[1].t != 4) return 113;
-    sharedQuadric.setConstantCached(true);
-    sharedQuadric.invertGeometry();
-    sharedQuadric.getBounds(sharedQuadricBounds);
+    sharedQuadric.invert();
+    sharedQuadric.getSurfaceBounds(sharedQuadricBounds);
     if (sharedQuadricBounds.getKind() != GeometryBounds::Kind::Unbounded) return 116;
-    if (sharedQuadric.isConstantCached() ||
+    java::ArrayList<PovrayBody*> stateRegions;
+    PovrayBody cachedQuadricBody(new QuadricSurface(Vector3Dd(1,1,1), Vector3Dd(), Vector3Dd(), -1),
+        nullptr, nullptr, nullptr, false, stateRegions, stateRegions);
+    cachedQuadricBody.getSurfaceTraceState()->setViewpointCached(true);
+    cachedQuadricBody.invert();
+    if (cachedQuadricBody.getSurfaceTraceState()->isViewpointCached() ||
+        cachedQuadricBody.isSurfaceInverted() ||
+        !cachedQuadricBody.getSurfaceTraceState()->hasNonZeroSquareTerm() ||
         sharedQuadric.classifyPoint(Vector3Dd(),0) != GeometryContainment::Outside ||
         sharedQuadric.classifyRay(slabRay, RayCrossingQuery(0,10), quadricSegments) != RaySolidQueryStatus::Supported ||
         !quadricSegments.insideSegments[0] || quadricSegments.insideSegments[1] ||
         !quadricSegments.insideSegments[2]) return 114;
-    Geometry* slabGeometry = &slab;
+    PovrayBody* slabGeometry = &slab;
     TestCrossingCollector slabCrossings;
     if (slabGeometry->emitRayCrossings(slabRay, RayCrossingQuery(0,10), slabCrossings) !=
             RayCrossingSupport::Supported || slabCrossings.hits.size() != 2 ||
         slabCrossings.hits[0]->t != 2 || slabCrossings.hits[1]->t != 4 ||
-        slabCrossings.hits[0]->geometry != slab.getIntrinsicGeometry()) return 29;
+        slabCrossings.hits[0]->geometry != slab.getSurface()) return 29;
     RayCastingQueryAdapter slabContext(slabRay);
     IntersectionCandidate slabHit;
-    if (!slab.doIntersectionFirstHit(&slabContext.ray, slabHit) ||
+    if (!slab.doIntersectionFirstHitViaCrossings(&slabContext.ray, slabHit) ||
         slabHit.getIntersection().t != 2 ||
         slab.doContainmentTest(Vector3Dd(0,0,0), 0) != Geometry::INSIDE) return 30;
     RayHit slabDetail(RayHit::DETAIL_NORMAL, false);
     if (!slabGeometry->doIntersectionFirstHit(slabRay, &slabDetail) ||
         slabDetail.normal.x() != -1) return 31;
-    NativeGeometryBinding slabCopy(slab);
-    if (slabCopy.getIntrinsicGeometry() == slab.getIntrinsicGeometry()) return 32;
-    slab.invertGeometry();
-    if (slab.doContainmentTest(Vector3Dd(0,0,0), 0) != Geometry::OUTSIDE) return 33;
+    PovrayBody slabCopy(slab);
+    if (slabCopy.getSurface() == slab.getSurface()) return 32;
+    PovrayBody slabBody(new TestSlabGeometry(), nullptr, nullptr, nullptr,
+        false, stateRegions, stateRegions);
+    slabBody.invert();
+    if (!slabBody.isSurfaceInverted() ||
+        slabBody.doContainmentTest(Vector3Dd(0,0,0), 0) != Geometry::OUTSIDE) return 33;
     const Matrix4x4d outerColumn = Matrix4x4d().translation(3,0,0).multiply(
         Matrix4x4d::identityMatrix().withVal(0,1,0.5));
     const Matrix4x4d outerInverse = Matrix4x4d::identityMatrix().withVal(0,1,-0.5).multiply(
         Matrix4x4d().translation(-3,0,0));
     java::ArrayList<PovrayBody*> affineRegions;
-    NativeGeometryBinding* affineSphere = new NativeGeometryBinding(new Sphere(1));
+    Sphere* affineSphere = new Sphere(1);
     PovrayBody affineBody(affineSphere, nullptr, nullptr, nullptr, false, affineRegions, affineRegions,
         new Matrix4x4d(outerColumn.transpose()), new Matrix4x4d(outerInverse.transpose()),
         new Matrix4x4d(Matrix4x4d().scale(2,1,1).transpose()),
@@ -112,17 +118,17 @@ int main() {
         affineSegments.boundaries.size()!=2 ||
         java::Math::abs(affineSegments.boundaries[0].t-(3-expectedOffset)/2)>1e-10 ||
         java::Math::abs(affineSegments.boundaries[1].t-(3+expectedOffset)/2)>1e-10 ||
-        affineSegments.boundaries[0].geometry != affineSphere->getIntrinsicGeometry() ||
+        affineSegments.boundaries[0].geometry != affineSphere ||
         affineSegments.boundaries[0].getInstanceCount()!=1 ||
         affineBody.classifyPoint(placement.multiply(Vector3Dd()),0) != GeometryContainment::Inside ||
         affineBody.classifyPoint(placement.multiply(Vector3Dd()),0.1) != GeometryContainment::Inside) return 123;
     TestCrossingCollector affineEvents;
     if (affineBody.emitRayCrossings(affineRay,RayCrossingQuery(0,10),affineEvents) != RayCrossingSupport::Supported ||
-        affineEvents.hits.size()!=2 || affineEvents.hits[0]->geometry != affineSphere->getIntrinsicGeometry() ||
+        affineEvents.hits.size()!=2 || affineEvents.hits[0]->geometry != affineSphere ||
         affineEvents.hits[0]->getInstanceCount()!=1 || affineEvents.hits[0]->body != &affineBody ||
         affineEvents.hits[0]->kind != RayCrossing::Kind::Entering ||
         java::Math::abs(affineEvents.hits[0]->t-(3-expectedOffset)/2)>1e-10) return 127;
-    affineSphere->invertGeometry();
+    affineBody.invert();
     if (affineBody.classifyRay(affineRay,RayCrossingQuery(0,10),affineSegments) != RaySolidQueryStatus::Supported ||
         !affineSegments.insideSegments[0] || affineSegments.insideSegments[1] ||
         !affineSegments.insideSegments[2] || !affineSegments.boundaries[0].normalReversed ||
@@ -145,35 +151,39 @@ int main() {
         !affineBody.getAffinePlacement().epsilonEquals(editedForward,1e-12)) return 132;
     affineBody.resetAffinePlacement();
     if (!affineBody.getAffinePlacement().epsilonEquals(Matrix4x4d(),1e-12)) return 133;
-    PovrayBody singularBody(new NativeGeometryBinding(new Sphere(1)), nullptr, nullptr, nullptr,
+    PovrayBody singularBody(new Sphere(1), nullptr, nullptr, nullptr,
         false, affineRegions, affineRegions, new Matrix4x4d(Matrix4x4d().scale(0,1,1)),
         new Matrix4x4d(Matrix4x4d()));
     if (singularBody.classifyRay(affineRay,RayCrossingQuery(0,10),affineSegments) != RaySolidQueryStatus::InvalidInput ||
         singularBody.classifyPoint(Vector3Dd(),0) != GeometryContainment::InvalidInput) return 125;
-    PovrayBody inconsistentBody(new NativeGeometryBinding(new Sphere(1)), nullptr, nullptr, nullptr,
+    PovrayBody inconsistentBody(new Sphere(1), nullptr, nullptr, nullptr,
         false, affineRegions, affineRegions, new Matrix4x4d(Matrix4x4d().scale(2,1,1)),
         new Matrix4x4d(Matrix4x4d()));
     if (inconsistentBody.classifyRay(affineRay,RayCrossingQuery(0,10),affineSegments) != RaySolidQueryStatus::Indeterminate ||
         inconsistentBody.classifyPoint(Vector3Dd(),0) != GeometryContainment::Indeterminate) return 126;
-    NativeGeometryBinding nativeBox(new Box(2,2,2));
+    PovrayBody nativeBox(new Box(2,2,2), nullptr, nullptr, nullptr, false, bindingRegions, bindingRegions);
     GeometryBounds boxLocalBounds;
-    nativeBox.getBounds(boxLocalBounds);
+    nativeBox.getSurfaceBounds(boxLocalBounds);
     if (boxLocalBounds.getKind() != GeometryBounds::Kind::Finite ||
         boxLocalBounds.getMinimum().x() != -1 || boxLocalBounds.getMaximum().x() != 1) return 95;
-    NativeGeometryBinding inverseBounds(new Sphere(1));
-    inverseBounds.invertGeometry();
-    inverseBounds.getBounds(boxLocalBounds);
+    PovrayBody inverseBounds(new Sphere(1), nullptr, nullptr, nullptr,
+        false, stateRegions, stateRegions);
+    inverseBounds.invert();
+    inverseBounds.getSurfaceBounds(boxLocalBounds);
+    if (boxLocalBounds.getKind() != GeometryBounds::Kind::Unbounded) return 96;
+    inverseBounds.getWorldBounds(boxLocalBounds);
     if (boxLocalBounds.getKind() != GeometryBounds::Kind::Unbounded) return 96;
     const Matrix4x4d shear = Matrix4x4d::identityMatrix().withVal(1,0,2).withVal(3,0,10);
+    const Matrix4x4d shearPlacement = shear.transpose();
     const AxisAlignedBoundingBox placed = AxisAlignedBoundingBox::fromTransformedCorners(
-        Vector3Dd(-1,-1,-1), Vector3Dd(1,1,1), &shear);
+        Vector3Dd(-1,-1,-1), Vector3Dd(1,1,1), &shearPlacement);
     if (placed.getMin().x() != 7 || placed.getMax().x() != 13 ||
         placed.getMin().y() != -1 || placed.getMax().y() != 1) return 97;
-    const Matrix4x4d invalidPlacement = shear.withVal(0,3,1);
+    const Matrix4x4d invalidPlacement = shear.withVal(0,3,1).transpose();
     if (!AxisAlignedBoundingBox::fromTransformedCorners(
         Vector3Dd(-1,-1,-1), Vector3Dd(1,1,1), &invalidPlacement).isUnbounded()) return 98;
     java::ArrayList<PovrayBody*> noRegions;
-    PovrayBody placedBody(new NativeGeometryBinding(new Sphere(2)), nullptr, nullptr,
+    PovrayBody placedBody(new Sphere(2), nullptr, nullptr,
         nullptr, false, noRegions, noRegions);
     { Vector3Dd offset(5,0,0); placedBody.translateOwnerOnly(&offset); }
     placedBody.getWorldBounds(boxLocalBounds);
@@ -189,9 +199,9 @@ int main() {
     if (placedCulling.getMin().x() != boxLocalBounds.getMinimum().x() ||
         placedCulling.getMax().x() != boxLocalBounds.getMaximum().x()) return 101;
     java::ArrayList<PovrayBody*> compositeChildren;
-    compositeChildren.add(new PovrayBody(new NativeGeometryBinding(new Sphere(1)),
+    compositeChildren.add(new PovrayBody(new Sphere(1),
         nullptr, nullptr, nullptr, false, noRegions, noRegions));
-    PovrayBody* shiftedChild = new PovrayBody(new NativeGeometryBinding(new Sphere(2)),
+    PovrayBody* shiftedChild = new PovrayBody(new Sphere(2),
         nullptr, nullptr, nullptr, false, noRegions, noRegions);
     { Vector3Dd offset(4,0,0); shiftedChild->translateOwnerOnly(&offset); }
     compositeChildren.add(shiftedChild);
@@ -201,16 +211,16 @@ int main() {
     composite.getWorldBounds(boxLocalBounds);
     if (boxLocalBounds.getKind() != GeometryBounds::Kind::Finite ||
         boxLocalBounds.getMinimum().x() != 9 || boxLocalBounds.getMaximum().x() != 16) return 102;
-    composite.getSimpleBodies().add(new PovrayBody(new NativeGeometryBinding(new TestSlabGeometry()),
+    composite.getSimpleBodies().add(new PovrayBody(new TestSlabGeometry(),
         nullptr, nullptr, nullptr, false, noRegions, noRegions));
     composite.getWorldBounds(boxLocalBounds);
     if (boxLocalBounds.getKind() != GeometryBounds::Kind::Unbounded) return 103;
-    composite.getSimpleBodies().add(new PovrayBody(new NativeGeometryBinding(new Torus(2,1)),
+    composite.getSimpleBodies().add(new PovrayBody(new Torus(2,1),
         nullptr, nullptr, nullptr, false, noRegions, noRegions));
     composite.getWorldBounds(boxLocalBounds);
     if (boxLocalBounds.getKind() != GeometryBounds::Kind::Unsupported) return 104;
     java::ArrayList<PovrayBody*> nestedChildren;
-    nestedChildren.add(new PovrayBody(new NativeGeometryBinding(new Sphere(1)),
+    nestedChildren.add(new PovrayBody(new Sphere(1),
         nullptr, nullptr, nullptr, false, noRegions, noRegions));
     RayCastingComposite* nested = new RayCastingComposite(nullptr, nullptr, nullptr, nullptr,
         false, noRegions, noRegions, nestedChildren);
@@ -224,24 +234,23 @@ int main() {
     if (boxLocalBounds.getKind() != GeometryBounds::Kind::Finite ||
         boxLocalBounds.getMinimum().x() != 6 || boxLocalBounds.getMaximum().x() != 8) return 105;
     TestCrossingCollector boxCrossings;
-    if (static_cast<Geometry*>(&nativeBox)->emitRayCrossings(
+    if (nativeBox.emitRayCrossings(
             slabRay, RayCrossingQuery(0,10), boxCrossings) != RayCrossingSupport::Supported ||
         boxCrossings.hits.size() != 2 || boxCrossings.hits[0]->t != 2 ||
         boxCrossings.hits[1]->t != 4 ||
-        boxCrossings.hits[0]->geometry != nativeBox.getIntrinsicGeometry()) return 36;
+        boxCrossings.hits[0]->geometry != nativeBox.getSurface()) return 36;
     RayHit boxDetail(RayHit::DETAIL_NORMAL, false);
-    if (!static_cast<Geometry*>(&nativeBox)->doIntersectionFirstHit(slabRay, &boxDetail) ||
+    if (!nativeBox.doIntersectionFirstHit(slabRay, &boxDetail) ||
         boxDetail.normal.x() != -1) return 37;
-    NativeGeometryBinding boxCopy(nativeBox);
-    if (boxCopy.getIntrinsicGeometry() == nativeBox.getIntrinsicGeometry() ||
+    PovrayBody boxCopy(nativeBox);
+    if (boxCopy.getSurface() == nativeBox.getSurface() ||
         boxCopy.doContainmentTest(Vector3Dd(0,0,0), 0) != Geometry::INSIDE) return 38;
-    RayCastingBox arbitraryBox(Vector3Dd(-2,-1,-3), Vector3Dd(4,3,1));
+    Box arbitraryBox(Vector3Dd(-2,-1,-3), Vector3Dd(4,3,1));
     const Ray boxRay=Ray::fromAffine(Vector3Dd(-4,0,0),Vector3Dd(1,0,0));
     RayBoundary boxBoundary;
     RaySolidClassification arbitrarySegments;
-    if (dynamic_cast<const Box*>(arbitraryBox.getIntrinsicGeometry()) == nullptr ||
-        arbitraryBox.queryFirstHit(boxRay,RayCrossingQuery(0,10),nullptr,&boxBoundary) != RayFirstHitStatus::Hit ||
-        boxBoundary.geometry != arbitraryBox.getIntrinsicGeometry() || boxBoundary.t != 2 ||
+    if (arbitraryBox.queryFirstHit(boxRay,RayCrossingQuery(0,10),nullptr,&boxBoundary) != RayFirstHitStatus::Hit ||
+        boxBoundary.geometry != &arbitraryBox || boxBoundary.t != 2 ||
         arbitraryBox.classifyRay(boxRay,RayCrossingQuery(0,10),arbitrarySegments) != RaySolidQueryStatus::Supported ||
         arbitrarySegments.boundaries.size() != 2 || arbitrarySegments.boundaries[1].t != 8) return 117;
     arbitraryBox.getBounds(boxLocalBounds);
@@ -252,21 +261,24 @@ int main() {
         Box::containsBounds(Vector3Dd(-2.1,0,0), boxMin, boxMax) ||
         Box::normalForBounds(Vector3Dd(4,3,1), boxMin, boxMax, 1e-8).x() != 1 ||
         Box::normalForBounds(Vector3Dd(0,-1,0), boxMin, boxMax, 1e-8).y() != -1 ||
-        arbitraryBox.doContainmentTest(Vector3Dd(-2,0,0), 0) != Geometry::INSIDE) return 93;
-    arbitraryBox.invertGeometry();
-    if (arbitraryBox.classifyRay(boxRay,RayCrossingQuery(0,10),arbitrarySegments) != RaySolidQueryStatus::Supported ||
+        BoxTrace::containment(arbitraryBox, SurfaceTraceState(), Vector3Dd(-2,0,0), 0) !=
+            Geometry::INSIDE) return 93;
+    PovrayBody invertedBox(arbitraryBox.copyGeometry(), nullptr, nullptr, nullptr,
+        false, stateRegions, stateRegions);
+    invertedBox.invert();
+    if (invertedBox.classifyRay(boxRay,RayCrossingQuery(0,10),arbitrarySegments) != RaySolidQueryStatus::Supported ||
         arbitrarySegments.insideSegments.size() != 3 || !arbitrarySegments.insideSegments[0] ||
         arbitrarySegments.insideSegments[1] || !arbitrarySegments.insideSegments[2] ||
         !arbitrarySegments.boundaries[0].normalReversed) return 118;
     TestCrossingCollector invertedBoxEvents;
-    if (arbitraryBox.emitRayCrossings(boxRay,RayCrossingQuery(0,10),invertedBoxEvents) != RayCrossingSupport::Supported ||
+    if (invertedBox.emitRayCrossings(boxRay,RayCrossingQuery(0,10),invertedBoxEvents) != RayCrossingSupport::Supported ||
         invertedBoxEvents.hits.size() != 2 || invertedBoxEvents.hits[0]->kind != RayCrossing::Kind::Leaving ||
         !invertedBoxEvents.hits[0]->normalReversed) return 119;
-    arbitraryBox.getBounds(boxLocalBounds);
+    invertedBox.getWorldBounds(boxLocalBounds);
     if (boxLocalBounds.getKind() != GeometryBounds::Kind::Unbounded) return 107;
-    if (arbitraryBox.doContainmentTest(Vector3Dd(-2,0,0), 0) != Geometry::OUTSIDE ||
-        arbitraryBox.doContainmentTest(Vector3Dd(-2.1,0,0), 0) != Geometry::INSIDE) return 94;
-    arbitraryBox.invertGeometry();
+    if (invertedBox.doContainmentTest(Vector3Dd(-2,0,0), 0) != Geometry::OUTSIDE ||
+        invertedBox.doContainmentTest(Vector3Dd(-2.1,0,0), 0) != Geometry::INSIDE ||
+        invertedBox.classifyPoint(Vector3Dd(0,0,0), 0) != GeometryContainment::Outside) return 94;
     const Vector3Dd origins[] = {Vector3Dd(-4,0,0), Vector3Dd(5,0,0),
         Vector3Dd(0,0,0), Vector3Dd(5,0,0)};
     const Vector3Dd directions[] = {Vector3Dd(1,0,0), Vector3Dd(-1,0,0),
@@ -278,102 +290,109 @@ int main() {
         RayCastingQueryAdapter context(Ray::fromAffine(origins[i], directions[i]));
         double nearT = 0, farT = 0;
         const bool hit = BoxTrace::intersect(&context.ray,
-            *static_cast<const Box*>(arbitraryBox.getIntrinsicGeometry()), &nearT, &farT);
+            arbitraryBox, &nearT, &farT);
         if (hit != expectedHit[i] || (hit &&
             (nearT != expectedNear[i] || farT != expectedFar[i]))) return 39;
     }
-    NativeGeometryBinding nativePlane(new InfinitePlane(1,0,0,0));
+    PovrayBody nativePlane(new InfinitePlane(1,0,0,0), nullptr, nullptr, nullptr, false, bindingRegions, bindingRegions);
     TestCrossingCollector planeCrossings;
-    if (static_cast<Geometry*>(&nativePlane)->emitRayCrossings(
+    if (nativePlane.emitRayCrossings(
             slabRay, RayCrossingQuery(0,10), planeCrossings) != RayCrossingSupport::Supported ||
         planeCrossings.hits.size() != 1 || planeCrossings.hits[0]->t != 3 ||
-        planeCrossings.hits[0]->geometry != nativePlane.getIntrinsicGeometry()) return 40;
+        planeCrossings.hits[0]->geometry != nativePlane.getSurface()) return 40;
     RayHit planeDetail(RayHit::DETAIL_NORMAL, false);
-    if (!static_cast<Geometry*>(&nativePlane)->doIntersectionFirstHit(slabRay, &planeDetail) ||
+    if (!nativePlane.doIntersectionFirstHit(slabRay, &planeDetail) ||
         planeDetail.normal.x() != 1) return 41;
-    RayCastingInfinitePlane legacyPlane(Vector3Dd(1,0,0), 0);
-    legacyPlane.getBounds(boxLocalBounds);
+    PlanarHalfSpace sharedPlane(1,0,0,0);
+    sharedPlane.getBounds(boxLocalBounds);
     if (boxLocalBounds.getKind() != GeometryBounds::Kind::Unbounded) return 108;
     RayBoundary sharedPlaneBoundary;
     RayHit sharedPlaneHit(RayHit::DETAIL_NONE, false);
     TestCrossingCollector sharedPlaneEvents;
     RaySolidClassification sharedPlaneSegments;
-    if (legacyPlane.queryFirstHit(slabRay, RayCrossingQuery(0,10), &sharedPlaneHit,
+    if (sharedPlane.queryFirstHit(slabRay, RayCrossingQuery(0,10), &sharedPlaneHit,
             &sharedPlaneBoundary) != RayFirstHitStatus::Hit ||
-        sharedPlaneBoundary.geometry != legacyPlane.getIntrinsicGeometry() ||
+        sharedPlaneBoundary.geometry != &sharedPlane ||
         sharedPlaneBoundary.t != 3 ||
-        legacyPlane.emitRayCrossings(slabRay, RayCrossingQuery(0,10), sharedPlaneEvents) !=
+        sharedPlane.emitRayCrossings(slabRay, RayCrossingQuery(0,10), sharedPlaneEvents) !=
             RayCrossingSupport::Supported || sharedPlaneEvents.hits.size() != 1 ||
-        sharedPlaneEvents.hits[0]->geometry != legacyPlane.getIntrinsicGeometry() ||
-        legacyPlane.classifyPoint(Vector3Dd(-1,0,0), 0) != GeometryContainment::Inside ||
-        legacyPlane.classifyRay(slabRay, RayCrossingQuery(0,10), sharedPlaneSegments) !=
+        sharedPlaneEvents.hits[0]->geometry != &sharedPlane ||
+        sharedPlane.classifyPoint(Vector3Dd(-1,0,0), 0) != GeometryContainment::Inside ||
+        sharedPlane.classifyRay(slabRay, RayCrossingQuery(0,10), sharedPlaneSegments) !=
             RaySolidQueryStatus::Supported || sharedPlaneSegments.boundaries.size() != 1 ||
-        sharedPlaneSegments.boundaries[0].geometry != legacyPlane.getIntrinsicGeometry()) return 109;
+        sharedPlaneSegments.boundaries[0].geometry != &sharedPlane) return 109;
     RayCastingQueryAdapter planeContext(slabRay);
     double planeDepth = 0;
-    if (!PlaneTrace::intersect(&planeContext.ray, legacyPlane.getHalfSpace(), *legacyPlane.getTraceState(), &planeDepth) ||
+    SurfaceTraceState planeState;
+    if (!PlaneTrace::intersect(&planeContext.ray, sharedPlane, planeState, &planeDepth) ||
         planeDepth != 3) return 42;
     planeContext.ray.setPrimaryRay(true);
-    if (!PlaneTrace::intersect(&planeContext.ray, legacyPlane.getHalfSpace(), *legacyPlane.getTraceState(), &planeDepth) ||
-        planeDepth != 3 || !legacyPlane.isVpCached()) return 43;
-    RayCastingInfinitePlane scaledPlane(Vector3Dd(2,0,0), -4);
-    if (scaledPlane.getHalfSpace().getBoundaryPlane().getCoefficients().x() != 2 ||
-        scaledPlane.getHalfSpace().classifyPoint(Vector3Dd(1,0,0), 0) != GeometryContainment::Inside ||
-        !PlaneTrace::intersect(&planeContext.ray, scaledPlane.getHalfSpace(), *scaledPlane.getTraceState(), &planeDepth) ||
+    if (!PlaneTrace::intersect(&planeContext.ray, sharedPlane, planeState, &planeDepth) ||
+        planeDepth != 3 || !planeState.isViewpointCached()) return 43;
+    java::ArrayList<PovrayBody*> planeRegions(0);
+    PovrayBody scaledPlane(new PlanarHalfSpace(2,0,0,-4), nullptr, nullptr, nullptr, false,
+        planeRegions, planeRegions);
+    const PlanarHalfSpace* scaledSurface = static_cast<const PlanarHalfSpace*>(scaledPlane.getSurface());
+    if (scaledPlane.getSurfaceFamily() != SurfaceDetailFamily::Plane ||
+        scaledPlane.getCsg() != nullptr || scaledPlane.getLight() != nullptr ||
+        scaledSurface->getBoundaryPlane().getCoefficients().x() != 2 ||
+        scaledSurface->classifyPoint(Vector3Dd(1,0,0), 0) != GeometryContainment::Inside ||
+        !PlaneTrace::intersect(&planeContext.ray, *scaledSurface, SurfaceTraceState(), &planeDepth) ||
         planeDepth != 5) return 90;
-    scaledPlane.invertGeometry();
-    if (scaledPlane.isVpCached() || scaledPlane.getNormalVector().x() != -2 ||
-        scaledPlane.getDistance() != 4 ||
-        scaledPlane.getHalfSpace().classifyPoint(Vector3Dd(1,0,0), 0) != GeometryContainment::Outside ||
-        !PlaneTrace::intersect(&planeContext.ray, scaledPlane.getHalfSpace(), *scaledPlane.getTraceState(), &planeDepth) ||
+    PovrayBody independentPlane(scaledPlane);
+    scaledPlane.invert();
+    if (scaledSurface->getBoundaryPlane().getCoefficients().x() != -2 ||
+        scaledSurface->getBoundaryPlane().getConstantCoefficient() != 4 ||
+        scaledPlane.isSurfaceInverted() ||
+        scaledSurface->classifyPoint(Vector3Dd(1,0,0), 0) != GeometryContainment::Outside ||
+        !PlaneTrace::intersect(&planeContext.ray, *scaledSurface, SurfaceTraceState(), &planeDepth) ||
         planeDepth != 5) return 91;
-    RayCastingInfinitePlane independentPlane(scaledPlane);
-    independentPlane.setDistance(6);
-    if (independentPlane.isVpCached() || scaledPlane.getDistance() != 4 ||
-        independentPlane.getDistance() != 6) return 92;
-    NativeGeometryBinding halfSpace(new PlanarHalfSpace(1,0,0,0));
+    if (independentPlane.getSurface() == scaledPlane.getSurface() ||
+        static_cast<const PlanarHalfSpace*>(independentPlane.getSurface())->
+            getBoundaryPlane().getConstantCoefficient() != -4) return 92;
+    PovrayBody halfSpace(new PlanarHalfSpace(1,0,0,0), nullptr, nullptr, nullptr, false, bindingRegions, bindingRegions);
     TestCrossingCollector halfCrossings;
-    if (static_cast<Geometry*>(&halfSpace)->emitRayCrossings(
+    if (halfSpace.emitRayCrossings(
             slabRay, RayCrossingQuery(0,10), halfCrossings) != RayCrossingSupport::Supported ||
         halfCrossings.hits.size() != 1 || halfCrossings.hits[0]->t != 3 ||
-        halfCrossings.hits[0]->geometry != halfSpace.getIntrinsicGeometry() ||
+        halfCrossings.hits[0]->geometry != halfSpace.getSurface() ||
         halfSpace.doContainmentTest(Vector3Dd(-1,0,0), 0) != Geometry::INSIDE ||
         halfSpace.doContainmentTest(Vector3Dd(1,0,0), 0) != Geometry::OUTSIDE) return 44;
-    NativeGeometryBinding triangleMesh(new TriangleMesh());
-    triangleMesh.enableProjectedTriangleTraversal();
-    triangleMesh.getProjectedTriangleTraversal()->addTriangle(
+    PovrayBody triangleMesh(new TriangleMesh(), nullptr, nullptr, nullptr, false, bindingRegions, bindingRegions);
+    triangleMesh.setTriangleTraversal(new ProjectedTriangleTraversal(static_cast<TriangleMesh*>(triangleMesh.getGeometry())));
+    triangleMesh.getTriangleTraversal()->addTriangle(
         Vector3Dd(0,0,0), Vector3Dd(2,0,0), Vector3Dd(0,2,0));
     const Ray triangleRay = Ray::fromAffine(Vector3Dd(0.5,0.5,4), Vector3Dd(0,0,-2));
     TestCrossingCollector triangleCrossings;
-    if (static_cast<Geometry*>(&triangleMesh)->emitRayCrossings(
+    if (triangleMesh.emitRayCrossings(
             triangleRay, RayCrossingQuery(0,10), triangleCrossings) != RayCrossingSupport::Supported ||
         triangleCrossings.hits.size() != 1 || triangleCrossings.hits[0]->t != 2 ||
-        triangleCrossings.hits[0]->geometry != triangleMesh.getIntrinsicGeometry() ||
+        triangleCrossings.hits[0]->geometry != triangleMesh.getSurface() ||
         triangleCrossings.hits[0]->surfaceIndex != 0) return 45;
-    const TriangleMesh* sharedTriangleMesh = dynamic_cast<const TriangleMesh*>(triangleMesh.getIntrinsicGeometry());
+    const TriangleMesh* sharedTriangleMesh = dynamic_cast<const TriangleMesh*>(triangleMesh.getSurface());
     if (sharedTriangleMesh == nullptr || sharedTriangleMesh->getNumTriangles() != 1) return 49;
     GeometryBounds triangleBounds;
-    triangleMesh.getBounds(triangleBounds);
+    triangleMesh.getSurfaceBounds(triangleBounds);
     if (triangleBounds.getKind() != GeometryBounds::Kind::Finite) return 129;
     sharedTriangleMesh->getBounds(triangleBounds);
     if (triangleBounds.getKind() != GeometryBounds::Kind::Finite ||
         triangleBounds.getMinimum().x() != 0 || triangleBounds.getMaximum().x() != 2 ||
         triangleBounds.getMaximum().y() != 2) return 50;
-    NativeGeometryBinding* placedTriangle = new NativeGeometryBinding(new TriangleMesh());
-    placedTriangle->enableProjectedTriangleTraversal();
-    placedTriangle->getProjectedTriangleTraversal()->addTriangle(
-        Vector3Dd(0,0,0),Vector3Dd(2,0,0),Vector3Dd(0,2,0));
+    TriangleMesh* placedTriangle = new TriangleMesh();
     PovrayBody triangleBody(placedTriangle,nullptr,nullptr,nullptr,false,noRegions,noRegions);
+    triangleBody.setTriangleTraversal(new ProjectedTriangleTraversal(placedTriangle));
+    triangleBody.getTriangleTraversal()->addTriangle(
+        Vector3Dd(0,0,0),Vector3Dd(2,0,0),Vector3Dd(0,2,0));
     { Vector3Dd offset(0,0,5); triangleBody.translateOwnerOnly(&offset); }
     TestCrossingCollector placedTriangleEvents;
     if (triangleBody.emitRayCrossings(Ray::fromAffine(Vector3Dd(0.5,0.5,9),Vector3Dd(0,0,-2)),
             RayCrossingQuery(0,10),placedTriangleEvents) != RayCrossingSupport::Supported ||
         placedTriangleEvents.hits.size()!=1 || placedTriangleEvents.hits[0]->t!=2 ||
-        placedTriangleEvents.hits[0]->geometry!=placedTriangle->getIntrinsicGeometry() ||
+        placedTriangleEvents.hits[0]->geometry!=placedTriangle ||
         placedTriangleEvents.hits[0]->surfaceIndex!=0 || placedTriangleEvents.hits[0]->getInstanceCount()!=1 ||
         placedTriangleEvents.hits[0]->body!=&triangleBody) return 134;
-    NativeGeometryBinding normalTriangleCopy(triangleMesh);
-    if (normalTriangleCopy.getIntrinsicGeometry() == triangleMesh.getIntrinsicGeometry()) return 51;
+    PovrayBody normalTriangleCopy(triangleMesh);
+    if (normalTriangleCopy.getSurface() == triangleMesh.getSurface()) return 51;
     TriangleMesh* nativeMesh = new TriangleMesh();
     nativeMesh->initVertexPositionsArray(3);
     java::ArrayList<double>& nativePositions = nativeMesh->getVertexPositions();
@@ -381,25 +400,25 @@ int main() {
     for (int i = 0; i < 9; ++i) nativePositions[i] = nativeVertices[i];
     nativeMesh->initTriangleArrays(1);
     nativeMesh->setTriangleAt(0, Triangle(0,1,2));
-    NativeGeometryBinding genericTriangle(nativeMesh);
+    PovrayBody genericTriangle(nativeMesh, nullptr, nullptr, nullptr, false, bindingRegions, bindingRegions);
     TestCrossingCollector genericTriangleCrossings;
-    if (static_cast<Geometry*>(&genericTriangle)->emitRayCrossings(
+    if (genericTriangle.emitRayCrossings(
             triangleRay, RayCrossingQuery(0,10), genericTriangleCrossings) != RayCrossingSupport::Supported ||
         genericTriangleCrossings.hits.size() != 1 || genericTriangleCrossings.hits[0]->surfaceIndex != 0 ||
         genericTriangleCrossings.hits[0]->geometry != nativeMesh) return 53;
     RayHit genericTriangleDetail(RayHit::DETAIL_NORMAL, false);
-    if (!static_cast<Geometry*>(&genericTriangle)->doIntersectionFirstHit(triangleRay, &genericTriangleDetail) ||
+    if (!genericTriangle.doIntersectionFirstHit(triangleRay, &genericTriangleDetail) ||
         genericTriangleDetail.normal.z() != 1) return 54;
     java::ArrayList<double>& nativeNormals = nativeMesh->getTriangleNormals();
     nativeNormals[0] = 0.25; nativeNormals[1] = 0.5; nativeNormals[2] = 0.75;
     const int originalFirst = nativeMesh->getTriangleIndexes()[0];
     const int originalSecond = nativeMesh->getTriangleIndexes()[1];
-    genericTriangle.enableProjectedTriangleTraversal();
+    genericTriangle.setTriangleTraversal(new ProjectedTriangleTraversal(static_cast<TriangleMesh*>(genericTriangle.getGeometry())));
     if (nativeMesh->getTriangleIndexes()[0] != originalFirst ||
         nativeMesh->getTriangleIndexes()[1] != originalSecond ||
         nativeNormals[0] != 0.25 || nativeNormals[1] != 0.5 || nativeNormals[2] != 0.75) return 57;
     TestCrossingCollector projectedNativeCrossings;
-    if (static_cast<Geometry*>(&genericTriangle)->emitRayCrossings(
+    if (genericTriangle.emitRayCrossings(
             triangleRay, RayCrossingQuery(0,10), projectedNativeCrossings) != RayCrossingSupport::Supported ||
         projectedNativeCrossings.hits.size() != 1 || projectedNativeCrossings.hits[0]->t != 2 ||
         projectedNativeCrossings.hits[0]->geometry != nativeMesh ||
@@ -408,9 +427,9 @@ int main() {
     badMesh->initVertexPositionsArray(3);
     badMesh->initTriangleArrays(1);
     badMesh->setTriangleAt(0, Triangle(0,1,99));
-    NativeGeometryBinding invalidTriangle(badMesh);
+    PovrayBody invalidTriangle(badMesh, nullptr, nullptr, nullptr, false, bindingRegions, bindingRegions);
     bool rejectedInvalidMesh = false;
-    try { invalidTriangle.enableProjectedTriangleTraversal(); }
+    try { invalidTriangle.setTriangleTraversal(new ProjectedTriangleTraversal(static_cast<TriangleMesh*>(invalidTriangle.getGeometry()))); }
     catch (const java::IllegalArgumentException&) { rejectedInvalidMesh = true; }
     if (!rejectedInvalidMesh) return 59;
     RayCastingQueryAdapter triangleContext(triangleRay);
@@ -422,7 +441,7 @@ int main() {
         triangleContext.pool.push(queue);
         if (!correct) return 46;
     }
-    NativeGeometryBinding cachedTriangleCopy(triangleMesh);
+    PovrayBody cachedTriangleCopy(triangleMesh);
     RayCastingQueryAdapter shiftedTriangleContext(
         Ray::fromAffine(Vector3Dd(0.5,0.5,6), Vector3Dd(0,0,-2)));
     shiftedTriangleContext.ray.setPrimaryRay(true);
@@ -433,66 +452,71 @@ int main() {
         shiftedQueue->peek().getIntersection().t == 3;
     shiftedTriangleContext.pool.push(shiftedQueue);
     if (!shiftedCorrect) return 55;
-    NativeGeometryBinding* csgTriangle = new NativeGeometryBinding(normalTriangleCopy);
-    const Geometry* csgLeaf = csgTriangle->getIntrinsicGeometry();
-    ConstructiveSolidGeometryByMorganRules triangleUnion(CsgOperation::UNION);
-    triangleUnion.addShape(csgTriangle, nullptr);
+    java::ArrayList<PovrayBody*> triangleUnionRegions(0);
+    PovrayBody triangleUnionBody(nullptr, nullptr, nullptr, nullptr, false, triangleUnionRegions, triangleUnionRegions);
+    triangleUnionBody.setCsg(new ConstructiveSolidGeometry(CsgOperation::UNION));
+    ConstructiveSolidGeometry& triangleUnion = *triangleUnionBody.getCsg();
+    TriangleMesh* csgMesh = static_cast<TriangleMesh*>(normalTriangleCopy.getGeometry()->copyGeometry());
+    CsgOperand* csgTriangle = new CsgOperand(csgMesh, nullptr);
+    csgTriangle->setTriangleTraversal(
+        new ProjectedTriangleTraversal(*normalTriangleCopy.getTriangleTraversal(), csgMesh));
+    triangleUnion.addOperand(csgTriangle);
+    const Geometry* csgLeaf = triangleUnion.getOperands()[0]->getSurface();
     TestCrossingCollector csgTriangleCrossings;
-    if (static_cast<Geometry*>(&triangleUnion)->emitRayCrossings(
+    if (triangleUnionBody.emitRayCrossings(
             triangleRay, RayCrossingQuery(0,10), csgTriangleCrossings) != RayCrossingSupport::Supported ||
         csgTriangleCrossings.hits.size() != 1 || csgTriangleCrossings.hits[0]->geometry != csgLeaf ||
         csgTriangleCrossings.hits[0]->surfaceIndex != 0) return 56;
-    triangleMesh.invertGeometry();
-    triangleMesh.getBounds(triangleBounds);
-    BoundingVolumeHierarchy* invertedTriangleBounds=triangleMesh.createBoundingVolume();
-    const bool triangleIsUnbounded=invertedTriangleBounds->isUnbounded();
-    delete invertedTriangleBounds;
+    triangleMesh.invert();
+    triangleMesh.getSurfaceBounds(triangleBounds);
+    const bool triangleIsUnbounded=triangleMesh.getAABB().isUnbounded();
     if (triangleBounds.getKind() != GeometryBounds::Kind::Unbounded || !triangleIsUnbounded) return 130;
     TestCrossingCollector invertedInterior;
-    if (static_cast<Geometry*>(&triangleMesh)->emitRayCrossings(
+    if (triangleMesh.emitRayCrossings(
             triangleRay, RayCrossingQuery(0,10), invertedInterior) != RayCrossingSupport::Supported ||
         invertedInterior.hits.size() != 0) return 47;
     TestCrossingCollector invertedExterior;
-    if (static_cast<Geometry*>(&triangleMesh)->emitRayCrossings(
+    if (triangleMesh.emitRayCrossings(
             Ray::fromAffine(Vector3Dd(3,3,4), Vector3Dd(0,0,-2)),
             RayCrossingQuery(0,10), invertedExterior) != RayCrossingSupport::Supported ||
         invertedExterior.hits.size() != 1 || invertedExterior.hits[0]->t != 2) return 48;
-    NativeGeometryBinding combinedTriangles(new TriangleMesh());
-    combinedTriangles.enableProjectedTriangleTraversal();
-    combinedTriangles.getProjectedTriangleTraversal()->appendFrom(
-        *normalTriangleCopy.getProjectedTriangleTraversal(), 0);
-    combinedTriangles.getProjectedTriangleTraversal()->appendFrom(
-        *triangleMesh.getProjectedTriangleTraversal(), 0);
+    PovrayBody combinedTriangles(new TriangleMesh(), nullptr, nullptr, nullptr, false, bindingRegions, bindingRegions);
+    combinedTriangles.setTriangleTraversal(new ProjectedTriangleTraversal(static_cast<TriangleMesh*>(combinedTriangles.getGeometry())));
+    combinedTriangles.getTriangleTraversal()->appendFrom(
+        *normalTriangleCopy.getTriangleTraversal(), 0);
+    combinedTriangles.getTriangleTraversal()->appendFrom(
+        *triangleMesh.getTriangleTraversal(), 0);
     TestCrossingCollector mergedInterior, mergedExterior;
-    if (static_cast<Geometry*>(&combinedTriangles)->emitRayCrossings(
+    if (combinedTriangles.emitRayCrossings(
             triangleRay, RayCrossingQuery(0,10), mergedInterior) != RayCrossingSupport::Supported ||
         mergedInterior.hits.size() != 1 ||
-        static_cast<Geometry*>(&combinedTriangles)->emitRayCrossings(
+        combinedTriangles.emitRayCrossings(
             Ray::fromAffine(Vector3Dd(3,3,4), Vector3Dd(0,0,-2)),
             RayCrossingQuery(0,10), mergedExterior) != RayCrossingSupport::Supported ||
         mergedExterior.hits.size() != 1 || mergedInterior.hits[0]->surfaceIndex != 0 ||
         mergedExterior.hits[0]->surfaceIndex != 1) return 52;
-    NativeGeometryBinding unsupported(new Torus(2,1));
+    PovrayBody unsupported(new Torus(2,1), nullptr, nullptr, nullptr, false, bindingRegions, bindingRegions);
     bool rejectedUnsupported = false;
-    try { unsupported.doIntersectionFirstHit(&slabContext.ray, slabHit); }
+    try { unsupported.doIntersectionFirstHitViaCrossings(&slabContext.ray, slabHit); }
     catch (const java::UnsupportedOperationException&) { rejectedUnsupported = true; }
     if (!rejectedUnsupported) return 34;
-    NativeGeometryBinding reversedBoundary(new TestSlabGeometry(true));
+    PovrayBody reversedBoundary(new TestSlabGeometry(true), nullptr, nullptr, nullptr, false, bindingRegions, bindingRegions);
     TestCrossingCollector preservedProvenance;
-    if (static_cast<Geometry*>(&reversedBoundary)->emitRayCrossings(
+    if (reversedBoundary.emitRayCrossings(
             slabRay, RayCrossingQuery(0,10), preservedProvenance) != RayCrossingSupport::Supported ||
         preservedProvenance.hits.size() != 2 || !preservedProvenance.hits[0]->normalReversed) return 35;
     Sphere* intrinsicPointer = new Sphere(2.0);
-    NativeGeometryBinding bridge(intrinsicPointer);
+    PovrayBody bridge(intrinsicPointer, nullptr, nullptr, nullptr, false, bindingRegions, bindingRegions);
     const Sphere& intrinsic = *intrinsicPointer;
     intrinsicPointer->setRadius(3.0);
     if (intrinsic.getRadius() != 3.0 || intrinsic.implicitValue(Vector3Dd(3,0,0)) != 0) return 21;
     intrinsicPointer->setRadius(2.0);
     if (bridge.doContainmentTest(Vector3Dd(2,0,0), 0.0) != Geometry::OUTSIDE ||
         bridge.doContainmentTest(Vector3Dd(2,0,0), 0.01) != Geometry::INSIDE) return 24;
-    bridge.invertGeometry();
-    if (bridge.doContainmentTest(Vector3Dd(3,0,0), 0.0) != Geometry::INSIDE) return 25;
-    bridge.invertGeometry();
+    PovrayBody bridgeBody(new Sphere(2.0), nullptr, nullptr, nullptr,
+        false, stateRegions, stateRegions);
+    bridgeBody.invert();
+    if (bridgeBody.doContainmentTest(Vector3Dd(3,0,0), 0.0) != Geometry::INSIDE) return 25;
     RayHit nativeHit(RayHit::DETAIL_NONE, false);
     const Ray nativeRay = Ray::fromAffine(Vector3Dd(-3,0,0), Vector3Dd(1,0,0));
     if (intrinsic.queryFirstHit(nativeRay, RayCrossingQuery(0,10), &nativeHit) != RayFirstHitStatus::Hit ||
@@ -501,18 +525,21 @@ int main() {
     if (intrinsic.emitRayCrossings(nativeRay, RayCrossingQuery(0,10), nativeCrossings) !=
             RayCrossingSupport::Supported || nativeCrossings.hits.size() != 2 ||
         nativeCrossings.hits[0]->t != 1.0 || nativeCrossings.hits[1]->t != 5.0) return 26;
-    NativeGeometryBinding bridgeCopy(bridge);
+    PovrayBody bridgeCopy(bridge);
     intrinsicPointer->setRadius(1.0);
-    const Sphere* copiedSphere = dynamic_cast<const Sphere*>(bridgeCopy.getIntrinsicGeometry());
+    const Sphere* copiedSphere = dynamic_cast<const Sphere*>(bridgeCopy.getSurface());
     if (copiedSphere == nullptr || copiedSphere->getRadius() != 2.0 || intrinsic.getRadius() != 1.0) return 23;
     TestCrossingCollector bridgeCrossings;
     if (bridgeCopy.emitRayCrossings(nativeRay, RayCrossingQuery(0,10), bridgeCrossings) !=
             RayCrossingSupport::Supported || bridgeCrossings.hits.size() != 2 ||
         bridgeCrossings.hits[0]->geometry != copiedSphere ||
         bridgeCrossings.hits[1]->geometry != copiedSphere) return 27;
-    ConstructiveSolidGeometryByRaySegment shell(CsgOperation::DIFFERENCE);
-    NativeGeometryBinding* outer = new NativeGeometryBinding(new Sphere(2.0));
-    NativeGeometryBinding* inner = new NativeGeometryBinding(new Sphere(1.0));
+    java::ArrayList<PovrayBody*> shellRegions(0);
+    PovrayBody shellBody(nullptr, nullptr, nullptr, nullptr, false, shellRegions, shellRegions);
+    shellBody.setCsg(new ConstructiveSolidGeometry(CsgOperation::DIFFERENCE, CsgBodyEvaluator::ROTH));
+    ConstructiveSolidGeometry& shell = *shellBody.getCsg();
+    Sphere* outer = new Sphere(2.0);
+    Sphere* inner = new Sphere(1.0);
     shell.addShape(outer, nullptr);
     shell.addShape(inner, nullptr);
     const CsgExpression* commonExpression = &shell;
@@ -522,10 +549,10 @@ int main() {
         commonExpression->getOperand(1)->getGeometry() != inner ||
         commonExpression->getOperand(0)->getChildExpression() != nullptr ||
         commonExpression->getOperand(-1) != nullptr || commonExpression->getOperand(2) != nullptr) return 120;
-    ConstructiveSolidGeometryByRaySegment commonParent(CsgOperation::UNION);
-    ConstructiveSolidGeometryByRaySegment* commonChild = new ConstructiveSolidGeometryByRaySegment(CsgOperation::INTERSECTION);
-    commonChild->addShape(new NativeGeometryBinding(new Sphere(1)), nullptr);
-    commonParent.addShape(commonChild, nullptr,
+    ConstructiveSolidGeometry commonParent(CsgOperation::UNION, CsgBodyEvaluator::ROTH);
+    ConstructiveSolidGeometry* commonChild = new ConstructiveSolidGeometry(CsgOperation::INTERSECTION, CsgBodyEvaluator::ROTH);
+    commonChild->addShape(new Sphere(1), nullptr);
+    commonParent.addNested(commonChild, nullptr,
         new Matrix4x4d(Matrix4x4d().translation(5,0,0).transpose()),
         new Matrix4x4d(Matrix4x4d().translation(-5,0,0).transpose()));
     const CsgExpression* commonParentView = &commonParent;
@@ -538,17 +565,17 @@ int main() {
     shell.getBounds(boxLocalBounds);
     if (boxLocalBounds.getKind() != GeometryBounds::Kind::Finite ||
         boxLocalBounds.getMinimum().x() != -2 || boxLocalBounds.getMaximum().x() != 2) return 110;
-    ConstructiveSolidGeometryByRaySegment placedCsg(CsgOperation::UNION);
-    placedCsg.addShape(new NativeGeometryBinding(new Sphere(1)), nullptr,
+    ConstructiveSolidGeometry placedCsg(CsgOperation::UNION, CsgBodyEvaluator::ROTH);
+    placedCsg.addShape(new Sphere(1), nullptr,
         new Matrix4x4d(Matrix4x4d().translation(5,0,0).transpose()),
         new Matrix4x4d(Matrix4x4d().translation(-5,0,0).transpose()));
     placedCsg.getBounds(boxLocalBounds);
     if (boxLocalBounds.getKind() != GeometryBounds::Kind::Finite ||
         boxLocalBounds.getMinimum().x() != 4 || boxLocalBounds.getMaximum().x() != 6) return 111;
-    placedCsg.invertGeometry();
+    placedCsg.invert();
     placedCsg.getBounds(boxLocalBounds);
     if (boxLocalBounds.getKind() != GeometryBounds::Kind::Unbounded) return 112;
-    Geometry* sharedGeometry = &shell;
+    const SceneSolid* sharedGeometry = &shellBody;
     TestCrossingCollector crossings;
     if (sharedGeometry->emitRayCrossings(Ray(Vector3Dd(-3,0,0),Vector3Dd(1,0,0)),
         RayCrossingQuery(0.001,10), crossings) != RayCrossingSupport::Supported) return 4;
@@ -557,13 +584,13 @@ int main() {
     for (int i=0;i<4;++i) {
         if (std::abs(crossings.hits[i]->t-expected[i]) > 1e-10 || !crossings.hits[i]->geometry) return 6;
     }
-    if (crossings.hits[0]->geometry != outer->getIntrinsicGeometry() ||
-        crossings.hits[1]->geometry != inner->getIntrinsicGeometry() ||
-        crossings.hits[2]->geometry != inner->getIntrinsicGeometry() ||
-        crossings.hits[3]->geometry != outer->getIntrinsicGeometry()) return 28;
+    if (crossings.hits[0]->geometry != outer ||
+        crossings.hits[1]->geometry != inner ||
+        crossings.hits[2]->geometry != inner ||
+        crossings.hits[3]->geometry != outer) return 28;
     IntersectionAttributes attributes;
     java::ArrayList<PovrayBody*> ownerRegions;
-    PovrayBody owner(new NativeGeometryBinding(new Sphere(1.0)), nullptr, nullptr, nullptr,
+    PovrayBody owner(new Sphere(1.0), nullptr, nullptr, nullptr,
         false, ownerRegions, ownerRegions);
     for (int i=0;i<8;++i) attributes.pushDetailOwner(&owner);
     bool rejectedOverflow = false;
@@ -581,7 +608,7 @@ int main() {
     background->setColor(0.2,0.3,0.4);
     java::ArrayList<PovrayBody*> regions;
     auto* material = new SimpleMaterial(SimpleMaterial().withDiffuse(ColorRgb(0.8,0.5,0.3)));
-    auto* bodySphere = new NativeGeometryBinding(new Sphere(1.0));
+    auto* bodySphere = new Sphere(1.0);
     auto* body = new PovrayBody(bodySphere, material, nullptr,
         nullptr, false, regions, regions);
     const SceneSolid* sharedBody = body;
@@ -591,8 +618,8 @@ int main() {
         RayCrossingQuery(0.001,10), bodyCrossings) != RayCrossingSupport::Supported) return 9;
     if (bodyCrossings.hits.size()!=2 || bodyCrossings.hits[0]->body!=body ||
         bodyCrossings.hits[0]->material!=material ||
-        bodyCrossings.hits[0]->geometry!=bodySphere->getIntrinsicGeometry() ||
-        bodyCrossings.hits[1]->geometry!=bodySphere->getIntrinsicGeometry()) return 10;
+        bodyCrossings.hits[0]->geometry!=bodySphere ||
+        bodyCrossings.hits[1]->geometry!=bodySphere) return 10;
     // VITRAL renders the sphere through its own scene body: the POV body is
     // not a SimpleBody and VITRAL renderers draw SimpleBody appearance.
     auto* vitralBody = new SimpleBody();
@@ -635,15 +662,21 @@ int main() {
         Matrix4x4d* shiftAInverse=new Matrix4x4d(Matrix4x4d().translation(-1.5,0,0).transpose());
         Matrix4x4d* shiftB=new Matrix4x4d(Matrix4x4d().translation(1.5,0,0).transpose());
         Matrix4x4d* shiftBInverse=new Matrix4x4d(Matrix4x4d().translation(-1.5,0,0).transpose());
-        ConstructiveSolidGeometryByRaySegment rothUnion(CsgOperation::UNION);
-        rothUnion.addShape(new NativeGeometryBinding(new Sphere(1)),nullptr);
-        rothUnion.addShape(new NativeGeometryBinding(new Sphere(1)),nullptr,shiftA,shiftAInverse);
-        ConstructiveSolidGeometryByMorganRules morganUnion(CsgOperation::UNION);
-        morganUnion.addShape(new NativeGeometryBinding(new Sphere(1)),nullptr);
-        morganUnion.addShape(new NativeGeometryBinding(new Sphere(1)),nullptr,shiftB,shiftBInverse);
+        java::ArrayList<PovrayBody*> rothUnionRegions(0);
+        PovrayBody rothUnionBody(nullptr, nullptr, nullptr, nullptr, false, rothUnionRegions, rothUnionRegions);
+        rothUnionBody.setCsg(new ConstructiveSolidGeometry(CsgOperation::UNION, CsgBodyEvaluator::ROTH));
+        ConstructiveSolidGeometry& rothUnion = *rothUnionBody.getCsg();
+        rothUnion.addShape(new Sphere(1),nullptr);
+        rothUnion.addShape(new Sphere(1),nullptr,shiftA,shiftAInverse);
+        java::ArrayList<PovrayBody*> morganUnionRegions(0);
+        PovrayBody morganUnionBody(nullptr, nullptr, nullptr, nullptr, false, morganUnionRegions, morganUnionRegions);
+        morganUnionBody.setCsg(new ConstructiveSolidGeometry(CsgOperation::UNION));
+        ConstructiveSolidGeometry& morganUnion = *morganUnionBody.getCsg();
+        morganUnion.addShape(new Sphere(1),nullptr);
+        morganUnion.addShape(new Sphere(1),nullptr,shiftB,shiftBInverse);
         TestCrossingCollector rothRender, morganRender;
-        if (static_cast<Geometry*>(&rothUnion)->emitRayCrossings(xRay,window,rothRender)!=RayCrossingSupport::Supported ||
-            static_cast<Geometry*>(&morganUnion)->emitRayCrossings(xRay,window,morganRender)!=RayCrossingSupport::Supported) return 200;
+        if (rothUnionBody.emitRayCrossings(xRay,window,rothRender)!=RayCrossingSupport::Supported ||
+            morganUnionBody.emitRayCrossings(xRay,window,morganRender)!=RayCrossingSupport::Supported) return 200;
         CsgRayClassification sharedRoth;
         CsgRaySurfaceEvents sharedHeuristic;
         if (CsgRothRayClassifier::classify(rothUnion,xRay,window,sharedRoth)!=RaySolidQueryStatus::Supported ||
@@ -661,15 +694,17 @@ int main() {
 
         // Morgan difference as the parser builds it: an intersection with an
         // inverted subtrahend. Both shared evaluators agree with the render.
-        ConstructiveSolidGeometryByMorganRules shell(CsgOperation::INTERSECTION);
-        shell.addShape(new NativeGeometryBinding(new Sphere(2)),nullptr);
-        NativeGeometryBinding* hole=new NativeGeometryBinding(new Sphere(1));
-        hole->invertGeometry();
-        shell.addShape(hole,nullptr);
+        java::ArrayList<PovrayBody*> shellRegions(0);
+        PovrayBody shellBody(nullptr, nullptr, nullptr, nullptr, false, shellRegions, shellRegions);
+        shellBody.setCsg(new ConstructiveSolidGeometry(CsgOperation::INTERSECTION));
+        ConstructiveSolidGeometry& shell = *shellBody.getCsg();
+        shell.addShape(new Sphere(2),nullptr);
+        shell.addShape(new Sphere(1),nullptr);
+        shell.getOperands()[1]->invert();
         TestCrossingCollector shellRender;
         CsgRayClassification shellRoth;
         CsgRaySurfaceEvents shellHeuristic;
-        if (static_cast<Geometry*>(&shell)->emitRayCrossings(xRay,window,shellRender)!=RayCrossingSupport::Supported ||
+        if (shellBody.emitRayCrossings(xRay,window,shellRender)!=RayCrossingSupport::Supported ||
             CsgRothRayClassifier::classify(shell,xRay,window,shellRoth)!=RaySolidQueryStatus::Supported ||
             CsgCrossingMembershipFilter::select(shell,xRay,window,1e-6,shellHeuristic)!=RaySolidQueryStatus::Supported) return 208;
         const double shellT[4]={3,4,6,7};
@@ -683,12 +718,15 @@ int main() {
         // Touching boxes: the POV Roth merge processes the left exit before
         // the right entry and reports a zero-length gap; the shared grouped
         // policy gives the regularized single segment.
-        ConstructiveSolidGeometryByRaySegment touching(CsgOperation::UNION);
-        touching.addShape(new RayCastingBox(Vector3Dd(-1,-1,-1),Vector3Dd(1,1,1)),nullptr);
-        touching.addShape(new RayCastingBox(Vector3Dd(1,-1,-1),Vector3Dd(3,1,1)),nullptr);
+        java::ArrayList<PovrayBody*> touchingRegions(0);
+        PovrayBody touchingBody(nullptr, nullptr, nullptr, nullptr, false, touchingRegions, touchingRegions);
+        touchingBody.setCsg(new ConstructiveSolidGeometry(CsgOperation::UNION, CsgBodyEvaluator::ROTH));
+        ConstructiveSolidGeometry& touching = *touchingBody.getCsg();
+        touching.addShape(new Box(Vector3Dd(-1,-1,-1),Vector3Dd(1,1,1)),nullptr);
+        touching.addShape(new Box(Vector3Dd(1,-1,-1),Vector3Dd(3,1,1)),nullptr);
         TestCrossingCollector touchingRender;
         CsgRayClassification touchingRoth;
-        if (static_cast<Geometry*>(&touching)->emitRayCrossings(xRay,window,touchingRender)!=RayCrossingSupport::Supported ||
+        if (touchingBody.emitRayCrossings(xRay,window,touchingRender)!=RayCrossingSupport::Supported ||
             CsgRothRayClassifier::classify(touching,xRay,window,touchingRoth)!=RaySolidQueryStatus::Supported) return 211;
         if (touchingRender.hits.size()!=4 || touchingRender.hits[1]->t!=6 || touchingRender.hits[2]->t!=6) return 212;
         if (touchingRoth.getSolid().boundaries.size()!=2 || touchingRoth.getSolid().boundaries[0].t!=4 ||
@@ -696,13 +734,16 @@ int main() {
 
         // Coincident spheres: the boundary-inclusive heuristic keeps both
         // faces, as the Morgan render does; Roth reports one face each.
-        ConstructiveSolidGeometryByMorganRules same(CsgOperation::INTERSECTION);
-        same.addShape(new NativeGeometryBinding(new Sphere(1)),nullptr);
-        same.addShape(new NativeGeometryBinding(new Sphere(1)),nullptr);
+        java::ArrayList<PovrayBody*> sameRegions(0);
+        PovrayBody sameBody(nullptr, nullptr, nullptr, nullptr, false, sameRegions, sameRegions);
+        sameBody.setCsg(new ConstructiveSolidGeometry(CsgOperation::INTERSECTION));
+        ConstructiveSolidGeometry& same = *sameBody.getCsg();
+        same.addShape(new Sphere(1),nullptr);
+        same.addShape(new Sphere(1),nullptr);
         TestCrossingCollector sameRender;
         CsgRaySurfaceEvents sameHeuristic;
         CsgRayClassification sameRoth;
-        if (static_cast<Geometry*>(&same)->emitRayCrossings(xRay,window,sameRender)!=RayCrossingSupport::Supported ||
+        if (sameBody.emitRayCrossings(xRay,window,sameRender)!=RayCrossingSupport::Supported ||
             CsgCrossingMembershipFilter::select(same,xRay,window,1e-6,sameHeuristic)!=RaySolidQueryStatus::Supported ||
             CsgRothRayClassifier::classify(same,xRay,window,sameRoth)!=RaySolidQueryStatus::Supported) return 214;
         if (sameRender.hits.size()!=4 || sameHeuristic.size()!=4 || sameRoth.getSolid().boundaries.size()!=2) return 215;

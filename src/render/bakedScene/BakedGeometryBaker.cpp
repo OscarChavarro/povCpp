@@ -1,22 +1,22 @@
 #include "render/bakedScene/BakedGeometryBaker.h"
 
 void
-BakedGeometryBaker::quadricToMatrix(const Quadric &quadric, Matrix4x4d *matrix)
+BakedGeometryBaker::quadricToMatrix(const QuadricSurface &quadric, Matrix4x4d *matrix)
 {
     *matrix = Matrix4x4d::identityMatrix().multiply(0.0);
-    *matrix = matrix->withVal(0, 0, quadric.getObject2Terms().x());
-    *matrix = matrix->withVal(1, 1, quadric.getObject2Terms().y());
-    *matrix = matrix->withVal(2, 2, quadric.getObject2Terms().z());
-    *matrix = matrix->withVal(0, 1, quadric.getObjectMixedTerms().x());
-    *matrix = matrix->withVal(0, 2, quadric.getObjectMixedTerms().y());
-    *matrix = matrix->withVal(0, 3, quadric.getObjectTerms().x());
-    *matrix = matrix->withVal(1, 2, quadric.getObjectMixedTerms().z());
-    *matrix = matrix->withVal(1, 3, quadric.getObjectTerms().y());
-    *matrix = matrix->withVal(2, 3, quadric.getObjectTerms().z());
-    *matrix = matrix->withVal(3, 3, quadric.getObjectConstant());
+    *matrix = matrix->withVal(0, 0, quadric.squareCoefficients().x());
+    *matrix = matrix->withVal(1, 1, quadric.squareCoefficients().y());
+    *matrix = matrix->withVal(2, 2, quadric.squareCoefficients().z());
+    *matrix = matrix->withVal(0, 1, quadric.mixedCoefficients().x());
+    *matrix = matrix->withVal(0, 2, quadric.mixedCoefficients().y());
+    *matrix = matrix->withVal(0, 3, quadric.linearCoefficients().x());
+    *matrix = matrix->withVal(1, 2, quadric.mixedCoefficients().z());
+    *matrix = matrix->withVal(1, 3, quadric.linearCoefficients().y());
+    *matrix = matrix->withVal(2, 3, quadric.linearCoefficients().z());
+    *matrix = matrix->withVal(3, 3, quadric.constantCoefficient());
 }
 
-Quadric
+QuadricSurface
 BakedGeometryBaker::matrixToQuadric(const Matrix4x4d &matrix)
 {
     Vector3Dd object2Terms(matrix.get(0, 0), matrix.get(1, 1), matrix.get(2, 2));
@@ -29,13 +29,12 @@ BakedGeometryBaker::matrixToQuadric(const Matrix4x4d &matrix)
         matrix.get(1, 3) + matrix.get(3, 1),
         matrix.get(2, 3) + matrix.get(3, 2));
     double objectConstant = matrix.get(3, 3);
-    // The 4-arg constructor calls updateSquareTermFlag() itself.
-    return Quadric(object2Terms, objectMixedTerms, objectTerms, objectConstant);
+    return QuadricSurface(object2Terms, objectMixedTerms, objectTerms, objectConstant);
 }
 
-Quadric
+QuadricSurface
 BakedGeometryBaker::transformQuadric(
-    const Quadric &shape, const Matrix4x4d &transformationInverse)
+    const QuadricSurface &shape, const Matrix4x4d &transformationInverse)
 {
     Matrix4x4d quadricMatrix;
     quadricToMatrix(shape, &quadricMatrix);
@@ -45,11 +44,11 @@ BakedGeometryBaker::transformQuadric(
     return matrixToQuadric(quadricMatrix);
 }
 
-Quadric
+QuadricSurface
 BakedGeometryBaker::bakeQuadric(
-    const Quadric &original, const java::ArrayList<TransformStep> &steps)
+    const QuadricSurface &original, const java::ArrayList<TransformStep> &steps)
 {
-    Quadric baked(original);
+    QuadricSurface baked(original);
     for (long int i = 0; i < steps.size(); i++) {
         const TransformStep &step = steps[i];
         switch (step.getKind()) {
@@ -84,19 +83,19 @@ BakedGeometryBaker::bakeQuadric(
     return baked;
 }
 
-RayCastingInfinitePlane
+PlanarHalfSpace
 BakedGeometryBaker::bakePlane(
-    const RayCastingInfinitePlane &original, const java::ArrayList<TransformStep> &steps)
+    const PlanarHalfSpace &original, const java::ArrayList<TransformStep> &steps)
 {
-    RayCastingInfinitePlane baked(original);
+    Vector3Dd normal = original.getBoundaryPlane().getCoefficients();
+    double distance = original.getBoundaryPlane().getConstantCoefficient();
     for (long int i = 0; i < steps.size(); i++) {
         const TransformStep &step = steps[i];
         switch (step.getKind()) {
         case TransformStep::Kind::Translate:
         {
-            Vector3Dd translation = baked.getNormalVector().multiply(step.getVector());
-            baked.setDistance(
-                baked.getDistance() - (translation.x() + translation.y() + translation.z()));
+            Vector3Dd translation = normal.multiply(step.getVector());
+            distance = distance - (translation.x() + translation.y() + translation.z());
             break;
         }
         case TransformStep::Kind::Rotate:
@@ -105,24 +104,21 @@ BakedGeometryBaker::bakePlane(
             Matrix4x4d transformationInverse;
             Vector3Dd vector = step.getVector();
             transformation.axisRotationRodrigues(&transformationInverse, &vector);
-            baked.setNormalVector(
-                transformation.transpose().multiply(baked.getNormalVector()));
+            normal = transformation.transpose().multiply(normal);
             break;
         }
         case TransformStep::Kind::Scale:
         {
-            Vector3Dd n = baked.getNormalVector();
-            n = Vector3Dd(n.x() / step.getVector().x(), n.y() / step.getVector().y(),
-                n.z() / step.getVector().z());
+            Vector3Dd n = Vector3Dd(normal.x() / step.getVector().x(),
+                normal.y() / step.getVector().y(), normal.z() / step.getVector().z());
             const double length = n.length();
-            n = n.multiply(1.0 / length);
-            baked.setNormalVector(n);
-            baked.setDistance(baked.getDistance() / length);
+            normal = n.multiply(1.0 / length);
+            distance = distance / length;
             break;
         }
         case TransformStep::Kind::Invert:
             break;
         }
     }
-    return baked;
+    return PlanarHalfSpace(normal.x(), normal.y(), normal.z(), distance);
 }

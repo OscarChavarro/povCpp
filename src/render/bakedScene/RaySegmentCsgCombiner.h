@@ -9,7 +9,7 @@
 // operand's inside/outside membership intervals along the ray, then merges
 // pairs of operand segment lists according to the CSG's boolean operator
 // (union/intersection/difference), with the classification, segment and
-// merge steps shared with ConstructiveSolidGeometryByRaySegment (VITRAL
+// merge steps shared with CsgRaySegmentEvaluator (VITRAL
 // CsgSegmentClassification). Used for programs that did not qualify
 // for one of the compiled fast paths (SingleCorePlaneCsgTrace,
 // CsgMorganUnionTrace).

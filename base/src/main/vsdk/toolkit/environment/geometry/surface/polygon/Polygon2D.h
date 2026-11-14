@@ -18,6 +18,9 @@ private:
     _Polygon2DContour* currentLoop;
     BinaryTreeNode<_Polygon2DContour*>* headNode;
 
+    static bool isPointOnSegment(const Vertex2D& p, const Vertex2D& a, const Vertex2D& b);
+    static bool isContourInsideContour(const java::ArrayList<Vertex2D>& contour, const java::ArrayList<Vertex2D>& container);
+
 public:
     Polygon2D();
     virtual ~Polygon2D();
@@ -29,6 +32,9 @@ public:
     void nextLoop();
     void eraseLastLoop();
     void invert();
+    void classifyContourHoles();
+
+    static signed char isPointInsideContour(const Vertex2D& point, const java::ArrayList<Vertex2D>& contour);
 
     virtual double* getMinMax();
 

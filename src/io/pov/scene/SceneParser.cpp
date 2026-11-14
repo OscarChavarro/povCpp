@@ -1,6 +1,6 @@
 
 #include "io/pov/geometry/SimpleBodyBuilder.h"
-#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+#include "environment/scene/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "environment/scene/RayCastingComposite.h"
 #include "io/pov/material/PovRayMaterialUtils.h"
 #include "environment/scene/Scene.h"

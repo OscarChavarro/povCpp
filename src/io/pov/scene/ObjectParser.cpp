@@ -1,10 +1,9 @@
 
 
-#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+#include "environment/scene/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "environment/material/povray/DefaultTextureAliasTracker.h"
 #include "io/pov/material/PovRayMaterialUtils.h"
 #include "io/pov/geometry/SceneBuilder.h"
-#include "io/pov/light/LightGeometryAdapter.h"
 
 #include "io/pov/geometry/BicubicPatchParser.h"
 #include "io/pov/geometry/BlobParser.h"
@@ -25,57 +24,6 @@
 #include "io/pov/parser/PrimitiveParser.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
-
-static void
-releaseSimpleBody(
-    SimpleBodyBuilder *body,
-    RayCastingGeometry *&geometry,
-    Material *&material,
-    Matrix4x4d *&transformation,
-    Matrix4x4d *&transformationInverse,
-    Matrix4x4d *&geometryTransformation,
-    Matrix4x4d *&geometryTransformationInverse,
-    java::ArrayList<TransformStep> &bodySteps,
-    java::ArrayList<TransformStep> &geometrySteps)
-{
-    geometry = body->releaseGeometry();
-    material = body->releaseMaterial();
-    Matrix4x4d *releasedTransformation = body->releaseTransformation();
-    Matrix4x4d *releasedTransformationInverse = body->releaseTransformationInverse();
-    if (dynamic_cast<ConstructiveSolidGeometry *>(geometry) != nullptr) {
-        transformation = releasedTransformation;
-        transformationInverse = releasedTransformationInverse;
-        geometryTransformation = nullptr;
-        geometryTransformationInverse = nullptr;
-        bodySteps = body->getSteps();
-        geometrySteps = java::ArrayList<TransformStep>();
-    } else {
-        geometryTransformation = releasedTransformation;
-        geometryTransformationInverse = releasedTransformationInverse;
-        bodySteps = java::ArrayList<TransformStep>();
-        geometrySteps = body->getSteps();
-    }
-    delete body->releaseShapeColor();
-    delete body;
-}
-
-static PovrayBody *
-releaseSimpleBodyRegion(SimpleBodyBuilder *body)
-{
-    RayCastingGeometry *releasedGeometry = body->releaseGeometry();
-    Matrix4x4d *releasedTransformation = body->releaseTransformation();
-    Matrix4x4d *releasedTransformationInverse = body->releaseTransformationInverse();
-    java::ArrayList<PovrayBody*> emptyBoundingShapes(0);
-    java::ArrayList<PovrayBody*> emptyClippingShapes(0);
-    delete body->releaseMaterial();
-    delete body->releaseShapeColor();
-    delete body;
-    return new PovrayBody(
-        releasedGeometry, nullptr, nullptr, nullptr, false,
-        emptyBoundingShapes, emptyClippingShapes,
-        nullptr, nullptr,
-        releasedTransformation, releasedTransformationInverse);
-}
 
 // objectTexture is always a PovRayMaterial in this parser; releaseFromOwner()
 // already tells private clones (delete this) apart from shared-default
@@ -104,110 +52,19 @@ ObjectParser::ensurePrivateTexture(Material *objectTexture)
     return objectTexture;
 }
 
-PovrayBody *
-ObjectParser::buildObject(
-    RayCastingGeometry *geometry,
-    Material *geometryMaterial,
-    Material *objectTexture,
-    ColorRgba *objectColor,
-    bool noShadowFlag,
-    const java::ArrayList<PovrayBody*> &boundingShapes,
-    const java::ArrayList<PovrayBody*> &clippingShapes,
-    Matrix4x4d *transformation,
-    Matrix4x4d *transformationInverse,
-    Matrix4x4d *geometryTransformation,
-    Matrix4x4d *geometryTransformationInverse,
-    const java::ArrayList<TransformStep> &bodySteps,
-    const java::ArrayList<TransformStep> &geometrySteps)
-{
-    return new PovrayBody(
-        geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-        boundingShapes, clippingShapes,
-        transformation, transformationInverse,
-        geometryTransformation, geometryTransformationInverse,
-        bodySteps, geometrySteps, releasePovRayObjectTexture);
-}
-
 RayCastingComposite *
-ObjectParser::buildComposite(
-    RayCastingGeometry *geometry,
-    Material *geometryMaterial,
-    Material *objectTexture,
-    ColorRgba *objectColor,
-    bool noShadowFlag,
-    const java::ArrayList<PovrayBody*> &boundingShapes,
-    const java::ArrayList<PovrayBody*> &clippingShapes,
-    const java::ArrayList<PovrayBody*> &simpleBodies,
-    Matrix4x4d *transformation,
-    Matrix4x4d *transformationInverse,
-    Matrix4x4d *geometryTransformation,
-    Matrix4x4d *geometryTransformationInverse)
+ObjectParser::newComposite(Material *objectTexture)
 {
+    java::ArrayList<PovrayBody*> none(0);
     return new RayCastingComposite(
-        geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-        boundingShapes, clippingShapes, simpleBodies,
-        transformation, transformationInverse,
-        geometryTransformation, geometryTransformationInverse,
-        releasePovRayObjectTexture);
+        nullptr, nullptr, objectTexture, nullptr, false, none, none, none,
+        nullptr, nullptr, nullptr, nullptr, releasePovRayObjectTexture);
 }
 
-void
-ObjectParser::extractObjectState(
-    PovrayBody *object,
-    RayCastingGeometry *&geometry,
-    Material *&geometryMaterial,
-    Material *&objectTexture,
-    ColorRgba *&objectColor,
-    bool &noShadowFlag,
-    java::ArrayList<PovrayBody*> &boundingShapes,
-    java::ArrayList<PovrayBody*> &clippingShapes,
-    Matrix4x4d *&transformation,
-    Matrix4x4d *&transformationInverse,
-    Matrix4x4d *&geometryTransformation,
-    Matrix4x4d *&geometryTransformationInverse,
-    java::ArrayList<TransformStep> &bodySteps,
-    java::ArrayList<TransformStep> &geometrySteps)
+bool
+ObjectParser::transformsBodyLayer(const PovrayBody *object)
 {
-    geometry = object->getGeometry();
-    geometryMaterial = object->getGeometryMaterial();
-    transformation = object->getTransformation();
-    transformationInverse = object->getTransformationInverse();
-    geometryTransformation = object->getGeometryTransformation();
-    geometryTransformationInverse = object->getGeometryTransformationInverse();
-    objectTexture = object->getObjectTexture();
-    objectColor = object->getObjectColor();
-    noShadowFlag = object->getNoShadowFlag();
-    boundingShapes = object->getBoundingShapes();
-    clippingShapes = object->getClippingShapes();
-    bodySteps = object->getBodySteps();
-    geometrySteps = object->getGeometrySteps();
-}
-
-void
-ObjectParser::extractCompositeState(
-    RayCastingComposite *object,
-    RayCastingGeometry *&geometry,
-    Material *&geometryMaterial,
-    Material *&objectTexture,
-    ColorRgba *&objectColor,
-    bool &noShadowFlag,
-    java::ArrayList<PovrayBody*> &boundingShapes,
-    java::ArrayList<PovrayBody*> &clippingShapes,
-    java::ArrayList<PovrayBody*> &simpleBodies,
-    Matrix4x4d *&transformation,
-    Matrix4x4d *&transformationInverse,
-    Matrix4x4d *&geometryTransformation,
-    Matrix4x4d *&geometryTransformationInverse)
-{
-    java::ArrayList<TransformStep> discardedBodySteps;
-    java::ArrayList<TransformStep> discardedGeometrySteps;
-    extractObjectState(
-        object, geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-        boundingShapes, clippingShapes,
-        transformation, transformationInverse,
-        geometryTransformation, geometryTransformationInverse,
-        discardedBodySteps, discardedGeometrySteps);
-    simpleBodies = object->getSimpleBodies();
+    return object->getCsg() != nullptr;
 }
 
 SimpleBodyBuilder *
@@ -242,8 +99,7 @@ ObjectParser::parseShape(ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
             case Tokenizer::LIGHT_SOURCE_TOKEN:
-                localShape = SceneBuilder::wrap(
-                    new LightGeometryAdapter(LightSourceParser::parseLightSource(ctx)));
+                localShape = SceneBuilder::wrap(LightSourceParser::parseLightSource(ctx));
                 Exit_Flag = true;
                 break;
 
@@ -331,342 +187,206 @@ ObjectParser::parseObject(ParserContext &ctx)
 {
     PovrayBody *object = nullptr;
     SimpleBodyBuilder *localShape;
-    RayCastingGeometry *geometry;
-    Material *geometryMaterial = nullptr;
-    Matrix4x4d *transformation = nullptr;
-    Matrix4x4d *transformationInverse = nullptr;
-    Matrix4x4d *geometryTransformation = nullptr;
-    Matrix4x4d *geometryTransformationInverse = nullptr;
-    java::ArrayList<TransformStep> bodySteps;
-    java::ArrayList<TransformStep> geometrySteps;
-    java::ArrayList<PovrayBody*> localBoundingShapes(4);
-    java::ArrayList<PovrayBody*> localClippingShapes(4);
-    Vector3Dd localVector;
-    java::ArrayList<ParsedTransformOp> transformHistory(8);
-    ColorRgba *objectColor = nullptr;
-    bool noShadowFlag = false;
-    Material *objectTexture = ctx.getDefaultTexture();
-    DefaultTextureAliasTracker::trackAlias(static_cast<PovRayMaterial *>(objectTexture));
+    Material *defaultTexture = ctx.getDefaultTexture();
+    DefaultTextureAliasTracker::trackAlias(static_cast<PovRayMaterial *>(defaultTexture));
 
-    geometry = nullptr;
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
+    ctx.tokenStream().getToken();
+    switch (ctx.token().getTokenId()) {
+    case Tokenizer::IDENTIFIER_TOKEN:
     {
-        bool Exit_Flag = false;
-        while (!Exit_Flag) {
-            ctx.tokenStream().getToken();
-            switch (ctx.token().getTokenId()) {
-            case Tokenizer::IDENTIFIER_TOKEN:
-            {
-                int constantId;
-                if ((constantId = ctx.findConstant()) != -1) {
-                    if (ctx.constants()[(int)constantId].getConstantType() ==
-                        ParseGlobals::OBJECT_CONSTANT) {
-                        object = new PovrayBody(
-                            *(PovrayBody *)ctx.constants()[(int)constantId]
-                                .getConstantData());
-                        extractObjectState(
-                            object, geometry, geometryMaterial, objectTexture, objectColor,
-                            noShadowFlag, localBoundingShapes,
-                            localClippingShapes,
-                            transformation, transformationInverse,
-                            geometryTransformation, geometryTransformationInverse,
-                            bodySteps, geometrySteps);
-                        object->detachOwnership();
-                        delete object;
-                        object = nullptr;
-                    } else {
-                        ParseErrorReporter::typeError(ctx);
-                    }
-                } else {
-                    ParseErrorReporter::reportUndeclared(ctx);
-                }
-                Exit_Flag = true;
-                break;
+        int constantId;
+        if ((constantId = ctx.findConstant()) != -1) {
+            if (ctx.constants()[(int)constantId].getConstantType() ==
+                ParseGlobals::OBJECT_CONSTANT) {
+                object = new PovrayBody(
+                    *(PovrayBody *)ctx.constants()[(int)constantId].getConstantData());
+            } else {
+                ParseErrorReporter::typeError(ctx);
             }
-
-            case Tokenizer::SPHERE_TOKEN:
-            case Tokenizer::QUADRIC_TOKEN:
-            case Tokenizer::QUARTIC_TOKEN:
-            case Tokenizer::UNION_TOKEN:
-            case Tokenizer::INTERSECTION_TOKEN:
-            case Tokenizer::DIFFERENCE_TOKEN:
-            case Tokenizer::TRIANGLE_TOKEN:
-            case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
-            case Tokenizer::PLANE_TOKEN:
-            case Tokenizer::CUBIC_TOKEN:
-            case Tokenizer::POLY_TOKEN:
-            case Tokenizer::BICUBIC_PATCH_TOKEN:
-            case Tokenizer::HEIGHT_FIELD_TOKEN:
-            case Tokenizer::LIGHT_SOURCE_TOKEN:
-            case Tokenizer::BOX_TOKEN:
-            case Tokenizer::BLOB_TOKEN:
-                ctx.tokenStream().ungetToken();
-                localShape = ObjectParser::parseShape(ctx);
-                if (geometry == nullptr) {
-                    releaseSimpleBody(
-                        localShape, geometry, geometryMaterial,
-                        transformation, transformationInverse,
-                        geometryTransformation, geometryTransformationInverse,
-                        bodySteps, geometrySteps);
-                } else {
-                    delete localShape;
-                }
-                Exit_Flag = true;
-                break;
-
-            default:
-                ParseErrorReporter::parseError(Tokenizer::SHAPE_TOKEN, ctx);
-                Exit_Flag = true;
-                break;
-            }
+        } else {
+            ParseErrorReporter::reportUndeclared(ctx);
         }
+        break;
     }
 
-    {
-        bool Exit_Flag = false;
-        while (!Exit_Flag) {
-            ctx.tokenStream().getToken();
-            switch (ctx.token().getTokenId()) {
-            case Tokenizer::BOUNDED_TOKEN:
+    case Tokenizer::SPHERE_TOKEN:
+    case Tokenizer::QUADRIC_TOKEN:
+    case Tokenizer::QUARTIC_TOKEN:
+    case Tokenizer::UNION_TOKEN:
+    case Tokenizer::INTERSECTION_TOKEN:
+    case Tokenizer::DIFFERENCE_TOKEN:
+    case Tokenizer::TRIANGLE_TOKEN:
+    case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
+    case Tokenizer::PLANE_TOKEN:
+    case Tokenizer::CUBIC_TOKEN:
+    case Tokenizer::POLY_TOKEN:
+    case Tokenizer::BICUBIC_PATCH_TOKEN:
+    case Tokenizer::HEIGHT_FIELD_TOKEN:
+    case Tokenizer::LIGHT_SOURCE_TOKEN:
+    case Tokenizer::BOX_TOKEN:
+    case Tokenizer::BLOB_TOKEN:
+        ctx.tokenStream().ungetToken();
+        localShape = ObjectParser::parseShape(ctx);
+        object = localShape->buildBody(defaultTexture, releasePovRayObjectTexture);
+        delete localShape;
+        break;
 
-                ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
+    default:
+        ParseErrorReporter::parseError(Tokenizer::SHAPE_TOKEN, ctx);
+        break;
+    }
+    if (object == nullptr) {
+        java::ArrayList<PovrayBody*> none(0);
+        object = new PovrayBody(
+            nullptr, nullptr, defaultTexture, nullptr, false, none, none,
+            nullptr, nullptr, nullptr, nullptr,
+            java::ArrayList<TransformStep>(), java::ArrayList<TransformStep>(),
+            releasePovRayObjectTexture);
+    }
 
-                {
-                    bool Exit_Flag;
-                    Exit_Flag = false;
-                    while (!Exit_Flag) {
-                        ctx.tokenStream().getToken();
-                        switch (ctx.token().getTokenId()) {
-                        case Tokenizer::RIGHT_CURLY_TOKEN:
-                            Exit_Flag = true;
-                            break;
+    parseObjectModifiers(object, true, ctx);
+    return object;
+}
 
-                        default:
-                            ctx.tokenStream().ungetToken();
-                            localShape = ObjectParser::parseShape(ctx);
-                            localBoundingShapes.add(
-                                releaseSimpleBodyRegion(localShape));
-                            break;
-                        }
-                    }
-                }
-                break;
+void
+ObjectParser::parseRegions(java::ArrayList<PovrayBody*> &regions, ParserContext &ctx)
+{
+    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
+    while (true) {
+        ctx.tokenStream().getToken();
+        if (ctx.token().getTokenId() == Tokenizer::RIGHT_CURLY_TOKEN) {
+            return;
+        }
+        ctx.tokenStream().ungetToken();
+        SimpleBodyBuilder *localShape = ObjectParser::parseShape(ctx);
+        regions.add(localShape->buildRegion());
+        delete localShape;
+    }
+}
 
-            case Tokenizer::CLIPPED_TOKEN:
+void
+ObjectParser::parseObjectModifiers(PovrayBody *object, bool acceptsSurface, ParserContext &ctx)
+{
+    Vector3Dd localVector;
+    bool Exit_Flag = false;
+    while (!Exit_Flag) {
+        ctx.tokenStream().getToken();
+        switch (ctx.token().getTokenId()) {
+        case Tokenizer::BOUNDED_TOKEN:
+            parseRegions(object->getBoundingShapes(), ctx);
+            break;
 
-                ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
+        case Tokenizer::CLIPPED_TOKEN:
+            parseRegions(object->getClippingShapes(), ctx);
+            break;
 
-                {
-                    bool Exit_Flag;
-                    Exit_Flag = false;
-                    while (!Exit_Flag) {
-                        ctx.tokenStream().getToken();
-                        switch (ctx.token().getTokenId()) {
-                        case Tokenizer::RIGHT_CURLY_TOKEN:
-                            Exit_Flag = true;
-                            break;
-
-                        default:
-                            ctx.tokenStream().ungetToken();
-                            localShape = ObjectParser::parseShape(ctx);
-                            localClippingShapes.add(
-                                releaseSimpleBodyRegion(localShape));
-                            break;
-                        }
-                    }
-                }
-                break;
-
-            case Tokenizer::COLOUR_TOKEN:
-                objectColor = new ColorRgba(0.0, 0.0, 0.0, 0.0);
-                PrimitiveParser::parseColor(objectColor, ctx);
-                break;
-
-            case Tokenizer::TEXTURE_TOKEN:
-            {
-                PovRayMaterial *localTexture = TextureParser::parseTexture(ctx);
-                if (PovRayMaterialConstancy::isConstant(localTexture)) {
-                    localTexture = TextureParser::copyTexture(localTexture);
-                }
-                // Object transforms parsed *before* this texture block must NOT
-                // be applied to the texture: in POV 1.0 (and the good commit)
-                // those transforms hit the still-default texture, whose
-                // translate/rotate/scale are a deliberate no-op (the "§1.4
-                // no-op quirk" in PovRayMaterial::translateTexture). Replaying
-                // them here forced an extra transform onto the real texture
-                // (e.g. pool.pov's floating ball: its `translate <20 4 -15>`
-                // preceded the gradient texture and re-centred the gradient,
-                // breaking the stripes). Transforms that follow the texture are
-                // applied directly through object->translate/rotate/scale on
-                // the now non-constant texture, so they still work.
-                (void)transformHistory;
-
-                if (objectTexture == ctx.getDefaultTexture()) {
-                    DefaultTextureAliasTracker::releaseAlias(
-                        static_cast<PovRayMaterial *>(objectTexture));
-                    objectTexture = localTexture;
-                } else {
-                    PovRayMaterialUtils::prependTextureLayers(localTexture, objectTexture);
-                }
-                break;
-            }
-
-            case Tokenizer::NO_SHADOW_TOKEN:
-                noShadowFlag = true;
-                break;
-
-            case Tokenizer::LIGHT_SOURCE_TOKEN:
-                ParseErrorReporter::reportError(
-                    "Light source must be defined using new syntax", ctx);
-                break;
-
-            case Tokenizer::TRANSLATE_TOKEN:
-            {
-                objectTexture = ensurePrivateTexture(objectTexture);
-                object = buildObject(
-                    geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-                    localBoundingShapes, localClippingShapes,
-                    transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse,
-                    bodySteps, geometrySteps);
-                PrimitiveParser::parseVector(&localVector, ctx);
-                if (dynamic_cast<ConstructiveSolidGeometry *>(geometry) != nullptr) {
-                    object->translate(&localVector);
-                } else {
-                    object->translateGeometryLayer(&localVector);
-                }
-                extractObjectState(
-                    object, geometry, geometryMaterial, objectTexture, objectColor,
-                    noShadowFlag, localBoundingShapes, localClippingShapes,
-                    transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse,
-                    bodySteps, geometrySteps);
-                object->detachOwnership();
-                delete object;
-                object = nullptr;
-                transformHistory.add({PARSED_TRANSLATE, localVector});
-                break;
-            }
-
-            case Tokenizer::ROTATE_TOKEN:
-            {
-                objectTexture = ensurePrivateTexture(objectTexture);
-                object = buildObject(
-                    geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-                    localBoundingShapes, localClippingShapes,
-                    transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse,
-                    bodySteps, geometrySteps);
-                PrimitiveParser::parseVector(&localVector, ctx);
-                if (dynamic_cast<ConstructiveSolidGeometry *>(geometry) != nullptr) {
-                    object->rotate(&localVector);
-                } else {
-                    object->rotateGeometryLayer(&localVector);
-                }
-                extractObjectState(
-                    object, geometry, geometryMaterial, objectTexture, objectColor,
-                    noShadowFlag, localBoundingShapes, localClippingShapes,
-                    transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse,
-                    bodySteps, geometrySteps);
-                object->detachOwnership();
-                delete object;
-                object = nullptr;
-                transformHistory.add({PARSED_ROTATE, localVector});
-                break;
-            }
-
-            case Tokenizer::SCALE_TOKEN:
-            {
-                objectTexture = ensurePrivateTexture(objectTexture);
-                object = buildObject(
-                    geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-                    localBoundingShapes, localClippingShapes,
-                    transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse,
-                    bodySteps, geometrySteps);
-                PrimitiveParser::parseVector(&localVector, ctx);
-                if (dynamic_cast<ConstructiveSolidGeometry *>(geometry) != nullptr) {
-                    object->scale(&localVector);
-                } else {
-                    object->scaleGeometryLayer(&localVector);
-                }
-                extractObjectState(
-                    object, geometry, geometryMaterial, objectTexture, objectColor,
-                    noShadowFlag, localBoundingShapes, localClippingShapes,
-                    transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse,
-                    bodySteps, geometrySteps);
-                object->detachOwnership();
-                delete object;
-                object = nullptr;
-                transformHistory.add({PARSED_SCALE, localVector});
-                break;
-            }
-
-            case Tokenizer::INVERSE_TOKEN:
-            {
-                object = buildObject(
-                    geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-                    localBoundingShapes, localClippingShapes,
-                    transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse,
-                    bodySteps, geometrySteps);
-                object->invert();
-                extractObjectState(
-                    object, geometry, geometryMaterial, objectTexture, objectColor,
-                    noShadowFlag, localBoundingShapes, localClippingShapes,
-                    transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse,
-                    bodySteps, geometrySteps);
-                object->detachOwnership();
-                delete object;
-                object = nullptr;
-                break;
-            }
-
-            case Tokenizer::RIGHT_CURLY_TOKEN:
-                Exit_Flag = true;
-                break;
-
-            default:
+        case Tokenizer::COLOUR_TOKEN:
+            if (!acceptsSurface) {
                 ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
                 break;
             }
+            object->setObjectColor(new ColorRgba(0.0, 0.0, 0.0, 0.0));
+            PrimitiveParser::parseColor(object->getObjectColor(), ctx);
+            break;
+
+        case Tokenizer::TEXTURE_TOKEN:
+        {
+            if (!acceptsSurface) {
+                ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
+                break;
+            }
+            PovRayMaterial *localTexture = TextureParser::parseTexture(ctx);
+            if (PovRayMaterialConstancy::isConstant(localTexture)) {
+                localTexture = TextureParser::copyTexture(localTexture);
+            }
+            // Object transforms parsed *before* this texture block are not
+            // applied to it: in POV 1.0 they hit the still-default texture,
+            // whose translate/rotate/scale are a deliberate no-op (see
+            // PovRayMaterial::translateTexture). Transforms that follow the
+            // texture reach it through the body's translate/rotate/scale.
+            Material *objectTexture = object->getObjectTexture();
+            if (objectTexture == ctx.getDefaultTexture()) {
+                DefaultTextureAliasTracker::releaseAlias(
+                    static_cast<PovRayMaterial *>(objectTexture));
+                objectTexture = localTexture;
+            } else {
+                PovRayMaterialUtils::prependTextureLayers(localTexture, objectTexture);
+            }
+            object->setObjectTexture(objectTexture);
+            break;
+        }
+
+        case Tokenizer::NO_SHADOW_TOKEN:
+            if (!acceptsSurface) {
+                ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
+                break;
+            }
+            object->setNoShadowFlag(true);
+            break;
+
+        case Tokenizer::LIGHT_SOURCE_TOKEN:
+            if (!acceptsSurface) {
+                ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
+                break;
+            }
+            ParseErrorReporter::reportError(
+                "Light source must be defined using new syntax", ctx);
+            break;
+
+        case Tokenizer::TRANSLATE_TOKEN:
+            object->setObjectTexture(ensurePrivateTexture(object->getObjectTexture()));
+            PrimitiveParser::parseVector(&localVector, ctx);
+            if (!acceptsSurface || transformsBodyLayer(object)) {
+                object->translate(&localVector);
+            } else {
+                object->translateGeometryLayer(&localVector);
+            }
+            break;
+
+        case Tokenizer::ROTATE_TOKEN:
+            object->setObjectTexture(ensurePrivateTexture(object->getObjectTexture()));
+            PrimitiveParser::parseVector(&localVector, ctx);
+            if (!acceptsSurface || transformsBodyLayer(object)) {
+                object->rotate(&localVector);
+            } else {
+                object->rotateGeometryLayer(&localVector);
+            }
+            break;
+
+        case Tokenizer::SCALE_TOKEN:
+            object->setObjectTexture(ensurePrivateTexture(object->getObjectTexture()));
+            PrimitiveParser::parseVector(&localVector, ctx);
+            if (!acceptsSurface || transformsBodyLayer(object)) {
+                object->scale(&localVector);
+            } else {
+                object->scaleGeometryLayer(&localVector);
+            }
+            break;
+
+        case Tokenizer::INVERSE_TOKEN:
+            object->invert();
+            break;
+
+        case Tokenizer::RIGHT_CURLY_TOKEN:
+            Exit_Flag = true;
+            break;
+
+        default:
+            ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
+            break;
         }
     }
-
-    return buildObject(
-        geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-        localBoundingShapes, localClippingShapes,
-        transformation, transformationInverse,
-        geometryTransformation, geometryTransformationInverse,
-        bodySteps, geometrySteps);
 }
 
 PovrayBody *
 ObjectParser::parseComposite(ParserContext &ctx)
 {
-    RayCastingComposite *localComposite = nullptr;
-    PovrayBody *localObject;
-    SimpleBodyBuilder *localShape;
-    RayCastingGeometry *geometry;
-    Material *geometryMaterial = nullptr;
-    Matrix4x4d *transformation = nullptr;
-    Matrix4x4d *transformationInverse = nullptr;
-    Matrix4x4d *geometryTransformation = nullptr;
-    Matrix4x4d *geometryTransformationInverse = nullptr;
-    java::ArrayList<PovrayBody*> localSimpleBodies(4);
-    java::ArrayList<PovrayBody*> localBoundingShapes(4);
-    java::ArrayList<PovrayBody*> localClippingShapes(4);
-    Vector3Dd localVector;
-    Material *objectTexture = ctx.getDefaultTexture();
-    DefaultTextureAliasTracker::trackAlias(static_cast<PovRayMaterial *>(objectTexture));
-    ColorRgba *objectColor = nullptr;
-    bool noShadowFlag = false;
+    Material *defaultTexture = ctx.getDefaultTexture();
+    DefaultTextureAliasTracker::trackAlias(static_cast<PovRayMaterial *>(defaultTexture));
+    RayCastingComposite *composite = newComposite(defaultTexture);
 
-    geometry = nullptr;
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
@@ -680,18 +400,12 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::COMPOSITE_CONSTANT) {
-                        localComposite = new RayCastingComposite(
+                        // A declared composite replaces whatever was parsed
+                        // before it in this block.
+                        delete composite;
+                        composite = new RayCastingComposite(
                             *(RayCastingComposite *)ctx.constants()[(int)constantId]
                                 .getConstantData());
-                        extractCompositeState(
-                            localComposite, geometry, geometryMaterial, objectTexture,
-                            objectColor, noShadowFlag, localBoundingShapes,
-                            localClippingShapes, localSimpleBodies,
-                            transformation, transformationInverse,
-                            geometryTransformation, geometryTransformationInverse);
-                        localComposite->detachOwnership();
-                        delete localComposite;
-                        localComposite = nullptr;
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -702,18 +416,11 @@ ObjectParser::parseComposite(ParserContext &ctx)
             }
 
             case Tokenizer::COMPOSITE_TOKEN:
-                localObject = ObjectParser::parseComposite(ctx);
-                localSimpleBodies.add(localObject);
+                composite->getSimpleBodies().add(ObjectParser::parseComposite(ctx));
                 break;
 
             case Tokenizer::OBJECT_TOKEN:
-                localObject = ObjectParser::parseObject(ctx);
-                localSimpleBodies.add(localObject);
-                break;
-
-            case Tokenizer::RIGHT_CURLY_TOKEN:
-                ctx.tokenStream().ungetToken();
-                Exit_Flag = true;
+                composite->getSimpleBodies().add(ObjectParser::parseObject(ctx));
                 break;
 
             default:
@@ -724,165 +431,6 @@ ObjectParser::parseComposite(ParserContext &ctx)
         }
     }
 
-    {
-        bool Exit_Flag = false;
-        while (!Exit_Flag) {
-            ctx.tokenStream().getToken();
-            switch (ctx.token().getTokenId()) {
-            case Tokenizer::RIGHT_CURLY_TOKEN:
-                Exit_Flag = true;
-                break;
-
-            case Tokenizer::BOUNDED_TOKEN:
-
-                ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
-
-                {
-                    bool Exit_Flag;
-                    Exit_Flag = false;
-                    while (!Exit_Flag) {
-                        ctx.tokenStream().getToken();
-                        switch (ctx.token().getTokenId()) {
-                        case Tokenizer::RIGHT_CURLY_TOKEN:
-                            Exit_Flag = true;
-                            break;
-
-                        default:
-                            ctx.tokenStream().ungetToken();
-                            localShape = ObjectParser::parseShape(ctx);
-                            localBoundingShapes.add(
-                                releaseSimpleBodyRegion(localShape));
-                            break;
-                        }
-                    }
-                }
-                break;
-
-            case Tokenizer::CLIPPED_TOKEN:
-
-                ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
-
-                {
-                    bool Exit_Flag;
-                    Exit_Flag = false;
-                    while (!Exit_Flag) {
-                        ctx.tokenStream().getToken();
-                        switch (ctx.token().getTokenId()) {
-                        case Tokenizer::RIGHT_CURLY_TOKEN:
-                            Exit_Flag = true;
-                            break;
-
-                        default:
-                            ctx.tokenStream().ungetToken();
-                            localShape = ObjectParser::parseShape(ctx);
-                            localClippingShapes.add(
-                                releaseSimpleBodyRegion(localShape));
-                            break;
-                        }
-                    }
-                }
-                break;
-
-            case Tokenizer::TRANSLATE_TOKEN:
-            {
-                objectTexture = ensurePrivateTexture(objectTexture);
-                localComposite = buildComposite(
-                    geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-                    localBoundingShapes, localClippingShapes,
-                    localSimpleBodies,
-                    transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse);
-                PrimitiveParser::parseVector(&localVector, ctx);
-                localComposite->translate(&localVector);
-                extractCompositeState(
-                    localComposite, geometry, geometryMaterial, objectTexture, objectColor,
-                    noShadowFlag, localBoundingShapes, localClippingShapes,
-                    localSimpleBodies,
-                    transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse);
-                localComposite->detachOwnership();
-                delete localComposite;
-                localComposite = nullptr;
-                break;
-            }
-
-            case Tokenizer::ROTATE_TOKEN:
-            {
-                objectTexture = ensurePrivateTexture(objectTexture);
-                localComposite = buildComposite(
-                    geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-                    localBoundingShapes, localClippingShapes,
-                    localSimpleBodies,
-                    transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse);
-                PrimitiveParser::parseVector(&localVector, ctx);
-                localComposite->rotate(&localVector);
-                extractCompositeState(
-                    localComposite, geometry, geometryMaterial, objectTexture, objectColor,
-                    noShadowFlag, localBoundingShapes, localClippingShapes,
-                    localSimpleBodies,
-                    transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse);
-                localComposite->detachOwnership();
-                delete localComposite;
-                localComposite = nullptr;
-                break;
-            }
-
-            case Tokenizer::SCALE_TOKEN:
-            {
-                objectTexture = ensurePrivateTexture(objectTexture);
-                localComposite = buildComposite(
-                    geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-                    localBoundingShapes, localClippingShapes,
-                    localSimpleBodies,
-                    transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse);
-                PrimitiveParser::parseVector(&localVector, ctx);
-                localComposite->scale(&localVector);
-                extractCompositeState(
-                    localComposite, geometry, geometryMaterial, objectTexture, objectColor,
-                    noShadowFlag, localBoundingShapes, localClippingShapes,
-                    localSimpleBodies,
-                    transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse);
-                localComposite->detachOwnership();
-                delete localComposite;
-                localComposite = nullptr;
-                break;
-            }
-
-            case Tokenizer::INVERSE_TOKEN:
-            {
-                localComposite = buildComposite(
-                    geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-                    localBoundingShapes, localClippingShapes,
-                    localSimpleBodies,
-                    transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse);
-                localComposite->invert();
-                extractCompositeState(
-                    localComposite, geometry, geometryMaterial, objectTexture, objectColor,
-                    noShadowFlag, localBoundingShapes, localClippingShapes,
-                    localSimpleBodies,
-                    transformation, transformationInverse,
-                    geometryTransformation, geometryTransformationInverse);
-                localComposite->detachOwnership();
-                delete localComposite;
-                localComposite = nullptr;
-                break;
-            }
-
-            default:
-                ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
-                break;
-            }
-        }
-    }
-
-    return buildComposite(
-        geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-        localBoundingShapes, localClippingShapes, localSimpleBodies,
-        transformation, transformationInverse,
-        geometryTransformation, geometryTransformationInverse);
+    parseObjectModifiers(composite, false, ctx);
+    return composite;
 }

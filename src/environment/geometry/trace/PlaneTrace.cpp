@@ -104,3 +104,11 @@ PlaneTrace::containment(const PlanarHalfSpace &halfSpace, const Vector3Dd &point
     return ((temp + plane.getConstantCoefficient()) <= distanceTolerance) ?
         static_cast<int>(Containment::INSIDE) : static_cast<int>(Containment::OUTSIDE);
 }
+
+void
+PlaneTrace::invert(PlanarHalfSpace &halfSpace)
+{
+    const Vector3Dd normal = halfSpace.getBoundaryPlane().getCoefficients().multiply(-1.0);
+    const double distance = -halfSpace.getBoundaryPlane().getConstantCoefficient();
+    halfSpace.getBoundaryPlane().setCoefficients(normal, distance);
+}

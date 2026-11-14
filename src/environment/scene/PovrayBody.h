@@ -3,15 +3,30 @@
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/environment/scene/SceneSolid.h"
-#include "environment/geometry/boundingVolumeHierarchy/AxisAlignedBoundingBox.h"
-#include "environment/geometry/RayCastingGeometry.h"
+#include "vsdk/toolkit/environment/geometry/boundingVolumeHierarchy/AxisAlignedBoundingBox.h"
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
+#include "vsdk/toolkit/environment/geometry/Geometry.h"
+#include "environment/geometry/element/RayWithTracingState.h"
+#include "vsdk/toolkit/environment/geometry/boundingVolumeHierarchy/BoundingVolumeHierarchy.h"
+#include "environment/geometry/element/SurfaceDetailFamily.h"
+#include "environment/geometry/SurfaceTraceState.h"
+#include "environment/geometry/element/GeometryIntersectionEmissionContext.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
+#include "environment/geometry/element/RayCastingHit.h"
+#include "environment/geometry/element/RayCastingContainment.h"
 #include "environment/geometry/element/PostRayHitElement.h"
 #include "vsdk/toolkit/environment/material/Material.h"
 #include "environment/geometry/element/TransformStep.h"
+#include "environment/geometry/SurfaceTraceState.h"
+#include "environment/geometry/element/SurfaceDetailFamily.h"
 
 class CsgOperandView;
 class CsgTree;
 class CsgBodyOperand;
+
+class ProjectedTriangleTraversal;
+class ConstructiveSolidGeometry;
+class Light;
 
 class PovrayBody : public SceneSolid, public PostRayHitElement {
   public:
@@ -59,10 +74,40 @@ class PovrayBody : public SceneSolid, public PostRayHitElement {
     java::ArrayList<TransformStep> geometrySteps{4};
     bool bakedTransformFolded = false;
     bool arbitraryAffineTransform = false;
+    // The traced VITRAL surface of the geometry, its family and this body's
+    // POV trace state, which holds the inversion of box, polynomial, blob,
+    // sphere and generic surfaces.
+    Geometry *surface = nullptr;
+    // The POV CSG this body owns instead of a geometry.
+    ConstructiveSolidGeometry *csg = nullptr;
+    // The POV light this body owns instead of a geometry: it has no
+    // crossings and no interior (family Empty).
+    Light *light = nullptr;
+    // POV's projected traversal of a triangle mesh geometry (its inversion).
+    ProjectedTriangleTraversal *triangleTraversal = nullptr;
+    SurfaceDetailFamily surfaceFamily = SurfaceDetailFamily::None;
+    SurfaceTraceState surfaceState;
+
+    // Rebinds surface, family and a fresh trace state to the geometry.
+    void bindSurface();
+    // The geometry's crossings and containment through the family kernel
+    // with this body's state; a CSG is traced by its evaluator.
+    int traceSurfaceCrossings(RayWithTracingState *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue, Material *materialOverride);
+    int surfaceContainment(const Vector3Dd &point, double distanceTolerance);
+    // Render culling volume of the geometry in its own frame.
+    BoundingVolumeHierarchy *createSurfaceBoundingVolume() const;
+    // VITRAL crossings of a projected mesh, traced by POV's traversal within
+    // this body's placement.
+    RayCrossingSupport emitMeshCrossings(const Ray& source, const RayCrossingQuery& query,
+        RayCrossingSink& sink) const;
+    // Inverts the surface: the state flag for the families that keep it,
+    // the geometry otherwise (which also invalidates the viewpoint cache).
+    void invertSurface();
 
   public:
     PovrayBody(
-        RayCastingGeometry *geometry,
+        Geometry *geometry,
         Material *geometryMaterial,
         Material *objectTexture,
         ColorRgba *objectColor,
@@ -104,32 +149,27 @@ class PovrayBody : public SceneSolid, public PostRayHitElement {
     void doExtraInformation(const Ray& ray, double t, RayHit* hit) const override;
 
 
-    // ObjectParser builds short-lived PovrayBody/RayCastingComposite wrappers purely to
-    // invoke their virtual translate/rotate/scale/invert (which know how to transform
-    // a bounded object's children in place), then extracts the resulting
-    // geometry/objectTexture/objectColor/bounding-and-clipping-shapes back into local
-    // parser variables before discarding the wrapper. detachOwnership() clears every
-    // owned field on the wrapper (without deleting them) so that subsequent
-    // `delete wrapper;` is a safe no-op for those fields - ownership has already moved
-    // to whoever called this. Virtual so RayCastingComposite::detachOwnership() can also clear
-    // its own simpleBodies.
-    virtual void detachOwnership();
-
     java::ArrayList<PovrayBody*>& getBoundingShapes() { return boundingShapes; }
     const java::ArrayList<PovrayBody*>& getBoundingShapes() const { return boundingShapes; }
     java::ArrayList<PovrayBody*>& getClippingShapes() { return clippingShapes; }
     const java::ArrayList<PovrayBody*>& getClippingShapes() const { return clippingShapes; }
     bool hasArbitraryAffineTransform() const { return arbitraryAffineTransform; }
-    RayCastingGeometry *getGeometry() const override { return static_cast<RayCastingGeometry*>(geometry); }
+    // The POV light this body owns, or null.
+    Light *getLight() const { return light; }
+    // Takes ownership of a light, which replaces the geometry.
+    void setLight(Light *value);
+    // The POV CSG this body owns, or null.
+    ConstructiveSolidGeometry *getCsg() const { return csg; }
+    // Takes ownership of a CSG, which replaces the geometry.
+    void setCsg(ConstructiveSolidGeometry *value);
+    // True when the body has a geometry, a CSG or a light.
+    bool hasShape() const { return geometry != nullptr || csg != nullptr || light != nullptr; }
     // Bounds of the shared core solid; an inverted binding is unbounded and
     // region policies are unsupported until their typed semantics exist.
     void getSolidWorldBounds(GeometryBounds& result) const override;
     // The core solid ignores bounding and clipping regions; it is the shared
     // geometry under this body's placement and binding inversion.
     bool queryCoreSolid(const Geometry*& intrinsic, bool& inverted) const;
-    // The shared solid and binding inversion of a POV geometry wrapper whose
-    // own policies do not change that solid; false otherwise.
-    static bool queryWrappedSolid(const RayCastingGeometry* wrapper, const Geometry*& intrinsic, bool& inverted);
     GeometryContainment classifyCoreCertified(const Vector3Dd& point, double tolerance) const;
     RaySolidQueryStatus classifyCoreRay(const Ray& ray, const RayCrossingQuery& query,
         RaySolidClassification& result) const;
@@ -141,11 +181,31 @@ class PovrayBody : public SceneSolid, public PostRayHitElement {
     Matrix4x4d *getGeometryTransformationInverse() const { return geometryTransformationInverse; }
     const java::ArrayList<TransformStep> &getBodySteps() const { return bodySteps; }
     const java::ArrayList<TransformStep> &getGeometrySteps() const { return geometrySteps; }
+    Geometry *getSurface() const { return surface; }
+    // Takes ownership of the projected traversal of this body's triangle
+    // mesh, which makes the surface a POV mesh.
+    void setTriangleTraversal(ProjectedTriangleTraversal *value);
+    ProjectedTriangleTraversal *getTriangleTraversal() const { return triangleTraversal; }
+    SurfaceDetailFamily getSurfaceFamily() const { return surfaceFamily; }
+    SurfaceTraceState *getSurfaceTraceState() { return &surfaceState; }
+    bool isSurfaceInverted() const { return surfaceState.isInverted(); }
+    // Sets the inversion flag of a family that keeps it (see invertSurface).
+    void setSurfaceInverted(bool value);
+    // Bounds of the geometry in its own frame; unbounded when inverted.
+    void getSurfaceBounds(GeometryBounds &result) const;
+    void getWorldBounds(GeometryBounds &result) const override;
+    GeometryContainment classifyPoint(const Vector3Dd &point, double distanceTolerance) const override;
     bool isBakedTransformFolded() const { return bakedTransformFolded; }
     void setBakedTransformFolded(bool value) { bakedTransformFolded = value; }
     bool getNoShadowFlag() const { return noShadowFlag; }
+    void setNoShadowFlag(bool value) { noShadowFlag = value; }
     ColorRgba *getObjectColor() const { return objectColor; }
+    // Takes ownership of the color and deletes the previous one.
+    void setObjectColor(ColorRgba *color);
     Material *getObjectTexture() const { return objectTexture; }
+    // Replaces the texture without releasing the previous one: textures are
+    // shared or layered by the caller, which decides their release.
+    void setObjectTexture(Material *texture) { objectTexture = texture; }
     Vector3Dd worldPointToLocal(const Vector3Dd &point) const;
 
     Matrix4x4d getAffinePlacement() const override;

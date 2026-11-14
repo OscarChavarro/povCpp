@@ -3,6 +3,7 @@
 
 #include "vsdk/toolkit/common/statistics/GeometryStatistics.h"
 #include "vsdk/toolkit/environment/material/RendererConfiguration.h"
+#include "vsdk/toolkit/environment/geometry/boundingVolumeHierarchy/RaySlabReciprocals.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 #include "vsdk/toolkit/environment/material/Material.h"
 #include "environment/geometry/element/DetailMask.h"
@@ -24,8 +25,7 @@ class RayWithTracingState : public Ray {
     java::ArrayList<double> containingIORs;
     bool quadricConstantsCached;
     mutable bool aabbReciprocalsCached;
-    mutable double invDirectionX, invDirectionY, invDirectionZ;
-    mutable bool degenerateAxisX, degenerateAxisY, degenerateAxisZ;
+    mutable RaySlabReciprocals aabbSlabReciprocals;
     bool isShadowRay;
     bool isPrimaryRay;
     int requiredDetailMask;
@@ -74,9 +74,7 @@ class RayWithTracingState : public Ray {
     int getContainingIndex() const;
     bool areQuadricConstantsCached() const;
     void setQuadricConstantsCached(bool value);
-    void getAabbSlabReciprocals(
-        double *invDirX, double *invDirY, double *invDirZ,
-        bool *degenerateX, bool *degenerateY, bool *degenerateZ) const;
+    const RaySlabReciprocals &getAabbSlabReciprocals() const;
     bool isShadowRayEnabled() const;
     void setShadowRay(bool value);
     bool isPrimaryRayEnabled() const;
@@ -232,33 +230,14 @@ RayWithTracingState::setQuadricConstantsCached(bool value)
     }
 }
 
-inline void
-RayWithTracingState::getAabbSlabReciprocals(
-    double *invDirX, double *invDirY, double *invDirZ,
-    bool *degenerateX, bool *degenerateY, bool *degenerateZ) const
+inline const RaySlabReciprocals &
+RayWithTracingState::getAabbSlabReciprocals() const
 {
     if (!aabbReciprocalsCached) {
-        const Vector3Dd &direction = getDirection();
-        auto cacheAxis = [](double directionCoord, double &invDir, bool &degenerate) {
-            if (directionCoord > -1e-12 && directionCoord < 1e-12) {
-                degenerate = true;
-                invDir = 0.0;
-            } else {
-                degenerate = false;
-                invDir = 1.0 / directionCoord;
-            }
-        };
-        cacheAxis(direction.x(), invDirectionX, degenerateAxisX);
-        cacheAxis(direction.y(), invDirectionY, degenerateAxisY);
-        cacheAxis(direction.z(), invDirectionZ, degenerateAxisZ);
+        aabbSlabReciprocals = RaySlabReciprocals(getDirection());
         aabbReciprocalsCached = true;
     }
-    *invDirX = invDirectionX;
-    *invDirY = invDirectionY;
-    *invDirZ = invDirectionZ;
-    *degenerateX = degenerateAxisX;
-    *degenerateY = degenerateAxisY;
-    *degenerateZ = degenerateAxisZ;
+    return aabbSlabReciprocals;
 }
 
 inline bool

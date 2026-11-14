@@ -6,7 +6,7 @@
 class RayCastingComposite : public PovrayBody {
   public:
     RayCastingComposite(
-        RayCastingGeometry *geometry,
+        Geometry *geometry,
         Material *geometryMaterial,
         Material *objectTexture,
         ColorRgba *objectColor,
@@ -32,7 +32,6 @@ class RayCastingComposite : public PovrayBody {
     RayCastingComposite(const RayCastingComposite &other);
     ~RayCastingComposite() override;
     void getWorldBounds(GeometryBounds& result) const override;
-    void detachOwnership() override;
 
     java::ArrayList<PovrayBody*> &getSimpleBodies();
     const java::ArrayList<PovrayBody*> &getSimpleBodies() const;

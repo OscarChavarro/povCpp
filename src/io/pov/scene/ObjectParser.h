@@ -3,7 +3,6 @@
 
 #include "environment/scene/RayCastingComposite.h"
 #include "io/pov/geometry/SimpleBodyBuilder.h"
-#include "io/pov/scene/ParsedTransformOp.h"
 
 class ObjectParser {
   public:
@@ -27,65 +26,18 @@ class ObjectParser {
     // replacing and layering.
     static Material *ensurePrivateTexture(Material *objectTexture);
 
-    static PovrayBody *buildObject(
-        RayCastingGeometry *geometry,
-        Material *geometryMaterial,
-        Material *objectTexture,
-        ColorRgba *objectColor,
-        bool noShadowFlag,
-        const java::ArrayList<PovrayBody*> &boundingShapes,
-        const java::ArrayList<PovrayBody*> &clippingShapes,
-        Matrix4x4d *transformation = nullptr,
-        Matrix4x4d *transformationInverse = nullptr,
-        Matrix4x4d *geometryTransformation = nullptr,
-        Matrix4x4d *geometryTransformationInverse = nullptr,
-        const java::ArrayList<TransformStep> &bodySteps = java::ArrayList<TransformStep>(),
-        const java::ArrayList<TransformStep> &geometrySteps = java::ArrayList<TransformStep>());
+    static RayCastingComposite *newComposite(Material *objectTexture);
 
-    static RayCastingComposite *buildComposite(
-        RayCastingGeometry *geometry,
-        Material *geometryMaterial,
-        Material *objectTexture,
-        ColorRgba *objectColor,
-        bool noShadowFlag,
-        const java::ArrayList<PovrayBody*> &boundingShapes,
-        const java::ArrayList<PovrayBody*> &clippingShapes,
-        const java::ArrayList<PovrayBody*> &simpleBodies,
-        Matrix4x4d *transformation = nullptr,
-        Matrix4x4d *transformationInverse = nullptr,
-        Matrix4x4d *geometryTransformation = nullptr,
-        Matrix4x4d *geometryTransformationInverse = nullptr);
+    // A CSG keeps object transforms on its body layer; every other shape
+    // keeps them on its geometry layer.
+    static bool transformsBodyLayer(const PovrayBody *object);
 
-    static void extractObjectState(
-        PovrayBody *object,
-        RayCastingGeometry *&geometry,
-        Material *&geometryMaterial,
-        Material *&objectTexture,
-        ColorRgba *&objectColor,
-        bool &noShadowFlag,
-        java::ArrayList<PovrayBody*> &boundingShapes,
-        java::ArrayList<PovrayBody*> &clippingShapes,
-        Matrix4x4d *&transformation,
-        Matrix4x4d *&transformationInverse,
-        Matrix4x4d *&geometryTransformation,
-        Matrix4x4d *&geometryTransformationInverse,
-        java::ArrayList<TransformStep> &bodySteps,
-        java::ArrayList<TransformStep> &geometrySteps);
+    // Parses the shapes of a bounded_by/clipped_by block into regions.
+    static void parseRegions(java::ArrayList<PovrayBody*> &regions, ParserContext &ctx);
 
-    static void extractCompositeState(
-        RayCastingComposite *object,
-        RayCastingGeometry *&geometry,
-        Material *&geometryMaterial,
-        Material *&objectTexture,
-        ColorRgba *&objectColor,
-        bool &noShadowFlag,
-        java::ArrayList<PovrayBody*> &boundingShapes,
-        java::ArrayList<PovrayBody*> &clippingShapes,
-        java::ArrayList<PovrayBody*> &simpleBodies,
-        Matrix4x4d *&transformation,
-        Matrix4x4d *&transformationInverse,
-        Matrix4x4d *&geometryTransformation,
-        Matrix4x4d *&geometryTransformationInverse);
+    // Edits the body in place with the modifiers that follow its shape, up to
+    // the closing brace. Composites accept regions and transforms only.
+    static void parseObjectModifiers(PovrayBody *object, bool acceptsSurface, ParserContext &ctx);
 };
 
 #endif

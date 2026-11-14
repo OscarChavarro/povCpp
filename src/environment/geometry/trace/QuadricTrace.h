@@ -26,6 +26,10 @@ class QuadricTrace {
         RayWithTracingState *ray, IntersectionCandidate &out, Material *materialOverride);
     static int containment(const QuadricSurface &surface, const Vector3Dd &point,
         double distanceTolerance);
+    // Whether any square or mixed coefficient is nonzero.
+    static bool hasNonZeroSquareTerm(const QuadricSurface &surface);
+    // POV inverse: every coefficient changes sign.
+    static void invert(QuadricSurface &surface);
 };
 
 #endif

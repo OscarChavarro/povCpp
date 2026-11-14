@@ -3,7 +3,6 @@
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/geometry/element/GeometryConfig.h"
-#include "environment/geometry/volume/Blob.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/pov/geometry/BlobParser.h"
@@ -14,14 +13,25 @@
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 
+BlobSolid *
+BlobParser::copyWithSturmSequences(const BlobSolid &solid)
+{
+    BlobSolid *copy = new BlobSolid(solid.getThreshold(), true);
+    for (long int i = 0; i < solid.getComponentCount(); i++) {
+        copy->addComponent(solid.getComponent(i));
+    }
+    return copy;
+}
+
 SimpleBodyBuilder *
-BlobParser::rebuildBodyWithGeometry(SimpleBodyBuilder *body, RayCastingGeometry *geometry)
+BlobParser::rebuildBodyWithGeometry(SimpleBodyBuilder *body, Geometry *geometry)
 {
     Material *clonedMaterial = (body->getMaterial() != nullptr) ?
         new PovRayMaterial(*static_cast<PovRayMaterial *>(body->getMaterial())) : nullptr;
     ColorRgba *clonedShapeColor = (body->getShapeColor() != nullptr) ?
         new ColorRgba(*body->getShapeColor()) : nullptr;
     SimpleBodyBuilder *newBody = new SimpleBodyBuilder(geometry, clonedMaterial, clonedShapeColor);
+    newBody->setSurfaceInverted(body->isSurfaceInverted());
     delete body;
     return newBody;
 }
@@ -37,7 +47,7 @@ SimpleBodyBuilder *
 BlobParser::parseBlob(ParserContext &ctx)
 {
     (void)ctx;
-    Blob *localShape = nullptr;
+    BlobSolid *localShape = nullptr;
     SimpleBodyBuilder *body = nullptr;
     {
         bool Exit_Flag = false;
@@ -106,7 +116,7 @@ BlobParser::parseBlob(ParserContext &ctx)
                     }
                     solid.addComponent(blobComponents[i]);
                 }
-                localShape = new Blob(solid);
+                localShape = new BlobSolid(solid);
                 body = SceneBuilder::wrap(localShape);
                 Exit_Flag = true;
                 break;
@@ -120,7 +130,7 @@ BlobParser::parseBlob(ParserContext &ctx)
                         body = new SimpleBodyBuilder(
                                 *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
                                     .getConstantData());
-                        localShape = (Blob *)body->getGeometry();
+                        localShape = static_cast<BlobSolid *>(body->getGeometry());
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -148,10 +158,9 @@ BlobParser::parseBlob(ParserContext &ctx)
 
             case Tokenizer::STURM_TOKEN:
             {
-                if (localShape->getSturmFlag() == 0) {
-                    body = rebuildBodyWithGeometry(
-                        body, localShape->copyWithSturmFlag(1));
-                    localShape = (Blob *)body->getGeometry();
+                if (!localShape->usesSturmSequences()) {
+                    body = rebuildBodyWithGeometry(body, copyWithSturmSequences(*localShape));
+                    localShape = static_cast<BlobSolid *>(body->getGeometry());
                 }
                 break;
             }

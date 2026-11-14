@@ -21,7 +21,6 @@ set(VITRAL_BASE_ISOLATED_OUTPUT ON CACHE BOOL "Isolate external base artifacts" 
 add_subdirectory("${VITRAL_CPP_ROOT}/base" "${CMAKE_BINARY_DIR}/vitral-base")
 
 add_library(povray_core OBJECT
-    src/environment/geometry/RayCastingGeometry.cpp
     src/environment/geometry/SurfaceDetailKernel.cpp
     src/environment/geometry/trace/QuadricTrace.cpp
     src/environment/geometry/trace/BoxTrace.cpp
@@ -32,23 +31,17 @@ add_library(povray_core OBJECT
     src/environment/geometry/trace/BicubicPatchTrace.cpp
     src/environment/scene/NativeSurfaceTrace.cpp
     src/environment/scene/SurfaceTraceKernel.cpp
+    src/environment/scene/SurfaceBoundingVolume.cpp
     src/environment/geometry/element/RayWithTracingState.cpp
     src/environment/geometry/element/SphereTrace.cpp
-    src/environment/geometry/surface/RayCastingInfinitePlane.cpp
-    src/environment/geometry/surface/parametric/ParametricPatch.cpp
-    src/environment/geometry/volume/Blob.cpp
-    src/environment/geometry/volume/HeightField.cpp
-    src/environment/geometry/volume/Quadric.cpp
-    src/environment/geometry/volume/BoxInvertedCrossingSink.cpp
-    src/environment/geometry/volume/RayCastingBox.cpp
-    src/environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.cpp
-    src/environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByMorganRules.cpp
-    src/environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.cpp
-    src/environment/geometry/volume/constructiveSolidGeometry/CsgOperand.cpp
-    src/environment/geometry/volume/polynomial/PolynomialShape.cpp
+    src/environment/scene/BoxInvertedCrossingSink.cpp
+    src/environment/scene/constructiveSolidGeometry/ConstructiveSolidGeometry.cpp
+    src/environment/scene/constructiveSolidGeometry/CsgMorganRulesEvaluator.cpp
+    src/environment/scene/constructiveSolidGeometry/CsgRaySegmentEvaluator.cpp
+    src/environment/scene/constructiveSolidGeometry/CsgOperandBodyView.cpp
+    src/environment/scene/constructiveSolidGeometry/CsgOperand.cpp
     src/environment/scene/PovrayBody.cpp
     src/environment/scene/RayCastingCoreOperand.cpp
-    src/environment/scene/NativeGeometryBinding.cpp
     src/environment/scene/NativeGeometryCrossingSink.cpp
     src/environment/scene/ProjectedTriangleTraversal.cpp
     src/environment/scene/RayCastingComposite.cpp
@@ -122,7 +115,6 @@ add_library(povray_core OBJECT
     src/io/image/IffFormat.cpp
     src/io/image/RawFormat.cpp
     src/io/image/TargaFormat.cpp
-    src/io/pov/light/LightGeometryAdapter.cpp
     src/io/pov/geometry/GeometryBuilder.cpp
     src/io/pov/context/ParserContext.cpp
     src/io/pov/context/SymbolTable.cpp

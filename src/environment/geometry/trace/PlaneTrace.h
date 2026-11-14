@@ -22,6 +22,8 @@ class PlaneTrace {
         Material *materialOverride, const GeometryIntersectionEmissionContext *context);
     static bool firstHit(PlanarHalfSpace &halfSpace, const SurfaceTraceState &state,
         RayWithTracingState *ray, IntersectionCandidate &out, Material *materialOverride);
+    // POV inverse: the normal and the distance change sign.
+    static void invert(PlanarHalfSpace &halfSpace);
     static int containment(const PlanarHalfSpace &halfSpace, const Vector3Dd &point,
         double distanceTolerance);
 };

@@ -7,39 +7,22 @@ class AabbCullingSupport {
 public:
     static constexpr int OPERAND_CULL_SCRATCH_CAPACITY = 4096;
 
-    // Traverses a bake-time OperandCullBins index, testing each surviving
-    // bin's aggregate box then each member's own bakedBounds (the aggregate
-    // box can pass while an individual member's tighter box does not), and
-    // appends the never-cull-safe positions untested exactly as the plain
-    // linear scan does today. Returns -1 on scratch overflow (caller must
-    // fall back), otherwise the number of positions written to outPositions
-    // (unsorted - caller must sort descending to match the plain scan's
-    // iteration order before dispatching).
+    // Lists the bucket positions of the cull-safe operands whose box the ray
+    // crosses (VITRAL AabbBinHierarchy), then the never-cull-safe positions
+    // untested exactly as the plain linear scan does. Returns -1 on scratch
+    // overflow (caller must fall back), otherwise the number of positions
+    // written to outPositions (unsorted - caller must sort descending to
+    // match the plain scan's iteration order before dispatching).
     static inline int gatherCullSurvivors(
         const OperandCullBins &bins,
-        const java::ArrayList<int> &bucket,
-        const java::ArrayList<CsgOperandRecord> &operands,
-        RayWithTracingState &ray,
+        const RayWithTracingState &ray,
         int *outPositions,
         int capacity)
     {
-        int count = 0;
-        for (long int b = 0; b < bins.getBinBounds().size(); b++) {
-            if (!bins.getBinBounds()[b].intersectsRayForward(ray)) {
-                continue;
-            }
-            const int start = bins.getBinMemberStart()[b];
-            const int memberCount = bins.getBinMemberCount()[b];
-            for (int m = start; m < start + memberCount; m++) {
-                const int pos = bins.getBinMembers()[m];
-                if (!operands[bucket[pos]].getBakedBounds().intersectsRayForward(ray)) {
-                    continue;
-                }
-                if (count >= capacity) {
-                    return -1;
-                }
-                outPositions[count++] = pos;
-            }
+        int count = bins.getHierarchy().gatherCandidates(
+            ray, ray.getAabbSlabReciprocals(), outPositions, capacity);
+        if (count < 0) {
+            return -1;
         }
         for (long int i = 0; i < bins.getAlwaysTestedPositions().size(); i++) {
             if (count >= capacity) {

@@ -149,3 +149,23 @@ QuadricTrace::containment(const QuadricSurface &surface, const Vector3Dd &point,
     return surface.evaluate(point) < distanceTolerance ?
         static_cast<int>(Containment::INSIDE) : static_cast<int>(Containment::OUTSIDE);
 }
+
+bool
+QuadricTrace::hasNonZeroSquareTerm(const QuadricSurface &surface)
+{
+    return !((surface.squareCoefficients().x() == 0.0) &&
+        (surface.squareCoefficients().y() == 0.0) &&
+        (surface.squareCoefficients().z() == 0.0) &&
+        (surface.mixedCoefficients().x() == 0.0) &&
+        (surface.mixedCoefficients().y() == 0.0) &&
+        (surface.mixedCoefficients().z() == 0.0));
+}
+
+void
+QuadricTrace::invert(QuadricSurface &surface)
+{
+    surface.squareCoefficients() = surface.squareCoefficients().multiply(-1.0);
+    surface.mixedCoefficients() = surface.mixedCoefficients().multiply(-1.0);
+    surface.linearCoefficients() = surface.linearCoefficients().multiply(-1.0);
+    surface.constantCoefficient() *= -1.0;
+}

@@ -14,7 +14,8 @@
 // direction.
 void
 BakedQuadricIntersector::expand(
-    const Quadric &shape,
+    const QuadricSurface &surface,
+    bool nonZeroSquareTerm,
     RayWithTracingState *ray,
     const Vector3Dd &origin,
     const Vector3Dd &direction,
@@ -53,8 +54,7 @@ BakedQuadricIntersector::expand(
         mixedDirectionDirection = QuadricRayExpansion::mixedProducts(direction, direction);
         mixedPositionDirection = QuadricRayExpansion::symmetricMixedProducts(origin, direction);
     }
-    const QuadricSurface &surface = shape.getSurface();
-    squareTerm = QuadricRayExpansion::squareTerm(surface, shape.hasNonZeroSquareTerm(),
+    squareTerm = QuadricRayExpansion::squareTerm(surface, nonZeroSquareTerm,
         direction2, mixedDirectionDirection);
     linearTerm = QuadricRayExpansion::linearTerm(surface, positionDirection, direction,
         mixedPositionDirection);
@@ -71,7 +71,8 @@ BakedQuadricIntersector::expand(
 
 bool
 BakedQuadricIntersector::intersectBakedQuadric(
-    const Quadric &shape,
+    const QuadricSurface &surface,
+    bool nonZeroSquareTerm,
     RayWithTracingState *ray,
     const Vector3Dd &origin,
     const Vector3Dd &direction,
@@ -83,13 +84,14 @@ BakedQuadricIntersector::intersectBakedQuadric(
 {
     double polyA, polyB, polyC;
     bool trueMiss;
-    return intersectBakedQuadricWithCoeffs(shape, ray, origin, direction, sharesRaySpace,
+    return intersectBakedQuadricWithCoeffs(surface, nonZeroSquareTerm, ray, origin, direction, sharesRaySpace,
         cache, viewpointSlot, depth1, depth2, polyA, polyB, polyC, trueMiss);
 }
 
 bool
 BakedQuadricIntersector::intersectBakedQuadricWithTrueMiss(
-    const Quadric &shape,
+    const QuadricSurface &surface,
+    bool nonZeroSquareTerm,
     RayWithTracingState *ray,
     const Vector3Dd &origin,
     const Vector3Dd &direction,
@@ -101,13 +103,14 @@ BakedQuadricIntersector::intersectBakedQuadricWithTrueMiss(
     bool &trueMiss)
 {
     double polyA, polyB, polyC;
-    return intersectBakedQuadricWithCoeffs(shape, ray, origin, direction, sharesRaySpace,
+    return intersectBakedQuadricWithCoeffs(surface, nonZeroSquareTerm, ray, origin, direction, sharesRaySpace,
         cache, viewpointSlot, depth1, depth2, polyA, polyB, polyC, trueMiss);
 }
 
 bool
 BakedQuadricIntersector::intersectBakedQuadricWithCoeffs(
-    const Quadric &shape,
+    const QuadricSurface &surface,
+    bool nonZeroSquareTerm,
     RayWithTracingState *ray,
     const Vector3Dd &origin,
     const Vector3Dd &direction,
@@ -124,7 +127,7 @@ BakedQuadricIntersector::intersectBakedQuadricWithCoeffs(
     GeometryStatistics &stats = *ray->getGeometryStatistics();
     stats.incrementRayQuadricTests();
     trueMiss = false;
-    expand(shape, ray, origin, direction, sharesRaySpace, cache, viewpointSlot,
+    expand(surface, nonZeroSquareTerm, ray, origin, direction, sharesRaySpace, cache, viewpointSlot,
         polyA, polyB, polyC);
     if (!QuadricSurface::solve(polyA, polyB, polyC, *depth1, *depth2)) {
         if (polyA != 0.0) {

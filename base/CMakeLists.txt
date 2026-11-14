@@ -104,6 +104,12 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/environment/scene/AffineToleranceMap.cpp
     src/main/vsdk/toolkit/environment/scene/csg/CsgPlacedExpression.cpp
     src/main/vsdk/toolkit/environment/geometry/element/GeometryBounds.cpp
+    src/main/vsdk/toolkit/environment/geometry/boundingVolumeHierarchy/RaySlabReciprocals.cpp
+    src/main/vsdk/toolkit/environment/geometry/boundingVolumeHierarchy/AxisAlignedBoundingBox.cpp
+    src/main/vsdk/toolkit/environment/geometry/boundingVolumeHierarchy/PreRayHitElement.cpp
+    src/main/vsdk/toolkit/environment/geometry/boundingVolumeHierarchy/BoundingVolumeHierarchy.cpp
+    src/main/vsdk/toolkit/environment/geometry/boundingVolumeHierarchy/AabbBoundingVolume.cpp
+    src/main/vsdk/toolkit/environment/geometry/boundingVolumeHierarchy/AabbBinHierarchy.cpp
     src/main/vsdk/toolkit/environment/geometry/element/GeometryQueryWorkspace.cpp
     src/main/vsdk/toolkit/environment/geometry/element/RayInstanceStep.cpp
     src/main/vsdk/toolkit/environment/geometry/element/RayInstancePath.cpp
@@ -237,7 +243,6 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/environment/geometry/geometricProcessing/polygonTriangulation/monotoneDecomposition/_TriangulationTrapezoid.cpp
     src/main/vsdk/toolkit/environment/geometry/geometricProcessing/polygonTriangulation/monotoneDecomposition/_TriangulationTrapezoidQueryNode.cpp
     src/main/vsdk/toolkit/environment/geometry/geometricProcessing/polygonClipper/_Polygon2DWA.cpp
-    src/main/vsdk/toolkit/environment/geometry/geometricProcessing/polygonClipper/PolygonProcessor.cpp
     src/main/vsdk/toolkit/environment/geometry/geometricProcessing/polygonClipper/PolygonTopologicalMerger.cpp
     src/main/vsdk/toolkit/environment/geometry/geometricProcessing/polygonClipper/WeilerAthertonPolygonClipper.cpp
     src/main/vsdk/toolkit/environment/geometry/surface/polygon/_Polygon2DContour.cpp
@@ -258,6 +263,7 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/environment/geometry/volume/VoxelVolume.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolid.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolidEulerOperators.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolidEulerConstructions.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolidNumericPolicy.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolidPredicates.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolidGeometricValidator.cpp
@@ -564,6 +570,7 @@ if(VITRAL_BUILD_TESTS)
     src/test/microfaceted_material_csv_tests.cpp
     src/test/ray_affine_contract_tests.cpp
     src/test/ray_crossing_tests.cpp
+    src/test/bounding_volume_hierarchy_tests.cpp
     src/test/reader_mit_triangles_tests.cpp
     src/test/reader_mit_scene_commands_tests.cpp
     src/test/csg_point_workspace_tests.cpp
