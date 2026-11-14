@@ -11,8 +11,6 @@ add_library(vitral_raycasting STATIC
     src/main/vsdk/toolkit/environment/raycasting/geometry/element/RayWithTracingState.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/element/SphereTrace.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingInfinitePlane.cpp
-    src/main/vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricBiCubicIntersection.cpp
-    src/main/vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricBiCubicSolver.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/surface/parametric/ParametricPatch.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/volume/Blob.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/volume/HeightField.cpp

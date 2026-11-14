@@ -6,6 +6,7 @@
 #include "vsdk/toolkit/environment/geometry/element/RaySolidClassification.h"
 #include "vsdk/toolkit/environment/geometry/volume/Box.h"
 #include "vsdk/toolkit/environment/geometry/volume/PlanarHalfSpace.h"
+#include "vsdk/toolkit/environment/geometry/volume/PolynomialSurface.h"
 #include "vsdk/toolkit/environment/geometry/surface/TriangleMesh.h"
 #include "vsdk/toolkit/environment/scene/SimpleBody.h"
 #include "vsdk/toolkit/environment/scene/SimpleScene.h"
@@ -133,6 +134,51 @@ TEST(ReaderMitCsg, MalformedBlocksAreRejected) {
         SimpleScene scene;
         ReaderMitScene reader;
         EXPECT_THROW(reader.importEnvironment(path.c_str(),&scene),java::Exception) << i;
+    }
+    std::remove(path.c_str());
+}
+
+TEST(ReaderMitPrimitives, PolySceneBuildsPlacedPolynomialBodies) {
+    SimpleScene scene;
+    ReaderMitScene reader;
+    reader.importEnvironment(VITRAL_REPOSITORY_ROOT "/etc/geometry/mitscenes/poly_surfaces.ray", &scene);
+    java::ArrayList<SimpleBody*>& bodies = scene.getSimpleBodies();
+    ASSERT_EQ(3, bodies.size());
+    const PolynomialSurface* torus = dynamic_cast<const PolynomialSurface*>(bodies[1]->getGeometry());
+    ASSERT_NE(nullptr, torus);
+    EXPECT_EQ(4, torus->getOrder());
+    EXPECT_TRUE(torus->usesSturmSequences());
+    EXPECT_DOUBLE_EQ(-3.2, torus->getCoefficients()[PolynomialSurface::getTermIndex(4, 2, 0, 0)]);
+    EXPECT_DOUBLE_EQ(-1.7, bodies[1]->getAffinePlacement().get(0, 3));
+    // The tilted torus is hit on its outer equator from -x.
+    RayHit hit(RayHit::DETAIL_POINT | RayHit::DETAIL_NORMAL, false);
+    ASSERT_TRUE(bodies[1]->doIntersectionFirstHit(
+        Ray::fromAffine(Vector3Dd(-6, 0, 0.5), Vector3Dd(1, 0, 0)), &hit));
+    EXPECT_NEAR(6 - 1.7 - 1.6, hit.getHitDistance(), 1e-9);
+    EXPECT_NEAR(-1, hit.normal.x(), 1e-9);
+    CsgBody* saddle = dynamic_cast<CsgBody*>(bodies[2]);
+    ASSERT_NE(nullptr, saddle);
+    ASSERT_EQ(2, saddle->getLeafCount());
+    EXPECT_NE(nullptr, dynamic_cast<const PolynomialSurface*>(saddle->getLeaf(0)->getGeometry()));
+    // Below the saddle (z < 0 on its x = 0 line) the cut sphere is solid.
+    hit.reset(RayHit::DETAIL_POINT);
+    ASSERT_TRUE(saddle->doIntersectionFirstHit(
+        Ray::fromAffine(Vector3Dd(1.7, -5, -0.3), Vector3Dd(0, 1, 0)), &hit));
+    EXPECT_NEAR(5 - std::sqrt(1.21 - 0.25), hit.getHitDistance(), 1e-9);
+}
+
+TEST(ReaderMitPrimitives, MalformedPolyAndTransformLinesAreRejected) {
+    const char* bodies[7] = {"poly 8\nend\n", "poly 3\nterm 1 2 2 0\nend\n",
+        "poly 2\nterm 1 2 0 0\n", "poly 2 fast\nend\n", "poly 2\nsphere 0 0 0 1\nend\n",
+        "transform 1 0 0 0 0 1 0 0 0 0 0 0\nsphere 0 0 0 1\n", "transform 1 0 0 0 0 1 0 0 0 0 1 0\n"};
+    const std::string path = testing::TempDir() + "reader_mit_poly_malformed.ray";
+    for (int i = 0; i < 7; ++i) {
+        FILE* file = fopen(path.c_str(), "w");
+        ASSERT_NE(nullptr, file);
+        fputs(bodies[i], file); fclose(file);
+        SimpleScene scene;
+        ReaderMitScene reader;
+        EXPECT_THROW(reader.importEnvironment(path.c_str(), &scene), java::Exception) << i;
     }
     std::remove(path.c_str());
 }

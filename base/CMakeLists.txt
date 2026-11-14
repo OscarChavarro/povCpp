@@ -214,6 +214,7 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/environment/geometry/surface/_ParametricBiCubicPatchIntersector.cpp
     src/main/vsdk/toolkit/environment/geometry/surface/TriangleStripMesh.cpp
     src/main/vsdk/toolkit/environment/geometry/surface/TriangleMesh.cpp
+    src/main/vsdk/toolkit/environment/geometry/surface/SubdividedBezierPatch.cpp
     src/main/vsdk/toolkit/environment/geometry/surface/TriangleMeshIntersectionIndex.cpp
     src/main/vsdk/toolkit/environment/geometry/surface/QuadMesh.cpp
     src/main/vsdk/toolkit/environment/geometry/surface/TriangleMeshGroup.cpp
@@ -246,6 +247,11 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/environment/geometry/volume/Cone.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/Arrow.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/QuadricSurface.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/ImplicitSolid.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/PolynomialSurface.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/BlobComponent.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/BlobSolid.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/HeightFieldSolid.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/Torus.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/VoxelVolume.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/polyhedralBoundedSolid/PolyhedralBoundedSolid.cpp
@@ -296,6 +302,7 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/io/geometry/ReaderObj.cpp
     src/main/vsdk/toolkit/io/geometry/ReaderPly.cpp
     src/main/vsdk/toolkit/io/geometry/ReaderPlyResult.cpp
+    src/main/vsdk/toolkit/io/geometry/ReaderAltimetry.cpp
     src/main/vsdk/toolkit/io/geometry/ReaderMitScene.cpp
     src/main/vsdk/toolkit/io/geometry/ReaderMitTriangleGroup.cpp
     src/main/vsdk/toolkit/io/image/ImagePersistence.cpp
@@ -442,6 +449,11 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     src/main/vsdk/toolkit/environment/geometry/volume/Box.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/PlanarHalfSpace.cpp
     src/main/vsdk/toolkit/environment/geometry/volume/QuadricSurface.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/ImplicitSolid.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/PolynomialSurface.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/BlobComponent.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/BlobSolid.cpp
+    src/main/vsdk/toolkit/environment/geometry/volume/HeightFieldSolid.cpp
     src/main/vsdk/toolkit/environment/scene/SimpleBody.cpp
     src/main/vsdk/toolkit/environment/geometry/element/GeometryBounds.cpp
     src/main/java/lang/Double.cpp
@@ -537,6 +549,11 @@ if(VITRAL_BUILD_TESTS)
     src/test/csg_placement_tests.cpp
     src/test/certified_containment_tests.cpp
     src/test/csg_evaluator_tests.cpp
+    src/test/ImplicitSolidTestFactory.cpp
+    src/test/implicit_solid_tests.cpp
+    src/test/HeightFieldTestFactory.cpp
+    src/test/heightfield_solid_tests.cpp
+    src/test/subdivided_bezier_patch_tests.cpp
     src/test/microfaceted_material_csv_tests.cpp
     src/test/ray_affine_contract_tests.cpp
     src/test/ray_crossing_tests.cpp

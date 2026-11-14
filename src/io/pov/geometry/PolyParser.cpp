@@ -37,7 +37,7 @@ PolyParser::parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
             case Tokenizer::LEFT_ANGLE_TOKEN:
-                for (i = 0; i < PolynomialShape::termCountsByOrder()[order]; i++) {
+                for (i = 0; i < PolynomialSurface::getTermCount(order); i++) {
                     givenCoeffs[i] = PrimitiveParser::parseFloat(ctx);
                 }
                 ParseHelpers::getExpectedToken(Tokenizer::RIGHT_ANGLE_TOKEN, ctx);
@@ -64,8 +64,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
     PovRayMaterial *localTexture;
 
     if (knownOrder > 0) {
-        localShape = GeometryBuilder::getPolyShape(
-            knownOrder, PolynomialShape::termCountsByOrder());
+        localShape = GeometryBuilder::getPolyShape(knownOrder);
         body = SceneBuilder::wrap(localShape);
     } else {
         localShape = nullptr;
@@ -91,8 +90,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                 if (order < 2 || order > PolynomialSolver::MAX_ORDER) {
                     ParseErrorReporter::reportError("order of Poly is out of range", ctx);
                 }
-                localShape = GeometryBuilder::getPolyShape(
-                    order, PolynomialShape::termCountsByOrder());
+                localShape = GeometryBuilder::getPolyShape(order);
                 body = SceneBuilder::wrap(localShape);
                 break;
 

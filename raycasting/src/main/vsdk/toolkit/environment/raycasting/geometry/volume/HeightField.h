@@ -3,32 +3,33 @@
 
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/RayCastingBox.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/HeightFieldBlock.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/HeightFieldTraversalState.h"
+#include "vsdk/toolkit/environment/geometry/volume/HeightFieldSolid.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/RayCastingGeometry.h"
 
+// PovRay height_field: a VITRAL HeightFieldSolid placed by an affine map. The
+// PovRay image rules (border and water level points at -10000, POT and TGA
+// fractional heights) are applied when the heights are loaded.
 class HeightField : public RayCastingGeometry {
   public:
     static constexpr int GIF = 0;
     static constexpr int POT = 1;
     static constexpr int TGA = 2;
+    // Height of points on the image border or at or below the water level.
+    static constexpr double HIDDEN_HEIGHT = -10000.0;
 
-    HeightField();
     HeightField(const Matrix4x4d &transformation,
         const Matrix4x4d &transformationInverse, const Vector3Dd &minBounds,
         const Vector3Dd &maxBounds);
     HeightField(const HeightField &other);
     ~HeightField() override;
 
-    RayCastingBox *getBoundingBox() const { return boundingBox; }
+    void setWaterLevel(double level);
+    const HeightFieldSolid *getSolid() const { return solid; }
 
     static void findHfMinMax(HeightField *hField,
         const IndexedColorImageHDRUncompressed *image, int imageType);
     static void findHfMinMax(HeightField *hField,
         const RGBAImageHDRUncompressed *image, int imageType);
-    static inline int signInline(double x);
-    static inline double minValue(double x, double y);
-    static inline double maxValue(double x, double y);
 
     BoundingVolumeHierarchy *createBoundingVolume() const override;
 
@@ -49,35 +50,14 @@ class HeightField : public RayCastingGeometry {
     void computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
 
   private:
-    Matrix4x4d *transformation;
-    Matrix4x4d *transformationInverse;
-    RayCastingBox *boundingBox;
-    double blockSize;
-    double invBlkSize;
-    HeightFieldBlock **block;
-    float **Map;
-    // Block/Map are raw 2D calloc'd arrays with no self-describing size; these
-    // record the extents allocateHfBlocks() computed so the copy constructor and
-    // destructor can walk/clone/free them correctly.
-    int blockOuterSize; // number of HeightFieldBlock* rows in `block` (and the
-                        // number of HeightFieldBlock entries in each row)
-    int blockInnerSize;
-    int mapOuterSize;   // number of float* rows in `Map`
-    int mapInnerSize;   // number of float entries in each allocated `Map` row
+    Matrix4x4d transformation;
+    Matrix4x4d transformationInverse;
+    Vector3Dd minBounds;
+    Vector3Dd maxBounds;
+    HeightFieldSolid *solid;
 
-    static void allocateHfBlocks(HeightField *hField, int maxX, int maxZ,
-        double width, double height);
-    static double getHeightAt(int x, int z, const HeightField *hField);
-    static int intersectPixel(int x, int z, const RayWithTracingState *ray,
-        HeightFieldTraversalState &state,
-        HeightField *hField, double height1, double height2);
-    static int intersectSubBlock(const HeightFieldBlock *block,
-        const RayWithTracingState *ray, HeightFieldTraversalState &state,
-        HeightField *hField,
-        const Vector3Dd *start, const Vector3Dd *end);
-    static int intersectHfNode(const RayWithTracingState *ray,
-        HeightFieldTraversalState &state, HeightField *hField,
-        const Vector3Dd *start, const Vector3Dd *end);
+    double imageHeight(double height) const;
+    void allocateGrid(int maxX, int maxZ);
     int traceCrossings(
         RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
