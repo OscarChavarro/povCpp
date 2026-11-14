@@ -29,6 +29,9 @@ class HeightField : public RayCastingGeometry {
     void setWaterLevel(double level);
     const HeightFieldSolid *getSolid() const { return solid; }
     const Geometry *getIntrinsicGeometry() const override { return solid; }
+    Geometry *getDetailSurface() override { return solid; }
+    SurfaceDetailFamily getDetailFamily() const override { return SurfaceDetailFamily::HeightField; }
+    SurfaceTraceState *getTraceState() override { return &traceState; }
     RaySolidQueryStatus classifyRay(const Ray& ray, const RayCrossingQuery& query,
         RaySolidClassification& result) const override;
 
@@ -53,17 +56,13 @@ class HeightField : public RayCastingGeometry {
     void invertGeometry() override;
 
   protected:
-    void computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
 
   private:
     HeightFieldSolid *solid;
 
+    SurfaceTraceState traceState;
+
     double imageHeight(double height) const;
-    int traceCrossings(
-        RayWithTracingState *ray,
-        java::PriorityQueue<IntersectionCandidate> *depthQueue,
-        Material *materialOverride,
-        const GeometryIntersectionEmissionContext *context);
 };
 
 #endif

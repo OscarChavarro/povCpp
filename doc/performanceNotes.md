@@ -63,8 +63,9 @@ producing a read-only model in `render/bakedScene`:
   build-time cull bins over large union operand lists.
 - Per-viewpoint constants live in an indexed `RaySharedCache` instead of
   mutable shape fields; `effectiveMaterial` is resolved at build time.
-- Remaining render-time fallbacks to parsed objects are limited and
-  counted (see `bakedSceneFallbacks.md`).
+- Every object is compiled into a baked record. Records whose primitive has
+  no specialized kernel (`BoundedGeneric` objects and `DirectPrimitive`
+  operands) call the primitive's own crossing and containment methods.
 
 Where baking cannot reach — composites and unbakeable primitives — rays
 are cloned into local space per test (`LocalIntersectionClone`), and every

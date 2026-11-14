@@ -6,18 +6,15 @@
 class Sphere;
 class ProjectedTriangleTraversal;
 
-// Transitional scene binding: owns one native mathematical geometry and
-// adapts its queries to the legacy POV scene and intersection queues.
+// Transitional scene binding: owns one VITRAL geometry (a sphere, a triangle
+// mesh with its projected traversal, or any other geometry traced through its
+// own queries) and its POV trace state; the render trace is SurfaceTraceKernel.
 class NativeGeometryBinding : public RayCastingGeometry {
 private:
     Geometry* geometry;
     const Sphere* sphere;
     ProjectedTriangleTraversal* triangleTraversal;
-    bool inverted;
-    bool intersectSphere(const RayWithTracingState* ray, double* depth1, double* depth2) const;
-    int emitGeneric(RayWithTracingState* ray,
-        java::PriorityQueue<IntersectionCandidate>* queue,
-        const GeometryIntersectionEmissionContext& context);
+    SurfaceTraceState traceState;
 public:
     // Takes ownership. A binding requires a non-null geometry.
     explicit NativeGeometryBinding(Geometry* geometry, bool inverted = false);
@@ -26,7 +23,10 @@ public:
     NativeGeometryBinding& operator=(const NativeGeometryBinding&) = delete;
 
     const Geometry* getIntrinsicGeometry() const override { return geometry; }
-    bool isInverted() const { return inverted; }
+    Geometry* getDetailSurface() override { return geometry; }
+    SurfaceDetailFamily getDetailFamily() const override;
+    SurfaceTraceState* getTraceState() override { return &traceState; }
+    bool isInverted() const { return traceState.isInverted(); }
     void invertGeometry() override;
     void enableProjectedTriangleTraversal();
     ProjectedTriangleTraversal* getProjectedTriangleTraversal() const { return triangleTraversal; }
@@ -48,8 +48,6 @@ public:
     bool doIntersectionFirstHit(RayWithTracingState* ray,
         IntersectionCandidate& out, Material* materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd& point, double tolerance) override;
-    void doExtraInformation(const RayWithTracingState& ray, double t,
-        RayCastingHit* hit) override;
 };
 
 #endif

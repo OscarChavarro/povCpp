@@ -1,3 +1,5 @@
+#include "environment/geometry/trace/BoxTrace.h"
+#include "environment/geometry/trace/PlaneTrace.h"
 #include <cmath>
 #include <cstdio>
 #include <stdexcept>
@@ -275,7 +277,8 @@ int main() {
     for (int i = 0; i < 4; ++i) {
         RayCastingQueryAdapter context(Ray::fromAffine(origins[i], directions[i]));
         double nearT = 0, farT = 0;
-        const bool hit = RayCastingBox::intersectBoxx(&context.ray, &arbitraryBox, &nearT, &farT);
+        const bool hit = BoxTrace::intersect(&context.ray,
+            *static_cast<const Box*>(arbitraryBox.getIntrinsicGeometry()), &nearT, &farT);
         if (hit != expectedHit[i] || (hit &&
             (nearT != expectedNear[i] || farT != expectedFar[i]))) return 39;
     }
@@ -308,21 +311,21 @@ int main() {
         sharedPlaneSegments.boundaries[0].geometry != legacyPlane.getIntrinsicGeometry()) return 109;
     RayCastingQueryAdapter planeContext(slabRay);
     double planeDepth = 0;
-    if (!RayCastingInfinitePlane::intersectPlane(&planeContext.ray, &legacyPlane, &planeDepth) ||
+    if (!PlaneTrace::intersect(&planeContext.ray, legacyPlane.getHalfSpace(), *legacyPlane.getTraceState(), &planeDepth) ||
         planeDepth != 3) return 42;
     planeContext.ray.setPrimaryRay(true);
-    if (!RayCastingInfinitePlane::intersectPlane(&planeContext.ray, &legacyPlane, &planeDepth) ||
+    if (!PlaneTrace::intersect(&planeContext.ray, legacyPlane.getHalfSpace(), *legacyPlane.getTraceState(), &planeDepth) ||
         planeDepth != 3 || !legacyPlane.isVpCached()) return 43;
     RayCastingInfinitePlane scaledPlane(Vector3Dd(2,0,0), -4);
     if (scaledPlane.getHalfSpace().getBoundaryPlane().getCoefficients().x() != 2 ||
         scaledPlane.getHalfSpace().classifyPoint(Vector3Dd(1,0,0), 0) != GeometryContainment::Inside ||
-        !RayCastingInfinitePlane::intersectPlane(&planeContext.ray, &scaledPlane, &planeDepth) ||
+        !PlaneTrace::intersect(&planeContext.ray, scaledPlane.getHalfSpace(), *scaledPlane.getTraceState(), &planeDepth) ||
         planeDepth != 5) return 90;
     scaledPlane.invertGeometry();
     if (scaledPlane.isVpCached() || scaledPlane.getNormalVector().x() != -2 ||
         scaledPlane.getDistance() != 4 ||
         scaledPlane.getHalfSpace().classifyPoint(Vector3Dd(1,0,0), 0) != GeometryContainment::Outside ||
-        !RayCastingInfinitePlane::intersectPlane(&planeContext.ray, &scaledPlane, &planeDepth) ||
+        !PlaneTrace::intersect(&planeContext.ray, scaledPlane.getHalfSpace(), *scaledPlane.getTraceState(), &planeDepth) ||
         planeDepth != 5) return 91;
     RayCastingInfinitePlane independentPlane(scaledPlane);
     independentPlane.setDistance(6);
@@ -559,7 +562,9 @@ int main() {
         crossings.hits[2]->geometry != inner->getIntrinsicGeometry() ||
         crossings.hits[3]->geometry != outer->getIntrinsicGeometry()) return 28;
     IntersectionAttributes attributes;
-    NativeGeometryBinding owner(new Sphere(1.0));
+    java::ArrayList<PovrayBody*> ownerRegions;
+    PovrayBody owner(new NativeGeometryBinding(new Sphere(1.0)), nullptr, nullptr, nullptr,
+        false, ownerRegions, ownerRegions);
     for (int i=0;i<8;++i) attributes.pushDetailOwner(&owner);
     bool rejectedOverflow = false;
     try { attributes.pushDetailOwner(&owner); }

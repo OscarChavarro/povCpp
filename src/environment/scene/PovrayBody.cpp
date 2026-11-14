@@ -1,3 +1,4 @@
+#include "environment/geometry/SurfaceDetailKernel.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgPointClassification.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgTree.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgRayClassification.h"
@@ -213,7 +214,7 @@ PovrayBody::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 void
 PovrayBody::doExtraInformation(const RayWithTracingState &ray, double t, RayCastingHit *hit)
 {
-    PostRayHitElement *detailGeometry = hit->hitGeometry != nullptr ? hit->hitGeometry : getGeometry();
+    const bool hasDetailSource = hit->hitSurface != nullptr || getGeometry() != nullptr;
     const bool bakedLeaf = bakedTransformFolded;
     // Consume the detail-owner chain outermost-first (popDetailOwnerBack): the
     // owners were pushed innermost-first while collecting the hit, so for a
@@ -225,7 +226,7 @@ PovrayBody::doExtraInformation(const RayWithTracingState &ray, double t, RayCast
     // normal from innermost to outermost. Popping only the first (innermost)
     // owner here would drop every outer operand's transform.
     PostRayHitElement *detailOwner = hit->popDetailOwnerBack();
-    if (detailGeometry != nullptr) {
+    if (hasDetailSource) {
         RayWithTracingState localRay = RayWithTracingState::localIntersectionClone(ray);
         const Vector3Dd worldPoint = hit->p;
         if (transformationInverse != nullptr && !bakedLeaf) {
@@ -246,7 +247,7 @@ PovrayBody::doExtraInformation(const RayWithTracingState &ray, double t, RayCast
                 geometryLocalRay.setQuadricConstantsCached(false);
                 hit->p = geometryTransformationInverse->transformPoint(hit->p);
             }
-            detailGeometry->doExtraInformation(geometryLocalRay, t, hit);
+            SurfaceDetailKernel::resolve(geometryLocalRay, t, hit);
             if (geometryTransformationInverse != nullptr && !bakedLeaf) {
                 hit->n = geometryNormalToObjectLocal(hit->n);
             }
@@ -1064,8 +1065,7 @@ RayCrossingSupport PovrayBody::emitRayCrossings(const Ray& source,
         const IntersectionCandidate candidate = queue->poll();
         const double t = candidate.getIntersection().t;
         if (t < query.minT || t > query.maxT) continue;
-        RayCrossing event(t, RayCastingGeometry::resolveIntrinsicGeometry(
-            candidate.getAttributes().getHitGeometry()),
+        RayCrossing event(t, candidate.getAttributes().getHitSurface(),
             RayCrossing::Kind::Unclassified);
         event.surfaceIndex = candidate.getAttributes().getSurfaceIndex();
         event.body = dynamic_cast<const SceneSolid*>(candidate.getAttributes().getHitBody());

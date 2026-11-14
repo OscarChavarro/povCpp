@@ -4,7 +4,8 @@
 #include "vsdk/toolkit/environment/geometry/surface/TriangleMesh.h"
 #include "java/lang/IllegalArgumentException.h"
 #include "environment/geometry/element/GeometryConfig.h"
-#include "environment/scene/NativeGeometryBinding.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
+#include "environment/geometry/element/GeometryIntersectionEmissionContext.h"
 #include "environment/scene/ProjectedTriangleTraversal.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
@@ -213,7 +214,7 @@ ProjectedTriangleTraversal::intersectTriangle(RayWithTracingState *ray, int inde
     return true;
 }
 
-int ProjectedTriangleTraversal::emit(NativeGeometryBinding* owner, RayWithTracingState* ray,
+int ProjectedTriangleTraversal::emit(RayWithTracingState* ray,
     java::PriorityQueue<IntersectionCandidate>* queue, const GeometryIntersectionEmissionContext& context)
 {
     int found = 0;
@@ -225,7 +226,7 @@ int ProjectedTriangleTraversal::emit(NativeGeometryBinding* owner, RayWithTracin
         candidate.getIntersection().point = ray->getDirection().multiply(depth).add(ray->getOrigin());
         candidate.getIntersection().normal = getTriangleNormal(i);
         candidate.getAttributes().setSurfaceIndex(i);
-        candidate.getAttributes().setHitGeometry(owner);
+        candidate.getAttributes().setHitSurface(geometry, SurfaceDetailFamily::Mesh);
         candidate.getAttributes().setMaterial(context.getMaterialOverride());
         candidate.getAttributes().pushDetailOwner(context.getDetailOwner());
         candidate.getAttributes().setMaterialUsesObjectLocalPoint(context.getMaterialUsesObjectLocalPoint());
@@ -240,9 +241,3 @@ void ProjectedTriangleTraversal::invert()
     for (long int i = 0; i < triangleInverted.size(); ++i) triangleInverted[i] = !triangleInverted[i];
 }
 
-void ProjectedTriangleTraversal::doExtraInformation(RayCastingHit* hit) const
-{
-    if (!hit->needsNormal()) return;
-    if (hit->n.length() > 1.0e-12) return;
-    hit->n = Vector3Dd(0.0, 1.0, 0.0);
-}

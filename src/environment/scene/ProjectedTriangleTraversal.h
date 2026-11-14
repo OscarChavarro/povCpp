@@ -5,7 +5,6 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/RayCastingGeometry.h"
 
-class NativeGeometryBinding;
 class TriangleMesh;
 
 // POV traversal policy over a borrowed VITRAL mesh; owns no geometry.
@@ -44,9 +43,8 @@ public:
     bool isDegenerate(int index) const;
     bool hasUnboundedFaces() const;
     void invert();
-    int emit(NativeGeometryBinding* owner, RayWithTracingState* ray,
+    int emit(RayWithTracingState* ray,
         java::PriorityQueue<IntersectionCandidate>* queue,
         const GeometryIntersectionEmissionContext& context);
-    void doExtraInformation(RayCastingHit* hit) const;
 };
 #endif

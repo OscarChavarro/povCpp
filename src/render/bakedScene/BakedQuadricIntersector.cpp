@@ -1,4 +1,5 @@
 
+#include "environment/geometry/trace/QuadricTrace.h"
 #include "render/bakedScene/BakedQuadricIntersector.h"
 
 #include "java/lang/Math.h"
@@ -137,7 +138,7 @@ BakedQuadricIntersector::intersectBakedQuadricWithCoeffs(
         }
         return false;
     }
-    if (!Quadric::clipToRenderDepths(depth1, depth2)) {
+    if (!QuadricTrace::clipToRenderDepths(depth1, depth2)) {
         return false;
     }
     stats.incrementRayQuadricTestsSucceeded();

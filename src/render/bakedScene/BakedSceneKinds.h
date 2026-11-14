@@ -7,7 +7,6 @@ enum class BakedSceneTraceKind {
     Csg,
     RayCastingComposite,
     BoundedGeneric,
-    GenericFallback,
 };
 
 enum class BakedSceneCsgAlgorithm {
@@ -35,7 +34,6 @@ enum class BakedSceneCsgOperandKind {
     TransformedQuadric,
     TransformedSphere,
     TransformedPrimitive,
-    GenericFallback,
 };
 
 #endif

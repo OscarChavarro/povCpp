@@ -24,12 +24,15 @@ class LightGeometryAdapter : public RayCastingGeometry {
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
+    SurfaceDetailFamily getDetailFamily() const override { return SurfaceDetailFamily::Empty; }
+    SurfaceTraceState *getTraceState() override { return &traceState; }
     void *copy() override;
 
   private:
     static Light *cloneLight(const Light *light);
 
     Light *light;
+    SurfaceTraceState traceState;
 };
 
 #endif

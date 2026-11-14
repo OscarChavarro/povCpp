@@ -2,6 +2,7 @@
 #define __TRACEABLE_OBJECT__
 
 #include "render/bakedScene/BakedSceneKinds.h"
+#include "render/bakedScene/BakedSurfaceTrace.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/geometry/surface/RayCastingInfinitePlane.h"
 #include "environment/geometry/volume/Quadric.h"
@@ -49,6 +50,10 @@ class TraceableObject {
         kind(kind),
         object(object),
         originalGeometry(originalGeometry),
+        detailSurface(originalGeometry != nullptr ? originalGeometry->getDetailSurface() : nullptr),
+        detailFamily(originalGeometry != nullptr ? originalGeometry->getDetailFamily() :
+            SurfaceDetailFamily::None),
+        traceState(originalGeometry != nullptr ? originalGeometry->getTraceState() : nullptr),
         originalQuadricGeometry(originalQuadricGeometry),
         geometryMaterial(geometryMaterial),
         objectTexture(objectTexture),
@@ -94,6 +99,60 @@ class TraceableObject {
     {
         return hasBakedQuadric ? const_cast<Quadric *>(&bakedQuadricStorage) : originalQuadricGeometry;
     }
+    Geometry *getDetailSurface() const
+    {
+        if (hasBakedQuadric) {
+            return const_cast<Quadric &>(bakedQuadricStorage).getDetailSurface();
+        }
+        if (hasBakedPlane) {
+            return const_cast<RayCastingInfinitePlane &>(bakedPlaneStorage).getDetailSurface();
+        }
+        return detailSurface;
+    }
+    SurfaceDetailFamily getDetailFamily() const
+    {
+        if (hasBakedQuadric) {
+            return SurfaceDetailFamily::Quadric;
+        }
+        if (hasBakedPlane) {
+            return SurfaceDetailFamily::Plane;
+        }
+        return detailFamily;
+    }
+    SurfaceTraceState *getTraceState() const
+    {
+        if (hasBakedQuadric) {
+            return const_cast<Quadric &>(bakedQuadricStorage).getTraceState();
+        }
+        if (hasBakedPlane) {
+            return const_cast<RayCastingInfinitePlane &>(bakedPlaneStorage).getTraceState();
+        }
+        return traceState;
+    }
+    int emitCrossings(RayWithTracingState *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue, Material *materialOverride) const
+    {
+        return BakedSurfaceTrace::emitCrossings(getDetailSurface(), getDetailFamily(),
+            getTraceState(), getGeometry(), ray, depthQueue, materialOverride);
+    }
+    int emitCrossingsAnnotated(RayWithTracingState *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        const GeometryIntersectionEmissionContext &context) const
+    {
+        return BakedSurfaceTrace::emitCrossingsAnnotated(getDetailSurface(), getDetailFamily(),
+            getTraceState(), getGeometry(), ray, depthQueue, context);
+    }
+    bool firstHit(RayWithTracingState *ray, IntersectionCandidate &out,
+        Material *materialOverride) const
+    {
+        return BakedSurfaceTrace::firstHit(getDetailSurface(), getDetailFamily(),
+            getTraceState(), getGeometry(), ray, out, materialOverride);
+    }
+    int containment(const Vector3Dd &point, double distanceTolerance) const
+    {
+        return BakedSurfaceTrace::containment(getDetailSurface(), getDetailFamily(),
+            getTraceState(), getGeometry(), point, distanceTolerance);
+    }
     RayCastingGeometry *getOriginalGeometry() const { return originalGeometry; }
     Quadric *getOriginalQuadricGeometry() const { return originalQuadricGeometry; }
     const Quadric &getBakedQuadricStorage() const { return bakedQuadricStorage; }
@@ -127,6 +186,9 @@ class TraceableObject {
     BakedSceneTraceKind kind;
     PovrayBody *object;
     RayCastingGeometry *originalGeometry;
+    Geometry *detailSurface;
+    SurfaceDetailFamily detailFamily;
+    SurfaceTraceState *traceState;
     Quadric *originalQuadricGeometry;
     Material *geometryMaterial;
     Material *objectTexture;

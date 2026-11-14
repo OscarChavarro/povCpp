@@ -5,19 +5,19 @@
 #include "java/util/PriorityQueue.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 
-class NativeGeometryBinding;
+class Geometry;
 class RayWithTracingState;
 class GeometryIntersectionEmissionContext;
 
 class NativeGeometryCrossingSink : public RayCrossingSink {
 private:
-    NativeGeometryBinding* binding;
+    Geometry* geometry;
     RayWithTracingState* ray;
     java::PriorityQueue<IntersectionCandidate>* queue;
     const GeometryIntersectionEmissionContext& context;
     int count;
 public:
-    NativeGeometryCrossingSink(NativeGeometryBinding* binding, RayWithTracingState* ray,
+    NativeGeometryCrossingSink(Geometry* geometry, RayWithTracingState* ray,
         java::PriorityQueue<IntersectionCandidate>* queue,
         const GeometryIntersectionEmissionContext& context);
     void crossing(const RayCrossing& event) override;

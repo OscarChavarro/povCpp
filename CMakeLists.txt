@@ -22,6 +22,16 @@ add_subdirectory("${VITRAL_CPP_ROOT}/base" "${CMAKE_BINARY_DIR}/vitral-base")
 
 add_library(povray_core OBJECT
     src/environment/geometry/RayCastingGeometry.cpp
+    src/environment/geometry/SurfaceDetailKernel.cpp
+    src/environment/geometry/trace/QuadricTrace.cpp
+    src/environment/geometry/trace/BoxTrace.cpp
+    src/environment/geometry/trace/PlaneTrace.cpp
+    src/environment/geometry/trace/PolynomialTrace.cpp
+    src/environment/geometry/trace/BlobTrace.cpp
+    src/environment/geometry/trace/HeightFieldTrace.cpp
+    src/environment/geometry/trace/BicubicPatchTrace.cpp
+    src/environment/scene/NativeSurfaceTrace.cpp
+    src/environment/scene/SurfaceTraceKernel.cpp
     src/environment/geometry/element/RayWithTracingState.cpp
     src/environment/geometry/element/SphereTrace.cpp
     src/environment/geometry/surface/RayCastingInfinitePlane.cpp

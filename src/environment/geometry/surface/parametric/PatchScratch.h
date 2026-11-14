@@ -1,16 +1,19 @@
 #ifndef __PATCH_SCRATCH__
 #define __PATCH_SCRATCH__
 
+#include "java/util/HashMap.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/environment/geometry/surface/SubdividedBezierPatch.h"
 
-// Per-ray scratch a RayCastingParametricBiCubicPatch needs between
-// doIntersectionForAllRayCrossings() (which fills it in) and the later
-// computeSurfaceNormal() call for the winning hit (which reads it back by
-// matching the intersection point). See RayCastingParametricBiCubicPatch.h's private
-// section for the thread-local-keyed-by-patch-identity rationale.
+// Per-thread hit cache of one bicubic patch: crossing emission fills it and
+// the detail kernel of the winning hit reads the normal back by matching the
+// intersection point. PovRay shares MAX_BICUBIC_INTERSECTIONS hits per patch
+// and thread between the rays traced since the last primary ray.
 class PatchScratch {
   public:
     static constexpr int CAPACITY = 32;
+
+    static PatchScratch &forPatch(const SubdividedBezierPatch *patch);
 
     PatchScratch() : intersectionCount(0) {}
 
@@ -26,5 +29,17 @@ class PatchScratch {
     Vector3Dd intersectionPoint[CAPACITY];
     Vector3Dd normalVector[CAPACITY];
 };
+
+inline PatchScratch &
+PatchScratch::forPatch(const SubdividedBezierPatch *patch)
+{
+    thread_local java::HashMap<const SubdividedBezierPatch *, PatchScratch> scratchByPatch;
+    PatchScratch *scratch = scratchByPatch.get(patch);
+    if (scratch == nullptr) {
+        scratchByPatch.put(patch, PatchScratch());
+        scratch = scratchByPatch.get(patch);
+    }
+    return *scratch;
+}
 
 #endif

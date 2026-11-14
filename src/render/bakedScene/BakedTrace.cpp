@@ -120,7 +120,8 @@ BakedTrace::traceSimpleBodyAllCrossings(
         const auto offerQuadricCandidate = [&](double depth) {
             IntersectionCandidate candidate;
             candidate.getIntersection().point = geomOrigin.add(geomDir.multiply(depth));
-            candidate.getAttributes().setHitGeometry(baked->getQuadricGeometry());
+            candidate.getAttributes().setHitSurface(
+                baked->getQuadricGeometry()->getDetailSurface(), SurfaceDetailFamily::Quadric);
             candidate.getAttributes().setMaterial(baked->getGeometryMaterial());
             if (baked->getHasGeometryTransform()) {
                 candidate.getIntersection().point =
@@ -166,7 +167,7 @@ BakedTrace::traceSimpleBodyAllCrossings(
                  cache,
                  baked->getGeometryMaterial()) &&
              localDepthQueue->size() > 0) :
-            (baked->getGeometry()->doIntersectionForAllRayCrossings(
+            (baked->emitCrossings(
                  geometryRayPtr, localDepthQueue, baked->getGeometryMaterial()) &&
              localDepthQueue->size() > 0);
         if (!foundAny) {
@@ -233,7 +234,7 @@ BakedTrace::traceSimpleBodyFirstHit(
     auto traceInGeometrySpace = [&](RayWithTracingState *geometryRayPtr) -> bool {
     if (canUseGeometryFirstHit) {
         IntersectionCandidate candidate;
-        if (baked->getGeometry()->doIntersectionFirstHit(
+        if (baked->firstHit(
                 geometryRayPtr, candidate, baked->getGeometryMaterial())) {
             if (!finalizeSimpleBodyCandidate(scene, baked, ray, candidate)) {
                 return false;
@@ -263,7 +264,7 @@ BakedTrace::traceSimpleBodyFirstHit(
 
     java::PriorityQueue<IntersectionCandidate> * const depthQueue =
         ray->getIntersectionQueuePool()->pop(128);
-    const bool hasHit = baked->getGeometry()->doIntersectionForAllRayCrossings(
+    const bool hasHit = baked->emitCrossings(
         geometryRayPtr, depthQueue, baked->getGeometryMaterial()) && depthQueue->size() > 0;
     if (!hasHit) {
         ray->getIntersectionQueuePool()->push(depthQueue);
@@ -359,7 +360,7 @@ BakedTrace::simpleBodyContainmentTest(
             scene.csgPrograms,
             geometryPoint,
             distanceTolerance) :
-        baked->getGeometry()->doContainmentTest(geometryPoint, distanceTolerance);
+        baked->containment(geometryPoint, distanceTolerance);
     if (containment != RayCastingGeometry::OUTSIDE) {
         return RayCastingGeometry::INSIDE;
     }
@@ -560,7 +561,6 @@ BakedTrace::traceFirstHit(
     case BakedScene::TraceKind::Csg:
     case BakedScene::TraceKind::DirectPrimitive:
     case BakedScene::TraceKind::BoundedGeneric:
-    case BakedScene::TraceKind::GenericFallback:
         return traceSimpleBodyFirstHit(scene, baked, ray, out, cache);
     }
     return false;
@@ -584,7 +584,6 @@ BakedTrace::traceAllCrossings(
     case BakedScene::TraceKind::Csg:
     case BakedScene::TraceKind::DirectPrimitive:
     case BakedScene::TraceKind::BoundedGeneric:
-    case BakedScene::TraceKind::GenericFallback:
         return traceSimpleBodyAllCrossings(scene, baked, ray, depthQueue, cache);
     }
     return false;
@@ -607,7 +606,6 @@ BakedTrace::containmentTest(
     case BakedScene::TraceKind::Csg:
     case BakedScene::TraceKind::DirectPrimitive:
     case BakedScene::TraceKind::BoundedGeneric:
-    case BakedScene::TraceKind::GenericFallback:
         return simpleBodyContainmentTest(scene, baked, point, distanceTolerance);
     }
     return RayCastingGeometry::OUTSIDE;

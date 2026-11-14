@@ -42,7 +42,8 @@ class RayCastingHit {
     int surfaceIndex = -1;
 
     // --- POV-specific extensions (no equivalent in vsdk RayHit) ---
-    PostRayHitElement *hitGeometry = nullptr;
+    Geometry *hitSurface = nullptr;
+    SurfaceDetailFamily hitSurfaceFamily = SurfaceDetailFamily::None;
     PostRayHitElement *hitBody = nullptr;
     PostRayHitElement *detailOwners[MAX_DETAIL_OWNERS] = {};
     int detailOwnerCount = 0;
@@ -73,7 +74,8 @@ RayCastingHit::fromCandidate(const IntersectionCandidate &candidate, int require
     hit.hitDistance = intersection.t;
     hit.requiredDetailMask = requiredDetailMask;
 
-    hit.hitGeometry = attributes.getHitGeometry();
+    hit.hitSurface = attributes.getHitSurface();
+    hit.hitSurfaceFamily = attributes.getHitSurfaceFamily();
     hit.hitBody = attributes.getHitBody();
     hit.surfaceIndex = attributes.getSurfaceIndex();
     hit.detailOwnerCount = attributes.getDetailOwnerCount();

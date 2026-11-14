@@ -139,13 +139,13 @@ public:
         if (operand->getKind() == BakedScene::CsgOperandKind::DirectAnnotatedPrimitive) {
             GeometryIntersectionEmissionContext context(
                 effectiveMaterial, operand->getOperand(), true);
-            if (operand->getGeometry()->doIntersectionForAllRayCrossingsAnnotated(
+            if (operand->emitCrossingsAnnotated(
                     ray, depthQueue, context)) {
                 anyFound = true;
             }
         } else {
             const int initialSize = depthQueue->size();
-            if (operand->getGeometry()->doIntersectionForAllRayCrossings(
+            if (operand->emitCrossings(
                     ray, depthQueue, effectiveMaterial) &&
                 depthQueue->size() > initialSize) {
                 if (CsgOperandTrace::annotateDirectCandidates(depthQueue, operand)) {
@@ -240,13 +240,13 @@ public:
                 BakedScene::CsgOperandKind::DirectAnnotatedPrimitive) {
                 GeometryIntersectionEmissionContext context(
                     effectiveMaterial, operand->getOperand(), true);
-                if (operand->getGeometry()->doIntersectionForAllRayCrossingsAnnotated(
+                if (operand->emitCrossingsAnnotated(
                         ray, depthQueue, context)) {
                     anyFound = true;
                 }
             } else {
                 const int initialSize = depthQueue->size();
-                if (operand->getGeometry()->doIntersectionForAllRayCrossings(
+                if (operand->emitCrossings(
                         ray, depthQueue, effectiveMaterial) &&
                     depthQueue->size() > initialSize) {
                     if (CsgOperandTrace::annotateDirectCandidates(depthQueue, operand)) {

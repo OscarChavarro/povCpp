@@ -2162,3 +2162,137 @@ Roth re-render kept the seven accepted discrepancies, with `pool`, `snail` and
 `wg5` inside their run-to-run ranges, and the audit reported 15 pending
 components, no reverse dependency or duplicated class, and all 161 copied base
 files identical to VITRAL.
+
+## Stage J: dead code and closure (J-2)
+
+- Removed as dead: `ConstructiveSolidGeometry::getStructure`, the `Quadric`
+  accessors `getObjectVpConstant`, `setObjectVpConstant` and
+  `setObjectConstant`, the never-assigned enumerators
+  `TraceKind::GenericFallback` and `CsgOperandKind::GenericFallback`, and
+  `doc/bakedSceneFallbacks.md`, which described counters that no longer exist.
+- The bounding-volume package (`PreRayHitElement`, `BoundingVolumeHierarchy`,
+  `AabbBoundingVolume`, `AxisAlignedBoundingBox`) is kept whole; the inventory
+  marks it for transfer to VITRAL in K-8.
+- The removal of the geometry adapters became stage K; the inventory (schema
+  2) lists its 37 components.
+
+POV passed 333 tests. The example capture produced 64 images, all identical
+to the I-4 capture. `renderAll.sh` produced all 108 baseline-identical images
+in 118 seconds and 1417.50 user CPU seconds. The Roth re-render kept the seven
+accepted discrepancies (`trough` RMSE 0.052355) and the audit reported 37
+pending components, no `raycasting` module, no reverse dependency or
+duplicated class, and all 161 copied base files identical to VITRAL.
+
+## Stage K: inventory and measurement (K-1)
+
+Callers of the `RayCastingGeometry` virtuals outside the adapters:
+
+- Bake (`render/bakedScene`): `BakedTrace` (generic object records:
+  all-crossings, first hit, containment), `CsgOperandTrace.h`,
+  `CsgMorganUnionTrace.h`, `SingleCorePlaneCsgTrace` and `CsgContainmentTest`
+  (generic operand records). `BakedSceneBuilder` chooses the specialized
+  kernels with `dynamic_cast` on the adapters and stores `Quadric` and
+  `RayCastingInfinitePlane` copies by value for the baked quadric and plane
+  records.
+- Scene: `PovrayBody` (crossings, containment, detail, bounding volume),
+  `RayCastingComposite` and the CSG evaluators (Morgan, Roth).
+- Parser (`io/pov`): builds the adapters, `LightGeometryAdapter` and calls
+  `invertGeometry` through `SimpleBodyBuilder`.
+- `RenderEngine`: `doExtraInformation` on the hit's detail owner.
+- `computeSurfaceNormal` has no caller outside the adapters.
+
+Records per family over the 108 gate scenes (records / scenes that contain
+them), counted with an instrumented copy of `BakedSceneBuilder`:
+
+| Family | Specialized records | Generic records (adapter virtuals) |
+|---|---|---|
+| CSG (Morgan/Roth) objects | Csg 558/66 | BoundedGeneric 206/30 |
+| CSG nested operands | NestedCsg 889/35, TransformedNestedCsg 73/7 | — |
+| Sphere/mesh (`NativeGeometryBinding`) objects | — | Direct 921/78, Bounded 4/3 |
+| Sphere/mesh operands | TransformedSphere 1385/39 | DirectAnnotated 11/4 |
+| Quadric objects | BakedQuadric 497/23 | Direct 87/13, Bounded 735/8 |
+| Quadric operands | — | DirectAnnotated 3112/49 |
+| Plane objects | BakedPlane 1512/12 | Direct 82/60, Bounded 1/1 |
+| Plane operands | DirectPlane 2164/56 | — |
+| Box objects | Box 163/17 | — |
+| Box operands | — | DirectAnnotated 291/20, TransformedPrimitive 11/3 |
+| Polynomial objects | — | Direct 3/3, Bounded 75/14 |
+| Polynomial operands | — | DirectAnnotated 19/9, TransformedPrimitive 9/2 |
+| Height field objects | — | Direct 3/3, Bounded 1/1 |
+| Blob objects | — | 1/1 |
+| Bicubic patch objects | — | Direct 33/2, Bounded 1/1 |
+| Light geometry (`LightGeometryAdapter`) | — | Direct objects 180/104, operands 16/8 |
+
+Migration consequences, by risk:
+
+- Plane and box already have specialized kernels for most records; their
+  generic records (plane objects outside unions, box operands) need a kernel
+  that keeps the adapter's arithmetic. Lowest risk.
+- Spheres and meshes are served generically as objects in 78 scenes; the
+  detail path goes through `ProjectedTriangleTraversal` for meshes.
+- Quadric operands (3112 records in 49 scenes) are all generic and the
+  quadric's constant-term association and viewpoint cache decide byte
+  identity; it is the family with the most render weight.
+- Polynomial, height field, blob and bicubic patch records are all generic and
+  few; each keeps its POV tolerances (blob shadow root distance, truncated
+  height-field containment, patch normals).
+- Light geometry appears in almost every scene (104) and needs a scene
+  element instead of a geometry before `RayCastingGeometry` can go.
+- CSG nested operands keep their placement chain; folding it changes images.
+
+## Stage K: hit attribution without adapters (K-2)
+
+- `IntersectionAttributes` and `RayCastingHit` identify a hit by the VITRAL
+  surface it lies on (`Geometry*`) and its `SurfaceDetailFamily`, plus the
+  owning body and the detail-owner chain; the adapter pointer is gone.
+- `SurfaceDetailKernel::resolve` evaluates the normal per family (quadric,
+  box, plane, sphere, mesh, polynomial, blob, height field, bicubic patch and
+  the generic VITRAL query) with the arithmetic previously in each adapter's
+  `computeSurfaceNormal`/`doExtraInformation`; `PovrayBody`, `CsgOperand`,
+  `RenderEngine` and the VITRAL query bridges call it at the leaf.
+- `RayCastingGeometry` no longer implements `PostRayHitElement`; the detail
+  owners are bodies, CSG operands and composites. Removed as dead:
+  `computeSurfaceNormal` (base and seven overrides), the adapter
+  `doExtraInformation` overrides, `ProjectedTriangleTraversal::doExtraInformation`
+  and its owner parameter, and `RayCastingGeometry::resolveIntrinsicGeometry`.
+  The bicubic hit cache is keyed by the VITRAL patch (`PatchScratch::forPatch`).
+- Bake records expose `getDetailSurface`/`getDetailFamily`, taken from the
+  baked quadric or plane storage or from the original adapter.
+
+POV passed 333 tests. The example capture produced 64 images identical to the
+I-4 capture; `renderAll.sh` produced all 108 baseline-identical images in 118
+seconds and 1442.92 user CPU seconds; the Roth re-render kept the seven
+accepted discrepancies (`trough` RMSE 0.052355); the audit reported 37 pending
+components and all 161 base files identical to VITRAL.
+
+## Stage K: bake kernels for every family (K-3)
+
+- Each family's POV trace (crossing emission, first hit, containment) moved
+  verbatim from its adapter to a static kernel: `QuadricTrace`, `BoxTrace`,
+  `PlaneTrace`, `PolynomialTrace`, `BlobTrace`, `HeightFieldTrace`,
+  `BicubicPatchTrace` (`src/environment/geometry/trace`) and
+  `NativeSurfaceTrace` (spheres, generic VITRAL geometry); meshes keep
+  `ProjectedTriangleTraversal`. `SurfaceTraceKernel` dispatches by
+  `SurfaceDetailFamily`; light geometry is the new `Empty` family.
+- The adapters' POV state (inversion, quadric nonzero square term, the
+  per-viewpoint cache of the quadric constant and the plane product, the mesh
+  traversal) is a `SurfaceTraceState` value; the adapters delegate to the
+  kernels.
+- Bake records cache surface, family and state when built (baked quadric and
+  plane storage provide their own) and trace through `BakedSurfaceTrace`
+  without adapter virtual calls; only a POV CSG traced as a generic object
+  (family None) uses its own evaluator. Outside the bake, `PovrayBody`, the POV
+  CSG evaluators and composites still reach the adapters; that ends with K-5
+  and K-6.
+- Removed as dead: `Quadric::intersectQuadric`/`clipToRenderDepths` (now
+  `QuadricTrace`), `RayCastingBox::intersectBoxx`,
+  `RayCastingInfinitePlane::intersectPlane`, `setVpNormDotOrigin`,
+  `setVpCached`, `getVpNormDotOrigin`, `Quadric::setNonZeroSquareTerm`, the
+  adapters' private `traceCrossings` and `NativeGeometryBinding`'s sphere and
+  generic helpers.
+
+POV passed 333 tests. The example capture produced 64 images identical to the
+I-4 capture; `renderAll.sh` produced all 108 baseline-identical images in 118
+seconds and 1451.81 user CPU seconds; the Roth re-render kept the seven
+accepted discrepancies (`trough` RMSE 0.052355); the audit reported 37 pending
+components and all 161 base files identical to VITRAL.

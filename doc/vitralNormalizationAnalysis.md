@@ -105,8 +105,11 @@ IntersectionCandidate = Intersection + IntersectionAttributes
 
 `IntersectionAttributes` stores POV attribution:
 
-- `hitGeometry` and `hitBody` (both typed `PostRayHitElement*`, the
-  interface whose single contract is `doExtraInformation`)
+- `hitSurface` (the VITRAL `Geometry*` the hit lies on) and
+  `hitSurfaceFamily` (`SurfaceDetailFamily`, which selects the POV detail
+  kernel `SurfaceDetailKernel`)
+- `hitBody` (`PostRayHitElement*`, the interface whose single contract is
+  `doExtraInformation`)
 - the detail-owner chain (up to `MAX_DETAIL_OWNERS = 8`
   `PostRayHitElement*` entries, pushed innermost-first by nested
   CSG/composite wrappers)
@@ -144,12 +147,12 @@ computed only when requested.
 
 ### 2.2. povCpp: all-crossings primitive
 
-`povCpp` `Geometry` declares:
+`povCpp` `RayCastingGeometry` declares:
 
 ```cpp
 class GeometryIntersectionEmissionContext {   // immutable, getter-based
     Material * const materialOverride;
-    RayCastingHitElement * const detailOwner;
+    PostRayHitElement * const detailOwner;
     const bool materialUsesObjectLocalPoint;
 };
 
@@ -167,15 +170,18 @@ virtual bool doIntersectionFirstHit(
     IntersectionCandidate &out,
     Material *materialOverride = nullptr);
 virtual int doContainmentTest(const Vector3Dd &point, double distanceTolerance);
-virtual void doExtraInformation(const RayWithTracingState &ray, double t, PovRayHit *hit) override;
 virtual BoundingVolumeHierarchy *createBoundingVolume() const;
+virtual Geometry *getDetailSurface();
+virtual SurfaceDetailFamily getDetailFamily() const;
 virtual void *copy() = 0;
 virtual void invertGeometry();
 ```
 
-`Geometry` itself derives from `PostRayHitElement`, the one-method
-interface (`doExtraInformation`) that lets the element layer reference either
-a bare geometry or a wrapping scene body through the same pointer type.
+`RayCastingGeometry` is not a detail owner: a hit names the VITRAL surface
+it lies on and that surface's family, and `SurfaceDetailKernel` evaluates the
+normal for the family. `PostRayHitElement` (one method, `doExtraInformation`)
+is implemented by the scene bodies, CSG operands and composites that form the
+detail-owner chain.
 
 `doIntersectionForAllRayCrossings` is the primary povCpp operation. Shapes push
 every ray crossing into a priority queue ordered by `Intersection::t`.
@@ -247,7 +253,7 @@ nearest-hit if it is to host POV-compatible CSG and nested media traversal.
 | `normalMap` | part of povCpp material/normal pipeline | not a hit attribute |
 | `requiredDetailMask` | `RayWithTracingState::requiredDetailMask` | constants aligned; owner differs |
 | consumed `Ray` | `RayWithTracingState` plus `Intersection::t` | no stored consumed-ray object in candidate |
-| no VITRAL field | `hitGeometry`, `hitBody`, detail-owner chain, `objectColor`, `noShadowFlag`, `materialUsesObjectLocalPoint` | POV-specific |
+| no VITRAL field | `hitSurfaceFamily`, `hitBody`, detail-owner chain, `objectColor`, `noShadowFlag`, `materialUsesObjectLocalPoint` | POV-specific |
 
 Required alignment item: keep `Intersection` as the geometric core and keep
 POV attribution separate unless VITRAL gains an all-crossings record that can

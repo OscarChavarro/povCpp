@@ -47,17 +47,39 @@ geometrías (`RayCastingGeometry`), sus colas de cruces y estado por rayo
 volúmenes de acotación del render (`AxisAlignedBoundingBox`, que transforma
 sus esquinas con `GeometryBounds`) y los evaluadores CSG POV con `CsgOperand`.
 `src/environment/scene` contiene `PovrayBody`, los composites de instancias
-(`RayCastingComposite`) y el enlace de render de esferas y mallas VITRAL
-(`NativeGeometryBinding`). Cada adaptador de geometría (`Quadric`,
-`RayCastingBox`, `RayCastingInfinitePlane`, `PolynomialShape`, `Blob`,
-`HeightField`, `RayCastingParametricBiCubicPatch`) contiene una geometría VITRAL
-y solo estado de render POV: banderas de inversión, cachés por punto de vista y
-la emisión de cruces con las tolerancias históricas de PovRay. Los kernels son
-de VITRAL: `QuadricRayExpansion` y `QuadricSurface::solve`,
-`Box::intersectBounds`, `InfinitePlane::intersectionDepth`, `SphereTrace`,
-`BlobSolid::intersect`, `PolynomialSurface::intersect`,
-`HeightFieldSolid::traceFirstHit` y `SubdividedBezierPatch::intersect`. La
-contención de `HeightField` conserva la prueba truncada a enteros de PovRay 1.0.
+(`RayCastingComposite`) y el enlace de render de esferas, mallas y otras
+geometrías VITRAL (`NativeGeometryBinding`).
+
+El trazado POV de una superficie VITRAL se elige por su familia
+(`SurfaceDetailFamily`) en `SurfaceTraceKernel`: emisión de cruces, primer
+impacto y contención con el estado POV de la superficie (`SurfaceTraceState`:
+inversión, término cuadrado no nulo, caché por punto de vista de los rayos
+primarios y recorrido proyectado de mallas) y las tolerancias históricas de
+PovRay. Las familias son `QuadricTrace`, `BoxTrace`, `PlaneTrace`,
+`PolynomialTrace`, `BlobTrace`, `HeightFieldTrace`, `BicubicPatchTrace`
+(`src/environment/geometry/trace`), `NativeSurfaceTrace` (esferas y geometrías
+genéricas) y `ProjectedTriangleTraversal` (mallas); la geometría de luces es la
+familia vacía. Sus núcleos numéricos son de VITRAL: `QuadricRayExpansion` y
+`QuadricSurface::solve`, `Box::intersectBounds`,
+`InfinitePlane::intersectionDepth`, `SphereTrace`, `BlobSolid::intersect`,
+`PolynomialSurface::intersect`, `HeightFieldSolid::traceFirstHit` y
+`SubdividedBezierPatch::intersect`. La contención de campos de altura conserva
+la prueba truncada a enteros de PovRay 1.0. Los registros del bake guardan
+superficie, familia y estado al construirse y llaman al kernel sin pasar por
+el adaptador; solo un CSG POV trazado como objeto genérico usa su propio
+evaluador. Los adaptadores (`Quadric`, `RayCastingBox`,
+`RayCastingInfinitePlane`, `PolynomialShape`, `Blob`, `HeightField`,
+`RayCastingParametricBiCubicPatch`, `LightGeometryAdapter`) contienen la
+geometría VITRAL y su estado, y delegan en los mismos kernels.
+
+Un impacto se identifica por la superficie VITRAL en la que cae y su familia
+(`IntersectionAttributes::getHitSurface` y `SurfaceDetailFamily`), por el
+cuerpo dueño y por la cadena de dueños de detalle (cuerpos, operandos CSG y
+composites, que implementan `PostRayHitElement`). `SurfaceDetailKernel`
+calcula la normal según la familia con las reglas de normalización y de normal
+degenerada de PovRay; los adaptadores no intervienen en el detalle. Los
+registros del bake obtienen la superficie de su almacenamiento horneado
+(cuádrica o plano) o del adaptador original.
 
 Materiales, pigmentos, normales, shaders, parser `.pov`, configuración y la
 extensión `Scene` (niebla, IOR atmosférico, dimensiones, antialias y vida de la

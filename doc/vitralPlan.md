@@ -872,9 +872,11 @@ subclasses are the adapters `Quadric`, `RayCastingBox`,
 `RayCastingParametricBiCubicPatch` and `NativeGeometryBinding` (spheres and
 meshes), the CSG geometry `ConstructiveSolidGeometry` with its Morgan and Roth
 subclasses, and the parser's `LightGeometryAdapter`. The bake already compiles
-most objects into records, choosing kernels by `dynamic_cast` on the adapters
-(`BakedSceneBuilder`); the remaining objects go through the parsed scene's
-virtual calls, counted as baked fallbacks (`doc/bakedSceneFallbacks.md`).
+every object into a record and chooses specialized kernels (sphere, box,
+plane, quadric, their CSG operand forms) by `dynamic_cast` on the adapters
+(`BakedSceneBuilder`); every other record (`BoundedGeneric` objects,
+`DirectPrimitive` and `TransformedPrimitive` operands) calls the adapter's
+virtual crossing, containment and detail methods.
 `IntersectionCandidate` attributes a hit to a `RayCastingGeometry` and resolves
 detail through the `PostRayHitElement` chain.
 
@@ -889,9 +891,10 @@ Risks, which decide the order:
 - **Performance.** The adapters' virtual calls are the hot path. Kernels taken
   from VITRAL stay inline in headers (an out-of-line VITRAL kernel cost 50% in
   I-7); dispatch by family happens once, at bake time, not per ray.
-- **Fallback coverage.** Objects that are not baked today (bounding/clipping
-  regions, light geometry, composite paths) need a baked kernel before their
-  adapter can go; otherwise the render would need a per-ray type switch.
+- **Generic records.** Records without a specialized kernel reach the adapter
+  through its virtual methods; each family needs a bake kernel, chosen when
+  the record is built, before its adapter can go; otherwise the render would
+  need a per-ray type switch.
 - **Attribution.** Hit records, shaders, texture evaluation and the detail
   chain identify the hit by its `RayCastingGeometry`; they must identify it by
   VITRAL geometry and owning body first.
@@ -901,16 +904,24 @@ audit, tests) and dead code removed as it appears:
 
 - **K-1 Inventory and measurement.** Map every caller of every
   `RayCastingGeometry` virtual (parser, scene, bake, `RenderEngine`, shaders,
-  light linking, tests) and count, per gate scene, the baked fallbacks and the
-  objects whose kernels are chosen by adapter type. Output: the per-family
-  migration table with its byte-identity risks. No code change.
+  light linking, tests) and count, per gate scene, the records of each family
+  and whether a specialized or a generic kernel serves them. Output: the
+  per-family migration table with its byte-identity risks. Only dead code is
+  removed. *Done:* the table and the caller map are in the execution record
+  ("Stage K: inventory and measurement").
 - **K-2 Hit attribution without adapters.** `IntersectionCandidate` and the
   detail chain carry the VITRAL geometry and the owning `PovrayBody`/operand;
   detail is resolved by a bake kernel per family. Adapters still exist but are
-  no longer how a hit is identified.
-- **K-3 Complete bake coverage.** Every object, region and light geometry is
-  compiled into a bake record; the baked fallbacks reach zero on every gate
-  scene and the fallback path is deleted.
+  no longer how a hit is identified. *Done:* hits carry the VITRAL surface and
+  its `SurfaceDetailFamily`; `SurfaceDetailKernel` resolves the normal.
+- **K-3 Bake kernels for every family.** Each record, including bounding and
+  clipping regions and light geometry, is served by a bake kernel chosen at
+  build time for its VITRAL geometry family, carrying the family's POV caches
+  and tolerances; the generic records stop calling adapter virtuals.
+  *Done:* `SurfaceTraceKernel` with one kernel per family and a
+  `SurfaceTraceState`; bake records trace without adapter calls except a POV
+  CSG traced as a generic object (K-6). `PovrayBody`, the POV CSG evaluators
+  and composites still call the adapters until K-5 and K-6.
 - **K-4 Inversion in `PovrayBody`.** The body's inversion flag replaces the
   adapters' (`RayCastingBox`, `PolynomialShape`, `Blob`, `NativeGeometryBinding`)
   and `invertGeometry`; quadric and plane inversion stays in their
