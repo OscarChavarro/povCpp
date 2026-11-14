@@ -4,10 +4,11 @@
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.h"
 #include "render/raySharedCache/RaySharedCache.h"
 
-// Ray-quadric intersection resolution for baked CSG operands: solves the
-// quadric polynomial along the ray (using the ray's cached position/
-// direction aggregates when the operand shares the ray's own space) and
-// reports the two roots clipped to the valid depth range.
+// Ray-quadric intersection for baked CSG operands, with the shared
+// QuadricRayExpansion and QuadricSurface::solve kernels and the render depth
+// window of Quadric::clipToRenderDepths. The ray's cached products are used
+// when the operand shares the ray's own space, and the part of the constant
+// term without mixed products is cached per viewpoint for primary rays.
 class BakedQuadricIntersector {
 public:
     static bool intersectBakedQuadric(
@@ -62,7 +63,18 @@ public:
         bool &trueMiss);
 
 private:
-    static void mixVectorTerms(Vector3Dd &a, const Vector3Dd &b, const Vector3Dd &c);
+    // The coefficients of the shared QuadricRayExpansion along the ray.
+    static void expand(
+        const Quadric &shape,
+        RayWithTracingState *ray,
+        const Vector3Dd &origin,
+        const Vector3Dd &direction,
+        bool sharesRaySpace,
+        RaySharedCache &cache,
+        int viewpointSlot,
+        double &squareTerm,
+        double &linearTerm,
+        double &constantTerm);
 };
 
 #endif

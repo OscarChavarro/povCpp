@@ -1,14 +1,16 @@
 #ifndef __RAY_SEGMENT_CSG_COMBINER__
 #define __RAY_SEGMENT_CSG_COMBINER__
 
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/RaySegments.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgSegmentClassification.h"
 #include "render/bakedScene/BakedScene.h"
 #include "render/bakedScene/CsgScratchContext.h"
 
 // Boolean combination of baked CSG operands via ray segments: builds each
 // operand's inside/outside membership intervals along the ray, then merges
 // pairs of operand segment lists according to the CSG's boolean operator
-// (union/intersection/difference). Used for programs that did not qualify
+// (union/intersection/difference), with the classification, segment and
+// merge steps shared with ConstructiveSolidGeometryByRaySegment (VITRAL
+// CsgSegmentClassification). Used for programs that did not qualify
 // for one of the compiled fast paths (SingleCorePlaneCsgTrace,
 // CsgMorganUnionTrace).
 class RaySegmentCsgCombiner {
@@ -22,21 +24,12 @@ public:
         Material *materialOverride);
 
 private:
-    static RaySegments buildRaySegments(
+    static CsgSegmentClassification<IntersectionCandidate> buildRaySegments(
         const CsgOperandRecord *operand,
         const java::ArrayList<CsgProgram *> &bakedCsgs,
         CsgScratchContext &scratch,
         RayWithTracingState *ray,
         Material *materialOverride);
-
-    static bool combineUnion(bool insideLeft, bool insideRight);
-    static bool combineIntersection(bool insideLeft, bool insideRight);
-    static bool combineDifference(bool insideLeft, bool insideRight);
-
-    static RaySegments mergeByMembership(
-        const RaySegments &left,
-        const RaySegments &right,
-        bool (*combine)(bool insideLeft, bool insideRight));
 };
 
 #endif

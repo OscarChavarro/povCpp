@@ -3,7 +3,7 @@
 
 #include "vsdk/toolkit/environment/camera/CameraSnapshot.h"
 #include "vsdk/toolkit/environment/light/Light.h"
-#include "vsdk/toolkit/environment/raycasting/scene/RayCastingBody.h"
+#include "vsdk/toolkit/environment/raycasting/scene/PovrayBody.h"
 #include "vsdk/toolkit/environment/scene/SimpleScene.h"
 
 class Scene : public SimpleScene {
@@ -42,16 +42,15 @@ class Scene : public SimpleScene {
         fogDistance = distance;
     }
     const ColorRgba& getFogColor() const { return fogColor; }
-    const java::ArrayList<SimpleBody*>& getObjects() const { return getSimpleBodies(); }
-    void setObjects(const java::ArrayList<RayCastingBody*>& objects) {
-        java::ArrayList<SimpleBody*> bodies;
-        for (long int i = 0; i < objects.size(); ++i) bodies.add(objects[i]);
-        setSimpleBodies(bodies);
-    }
+    // POV bodies are owned by the scene. They are not SimpleScene bodies:
+    // VITRAL renderers draw SimpleBody appearance, POV renders its own bodies.
+    const java::ArrayList<PovrayBody*>& getObjects() const { return objects; }
+    // Deletes the previous bodies and takes ownership of the given ones.
+    void setObjects(const java::ArrayList<PovrayBody*>& objects);
 
     // The scene's default texture is aliased (not cloned) into every untextured
-    // object's RayCastingBody::objectTexture for the entire render (see
-    // ~RayCastingBody()'s objectTextureReleaser guard) - it can only be freed
+    // object's PovrayBody::objectTexture for the entire render (see
+    // ~PovrayBody()'s objectTextureReleaser guard) - it can only be freed
     // once nothing will read it again, i.e. once Scene itself is destroyed.
     // SceneParser::parse() calls this once, after parsing finishes, with
     // whatever the final default texture turned out to be (it may have been
@@ -61,9 +60,11 @@ class Scene : public SimpleScene {
     void resetForSceneParse(double antialiasThreshold = DEFAULT_ANTIALIAS_THRESHOLD);
 
   private:
+    void deleteObjects();
     static ColorRgba blackFogColor();
     static CameraSnapshot defaultViewPoint();
 
+    java::ArrayList<PovrayBody*> objects;
     CameraSnapshot viewPoint;
     int screenHeight;
     int screenWidth;

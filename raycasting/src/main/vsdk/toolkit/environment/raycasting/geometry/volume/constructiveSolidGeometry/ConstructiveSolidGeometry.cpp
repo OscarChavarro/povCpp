@@ -2,17 +2,45 @@
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
 #include "java/util/ArrayList.txx"
+#include "java/lang/IllegalStateException.h"
 
 ConstructiveSolidGeometry::ConstructiveSolidGeometry(BooleanSetOperations initialGeometryType) :
-    geometryType(initialGeometryType)
+    structure(initialGeometryType)
 {
 }
 
 ConstructiveSolidGeometry::~ConstructiveSolidGeometry()
 {
+    for (long int i = 0; i < views.size(); i++) {
+        delete views[i];
+    }
     for (long int i = 0; i < operands.size(); i++) {
         delete operands[i];
     }
+}
+
+void
+ConstructiveSolidGeometry::addShape(
+    RayCastingGeometry *shape,
+    Material *material,
+    Matrix4x4d *transformation,
+    Matrix4x4d *transformationInverse,
+    const java::ArrayList<TransformStep> &steps)
+{
+    addOperand(new CsgOperand(shape, material, transformation, transformationInverse, steps));
+}
+
+void
+ConstructiveSolidGeometry::addOperand(CsgOperand *operand)
+{
+    CsgBodyOperand *view = new CsgBodyOperand(*operand);
+    if (!structure.addOperand(*view)) {
+        delete view;
+        delete operand;
+        throw java::IllegalStateException("CSG operand would create a cycle");
+    }
+    operands.add(operand);
+    views.add(view);
 }
 
 void

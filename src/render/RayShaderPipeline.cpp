@@ -42,7 +42,7 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
     if (usingMaterialTexture &&
         hit.materialUsesObjectLocalPoint &&
         hit.hitBody != nullptr) {
-        texturePoint = static_cast<RayCastingBody *>(hit.hitBody)->worldPointToLocal(hit.p);
+        texturePoint = static_cast<PovrayBody *>(hit.hitBody)->worldPointToLocal(hit.p);
     }
 
     // Check to see if this object/shape has a material_map texture, if so

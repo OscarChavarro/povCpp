@@ -21,9 +21,8 @@ add_library(vitral_raycasting STATIC
     src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByMorganRules.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/CsgOperand.cpp
-    src/main/vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/RaySegments.cpp
     src/main/vsdk/toolkit/environment/raycasting/geometry/volume/polynomial/PolynomialShape.cpp
-    src/main/vsdk/toolkit/environment/raycasting/scene/RayCastingBody.cpp
+    src/main/vsdk/toolkit/environment/raycasting/scene/PovrayBody.cpp
     src/main/vsdk/toolkit/environment/raycasting/scene/RayCastingCoreOperand.cpp
     src/main/vsdk/toolkit/environment/raycasting/scene/NativeGeometryBinding.cpp
     src/main/vsdk/toolkit/environment/raycasting/scene/NativeGeometryCrossingSink.cpp

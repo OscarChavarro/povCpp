@@ -1,9 +1,9 @@
 #ifndef __COMPOSITE__
 #define __COMPOSITE__
 
-#include "vsdk/toolkit/environment/raycasting/scene/RayCastingBody.h"
+#include "vsdk/toolkit/environment/raycasting/scene/PovrayBody.h"
 
-class RayCastingComposite : public RayCastingBody {
+class RayCastingComposite : public PovrayBody {
   public:
     RayCastingComposite(
         RayCastingGeometry *geometry,
@@ -11,15 +11,15 @@ class RayCastingComposite : public RayCastingBody {
         Material *objectTexture,
         ColorRgba *objectColor,
         bool noShadowFlag,
-        const java::ArrayList<RayCastingBody*> &boundingShapes,
-        const java::ArrayList<RayCastingBody*> &clippingShapes,
-        const java::ArrayList<RayCastingBody*> &simpleBodies,
+        const java::ArrayList<PovrayBody*> &boundingShapes,
+        const java::ArrayList<PovrayBody*> &clippingShapes,
+        const java::ArrayList<PovrayBody*> &simpleBodies,
         Matrix4x4d *transformation = nullptr,
         Matrix4x4d *transformationInverse = nullptr,
         Matrix4x4d *geometryTransformation = nullptr,
         Matrix4x4d *geometryTransformationInverse = nullptr,
-        RayCastingBody::MaterialReleaser objectTextureReleaser = nullptr) :
-        RayCastingBody(
+        PovrayBody::MaterialReleaser objectTextureReleaser = nullptr) :
+        PovrayBody(
             geometry, geometryMaterial, objectTexture, objectColor,
             noShadowFlag, boundingShapes, clippingShapes,
             transformation, transformationInverse,
@@ -34,8 +34,8 @@ class RayCastingComposite : public RayCastingBody {
     void getWorldBounds(GeometryBounds& result) const override;
     void detachOwnership() override;
 
-    java::ArrayList<RayCastingBody*> &getSimpleBodies();
-    const java::ArrayList<RayCastingBody*> &getSimpleBodies() const;
+    java::ArrayList<PovrayBody*> &getSimpleBodies();
+    const java::ArrayList<PovrayBody*> &getSimpleBodies() const;
 
     int doIntersectionForAllRayCrossings(
         RayWithTracingState *ray,
@@ -49,7 +49,7 @@ class RayCastingComposite : public RayCastingBody {
     void invert() override;
 
   private:
-    java::ArrayList<RayCastingBody*> simpleBodies{4};
+    java::ArrayList<PovrayBody*> simpleBodies{4};
 
   protected:
     void propagateOwnedTranslation(Vector3Dd *vector) override;
@@ -57,13 +57,13 @@ class RayCastingComposite : public RayCastingBody {
     void propagateOwnedScale(Vector3Dd *vector) override;
 };
 
-inline java::ArrayList<RayCastingBody*> &
+inline java::ArrayList<PovrayBody*> &
 RayCastingComposite::getSimpleBodies()
 {
     return simpleBodies;
 }
 
-inline const java::ArrayList<RayCastingBody*> &
+inline const java::ArrayList<PovrayBody*> &
 RayCastingComposite::getSimpleBodies() const
 {
     return simpleBodies;

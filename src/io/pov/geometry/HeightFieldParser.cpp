@@ -55,15 +55,13 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 Vector3Dd maxBounds = Vector3Dd(
                     indexedImage->getXSize() - 2.0, 256.0,
                     indexedImage->getYSize() - 2.0);
+                // The body scales the grid to the unit square.
                 localVector = Vector3Dd(1.0 / indexedImage->getXSize(),
                     1.0 / 256.0, 1.0 / indexedImage->getYSize());
-                Matrix4x4d localTransformation = Matrix4x4d().scale(
-                    localVector.x(), localVector.y(), localVector.z());
-                Matrix4x4d localTransformationInverse = Matrix4x4d().scale(
-                    1.0 / localVector.x(), 1.0 / localVector.y(), 1.0 / localVector.z());
-                localShape = new HeightField(localTransformation,
-                    localTransformationInverse, minBounds, maxBounds);
+                localShape = new HeightField(indexedImage->getXSize() + 1,
+                    indexedImage->getYSize() + 1, minBounds, maxBounds);
                 body = SceneBuilder::wrap(localShape);
+                body->scaleOwnerOnly(&localVector);
                 Exit_Flag = true;
                 break;
             }
@@ -82,15 +80,13 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 Vector3Dd minBounds = Vector3Dd(1.0, 0.0, 1.0);
                 Vector3Dd maxBounds = Vector3Dd(
                     indexedImage->getXSize() / 2.0 - 2.0, 256.0, indexedImage->getYSize() - 2.0);
+                // A POT image holds the high and low height bytes side by side.
                 localVector = Vector3Dd(2.0 / indexedImage->getXSize(),
                     1.0 / 256.0, 1.0 / indexedImage->getYSize());
-                Matrix4x4d localTransformation = Matrix4x4d().scale(
-                    localVector.x(), localVector.y(), localVector.z());
-                Matrix4x4d localTransformationInverse = Matrix4x4d().scale(
-                    1.0 / localVector.x(), 1.0 / localVector.y(), 1.0 / localVector.z());
-                localShape = new HeightField(localTransformation,
-                    localTransformationInverse, minBounds, maxBounds);
+                localShape = new HeightField(indexedImage->getXSize() / 2 + 1,
+                    indexedImage->getYSize() + 1, minBounds, maxBounds);
                 body = SceneBuilder::wrap(localShape);
+                body->scaleOwnerOnly(&localVector);
                 Exit_Flag = true;
                 break;
             }
@@ -111,13 +107,10 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                     directImage->getYSize() - 2.0);
                 localVector = Vector3Dd(1.0 / directImage->getXSize(),
                     1.0 / 256.0, 1.0 / directImage->getYSize());
-                Matrix4x4d localTransformation = Matrix4x4d().scale(
-                    localVector.x(), localVector.y(), localVector.z());
-                Matrix4x4d localTransformationInverse = Matrix4x4d().scale(
-                    1.0 / localVector.x(), 1.0 / localVector.y(), 1.0 / localVector.z());
-                localShape = new HeightField(localTransformation,
-                    localTransformationInverse, minBounds, maxBounds);
+                localShape = new HeightField(directImage->getXSize() + 1,
+                    directImage->getYSize() + 1, minBounds, maxBounds);
                 body = SceneBuilder::wrap(localShape);
+                body->scaleOwnerOnly(&localVector);
                 Exit_Flag = true;
                 break;
             }

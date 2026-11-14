@@ -21,8 +21,8 @@ SceneBodyParser::parseFrame(Scene *framePtr)
 void
 SceneBodyParser::parseFrame(Scene *framePtr, ParserContext &ctx)
 {
-    RayCastingBody *localObject = nullptr;
-    java::ArrayList<RayCastingBody*> localObjects(4);
+    PovrayBody *localObject = nullptr;
+    java::ArrayList<PovrayBody*> localObjects(4);
 
     {
         bool Exit_Flag = false;

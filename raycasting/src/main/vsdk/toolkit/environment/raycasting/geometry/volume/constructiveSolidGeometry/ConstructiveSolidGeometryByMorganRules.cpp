@@ -1,5 +1,6 @@
 #include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByMorganRules.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgCrossingSelection.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 
@@ -12,7 +13,7 @@ ConstructiveSolidGeometryByMorganRules::ConstructiveSolidGeometryByMorganRules(c
     ConstructiveSolidGeometry(other.getGeometryType())
 {
     for (long int i = other.getOperands().size() - 1; i >= 0; i--) {
-        addOperand(other.getOperands()[i]->copy());
+        addOperand(static_cast<CsgOperand *>(other.getOperands()[i]->copy()));
     }
 }
 
@@ -57,40 +58,26 @@ ConstructiveSolidGeometryByMorganRules::allCsgIntersectIntersections(
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
-    bool intersectionFound;
-    CsgOperand *localShape;
-    CsgOperand *shape2;
-    java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
-
-    localDepthQueue = ray->getIntersectionQueuePool()->pop(128);
+    const java::ArrayList<CsgOperand*> &operands = getOperands();
+    java::PriorityQueue<IntersectionCandidate> *localDepthQueue =
+        ray->getIntersectionQueuePool()->pop(128);
 
     bool anyIntersectionFound = false;
 
-    for (long int i = getOperands().size() - 1; i >= 0; i--) {
-        localShape = getOperands()[i];
-
-        localShape->doIntersectionForAllRayCrossings(
+    for (long int i = operands.size() - 1; i >= 0; i--) {
+        operands[i]->doIntersectionForAllRayCrossings(
             ray, localDepthQueue, materialOverride);
 
         // Read crossings straight from the scratch queue: nothing here mutates
         // them, the survivors are copied once into depthQueue, and the scratch
         // queue is cleared right after, so no defensive per-crossing copy.
         for (IntersectionCandidate& candidate : *localDepthQueue) {
-            intersectionFound = true;
-
-            for (long int j = getOperands().size() - 1; j >= 0; j--) {
-                shape2 = getOperands()[j];
-
-                if (shape2 != localShape) {
-                    if (!ConstructiveSolidGeometryByMorganRules::insideCsgChild(
-                            &candidate.getIntersection().point, shape2)) {
-                        intersectionFound = false;
-                        break;
-                    }
-                }
-            }
-
-            if (intersectionFound) {
+            Vector3Dd *point = &candidate.getIntersection().point;
+            auto inside = [&operands, point](long int j) {
+                return ConstructiveSolidGeometryByMorganRules::insideCsgChild(point, operands[j]) != 0;
+            };
+            if (CsgCrossingSelection<decltype(inside)>::isSelected(
+                    BooleanSetOperations::INTERSECTION, i, operands.size(), -1, inside)) {
                 depthQueue->offer(candidate);
                 anyIntersectionFound = true;
             }

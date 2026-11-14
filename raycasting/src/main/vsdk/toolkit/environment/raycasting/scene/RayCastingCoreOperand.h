@@ -1,15 +1,15 @@
 #ifndef VSDK_RAY_CASTING_CORE_OPERAND_H
 #define VSDK_RAY_CASTING_CORE_OPERAND_H
 #include "vsdk/toolkit/environment/scene/csg/CsgOperandView.h"
-class RayCastingBody;
+class PovrayBody;
 // A borrowed CSG view of a POV body's placed core solid, without its
 // bounding or clipping regions. It lets region policies be expressed as
 // shared CSG compositions instead of a second containment algorithm.
 class RayCastingCoreOperand : public CsgOperandView {
 private:
-    const RayCastingBody& body;
+    const PovrayBody& body;
 public:
-    explicit RayCastingCoreOperand(const RayCastingBody& body);
+    explicit RayCastingCoreOperand(const PovrayBody& body);
     const Geometry* getGeometry() const override;
     Matrix4x4d getAffinePlacement() const override;
     AffinePlacementStatus queryAffinePlacement(Matrix4x4d& forward, Matrix4x4d& inverse) const override;

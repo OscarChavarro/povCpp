@@ -31,9 +31,9 @@ RayCastingComposite::doIntersectionForAllRayCrossings(
     (void)materialOverride;
     bool intersectionFound;
     bool anyIntersectionFound;
-    RayCastingBody *boundingShape;
-    RayCastingBody *clippingShape;
-    RayCastingBody *localObject;
+    PovrayBody *boundingShape;
+    PovrayBody *clippingShape;
+    PovrayBody *localObject;
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
     GeometryStatistics &stats = *ray->getGeometryStatistics();
 
@@ -120,9 +120,9 @@ RayCastingComposite::doIntersectionForAllRayCrossings(
 int
 RayCastingComposite::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 {
-    RayCastingBody *boundingShape;
-    RayCastingBody *clippingShape;
-    RayCastingBody *localObject;
+    PovrayBody *boundingShape;
+    PovrayBody *clippingShape;
+    PovrayBody *localObject;
     const Vector3Dd localPoint = worldPointToLocal(point);
 
     // The composite's own bounding/clipping shapes live in its outer frame
@@ -156,11 +156,11 @@ RayCastingComposite::doContainmentTest(const Vector3Dd &point, double distanceTo
 }
 
 RayCastingComposite::RayCastingComposite(const RayCastingComposite &other) :
-    RayCastingBody(other)
+    PovrayBody(other)
 {
     for (long int i = other.getSimpleBodies().size() - 1; i >= 0; i--) {
         simpleBodies.add(
-            (RayCastingBody *)other.getSimpleBodies()[i]->copy());
+            (PovrayBody *)other.getSimpleBodies()[i]->copy());
     }
 }
 
@@ -174,7 +174,7 @@ RayCastingComposite::~RayCastingComposite()
 void
 RayCastingComposite::detachOwnership()
 {
-    RayCastingBody::detachOwnership();
+    PovrayBody::detachOwnership();
     simpleBodies.clear();
 }
 
@@ -220,7 +220,7 @@ RayCastingComposite::propagateOwnedTranslation(Vector3Dd *vector)
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         this->getSimpleBodies()[i]->propagateOwnedTranslation(vector);
     }
-    RayCastingBody::propagateOwnedTranslation(vector);
+    PovrayBody::propagateOwnedTranslation(vector);
 }
 
 void
@@ -229,7 +229,7 @@ RayCastingComposite::propagateOwnedRotation(Vector3Dd *vector)
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         this->getSimpleBodies()[i]->propagateOwnedRotation(vector);
     }
-    RayCastingBody::propagateOwnedRotation(vector);
+    PovrayBody::propagateOwnedRotation(vector);
 }
 
 void
@@ -238,14 +238,14 @@ RayCastingComposite::propagateOwnedScale(Vector3Dd *vector)
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         this->getSimpleBodies()[i]->propagateOwnedScale(vector);
     }
-    RayCastingBody::propagateOwnedScale(vector);
+    PovrayBody::propagateOwnedScale(vector);
 }
 
 void
 RayCastingComposite::invert()
 {
-    RayCastingBody *localObject;
-    RayCastingBody *localShape;
+    PovrayBody *localObject;
+    PovrayBody *localShape;
 
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];

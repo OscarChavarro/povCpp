@@ -4,13 +4,13 @@
 
 class ScenePostProcessor {
   public:
-    static void linkLights(RayCastingBody *object, java::ArrayList<Light*> &lights);
+    static void linkLights(PovrayBody *object, java::ArrayList<Light*> &lights);
 
   private:
     static void applyTransformsToLight(
         Light *light, const java::ArrayList<const Matrix4x4d*> &transforms);
     static void linkLights(
-        RayCastingBody *object,
+        PovrayBody *object,
         java::ArrayList<Light*> &lights,
         java::ArrayList<const Matrix4x4d*> &transforms);
     static void linkLightsInOperand(

@@ -49,9 +49,8 @@ coordinated changes to `vitral/cpp/base`, its consumers and examples, and PovRay
 - PovRay maintains its parser, materials, shaders, and a derived `bakedScene`
   representation. These consumers must adapt to the final model.
 
-The names `SimpleSolid` and `PovraySolid` below are design alternatives for **scene
-elements**, not assertions that types with those names already exist. The current
-concrete integration point is `SimpleBody`.
+The VITRAL scene element is `SimpleBody` and the PovRay scene element is
+`PovrayBody`; both implement the scene contract `SceneSolid` (§7.1).
 
 ## 3. Responsibility boundaries
 
@@ -61,17 +60,18 @@ concrete integration point is `SimpleBody`.
 | Intersection, containment, and geometric detail | VITRAL | Queries independent of materials, the parser, POV quality settings, and shading ray categories |
 | CSG algorithms | VITRAL, alongside geometric processing | Boolean tree and evaluation strategies over the same primitives; explicit references and limitations |
 | Instance transforms and scene composition | VITRAL `environment/scene` | Shared placement, identity, resources, lifetime, queries, and snapshots |
-| PovRay-specific scene element | PovRay, if needed | Per-object texture rules, quick color, `noShadow`, material bindings, and construction compatibility |
+| PovRay scene element (`PovrayBody`) | PovRay | Per-object texture rules, quick color, `noShadow`, inversion, material bindings, POV transform layers, `bounded_by`/`clipped_by` regions, and construction compatibility, over the shared `SceneSolid` contract |
 | POV materials, pigments, appearance normals, and shaders | PovRay | Application-specific appearance model and evaluation, without reverse dependencies from VITRAL |
 | `.pov` parser, defaults, symbols, declarations, and syntax order | PovRay | Construction of the shared model and conversion of application data |
 | Renderers and application policies | Their application or corresponding rendering module | Sampling, antialiasing, secondary ray generation, shadows, media, and algorithm selection |
-| Geometric algorithms used by `bakedScene` | VITRAL when generic | A single mathematical kernel; renderer-specific organization and scheduling may remain in PovRay |
+| Baking (`bakedScene`) | PovRay | Compilation of the POV scene into render records, specialized plans, render caches, and their scheduling. VITRAL provides no baking service |
+| Kernels and CSG steps called by the bake | VITRAL when generic | One application-independent implementation (for example `QuadricRayExpansion`, `InfinitePlane::intersectionDepth`, `CsgMembershipRule`); the bake calls it and never copies it |
 | Image loading for heightfields or textures | Corresponding IO module | Geometry receives decoded data; it does not interpret GIF, TGA, or POV syntax |
 
-Inheritance or implementation of a common interface by `SimpleSolid` and
-`PovraySolid` is acceptable in **scene**. Both will reference exactly the same
-`Geometry` types. A scene specialization must not hide a copy of the intersector,
-solver, or intrinsic geometry data.
+`SimpleBody` and `PovrayBody` implement the common **scene** contract
+`SceneSolid` (§7.1). Both reference exactly the same `Geometry` types. A scene
+specialization must not hide a copy of the intersector, solver, placement
+logic, CSG structure or evaluator, or intrinsic geometry data.
 
 Add interfaces only when they separate necessary responsibilities. Do not create
 an interface per application, renderer, or CSG strategy that forces every primitive
@@ -228,6 +228,24 @@ Use a common CSG expression model with evaluators/strategies operating on it.
 Primitives will not know which strategy queries them. The application or VITRAL
 experiment will select the heuristic or Roth algorithm.
 
+Two evaluator families operate on the same expression and primitives and share
+`CsgMembershipRule`:
+
+- **Certified evaluators** (`CsgRothRayClassifier`, `CsgCrossingMembershipFilter`,
+  `CsgPointClassification`) answer typed queries with explicit uncertainty. They
+  serve VITRAL consumers and the typed queries of POV bodies.
+- **Fast evaluators**, PovRay's crossing heuristic and Roth's segment merge over
+  binary64 crossings without certification, serve the render paths. The certified
+  heuristic costs about forty times the Roth classifier (I-3), so render paths do
+  not use the certified evaluators.
+
+The fast evaluators are generic strategies with their own cost and robustness
+(§4.2), not POV policies. Their single implementation is in VITRAL, parameterized
+by the caller's event type: `CsgSegmentClassification` (Roth's alternating
+segments and their merge by Table 3) and `CsgCrossingSelection` (the heuristic's
+selection of a crossing by its siblings' containment). The POV evaluators and the
+bake call them with POV hit records and containment queries.
+
 Ray-based CSG will not be replaced by VITRAL's existing polyhedral modeling Boolean
 operations: these may coexist as different algorithms, sharing the mathematical
 concepts that actually apply.
@@ -259,13 +277,46 @@ Class names should describe the geometry, not the application of origin.
 
 ### 7.1. Placement and specializations
 
-Define a scene element contract with identity, a `Geometry` reference, affine
-placement/inverse, appearance resources, and access to instance detail. Evaluate
-extending `SimpleBody` or extracting a minimal contract without multiplying wrappers.
+The scene element contract `SceneSolid` (VITRAL `environment/scene`) holds a
+`Geometry` reference with its ownership, the authoritative affine placement and
+its inverse (abstract), solid world bounds, first hit and detail (abstract),
+typed point and ray queries, and a modification version. It computes the placed
+queries once from geometry and placement, including the static
+`classifyPlacedPointCertified` and `classifyPlacedBoxCertified`. Box
+classification, solid equivalence and the boundary distances use the solid the
+body denotes (`queryDenotedSolid`: by default its geometry, only for bodies that
+`denotesPlacedGeometry`), so a body that wraps or inverts its geometry
+supplies that solid instead of recomputing the queries. Implementations override
+a typed query only to apply a scene policy (CSG, regions) around the shared
+computation. Appearance stays out of the contract.
 
-`SimpleSolid` and `PovraySolid`, if needed, may implement this same contract with
-different material and composition policies. Geometry must be interchangeable
-between them without cloning it into another geometric type.
+- `SimpleBody` implements `SceneSolid` and keeps TRS editing and VITRAL appearance
+  (material, texture, normal map).
+- `PovrayBody` implements `SceneSolid` without deriving from `SimpleBody`, so it
+  carries no TRS state or VITRAL appearance it must disable. It composes POV's
+  geometry and object layers into the placement, and holds POV appearance, quick
+  color, `noShadow`, inversion, and `bounded_by`/`clipped_by` regions. Its
+  denoted solid is the VITRAL solid of its geometry adapter with the adapter's
+  inversion, when it has no regions. It lives in `./raycasting` with the code it
+  depends on and moves to PovRay `src/environment/scene` in J. The POV `Scene`
+  owns its `PovrayBody` list; from `SimpleScene` it uses lights and resources.
+  VITRAL renderers draw `SimpleBody` bodies, not POV bodies.
+- CSG leaves are `SceneSolid`s: `CsgBodyOperand` takes a `SceneSolid`, and VITRAL
+  `CsgBody` and POV CSG build the same `CsgTree`. A POV CSG operand
+  (`CsgOperand`) is a `PovrayBody` with one placement layer and the operand
+  material; a nested POV CSG is an operand whose geometry is another CSG, which
+  the shared evaluators traverse because the operand denotes its placed geometry
+  (`SceneSolid::isStructuralTraversalSafe`). Generic processing such as
+  `SolidBoundaryTessellator` takes a `SceneSolid`.
+
+Geometry is interchangeable between both bodies without cloning it into another
+geometric type. POV geometry adapters disappear: their render caches move to the
+bake or the per-ray caches, and their inversion to the body.
+
+The POV bake (`bakedScene`) compiles `PovrayBody` and `CsgTree` into PovRay render
+records. It may keep composed matrices, specialized plans and per-viewpoint caches,
+and calls VITRAL kernels and CSG steps instead of copying them. VITRAL renderers
+have no bake.
 
 An authoritative affine placement must support compositions that produce shear.
 TRS controls will be a way to edit that placement where meaningful, not another
@@ -277,6 +328,13 @@ Geometric bounding/clipping may be a generic operation; translating
 `bounded_by`/`clipped_by` and their inheritance rules belongs to the parser. Define
 ownership of shared geometries, materials, images, and clones, cache invalidation,
 versions, and snapshot lifetime before changing destructors.
+
+A body owns the geometry, material, texture and normal map given to `setGeometry`,
+`setMaterial`, `setTexture` and `setNormalMap`, and only references those given to
+`setGeometryReference`, `setMaterialReference`, `setTextureReference` and
+`setNormalMapReference`. Images and normal maps shared by several bodies or by a
+background are scene resources owned by `SimpleScene` (`addImage`,
+`addNormalMap`) and deleted after the bodies and backgrounds that use them.
 
 ### 7.2. ShadersExample
 
@@ -294,6 +352,16 @@ implicit surface extraction, or CSG conversion to a mesh will be VITRAL processi
 algorithms with declared resolution/error. A derived visualization mesh will not
 be a second authoritative solid implementation. Do not promise pixel-for-pixel
 equality between rasterization and ray tracing.
+
+`ShadersGeometryFixture` holds each non-sphere geometry once. The software path
+ray traces a frame body that references those geometries (a `CsgBody` with
+Roth's classification for the CSG sample), and the OpenGL path draws the mesh
+that `SolidBoundaryTessellator` (96 cells along the longest side) or
+`BezierPatchTessellator` (48 x 48 steps) derives from that same body or patch.
+Textures and bump maps stay on the sphere. The `o` key and the
+`--geometry sphere|quartic|blob|heightfield|csg|patch` option select the
+geometry, also with `--offline` for either `--method`. Frame bodies, lights and
+backgrounds are deleted with their snapshot.
 
 ### 7.3. RaytracingOfflineExample and PovRay
 
@@ -318,14 +386,34 @@ heights row by row from z = 0, with `#` comments. Malformed lines, a
 non-invertible or dangling transform, a degenerate blob component and an
 unreadable altimetry file are rejected.
 
+The classic MIT commands follow the Java reader:
+
+| MIT syntax | Scene content |
+|---|---|
+| `sphere <x> <y> <z> <r>`, `box <xmin> <ymin> <zmin> <xmax> <ymax> <zmax>`, `halfspace <a> <b> <c> <d>`, `quadric <ten coefficients>` | `Sphere`, `Box`, `PlanarHalfSpace`, `QuadricSurface` |
+| `cube <x> <y> <z> <size>` | Centered `Box` |
+| `cylinder <x> <y> <z> <bottom radius> <top radius> <height>` | `Cone`; not a `csg` operand |
+| `torus <x> <y> <z> <major radius> <minor radius>` | `Torus`; not a `csg` operand |
+| `polybox <x> <y> <z> <sx> <sy> <sz>`, `appel <1\|2\|3> <x> <y> <z> [scale]` | `PolyhedralBoundedSolid` of a box or of an APPE1967 test object centered on its position; not `csg` operands |
+| `triangles` … `end` with `v` and `f` lines, `quads` … `end` with `v` and `q` lines | `TriangleMesh` and `QuadMesh`; a `surface` line inside the block starts a new body sharing the vertices |
+| `obj <file> <x> <y> <z> [scale]` | The bodies of an OBJ file, placed by the current rotation, the position and the scale |
+| `rotation <yaw> <pitch> <roll>` | Euler rotation of every later primitive about its own origin |
+| `texture <file>`, `notexture`, `bumpmap <file> [<sx> <sy> <sz>]`, `nobumpmap` | Texture and normal map of later primitives, shared scene resources |
+| `background <r> <g> <b>`, `backgroundcubemap [directory]` | `SimpleBackground` or `CubemapBackground` from `entorno0.jpg` … `entorno5.jpg` (default `../../cubemaps/dorise1`) |
+
+Relative files are looked up from the scene's directory and then from the
+working directory. An unknown command, a malformed line or an unreadable file
+is rejected.
+
 The POV parser will directly construct VITRAL geometries and compatible scene
 instances. It will resolve materials, defaults, and language decisions outside
 primitives. POV shaders will retain their model; VITRAL renderers will retain
 theirs. Unsupported materials must be explicitly rejected.
 
 Review `SurfaceRayIntersection`, type-specific optimizations, render caches,
-`bakedScene`, and detail callbacks. The renderer may retain buffers and baked data,
-but not a second intersection formula or another editable graph. Camera, sampling,
+`bakedScene`, and detail callbacks. The POV renderer may retain buffers and baked
+data (the bake is PovRay's, §3), but not a second intersection formula or another
+editable graph. Camera, sampling,
 antialiasing, and image output remain consumer decisions. Rendering parameters
 will be separated from geometric content.
 
@@ -345,8 +433,8 @@ duplicated algorithms and will have an explicit removal stage.
 | F. Finish tolerance and scene-policy integration | Extend E's certified operations to remaining primitives and scene policies, and propagate typed results, attribution and conservative bounds through composed scene structures | The affected scene paths preserve unsupported, indeterminate and singular states, provenance and zero-tolerance behavior; future geometries meet these contracts as introduced in H |
 | G. CSG evaluators | Adopt the shared composition and query contracts in the POV heuristic and Roth evaluators, including their distinct classification, provenance and boundary policies | Tests cover both algorithms and their legitimate differences; no primitive requires an implementation per strategy. Any indeterminate result is propagated or handled by an explicitly specified alternative, never silently classified |
 | H. Complete catalog | Generic blobs, heightfields, quartics/polynomials, meshes, and patches; fixtures and visualization representations | All POV objects available in VITRAL and consumed by examples without a PovRay dependency |
-| I. Final scene model and consumers | Scene contract, minimal specializations, separate materials, adapted snapshots, parser, renderers, and bake | A single geometric graph, consistent placement, and shared kernels in optimized paths as well |
-| J. Removal and completion | Relocate remaining components; remove transitional wrappers, algorithm copies, and the `raycasting` target/directory | Full gates and uniqueness/dependency audit pass, with no components awaiting a destination |
+| I. Final scene model and consumers | `SceneSolid` contract, `PovrayBody`, separate materials, adapted snapshots, parser, renderers, and the PovRay-side bake | A single geometric graph (`CsgTree` with `SceneSolid` leaves), consistent placement, and shared kernels and CSG steps in the bake as well |
+| J. Removal and completion | Relocate remaining components; remove transitional wrappers (including the POV geometry adapters, whose render caches move to the bake or per-ray caches and whose inversion moves to the body), algorithm copies, and the `raycasting` target/directory | Full gates and uniqueness/dependency audit pass, with no components awaiting a destination |
 
 Stage D is complete for the basic-primitive scope above. The explicitly listed
 scene-policy and future-catalog follow-ups are handled in F; the evaluators and
@@ -402,10 +490,10 @@ Stage F status (complete):
   quadric at zero and positive world tolerance. Each family implements
   `Geometry::classifyPointCertified` (local closed ball) and
   `Geometry::classifyBoxCertified` (local box, `Inside`/`Outside` only).
-  `SimpleBody::classifyPlacedPointCertified` maps the world ball through the
+  `SceneSolid::classifyPlacedPointCertified` maps the world ball through the
   placement with `AffineToleranceMap` and tries, in order, the identity path,
   the enclosing local box, the outer and inner balls and a two-point world
-  proof; anything unproven is `Indeterminate`. `RayCastingBody` uses the same
+  proof; anything unproven is `Indeterminate`. `PovrayBody` uses the same
   routine for its core solid, so a placed sphere has one certificate.
 - **Complete:** conservative bounds. `GeometryBounds::transformed` rounds
   outward; `inflated`, `intersecting` and `excludesBall` support culling.
@@ -417,7 +505,7 @@ Stage F status (complete):
   clip; `bounded_by` is accepted only when the region is certified to contain
   the core bounds, and otherwise the query is `Unsupported`. Solid world bounds
   of clipped bodies are the intersection with the clip bounds.
-- **Complete:** placement editing. `RayCastingBody::setAffinePlacement` moves
+- **Complete:** placement editing. `PovrayBody::setAffinePlacement` moves
   owned regions by `new * old^-1` in a two-phase, all-or-nothing step; regions
   that cannot be moved make the edit fail without changes.
 - **Complete:** adapter and estimator audit. Integer predicates inherited from
@@ -511,7 +599,7 @@ mirror audit):
   `ConstructiveSolidGeometryByRaySegment` (merge and point containment) use it.
   The POV Roth merge keeps its historical left-first sequential tie policy,
   which differs from the grouped policy at exactly equal parameters.
-- **Complete:** `RayCastingBody::classifyRay` supports regions: a verified
+- **Complete:** `PovrayBody::classifyRay` supports regions: a verified
   `bounded_by` leaves the core classification unchanged, and `clipped_by` is the
   Roth classification of the shared intersection of the core
   (`RayCastingCoreOperand`) and each clip. Unverified bounds stay `Unsupported`.
@@ -524,17 +612,18 @@ mirror audit):
   observed. Leaf batches pool their leaves, and assignments of instance paths,
   witnesses and classifications reuse storage.
 - **Complete:** POV CSG expressions are shared expressions for the typed
-  evaluators. `CsgOperand` classifies its leaf by ray and by certified point
-  through its wrapper's shared solid (`RayCastingBody::queryWrappedSolid`) and
-  `SimpleBody::classifyPlacedPointCertified`, reports a modification version,
+  evaluators. Each POV CSG operand is a `PovrayBody` seen as a `CsgBodyOperand`;
+  it classifies its leaf by ray and by certified point through its wrapper's
+  shared solid (`PovrayBody::queryWrappedSolid`) and
+  `SceneSolid::classifyPlacedPointCertified`, reports a modification version,
   and opts into structural traversal together with the Morgan and Roth
-  `ConstructiveSolidGeometry` nodes, which report a structure version.
+  `ConstructiveSolidGeometry` nodes, whose `CsgTree` reports a structure version.
 - **Render policy:** the POV render paths keep their integer containment and
   crossing queues, which are byte-identical to the baseline. Moving them onto
   the typed evaluators changes per-ray cost and belongs to the consumer work
-  in I. The typed heuristic still allocates inside certified point
-  classification (about 3,600 allocations per query on a three-leaf tree), so
-  point classification needs a workspace before the heuristic is used per ray.
+  in I. With a `CsgPointWorkspace` the typed heuristic allocates nothing per
+  query (I-3); its cost is the certified point classification of the event
+  points.
 - **Complete:** `CsgBody` is a VITRAL scene body whose solid is a shared
   expression over leaf bodies it owns, evaluated by `CsgRothRayClassifier` or
   `CsgCrossingMembershipFilter` (`CsgBodyEvaluator`). The visible hit is the
@@ -607,8 +696,8 @@ mirror audit):
   ranges. `traceFirstHit` is the PovRay block traversal: it needs the box one
   unit inside the grid and can report hits on the cells just outside it.
   POV `HeightField` adapts it and applies the PovRay image rules (border and
-  water-level points, POT and TGA fractions); `ReaderAltimetry` reads text
-  grids for VITRAL scenes.
+  water-level points, POT and TGA fractions); the POV body places the grid.
+  `ReaderAltimetry` reads text grids for VITRAL scenes.
 - **Complete (H-4 bicubic patches):** `SubdividedBezierPatch` is the PovRay
   `bicubic_patch`: the open surface of the flat triangles that a
   `BezierPatchSubdivision` (uniform or precomputed grid, adaptive, adaptive
@@ -626,6 +715,112 @@ mirror audit):
   `bezier_patches.ray` from `etc/geometry/mitscenes`. Raster representations
   of these families for the OpenGL examples are not provided; no OpenGL example
   draws the stage D quadrics either, so they belong to the consumer work in I.
+
+#### Stage I status
+
+- **Complete (I-1 offline MIT corpus):** `ReaderMitScene` reads every command
+  of the MIT corpus (see §7.3) and rejects unknown commands and malformed
+  lines instead of skipping them. `cube`, `cylinder` (`Cone`), `torus`,
+  `polybox`, `appel` (`PolyhedralBoundedSolid` from the APPE1967 fixtures),
+  `obj`, `quads` (`QuadMesh`), `rotation`, `texture`, `bumpmap` and
+  `backgroundcubemap` build the same bodies as the Java reader. The offline
+  example selects Phong shading when a scene has normal maps, because the
+  default Gouraud selection shades without normal perturbation.
+  `./runAll.sh --parallel` renders all 29 scenes; the 22 scenes without these
+  commands are byte-identical to their previous images and sequential and
+  parallel images are identical.
+- **Complete (I-2 shared scene resources):** images and normal maps used by
+  several bodies or by a background are owned by `SimpleScene`
+  (`addImage`, `addNormalMap`) and referenced by bodies
+  (`SimpleBody::setTextureReference`, `setNormalMapReference`), as geometries
+  and materials already are. The MIT reader loads each texture, bump map and
+  cubemap face once per scene. `ShadersExample` frames share the model's sphere,
+  texture and normal map instead of cloning them for every frame.
+- **Complete (I-3 point classification workspace):**
+  `CsgPointClassification::classifyContainment` and
+  `classifyOperandContainment` return the result of `classify` without
+  collecting witnesses, proofs or attributions, using a caller-owned
+  `CsgPointWorkspace`. `CsgCrossingMembershipFilter::select` takes the same
+  workspace, keeps its selected events on the workspace stack and runs its leaf
+  queries in the workspace's `CsgRayWorkspace`; after warm-up a query allocates
+  nothing (about 3,600 allocations per query before, on a three-leaf tree).
+  The heuristic remains about forty times slower than the Roth classifier on
+  that tree: its time goes to the certified interval bounds of affine spheres
+  (`QuadraticInteriorBound`, `FloatingInterval`), not to storage. `CsgBody` uses
+  the overload without a caller workspace, which creates one per query.
+- **Complete (I-4 POV catalog adoption):** POV `PolynomialShape`, `Blob` and
+  `HeightField` expose their `PolynomialSurface`, `BlobSolid` and
+  `HeightFieldSolid` through `getIntrinsicGeometry`, and
+  `PovrayBody::queryWrappedSolid` reports them with their inversion, so POV
+  bodies and CSG operands of these families answer typed point and ray
+  queries. PovRay ignores `inverse` on height fields, so a height field is
+  reported as given.
+- **Complete (I-5 drawable representations and ShadersExample geometry
+  selection):** `SolidBoundaryTessellator` (naive surface nets) meshes the
+  boundary of any body that classifies rays or points, inside a world region
+  and at a declared resolution: quadrics, implicit solids, height fields and
+  `CsgBody`. Edge crossings and vertices come from the body's own ray hits and
+  normals, and `SolidBoundaryTessellationReport` counts the crossings and
+  vertices that lie on the boundary and those that do not.
+  `BezierPatchTessellator` samples the Bezier surface of a patch's control net
+  with its `S_u x S_v` normals. `OpenGL4GeometryRenderer` draws quadrics,
+  implicit solids and height fields with finite bounds, and
+  `SubdividedBezierPatch`, from these meshes. `ShadersExample` selects the
+  sphere, a quartic, a blob, a height field, a CSG body or a patch (see §7.2).
+- **Complete (I-6 POV scene construction):** the parser builds every POV
+  object as a `PovrayBody` (I-8) and every POV CSG as a `CsgTree` with
+  `PovrayBody` leaves (I-9). POV geometry adapters hold one VITRAL geometry and
+  only POV render state (inversion flags and PovRay caches); none keeps a
+  placement. The height field parser builds the `HeightFieldSolid` grid and puts
+  the grid normalization in the body as its first scale step, with
+  byte-identical `hfclip`, `mtmand` and `sunsethf`. Removing the adapters
+  themselves, so that the parser references VITRAL geometries directly, is the
+  wrapper removal of stage J.
+- **Complete (I-7 POV bake and render paths):** the bake is PovRay's, compiles
+  its records from the `PovrayBody` list and the CSG trees, and calls shared
+  kernels. `QuadricRayExpansion` (inline, in VITRAL `geometry/volume`) expands a
+  `QuadricSurface` along a ray from the per-ray products a renderer caches, with
+  the constant term split into a part without mixed products that a renderer may
+  cache per viewpoint; roots come from `QuadricSurface::solve`. POV
+  `Quadric::intersectQuadric` and `BakedQuadricIntersector` both use it and clip
+  with `Quadric::clipToRenderDepths`. Plane intersection uses
+  `InfinitePlane::intersectionDepth` and sphere intersection `SphereTrace` in
+  both paths. The fast CSG steps are VITRAL's (§5.3): the Roth evaluator
+  (`ConstructiveSolidGeometryByRaySegment`) and the bake's
+  `RaySegmentCsgCombiner` build and merge `CsgSegmentClassification` over POV hit
+  records, after the shared classification sample (`classificationPoint`) and
+  crossing drain (`segmentsFromCrossings`); the heuristic evaluator
+  (`ConstructiveSolidGeometryByMorganRules`) and the bake's
+  `CsgContainmentTest` select intersection crossings with
+  `CsgCrossingSelection`; point folds use `CsgMembershipRule::combine` and
+  `isDecided`. The bake's compiled plans (single core and plane intersections,
+  union cull bins) remain its own specializations. The gates stay byte-identical
+  at unchanged render time.
+- **Complete (I-8 `SceneSolid` and `PovrayBody`):** `SimpleBody` and
+  `PovrayBody` implement `SceneSolid` (§7.1); `CsgBodyOperand`,
+  `CsgSolidEquivalence`, `RayCrossing`, `InstanceRayCrossingBuffer` and
+  `SolidBoundaryTessellator` take a `SceneSolid`, so a CSG tree mixes VITRAL and
+  POV leaves. Every POV object is a `PovrayBody`, and the bake reads the POV
+  `Scene`'s `PovrayBody` list. `PovrayBody` keeps only its own placement storage
+  and overrides typed queries only for its region policies; the boundary
+  distances, box classification and solid equivalence come from the contract
+  through `queryDenotedSolid`. The gates stay byte-identical at unchanged
+  render time.
+- **Complete (I-9 POV CSG over `CsgTree`):** `ConstructiveSolidGeometry` owns
+  a VITRAL `CsgTree` and its `CsgOperand` leaves, seen as `CsgBodyOperand`;
+  its operation, operand order and structure version are the tree's
+  (`CsgTree::setOperation` applies the De Morgan complement of an inversion).
+  `CsgOperand` is a `PovrayBody` with one placement layer and the operand
+  material: its placement edits, copies, typed queries and modification
+  version are the body's, and it keeps only its render role (operand bounds
+  culling, detail-owner registration and normals unwound without
+  normalization). The POV evaluators, the parser, the light linking and the
+  bake read the same operands. Instance grouping (`RayCastingComposite`) stays
+  distinct from CSG (§6). The gates stay byte-identical at unchanged render
+  time.
+
+Stage I is complete. The POV geometry adapters remain as POV render wrappers
+until stage J removes them.
 
 Stage E is complete. The optional numerical estimator remains explicitly
 approximate and is never used as a guarantee.
@@ -690,18 +885,11 @@ evaluators do, and `CsgBody` connects them to the offline reader and renderers,
 with `.ray` scenes of union, intersection and difference whose surfaces,
 orientation and sequential and parallel renders are verified (G-6).
 
-During stages H–I, investigate and correct the currently failing special cases in
-`RaytracingOfflineExample`: textures, bump mapping and `PolyhedralBoundedSolid`.
-The `runAll.sh` script may already have been broken before this plan began and
-has since been corrected. The examples themselves remain broken: scene content
-appears not to be processed completely. Investigate the reader and rendering
-pipeline, establish the missing behavior, and restore the examples rather than
-assuming that successful script execution implies correct output.
-Run `./runAll.sh --parallel` from
-`testsuite/OfflineExamples/RaytracingOfflineExample` and verify those cases
-visually and with focused checks. These known issues may be addressed when their
-geometry, scene or render integration is reworked, but must be resolved before
-the final gate.
+The `RaytracingOfflineExample` special cases (textures, bump mapping,
+`PolyhedralBoundedSolid` and the other classic MIT commands) are resolved by I-1.
+`./runAll.sh --parallel` from `testsuite/OfflineExamples/RaytracingOfflineExample`
+renders the whole MIT corpus, and the reader tests check the scene content of
+those cases.
 
 ## 9. Verification and gates
 
@@ -764,8 +952,9 @@ The plan is complete only when:
    requiring duplicated primitives or permanent graph conversions.
 5. `./raycasting` and its target disappear. Its entire inventory has a final
    destination, and each implementation is maintained only once.
-6. No references from VITRAL to PovRay remain, nor duplicated geometric kernels in
-   the POV renderer or examples. Derived representations are caches or explicit
+6. No references from VITRAL to PovRay remain, nor duplicated geometric kernels or
+   CSG steps in the POV renderer, its bake or examples. VITRAL provides no baking
+   service; the bake is PovRay's. Derived representations are caches or explicit
    approximations, never another source of truth.
 7. ShadersExample, RaytracingOfflineExample, all examples, and the POV gates meet
    the criteria above; public APIs and their correspondence to algorithms in the

@@ -1,38 +1,38 @@
-#ifndef __POV_SIMPLE_BODY__
-#define __POV_SIMPLE_BODY__
+#ifndef __POVRAY_BODY__
+#define __POVRAY_BODY__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "vsdk/toolkit/environment/scene/SimpleBody.h"
+#include "vsdk/toolkit/environment/scene/SceneSolid.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/boundingVolumeHierarchy/AxisAlignedBoundingBox.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/RayCastingGeometry.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/element/PostRayHitElement.h"
 #include "vsdk/toolkit/environment/material/Material.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/element/TransformStep.h"
 
-class Sphere;
 class CsgOperandView;
 class CsgTree;
 class CsgBodyOperand;
 
-class RayCastingBody : public SimpleBody, public PostRayHitElement {
+class PovrayBody : public SceneSolid, public PostRayHitElement {
   public:
     RaySolidQueryStatus classifyRay(const Ray& ray, const RayCrossingQuery& query,
         RaySolidClassification& result) const override;
     RayCrossingSupport emitRayCrossings(const Ray& ray,
         const RayCrossingQuery& query, RayCrossingSink& sink) const override;
-    // Callers that hand RayCastingBody an objectTexture whose destruction needs
+    // Callers that hand PovrayBody an objectTexture whose destruction needs
     // more than a plain `delete` (e.g. POV-Ray's shared default-texture
     // aliasing) supply the release logic themselves at construction time, so
     // the scene layer never needs to know the concrete Material subtype.
     using MaterialReleaser = void (*)(Material *);
 
   protected:
-    GeometryDistanceStatus queryCertifiedSphere(const Sphere*& sphere, bool& inverted,
-        Matrix4x4d& forward, Matrix4x4d& inverse) const;
-    static GeometryContainment orientCertifiedSide(GeometryContainment side, bool inverted);
+    // Whether this class keeps the shared core solid of its geometry under its
+    // placement (plain bodies and CSG operands); wrappers such as composites
+    // do not, so their core solid is never reported.
+    virtual bool preservesCoreSolid() const;
     // The VITRAL solid and binding inversion of a compatible unclipped,
     // unbounded leaf; false for wrappers whose policies change the solid.
-    bool querySolidCore(const Geometry*& intrinsic, bool& inverted) const;
+    bool queryDenotedSolid(const Geometry*& intrinsic, bool& inverted) const override;
     // True when every bounding region is certified to contain the core solid,
     // so the bounded_by hint cannot change membership.
     bool boundingRegionsVerified() const;
@@ -44,8 +44,8 @@ class RayCastingBody : public SimpleBody, public PostRayHitElement {
     // edits. The check validates the complete region tree before any change.
     bool canMoveRegions(const Matrix4x4d& delta, const Matrix4x4d& deltaInverse) const;
     void moveRegions(const Matrix4x4d& delta, const Matrix4x4d& deltaInverse);
-    java::ArrayList<RayCastingBody*> boundingShapes{4};
-    java::ArrayList<RayCastingBody*> clippingShapes{4};
+    java::ArrayList<PovrayBody*> boundingShapes{4};
+    java::ArrayList<PovrayBody*> clippingShapes{4};
     Material *geometryMaterial;
     Matrix4x4d *transformation = nullptr;
     Matrix4x4d *transformationInverse = nullptr;
@@ -61,14 +61,14 @@ class RayCastingBody : public SimpleBody, public PostRayHitElement {
     bool arbitraryAffineTransform = false;
 
   public:
-    RayCastingBody(
+    PovrayBody(
         RayCastingGeometry *geometry,
         Material *geometryMaterial,
         Material *objectTexture,
         ColorRgba *objectColor,
         bool noShadowFlag,
-        const java::ArrayList<RayCastingBody*> &boundingShapes,
-        const java::ArrayList<RayCastingBody*> &clippingShapes,
+        const java::ArrayList<PovrayBody*> &boundingShapes,
+        const java::ArrayList<PovrayBody*> &clippingShapes,
         Matrix4x4d *transformation = nullptr,
         Matrix4x4d *transformationInverse = nullptr,
         Matrix4x4d *geometryTransformation = nullptr,
@@ -76,7 +76,7 @@ class RayCastingBody : public SimpleBody, public PostRayHitElement {
         const java::ArrayList<TransformStep> &bodyStepsInit = java::ArrayList<TransformStep>(),
         const java::ArrayList<TransformStep> &geometryStepsInit = java::ArrayList<TransformStep>(),
         MaterialReleaser objectTextureReleaser = nullptr) :
-        SimpleBody(),
+        SceneSolid(),
         boundingShapes(boundingShapes),
         clippingShapes(clippingShapes),
         geometryMaterial(geometryMaterial),
@@ -94,27 +94,17 @@ class RayCastingBody : public SimpleBody, public PostRayHitElement {
         setGeometry(geometry);
     }
     Material* getSurfaceMaterial() const override {
-        return objectTexture ? objectTexture : geometryMaterial ? geometryMaterial : SimpleBody::getSurfaceMaterial();
+        return objectTexture ? objectTexture : geometryMaterial ? geometryMaterial : SceneSolid::getSurfaceMaterial();
     }
-    SimpleMaterial* getMaterial() const override;
-    bool supportsDecomposedPlacement() const override { return false; }
-    Vector3Dd getPosition() const override { return getAffinePlacement().multiply(Vector3Dd()); }
-    void setPosition(const Vector3Dd& position) override;
-    Vector3Dd getScale() const override;
-    Matrix4x4d getRotation() const override;
-    Matrix4x4d getRotationInverse() const override;
-    void setScale(const Vector3Dd&) override;
-    void setRotation(const Matrix4x4d&) override;
-    void setRotationInverse(const Matrix4x4d&) override;
     void setGeometry(Geometry* geometry) override;
     void setGeometryReference(Geometry* geometry) override;
-    RayCastingBody(const RayCastingBody &other);
-    virtual ~RayCastingBody();
+    PovrayBody(const PovrayBody &other);
+    virtual ~PovrayBody();
     bool doIntersectionFirstHit(const Ray& ray, RayHit* hit) const override;
     void doExtraInformation(const Ray& ray, double t, RayHit* hit) const override;
 
 
-    // ObjectParser builds short-lived RayCastingBody/RayCastingComposite wrappers purely to
+    // ObjectParser builds short-lived PovrayBody/RayCastingComposite wrappers purely to
     // invoke their virtual translate/rotate/scale/invert (which know how to transform
     // a bounded object's children in place), then extracts the resulting
     // geometry/objectTexture/objectColor/bounding-and-clipping-shapes back into local
@@ -125,18 +115,15 @@ class RayCastingBody : public SimpleBody, public PostRayHitElement {
     // its own simpleBodies.
     virtual void detachOwnership();
 
-    java::ArrayList<RayCastingBody*>& getBoundingShapes() { return boundingShapes; }
-    const java::ArrayList<RayCastingBody*>& getBoundingShapes() const { return boundingShapes; }
-    java::ArrayList<RayCastingBody*>& getClippingShapes() { return clippingShapes; }
-    const java::ArrayList<RayCastingBody*>& getClippingShapes() const { return clippingShapes; }
-    Matrix4x4d getTransformationMatrix() const override { return getAffinePlacement(); }
+    java::ArrayList<PovrayBody*>& getBoundingShapes() { return boundingShapes; }
+    const java::ArrayList<PovrayBody*>& getBoundingShapes() const { return boundingShapes; }
+    java::ArrayList<PovrayBody*>& getClippingShapes() { return clippingShapes; }
+    const java::ArrayList<PovrayBody*>& getClippingShapes() const { return clippingShapes; }
     bool hasArbitraryAffineTransform() const { return arbitraryAffineTransform; }
     RayCastingGeometry *getGeometry() const override { return static_cast<RayCastingGeometry*>(geometry); }
-    const Geometry* getSolidEquivalenceGeometry() const override;
     // Bounds of the shared core solid; an inverted binding is unbounded and
     // region policies are unsupported until their typed semantics exist.
     void getSolidWorldBounds(GeometryBounds& result) const override;
-    GeometryContainment classifyWorldBoxCertified(const GeometryBounds& box) const override;
     // The core solid ignores bounding and clipping regions; it is the shared
     // geometry under this body's placement and binding inversion.
     bool queryCoreSolid(const Geometry*& intrinsic, bool& inverted) const;
@@ -165,12 +152,6 @@ class RayCastingBody : public SimpleBody, public PostRayHitElement {
     AffinePlacementStatus setAffinePlacement(const Matrix4x4d& forward, const Matrix4x4d& inverse) override;
     void resetAffinePlacement() override;
     AffinePlacementStatus queryAffinePlacement(Matrix4x4d& forward, Matrix4x4d& inverse) const override;
-    GeometryDistanceStatus encloseMinimumBoundaryDistance(const Vector3Dd& point, double maxWidth,
-        GeometryContainment& side, double& lower, double& upper) const override;
-    GeometryDistanceStatus encloseBoundaryDistance(const Vector3Dd& point, const Vector3Dd& localDirection,
-        GeometryContainment& side, double& lower, double& upper) const override;
-    GeometryDistanceStatus estimateBoundaryDistance(const Vector3Dd& point,
-        double& distance, double& estimatedError) const override;
     GeometryContainment classifyPointCertified(const Vector3Dd& point, double distanceTolerance) const override;
     AxisAlignedBoundingBox getAABB() const;
 
@@ -182,7 +163,7 @@ class RayCastingBody : public SimpleBody, public PostRayHitElement {
     virtual int doContainmentTest(const Vector3Dd &point, double distanceTolerance);
     void doExtraInformation(const RayWithTracingState &ray, double t, RayCastingHit *hit) override;
     virtual void *copy();
-    // Virtual so a nested RayCastingComposite child reached through a RayCastingBody*
+    // Virtual so a nested RayCastingComposite child reached through a PovrayBody*
     // (e.g. from RayCastingComposite::translate's simpleBodies loop) dispatches to
     // RayCastingComposite's override, which propagates the transform into its own
     // simpleBodies. Without this, transforms applied to an outer composite

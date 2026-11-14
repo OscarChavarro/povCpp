@@ -7,10 +7,10 @@
 
 class BakedSceneBuilder {
   public:
-    static void build(const java::ArrayList<SimpleBody*> &objects, BakedScene &out);
+    static void build(const java::ArrayList<PovrayBody*> &objects, BakedScene &out);
 
   private:
-    static bool isBakeableSimpleBody(RayCastingBody *object);
+    static bool isBakeableSimpleBody(PovrayBody *object);
     static Matrix4x4d copyOrIdentity(const Matrix4x4d *matrix);
     static BakedSceneTraceKind classifyTraceableObject(
         bool hasGeometry, bool boundedOrClipped, bool hasCsg);
@@ -43,10 +43,10 @@ class BakedSceneBuilder {
         java::ArrayList<int> &transformedPrimitiveOperandIndices,
         java::ArrayList<int> &directPrimitiveOperandIndices);
     static void compileTracingObjects(
-        const java::ArrayList<RayCastingBody*> &objects,
+        const java::ArrayList<PovrayBody*> &objects,
         BakedScene &out,
         java::ArrayList<int> &result);
-    static TraceableObject *bakeSimpleBody(RayCastingBody *object, BakedScene &out);
+    static TraceableObject *bakeSimpleBody(PovrayBody *object, BakedScene &out);
     static bool isPushdownCandidateOperand(const CsgOperandRecord *operand);
     static bool nestedProgramFullyBakeable(
         const BakedScene &scene, int programIndex, int depthGuard);
@@ -123,7 +123,7 @@ class BakedSceneBuilder {
     static int compileConstructiveSolidGeometry(
         ConstructiveSolidGeometry *geometry, BakedScene &out);
     static CompositeRecord *bakeComposite(RayCastingComposite *object, BakedScene &out);
-    static int compileTracingObject(RayCastingBody *object, BakedScene &out);
+    static int compileTracingObject(PovrayBody *object, BakedScene &out);
     static void accumulateStatistics(
         BakedScene &scene, long quadricViewpointSlotCount, long planeViewpointSlotCount);
 };

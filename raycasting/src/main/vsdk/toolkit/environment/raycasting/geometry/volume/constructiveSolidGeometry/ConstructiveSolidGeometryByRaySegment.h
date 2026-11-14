@@ -2,7 +2,7 @@
 #define __CONSTRUCTIVE_SOLID_GEOMETRY_BY_RAY_SEGMENT__
 
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
-#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/RaySegments.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgSegmentClassification.h"
 
 /**
  * [ROTH1982] Scott D. Roth, "Ray Casting for Modeling Solids", CGIP 18,
@@ -11,19 +11,22 @@
  */
 class ConstructiveSolidGeometryByRaySegment : public ConstructiveSolidGeometry {
   private:
-    static RaySegments buildRaySegments(
+    static CsgSegmentClassification<IntersectionCandidate> buildRaySegments(
         RayWithTracingState *ray, CsgOperand *child, Material *materialOverride);
-    static RaySegments mergeUnion(const RaySegments &left, const RaySegments &right);
-    static RaySegments mergeIntersection(const RaySegments &left, const RaySegments &right);
-    static RaySegments mergeDifference(const RaySegments &left, const RaySegments &right);
-    static RaySegments mergeByMembership(
-        const RaySegments &left,
-        const RaySegments &right,
-        BooleanSetOperations operation);
 
     bool topLevel = false;
 
   public:
+    // The steps of RAYCAST shared with the baked render path. The point whose
+    // containment classifies the ray before an operand's first crossing in
+    // its sorted crossings (or just past the origin when it has none).
+    static Vector3Dd classificationPoint(
+        const RayWithTracingState &ray, java::PriorityQueue<IntersectionCandidate> &crossings);
+    // Drains the sorted crossings into alternating in/out segments; segments
+    // are merged by the shared CsgSegmentClassification::merge.
+    static CsgSegmentClassification<IntersectionCandidate> segmentsFromCrossings(
+        java::PriorityQueue<IntersectionCandidate> &crossings, bool initialInside);
+
     explicit ConstructiveSolidGeometryByRaySegment(
         BooleanSetOperations initialGeometryType = BooleanSetOperations::UNION);
     ConstructiveSolidGeometryByRaySegment(const ConstructiveSolidGeometryByRaySegment &other);

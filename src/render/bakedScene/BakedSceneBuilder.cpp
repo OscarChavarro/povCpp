@@ -9,7 +9,7 @@
 #include "java/util/ArrayList.txx"
 
 bool
-BakedSceneBuilder::isBakeableSimpleBody(RayCastingBody *object)
+BakedSceneBuilder::isBakeableSimpleBody(PovrayBody *object)
 {
     if (object == nullptr) {
         return false;
@@ -395,7 +395,7 @@ BakedSceneBuilder::cloneProgramWithReclassification(
 
 void
 BakedSceneBuilder::compileTracingObjects(
-    const java::ArrayList<RayCastingBody*> &objects,
+    const java::ArrayList<PovrayBody*> &objects,
     BakedScene &out,
     java::ArrayList<int> &result)
 {
@@ -410,7 +410,7 @@ BakedSceneBuilder::compileTracingObjects(
 }
 
 TraceableObject *
-BakedSceneBuilder::bakeSimpleBody(RayCastingBody *object, BakedScene &out)
+BakedSceneBuilder::bakeSimpleBody(PovrayBody *object, BakedScene &out)
 {
     RayCastingGeometry *originalGeometry = object->getGeometry();
     Quadric *originalQuadricGeometry = dynamic_cast<Quadric *>(originalGeometry);
@@ -927,7 +927,7 @@ BakedSceneBuilder::bakeComposite(RayCastingComposite *object, BakedScene &out)
     compileTracingObjects(object->getBoundingShapes(), out, boundingObjectIndices);
     compileTracingObjects(object->getClippingShapes(), out, clippingObjectIndices);
 
-    const java::ArrayList<RayCastingBody*> &children = object->getSimpleBodies();
+    const java::ArrayList<PovrayBody*> &children = object->getSimpleBodies();
     java::ArrayList<int> childObjectIndices;
     childObjectIndices.reserve(children.size());
     for (long int i = 0; i < children.size(); i++) {
@@ -941,7 +941,7 @@ BakedSceneBuilder::bakeComposite(RayCastingComposite *object, BakedScene &out)
 }
 
 int
-BakedSceneBuilder::compileTracingObject(RayCastingBody *object, BakedScene &out)
+BakedSceneBuilder::compileTracingObject(PovrayBody *object, BakedScene &out)
 {
     const int index = out.traceableObjects.size();
     out.traceableObjects.add(nullptr);
@@ -1108,7 +1108,7 @@ BakedSceneBuilder::accumulateStatistics(BakedScene &scene, long quadricViewpoint
 }
 
 void
-BakedSceneBuilder::build(const java::ArrayList<SimpleBody*> &objects, BakedScene &out)
+BakedSceneBuilder::build(const java::ArrayList<PovrayBody*> &objects, BakedScene &out)
 {
     out.clearOwnedContents();
     delete out.statistics;
@@ -1131,10 +1131,7 @@ BakedSceneBuilder::build(const java::ArrayList<SimpleBody*> &objects, BakedScene
     out.unboundedShadowCastingObjectIndices.reserve(objects.size());
 
     for (long int i = 0; i < objects.size(); i++) {
-        RayCastingBody *object = dynamic_cast<RayCastingBody*>(objects[i]);
-        if (objects[i] && !object) {
-            throw std::invalid_argument("POV renderer requires ray-casting body support");
-        }
+        PovrayBody *object = objects[i];
         if (object == nullptr) {
             continue;
         }

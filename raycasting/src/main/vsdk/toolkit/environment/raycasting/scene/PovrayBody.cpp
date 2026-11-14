@@ -12,26 +12,28 @@
 #include "java/lang/IllegalStateException.h"
 #include "java/lang/Double.h"
 #include <stdexcept>
-#include "vsdk/toolkit/environment/material/SimpleMaterial.h"
-#include "vsdk/toolkit/environment/scene/SimpleBody.h"
+#include "vsdk/toolkit/environment/scene/SceneSolid.h"
 #include "vsdk/toolkit/environment/geometry/volume/Sphere.h"
 #include "vsdk/toolkit/environment/geometry/volume/AffineEllipsoidDistanceBounds.h"
 #include "vsdk/toolkit/environment/geometry/volume/AffineEllipsoidDistance.h"
 #include "vsdk/toolkit/environment/geometry/volume/AffineEllipsoidMinimumDistance.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
-#include "vsdk/toolkit/environment/raycasting/scene/RayCastingBody.h"
+#include "vsdk/toolkit/environment/raycasting/scene/PovrayBody.h"
 #include "vsdk/toolkit/environment/raycasting/scene/NativeGeometryBinding.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/RayCastingBox.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/surface/RayCastingInfinitePlane.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/Blob.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/HeightField.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/polynomial/PolynomialShape.h"
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
 #include "vsdk/toolkit/environment/raycasting/geometry/element/PriorityQueuePool.txx"
 
 bool
-RayCastingBody::doIntersectionFirstHitViaCrossings(RayWithTracingState *ray, IntersectionCandidate &out)
+PovrayBody::doIntersectionFirstHitViaCrossings(RayWithTracingState *ray, IntersectionCandidate &out)
 {
     java::PriorityQueue<IntersectionCandidate> * const depthQueue =
         ray->getIntersectionQueuePool()->pop(128);
@@ -45,15 +47,15 @@ RayCastingBody::doIntersectionFirstHitViaCrossings(RayWithTracingState *ray, Int
 }
 
 int
-RayCastingBody::doIntersectionForAllRayCrossings(
+PovrayBody::doIntersectionForAllRayCrossings(
     RayWithTracingState *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
     bool intersectionFound;
     bool anyIntersectionFound;
-    RayCastingBody *boundingShape;
-    RayCastingBody *clippingShape;
+    PovrayBody *boundingShape;
+    PovrayBody *clippingShape;
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
     GeometryStatistics &stats = *ray->getGeometryStatistics();
 
@@ -174,10 +176,10 @@ RayCastingBody::doIntersectionForAllRayCrossings(
 }
 
 int
-RayCastingBody::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
+PovrayBody::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 {
-    RayCastingBody *boundingShape;
-    RayCastingBody *clippingShape;
+    PovrayBody *boundingShape;
+    PovrayBody *clippingShape;
     const Vector3Dd localPoint = worldPointToLocal(point);
 
     // Bounding/clipping shapes live in this body's outer frame (the frame
@@ -209,7 +211,7 @@ RayCastingBody::doContainmentTest(const Vector3Dd &point, double distanceToleran
 }
 
 void
-RayCastingBody::doExtraInformation(const RayWithTracingState &ray, double t, RayCastingHit *hit)
+PovrayBody::doExtraInformation(const RayWithTracingState &ray, double t, RayCastingHit *hit)
 {
     PostRayHitElement *detailGeometry = hit->hitGeometry != nullptr ? hit->hitGeometry : getGeometry();
     const bool bakedLeaf = bakedTransformFolded;
@@ -262,8 +264,8 @@ RayCastingBody::doExtraInformation(const RayWithTracingState &ray, double t, Ray
     }
 }
 
-RayCastingBody::RayCastingBody(const RayCastingBody &other) :
-    SimpleBody(),
+PovrayBody::PovrayBody(const PovrayBody &other) :
+    SceneSolid(),
     geometryMaterial(other.getGeometryMaterial() != nullptr ?
         other.getGeometryMaterial()->copy() : nullptr),
     transformation(other.getTransformation() != nullptr ?
@@ -287,15 +289,15 @@ RayCastingBody::RayCastingBody(const RayCastingBody &other) :
         static_cast<RayCastingGeometry*>(other.getGeometry()->copy()) : nullptr);
     for (long int i = other.getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShapes.add(
-            (RayCastingBody *)other.getBoundingShapes()[i]->copy());
+            (PovrayBody *)other.getBoundingShapes()[i]->copy());
     }
     for (long int i = other.getClippingShapes().size() - 1; i >= 0; i--) {
         clippingShapes.add(
-            (RayCastingBody *)other.getClippingShapes()[i]->copy());
+            (PovrayBody *)other.getClippingShapes()[i]->copy());
     }
 }
 
-RayCastingBody::~RayCastingBody()
+PovrayBody::~PovrayBody()
 {
     delete geometryMaterial;
     delete transformation;
@@ -325,7 +327,7 @@ RayCastingBody::~RayCastingBody()
 }
 
 void
-RayCastingBody::ensureMatrices()
+PovrayBody::ensureMatrices()
 {
     if (transformation == nullptr) {
         transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
@@ -334,7 +336,7 @@ RayCastingBody::ensureMatrices()
 }
 
 void
-RayCastingBody::ensureGeometryMatrices()
+PovrayBody::ensureGeometryMatrices()
 {
     if (geometryTransformation == nullptr) {
         geometryTransformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
@@ -343,7 +345,7 @@ RayCastingBody::ensureGeometryMatrices()
 }
 
 void
-RayCastingBody::applyTranslationToBodyTransform(Vector3Dd *vector)
+PovrayBody::applyTranslationToBodyTransform(Vector3Dd *vector)
 {
     markModified();
     ensureMatrices();
@@ -357,7 +359,7 @@ RayCastingBody::applyTranslationToBodyTransform(Vector3Dd *vector)
 }
 
 void
-RayCastingBody::applyTranslationToGeometryTransform(Vector3Dd *vector)
+PovrayBody::applyTranslationToGeometryTransform(Vector3Dd *vector)
 {
     markModified();
     ensureGeometryMatrices();
@@ -372,7 +374,7 @@ RayCastingBody::applyTranslationToGeometryTransform(Vector3Dd *vector)
 }
 
 void
-RayCastingBody::applyRotationToBodyTransform(Vector3Dd *vector)
+PovrayBody::applyRotationToBodyTransform(Vector3Dd *vector)
 {
     markModified();
     ensureMatrices();
@@ -385,7 +387,7 @@ RayCastingBody::applyRotationToBodyTransform(Vector3Dd *vector)
 }
 
 void
-RayCastingBody::applyRotationToGeometryTransform(Vector3Dd *vector)
+PovrayBody::applyRotationToGeometryTransform(Vector3Dd *vector)
 {
     markModified();
     ensureGeometryMatrices();
@@ -399,7 +401,7 @@ RayCastingBody::applyRotationToGeometryTransform(Vector3Dd *vector)
 }
 
 void
-RayCastingBody::applyScaleToBodyTransform(Vector3Dd *vector)
+PovrayBody::applyScaleToBodyTransform(Vector3Dd *vector)
 {
     markModified();
     ensureMatrices();
@@ -413,7 +415,7 @@ RayCastingBody::applyScaleToBodyTransform(Vector3Dd *vector)
 }
 
 void
-RayCastingBody::applyScaleToGeometryTransform(Vector3Dd *vector)
+PovrayBody::applyScaleToGeometryTransform(Vector3Dd *vector)
 {
     markModified();
     ensureGeometryMatrices();
@@ -428,7 +430,7 @@ RayCastingBody::applyScaleToGeometryTransform(Vector3Dd *vector)
 }
 
 void
-RayCastingBody::applyOwnedTranslation(Vector3Dd *vector)
+PovrayBody::applyOwnedTranslation(Vector3Dd *vector)
 {
     if (this->getGeometryMaterial() != nullptr) {
         geometryMaterial = this->getGeometryMaterial()->translate(vector);
@@ -440,7 +442,7 @@ RayCastingBody::applyOwnedTranslation(Vector3Dd *vector)
 }
 
 void
-RayCastingBody::applyOwnedRotation(Vector3Dd *vector)
+PovrayBody::applyOwnedRotation(Vector3Dd *vector)
 {
     if (this->getGeometryMaterial() != nullptr) {
         geometryMaterial = this->getGeometryMaterial()->rotate(vector);
@@ -452,7 +454,7 @@ RayCastingBody::applyOwnedRotation(Vector3Dd *vector)
 }
 
 void
-RayCastingBody::applyOwnedScale(Vector3Dd *vector)
+PovrayBody::applyOwnedScale(Vector3Dd *vector)
 {
     if (this->getGeometryMaterial() != nullptr) {
         geometryMaterial = this->getGeometryMaterial()->scale(vector);
@@ -464,7 +466,7 @@ RayCastingBody::applyOwnedScale(Vector3Dd *vector)
 }
 
 void
-RayCastingBody::propagateOwnedTranslation(Vector3Dd *vector)
+PovrayBody::propagateOwnedTranslation(Vector3Dd *vector)
 {
     for (long int i = boundingShapes.size() - 1; i >= 0; i--) {
         boundingShapes[i]->propagateOwnedTranslation(vector);
@@ -476,7 +478,7 @@ RayCastingBody::propagateOwnedTranslation(Vector3Dd *vector)
 }
 
 void
-RayCastingBody::propagateOwnedRotation(Vector3Dd *vector)
+PovrayBody::propagateOwnedRotation(Vector3Dd *vector)
 {
     for (long int i = boundingShapes.size() - 1; i >= 0; i--) {
         boundingShapes[i]->propagateOwnedRotation(vector);
@@ -488,7 +490,7 @@ RayCastingBody::propagateOwnedRotation(Vector3Dd *vector)
 }
 
 void
-RayCastingBody::propagateOwnedScale(Vector3Dd *vector)
+PovrayBody::propagateOwnedScale(Vector3Dd *vector)
 {
     for (long int i = boundingShapes.size() - 1; i >= 0; i--) {
         boundingShapes[i]->propagateOwnedScale(vector);
@@ -500,28 +502,28 @@ RayCastingBody::propagateOwnedScale(Vector3Dd *vector)
 }
 
 Vector3Dd
-RayCastingBody::objectPointToGeometryLocal(const Vector3Dd &point) const
+PovrayBody::objectPointToGeometryLocal(const Vector3Dd &point) const
 {
     return geometryTransformationInverse != nullptr ?
         geometryTransformationInverse->transformPoint(point) : point;
 }
 
 Vector3Dd
-RayCastingBody::geometryPointToObjectLocal(const Vector3Dd &point) const
+PovrayBody::geometryPointToObjectLocal(const Vector3Dd &point) const
 {
     return geometryTransformation != nullptr ?
         geometryTransformation->transformPoint(point) : point;
 }
 
 Vector3Dd
-RayCastingBody::objectDirectionToGeometryLocal(const Vector3Dd &direction) const
+PovrayBody::objectDirectionToGeometryLocal(const Vector3Dd &direction) const
 {
     return geometryTransformationInverse != nullptr ?
         geometryTransformationInverse->transformDirection(direction) : direction;
 }
 
 Vector3Dd
-RayCastingBody::geometryNormalToObjectLocal(const Vector3Dd &normal) const
+PovrayBody::geometryNormalToObjectLocal(const Vector3Dd &normal) const
 {
     if (geometryTransformationInverse == nullptr) {
         return normal;
@@ -531,27 +533,27 @@ RayCastingBody::geometryNormalToObjectLocal(const Vector3Dd &normal) const
 }
 
 Vector3Dd
-RayCastingBody::worldPointToLocal(const Vector3Dd &point) const
+PovrayBody::worldPointToLocal(const Vector3Dd &point) const
 {
     return transformationInverse != nullptr ?
         transformationInverse->transformPoint(point) : point;
 }
 
 Vector3Dd
-RayCastingBody::localPointToWorld(const Vector3Dd &point) const
+PovrayBody::localPointToWorld(const Vector3Dd &point) const
 {
     return transformation != nullptr ? transformation->transformPoint(point) : point;
 }
 
 Vector3Dd
-RayCastingBody::worldDirectionToLocal(const Vector3Dd &direction) const
+PovrayBody::worldDirectionToLocal(const Vector3Dd &direction) const
 {
     return transformationInverse != nullptr ?
         transformationInverse->transformDirection(direction) : direction;
 }
 
 Vector3Dd
-RayCastingBody::localNormalToWorld(const Vector3Dd &normal) const
+PovrayBody::localNormalToWorld(const Vector3Dd &normal) const
 {
     if (transformationInverse == nullptr) {
         return normal;
@@ -560,7 +562,7 @@ RayCastingBody::localNormalToWorld(const Vector3Dd &normal) const
 }
 
 void
-RayCastingBody::detachOwnership()
+PovrayBody::detachOwnership()
 {
     geometry = nullptr;
     geometryMaterial = nullptr;
@@ -575,13 +577,13 @@ RayCastingBody::detachOwnership()
 }
 
 void *
-RayCastingBody::copy()
+PovrayBody::copy()
 {
-    return new RayCastingBody(*this);
+    return new PovrayBody(*this);
 }
 
 void
-RayCastingBody::translate(Vector3Dd *vector)
+PovrayBody::translate(Vector3Dd *vector)
 {
     applyTranslationToBodyTransform(vector);
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
@@ -598,7 +600,7 @@ RayCastingBody::translate(Vector3Dd *vector)
 }
 
 void
-RayCastingBody::translateOwnerOnly(Vector3Dd *vector)
+PovrayBody::translateOwnerOnly(Vector3Dd *vector)
 {
     applyTranslationToBodyTransform(vector);
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
@@ -611,7 +613,7 @@ RayCastingBody::translateOwnerOnly(Vector3Dd *vector)
 }
 
 void
-RayCastingBody::translateGeometryLayer(Vector3Dd *vector)
+PovrayBody::translateGeometryLayer(Vector3Dd *vector)
 {
     applyTranslationToGeometryTransform(vector);
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
@@ -624,7 +626,7 @@ RayCastingBody::translateGeometryLayer(Vector3Dd *vector)
 }
 
 void
-RayCastingBody::rotate(Vector3Dd *vector)
+PovrayBody::rotate(Vector3Dd *vector)
 {
     applyRotationToBodyTransform(vector);
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
@@ -638,7 +640,7 @@ RayCastingBody::rotate(Vector3Dd *vector)
 }
 
 void
-RayCastingBody::rotateOwnerOnly(Vector3Dd *vector)
+PovrayBody::rotateOwnerOnly(Vector3Dd *vector)
 {
     applyRotationToBodyTransform(vector);
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
@@ -651,7 +653,7 @@ RayCastingBody::rotateOwnerOnly(Vector3Dd *vector)
 }
 
 void
-RayCastingBody::rotateGeometryLayer(Vector3Dd *vector)
+PovrayBody::rotateGeometryLayer(Vector3Dd *vector)
 {
     applyRotationToGeometryTransform(vector);
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
@@ -664,7 +666,7 @@ RayCastingBody::rotateGeometryLayer(Vector3Dd *vector)
 }
 
 void
-RayCastingBody::scale(Vector3Dd *vector)
+PovrayBody::scale(Vector3Dd *vector)
 {
     applyScaleToBodyTransform(vector);
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
@@ -678,7 +680,7 @@ RayCastingBody::scale(Vector3Dd *vector)
 }
 
 void
-RayCastingBody::scaleOwnerOnly(Vector3Dd *vector)
+PovrayBody::scaleOwnerOnly(Vector3Dd *vector)
 {
     applyScaleToBodyTransform(vector);
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
@@ -691,7 +693,7 @@ RayCastingBody::scaleOwnerOnly(Vector3Dd *vector)
 }
 
 void
-RayCastingBody::scaleGeometryLayer(Vector3Dd *vector)
+PovrayBody::scaleGeometryLayer(Vector3Dd *vector)
 {
     applyScaleToGeometryTransform(vector);
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
@@ -704,10 +706,10 @@ RayCastingBody::scaleGeometryLayer(Vector3Dd *vector)
 }
 
 void
-RayCastingBody::invert()
+PovrayBody::invert()
 {
     markModified();
-    RayCastingBody *localShape;
+    PovrayBody *localShape;
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
@@ -724,7 +726,7 @@ RayCastingBody::invert()
     }
 }
 
-Matrix4x4d RayCastingBody::getAffinePlacement() const
+Matrix4x4d PovrayBody::getAffinePlacement() const
 {
     // POV stores row-vector transforms; the scene contract uses column vectors.
     const Matrix4x4d outer = transformation ? transformation->transpose() : Matrix4x4d::identityMatrix();
@@ -732,7 +734,7 @@ Matrix4x4d RayCastingBody::getAffinePlacement() const
     return outer.multiply(inner);
 }
 
-AffinePlacementStatus RayCastingBody::setAffinePlacement(const Matrix4x4d& forward,
+AffinePlacementStatus PovrayBody::setAffinePlacement(const Matrix4x4d& forward,
     const Matrix4x4d& inverse)
 {
     const AffinePlacementStatus input = AffinePlacement::validate(forward, inverse);
@@ -767,14 +769,14 @@ AffinePlacementStatus RayCastingBody::setAffinePlacement(const Matrix4x4d& forwa
     return AffinePlacementStatus::Valid;
 }
 
-void RayCastingBody::resetAffinePlacement()
+void PovrayBody::resetAffinePlacement()
 {
     const AffinePlacementStatus status = setAffinePlacement(Matrix4x4d::identityMatrix(), Matrix4x4d::identityMatrix());
     if (status != AffinePlacementStatus::Valid)
         throw java::IllegalStateException("Cannot reset this layered POV placement");
 }
 
-AffinePlacementStatus RayCastingBody::queryAffinePlacement(Matrix4x4d& forward, Matrix4x4d& inverse) const
+AffinePlacementStatus PovrayBody::queryAffinePlacement(Matrix4x4d& forward, Matrix4x4d& inverse) const
 {
     if ((transformation == nullptr) != (transformationInverse == nullptr) ||
         (geometryTransformation == nullptr) != (geometryTransformationInverse == nullptr))
@@ -786,14 +788,16 @@ AffinePlacementStatus RayCastingBody::queryAffinePlacement(Matrix4x4d& forward, 
     return AffinePlacement::validate(forward, inverse);
 }
 
-bool RayCastingBody::queryCoreSolid(const Geometry*& intrinsic, bool& inverted) const
+bool PovrayBody::queryCoreSolid(const Geometry*& intrinsic, bool& inverted) const
 {
     intrinsic=nullptr; inverted=false;
-    if (typeid(*this)!=typeid(RayCastingBody)) return false;
+    if (!preservesCoreSolid()) return false;
     return queryWrappedSolid(getGeometry(),intrinsic,inverted);
 }
 
-bool RayCastingBody::queryWrappedSolid(const RayCastingGeometry* wrapper, const Geometry*& intrinsic, bool& inverted)
+bool PovrayBody::preservesCoreSolid() const { return typeid(*this)==typeid(PovrayBody); }
+
+bool PovrayBody::queryWrappedSolid(const RayCastingGeometry* wrapper, const Geometry*& intrinsic, bool& inverted)
 {
     intrinsic=nullptr; inverted=false;
     if (!wrapper) return false;
@@ -812,16 +816,29 @@ bool RayCastingBody::queryWrappedSolid(const RayCastingGeometry* wrapper, const 
     if (quadric && typeid(*quadric)==typeid(Quadric)) { intrinsic=quadric->getIntrinsicGeometry(); return true; }
     const RayCastingInfinitePlane* plane=dynamic_cast<const RayCastingInfinitePlane*>(wrapper);
     if (plane && typeid(*plane)==typeid(RayCastingInfinitePlane)) { intrinsic=plane->getIntrinsicGeometry(); return true; }
+    const PolynomialShape* polynomial=dynamic_cast<const PolynomialShape*>(wrapper);
+    if (polynomial && typeid(*polynomial)==typeid(PolynomialShape)) {
+        intrinsic=polynomial->getIntrinsicGeometry(); inverted=polynomial->isInverted();
+        return true;
+    }
+    const Blob* blob=dynamic_cast<const Blob*>(wrapper);
+    if (blob && typeid(*blob)==typeid(Blob)) {
+        intrinsic=blob->getIntrinsicGeometry(); inverted=blob->isInverted();
+        return true;
+    }
+    // The body places the grid; PovRay ignores inverse on height fields.
+    const HeightField* field=dynamic_cast<const HeightField*>(wrapper);
+    if (field && typeid(*field)==typeid(HeightField)) { intrinsic=field->getIntrinsicGeometry(); return true; }
     return false;
 }
 
-bool RayCastingBody::querySolidCore(const Geometry*& intrinsic, bool& inverted) const
+bool PovrayBody::queryDenotedSolid(const Geometry*& intrinsic, bool& inverted) const
 {
     if (!boundingShapes.isEmpty() || !clippingShapes.isEmpty()) { intrinsic=nullptr; inverted=false; return false; }
     return queryCoreSolid(intrinsic,inverted);
 }
 
-void RayCastingBody::getCoreSolidWorldBounds(GeometryBounds& result) const
+void PovrayBody::getCoreSolidWorldBounds(GeometryBounds& result) const
 {
     const Geometry* intrinsic=nullptr; bool inverted=false;
     Matrix4x4d forward,inverse;
@@ -835,14 +852,14 @@ void RayCastingBody::getCoreSolidWorldBounds(GeometryBounds& result) const
     result=local.transformed(forward);
 }
 
-bool RayCastingBody::canMoveRegions(const Matrix4x4d& delta, const Matrix4x4d& deltaInverse) const
+bool PovrayBody::canMoveRegions(const Matrix4x4d& delta, const Matrix4x4d& deltaInverse) const
 {
     for (int list=0;list<2;++list) {
-        const java::ArrayList<RayCastingBody*>& regions=list==0 ? boundingShapes : clippingShapes;
+        const java::ArrayList<PovrayBody*>& regions=list==0 ? boundingShapes : clippingShapes;
         for (long int i=0;i<regions.size();++i) {
-            const RayCastingBody* region=regions[i];
+            const PovrayBody* region=regions[i];
             // Only plain bodies are known to apply a placement atomically.
-            if (!region || typeid(*region)!=typeid(RayCastingBody)) return false;
+            if (!region || typeid(*region)!=typeid(PovrayBody)) return false;
             Matrix4x4d forward,inverse;
             if (region->queryAffinePlacement(forward,inverse)!=AffinePlacementStatus::Valid ||
                 AffinePlacement::validate(delta.multiply(forward),inverse.multiply(deltaInverse))!=AffinePlacementStatus::Valid ||
@@ -852,10 +869,10 @@ bool RayCastingBody::canMoveRegions(const Matrix4x4d& delta, const Matrix4x4d& d
     return true;
 }
 
-void RayCastingBody::moveRegions(const Matrix4x4d& delta, const Matrix4x4d& deltaInverse)
+void PovrayBody::moveRegions(const Matrix4x4d& delta, const Matrix4x4d& deltaInverse)
 {
     for (int list=0;list<2;++list) {
-        java::ArrayList<RayCastingBody*>& regions=list==0 ? boundingShapes : clippingShapes;
+        java::ArrayList<PovrayBody*>& regions=list==0 ? boundingShapes : clippingShapes;
         for (long int i=0;i<regions.size();++i) {
             Matrix4x4d forward,inverse;
             regions[i]->queryAffinePlacement(forward,inverse);
@@ -864,7 +881,7 @@ void RayCastingBody::moveRegions(const Matrix4x4d& delta, const Matrix4x4d& delt
     }
 }
 
-bool RayCastingBody::boundingRegionsVerified() const
+bool PovrayBody::boundingRegionsVerified() const
 {
     if (boundingShapes.isEmpty()) return true;
     GeometryBounds core;
@@ -878,7 +895,7 @@ bool RayCastingBody::boundingRegionsVerified() const
     return true;
 }
 
-GeometryContainment RayCastingBody::classifyCoreCertified(const Vector3Dd& point, double tolerance) const
+GeometryContainment PovrayBody::classifyCoreCertified(const Vector3Dd& point, double tolerance) const
 {
     if (!java::Double::isFinite(point.x()) || !java::Double::isFinite(point.y()) ||
         !java::Double::isFinite(point.z()) || !java::Double::isFinite(tolerance) || tolerance<0)
@@ -893,19 +910,7 @@ GeometryContainment RayCastingBody::classifyCoreCertified(const Vector3Dd& point
     return classifyPlacedPointCertified(*intrinsic,inverted,forward,inverse,point,tolerance);
 }
 
-GeometryContainment RayCastingBody::classifyWorldBoxCertified(const GeometryBounds& box) const
-{
-    const Geometry* intrinsic=nullptr; bool inverted=false;
-    if (!querySolidCore(intrinsic,inverted)) return GeometryContainment::Unsupported;
-    Matrix4x4d forward,inverse;
-    const AffinePlacementStatus placement=queryAffinePlacement(forward,inverse);
-    if (placement==AffinePlacementStatus::Invalid) return GeometryContainment::InvalidInput;
-    if (placement==AffinePlacementStatus::Unsupported) return GeometryContainment::Unsupported;
-    if (placement==AffinePlacementStatus::Indeterminate) return GeometryContainment::Indeterminate;
-    return classifyPlacedBoxCertified(*intrinsic,inverted,inverse,box);
-}
-
-void RayCastingBody::getSolidWorldBounds(GeometryBounds& result) const
+void PovrayBody::getSolidWorldBounds(GeometryBounds& result) const
 {
     // Clipping only removes material, so the core bounds intersected with each
     // clip region's solid bounds still enclose the body. An unverified
@@ -920,80 +925,7 @@ void RayCastingBody::getSolidWorldBounds(GeometryBounds& result) const
     }
 }
 
-const Geometry* RayCastingBody::getSolidEquivalenceGeometry() const
-{
-    const Geometry* intrinsic=nullptr; bool inverted=false;
-    return querySolidCore(intrinsic,inverted) && !inverted ? intrinsic : nullptr;
-}
-
-GeometryDistanceStatus RayCastingBody::queryCertifiedSphere(const Sphere*& sphere, bool& inverted,
-    Matrix4x4d& forward, Matrix4x4d& inverse) const
-{
-    // A clipped or bounded body has scene-specific surface semantics. Do not
-    // pretend its nearest surface is the unmodified sphere.
-    if (!boundingShapes.isEmpty() || !clippingShapes.isEmpty()) return GeometryDistanceStatus::Unsupported;
-    const NativeGeometryBinding* binding=dynamic_cast<const NativeGeometryBinding*>(getGeometry());
-    if (binding==nullptr) return GeometryDistanceStatus::Unsupported;
-    sphere=dynamic_cast<const Sphere*>(binding->getIntrinsicGeometry());
-    if (sphere==nullptr) return GeometryDistanceStatus::Unsupported;
-    inverted=binding->isInverted();
-    const AffinePlacementStatus placement=queryAffinePlacement(forward,inverse);
-    if (placement==AffinePlacementStatus::Invalid) return GeometryDistanceStatus::InvalidInput;
-    if (placement==AffinePlacementStatus::Unsupported) return GeometryDistanceStatus::Unsupported;
-    if (placement==AffinePlacementStatus::Indeterminate) return GeometryDistanceStatus::Indeterminate;
-    return GeometryDistanceStatus::Valid;
-}
-
-GeometryContainment RayCastingBody::orientCertifiedSide(GeometryContainment side, bool inverted)
-{
-    if (inverted && side==GeometryContainment::Inside) return GeometryContainment::Outside;
-    if (inverted && side==GeometryContainment::Outside) return GeometryContainment::Inside;
-    return side;
-}
-
-GeometryDistanceStatus RayCastingBody::estimateBoundaryDistance(const Vector3Dd& point,
-    double& distance, double& estimatedError) const
-{
-    const Sphere* sphere=nullptr; bool inverted=false;
-    Matrix4x4d forward,inverse;
-    const GeometryDistanceStatus availability=queryCertifiedSphere(sphere,inverted,forward,inverse);
-    if (availability!=GeometryDistanceStatus::Valid) return availability;
-    return AffineEllipsoidDistance::query(point,sphere->getRadius(),forward,distance,estimatedError);
-}
-
-GeometryDistanceStatus RayCastingBody::encloseBoundaryDistance(const Vector3Dd& point,
-    const Vector3Dd& localDirection, GeometryContainment& side, double& lower, double& upper) const
-{
-    const Sphere* sphere=nullptr; bool inverted=false;
-    Matrix4x4d forward,inverse;
-    const GeometryDistanceStatus availability=queryCertifiedSphere(sphere,inverted,forward,inverse);
-    if (availability!=GeometryDistanceStatus::Valid) return availability;
-    GeometryContainment candidateSide=GeometryContainment::Indeterminate;
-    double candidateLower=0,candidateUpper=0;
-    const GeometryDistanceStatus status=AffineEllipsoidDistanceBounds::query(point,sphere->getRadius(),
-        forward,localDirection,candidateSide,candidateLower,candidateUpper);
-    if (status!=GeometryDistanceStatus::Valid) return status;
-    side=orientCertifiedSide(candidateSide,inverted); lower=candidateLower; upper=candidateUpper;
-    return GeometryDistanceStatus::Valid;
-}
-
-GeometryDistanceStatus RayCastingBody::encloseMinimumBoundaryDistance(const Vector3Dd& point,
-    double maxWidth, GeometryContainment& side, double& lower, double& upper) const
-{
-    const Sphere* sphere=nullptr; bool inverted=false;
-    Matrix4x4d forward,inverse;
-    const GeometryDistanceStatus availability=queryCertifiedSphere(sphere,inverted,forward,inverse);
-    if (availability!=GeometryDistanceStatus::Valid) return availability;
-    GeometryContainment candidateSide=GeometryContainment::Indeterminate;
-    double candidateLower=0,candidateUpper=0;
-    const GeometryDistanceStatus status=AffineEllipsoidMinimumDistance::query(point,sphere->getRadius(),
-        forward,inverse,maxWidth,candidateSide,candidateLower,candidateUpper);
-    if (status!=GeometryDistanceStatus::Valid) return status;
-    side=orientCertifiedSide(candidateSide,inverted); lower=candidateLower; upper=candidateUpper;
-    return GeometryDistanceStatus::Valid;
-}
-
-GeometryContainment RayCastingBody::classifyPointCertified(const Vector3Dd& point, double tolerance) const
+GeometryContainment PovrayBody::classifyPointCertified(const Vector3Dd& point, double tolerance) const
 {
     if (!java::Double::isFinite(point.x()) || !java::Double::isFinite(point.y()) ||
         !java::Double::isFinite(point.z()) || !java::Double::isFinite(tolerance) || tolerance<0)
@@ -1015,7 +947,7 @@ GeometryContainment RayCastingBody::classifyPointCertified(const Vector3Dd& poin
     return result;
 }
 
-bool RayCastingBody::buildClippedExpression(const CsgOperandView& core, CsgTree& expression,
+bool PovrayBody::buildClippedExpression(const CsgOperandView& core, CsgTree& expression,
     java::ArrayList<CsgBodyOperand*>& views) const
 {
     if (!expression.addOperand(core)) return false;
@@ -1029,7 +961,7 @@ bool RayCastingBody::buildClippedExpression(const CsgOperandView& core, CsgTree&
 }
 
 AxisAlignedBoundingBox
-RayCastingBody::getAABB() const
+PovrayBody::getAABB() const
 {
     // Bounding shapes live in this body's object-local space, exactly like the
     // object-local ray passed to them in doIntersectionForAllRayCrossings().
@@ -1065,11 +997,11 @@ RayCastingBody::getAABB() const
 
 #include "vsdk/toolkit/environment/raycasting/geometry/element/RayCastingQueryAdapter.h"
 
-bool RayCastingBody::doIntersectionFirstHit(const Ray& source, RayHit* out) const
+bool PovrayBody::doIntersectionFirstHit(const Ray& source, RayHit* out) const
 {
     RayCastingQueryAdapter context(source);
     IntersectionCandidate candidate;
-    auto* body = const_cast<RayCastingBody*>(this);
+    auto* body = const_cast<PovrayBody*>(this);
     if (!body->doIntersectionFirstHitViaCrossings(&context.ray, candidate)) return false;
     RayCastingHit detail = RayCastingHit::fromCandidate(candidate,
         out ? out->getRequiredDetailMask() : RayCastingHit::DETAIL_NONE);
@@ -1078,24 +1010,24 @@ bool RayCastingBody::doIntersectionFirstHit(const Ray& source, RayHit* out) cons
     return true;
 }
 
-void RayCastingBody::doExtraInformation(const Ray& source, double t, RayHit* out) const
+void PovrayBody::doExtraInformation(const Ray& source, double t, RayHit* out) const
 {
     if (!out) return;
     RayCastingQueryAdapter context(source);
     IntersectionCandidate candidate;
-    if (!context.findCrossing(const_cast<RayCastingBody*>(this), t, candidate)) return;
+    if (!context.findCrossing(const_cast<PovrayBody*>(this), t, candidate)) return;
     RayCastingHit detail = RayCastingHit::fromCandidate(candidate, out->getRequiredDetailMask());
-    const_cast<RayCastingBody*>(this)->doExtraInformation(context.ray, t, &detail);
+    const_cast<PovrayBody*>(this)->doExtraInformation(context.ray, t, &detail);
     RayCastingQueryAdapter::exportHit(source, detail, out);
 }
 
-RaySolidQueryStatus RayCastingBody::classifyCoreRay(const Ray& ray,
+RaySolidQueryStatus PovrayBody::classifyCoreRay(const Ray& ray,
     const RayCrossingQuery& query, RaySolidClassification& result) const
 {
-    return SimpleBody::classifyRay(ray,query,result);
+    return SceneSolid::classifyRay(ray,query,result);
 }
 
-RaySolidQueryStatus RayCastingBody::classifyRay(const Ray& ray,
+RaySolidQueryStatus PovrayBody::classifyRay(const Ray& ray,
     const RayCrossingQuery& query, RaySolidClassification& result) const
 {
     result.clear();
@@ -1116,7 +1048,7 @@ RaySolidQueryStatus RayCastingBody::classifyRay(const Ray& ray,
     return status;
 }
 
-RayCrossingSupport RayCastingBody::emitRayCrossings(const Ray& source,
+RayCrossingSupport PovrayBody::emitRayCrossings(const Ray& source,
     const RayCrossingQuery& query, RayCrossingSink& sink) const
 {
     const NativeGeometryBinding* binding = dynamic_cast<const NativeGeometryBinding*>(geometry);
@@ -1124,10 +1056,10 @@ RayCrossingSupport RayCastingBody::emitRayCrossings(const Ray& source,
         dynamic_cast<const RayCastingBox*>(geometry) || dynamic_cast<const Quadric*>(geometry) ||
         dynamic_cast<const RayCastingInfinitePlane*>(geometry);
     if (typedLeaf && boundingShapes.size() == 0 && clippingShapes.size() == 0)
-        return SimpleBody::emitRayCrossings(source, query, sink);
+        return SceneSolid::emitRayCrossings(source, query, sink);
     RayCastingQueryAdapter context(source);
     auto* queue = context.pool.pop(128);
-    const_cast<RayCastingBody*>(this)->doIntersectionForAllRayCrossings(&context.ray, queue);
+    const_cast<PovrayBody*>(this)->doIntersectionForAllRayCrossings(&context.ray, queue);
     while (queue->size() > 0) {
         const IntersectionCandidate candidate = queue->poll();
         const double t = candidate.getIntersection().t;
@@ -1136,7 +1068,7 @@ RayCrossingSupport RayCastingBody::emitRayCrossings(const Ray& source,
             candidate.getAttributes().getHitGeometry()),
             RayCrossing::Kind::Unclassified);
         event.surfaceIndex = candidate.getAttributes().getSurfaceIndex();
-        event.body = dynamic_cast<const SimpleBody*>(candidate.getAttributes().getHitBody());
+        event.body = dynamic_cast<const SceneSolid*>(candidate.getAttributes().getHitBody());
         event.material = candidate.getAttributes().getMaterial();
         sink.crossing(event);
     }
@@ -1144,45 +1076,17 @@ RayCrossingSupport RayCastingBody::emitRayCrossings(const Ray& source,
     return RayCrossingSupport::Supported;
 }
 
-SimpleMaterial* RayCastingBody::getMaterial() const
-{
-    Material* surface = getSurfaceMaterial();
-    auto* simple = dynamic_cast<SimpleMaterial*>(surface);
-    if (surface && !simple) {
-        throw std::invalid_argument("This material requires its application's shader pipeline");
-    }
-    return simple;
-}
-
-void RayCastingBody::setGeometry(Geometry* value)
+void PovrayBody::setGeometry(Geometry* value)
 {
     if (value && !dynamic_cast<RayCastingGeometry*>(value))
-        throw std::invalid_argument("RayCastingBody requires a RayCastingGeometry");
-    SimpleBody::setGeometry(value);
+        throw std::invalid_argument("PovrayBody requires a RayCastingGeometry");
+    SceneSolid::setGeometry(value);
 }
 
-void RayCastingBody::setGeometryReference(Geometry* value)
+void PovrayBody::setGeometryReference(Geometry* value)
 {
     if (value && !dynamic_cast<RayCastingGeometry*>(value))
-        throw std::invalid_argument("RayCastingBody requires a RayCastingGeometry");
-    SimpleBody::setGeometryReference(value);
+        throw std::invalid_argument("PovrayBody requires a RayCastingGeometry");
+    SceneSolid::setGeometryReference(value);
 }
 
-void RayCastingBody::setPosition(const Vector3Dd& position)
-{
-    Vector3Dd delta = position.subtract(getPosition());
-    translateOwnerOnly(&delta);
-}
-
-Vector3Dd RayCastingBody::getScale() const
-{ throw std::logic_error("Affine body: use getTransformationMatrix()"); }
-Matrix4x4d RayCastingBody::getRotation() const
-{ throw std::logic_error("Affine body: use getTransformationMatrix()"); }
-Matrix4x4d RayCastingBody::getRotationInverse() const
-{ throw std::logic_error("Affine body: use getTransformationMatrix().invert()"); }
-void RayCastingBody::setScale(const Vector3Dd&)
-{ throw std::logic_error("Affine body: use scale() to compose a placement"); }
-void RayCastingBody::setRotation(const Matrix4x4d&)
-{ throw std::logic_error("Affine body: use rotate() to compose a placement"); }
-void RayCastingBody::setRotationInverse(const Matrix4x4d&)
-{ throw std::logic_error("Affine body: use rotate(); inverse is maintained automatically"); }

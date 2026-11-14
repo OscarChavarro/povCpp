@@ -8,7 +8,7 @@
 #include "java/util/PriorityQueue.txx"
 
 void
-ScenePostProcessor::linkLights(RayCastingBody *object, java::ArrayList<Light*> &lights)
+ScenePostProcessor::linkLights(PovrayBody *object, java::ArrayList<Light*> &lights)
 {
     java::ArrayList<const Matrix4x4d*> transforms(8);
     ScenePostProcessor::linkLights(object, lights, transforms);
@@ -44,7 +44,7 @@ ScenePostProcessor::applyTransformsToLight(
 
 void
 ScenePostProcessor::linkLights(
-    RayCastingBody *object,
+    PovrayBody *object,
     java::ArrayList<Light*> &lights,
     java::ArrayList<const Matrix4x4d*> &transforms)
 {
@@ -57,7 +57,7 @@ ScenePostProcessor::linkLights(
     }
 
     if (RayCastingComposite *composite = dynamic_cast<RayCastingComposite *>(object)) {
-        java::ArrayList<RayCastingBody*> &simpleBodies = composite->getSimpleBodies();
+        java::ArrayList<PovrayBody*> &simpleBodies = composite->getSimpleBodies();
         for (long int i = 0; i < simpleBodies.size(); i++) {
             ScenePostProcessor::linkLights(simpleBodies[i], lights, transforms);
         }
@@ -93,7 +93,7 @@ ScenePostProcessor::linkLightsInShape(
     java::ArrayList<const Matrix4x4d*> &transforms)
 {
     if (ConstructiveSolidGeometry *csg = dynamic_cast<ConstructiveSolidGeometry *>(shape)) {
-        java::ArrayList<CsgOperand*> &operands = csg->getOperands();
+        const java::ArrayList<CsgOperand*> &operands = csg->getOperands();
         for (long int i = 0; i < operands.size(); i++) {
             ScenePostProcessor::linkLightsInOperand(operands[i], lights, transforms);
         }

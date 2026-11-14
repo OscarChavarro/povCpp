@@ -3,6 +3,7 @@
 #include "vsdk/toolkit/environment/raycasting/geometry/element/GeometryConfig.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/element/IntersectionCandidate.h"
 #include "vsdk/toolkit/environment/raycasting/geometry/volume/Quadric.h"
+#include "vsdk/toolkit/environment/geometry/volume/QuadricRayExpansion.h"
 #include "vsdk/toolkit/environment/geometry/volume/QuadricSurface.h"
 #include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
 #include "java/util/PriorityQueue.txx"
@@ -147,10 +148,6 @@ int
 Quadric::intersectQuadric(
     RayWithTracingState *ray, Quadric *shape, double *depth1, double *depth2)
 {
-    double squareTerm;
-    double linearTerm;
-    double constantTerm;
-    double tempTerm;
     GeometryStatistics &stats = *ray->getGeometryStatistics();
 
     stats.incrementRayQuadricTests();
@@ -158,58 +155,48 @@ Quadric::intersectQuadric(
         ray->makeRay();
     }
 
-    if (shape->nonZeroSquareTerm) {
-        squareTerm = shape->surface.squareCoefficients().dotProduct(ray->getDirection2());
-        tempTerm =
-            shape->surface.mixedCoefficients().dotProduct(ray->getMixedDirectionDirection());
-        squareTerm += tempTerm;
-    } else {
-        squareTerm = 0.0;
-    }
+    const QuadricSurface &surface = shape->surface;
+    const double squareTerm = QuadricRayExpansion::squareTerm(surface, shape->nonZeroSquareTerm,
+        ray->getDirection2(), ray->getMixedDirectionDirection());
+    const double linearTerm = QuadricRayExpansion::linearTerm(surface, ray->getPositionDirection(),
+        ray->getDirection(), ray->getMixedPositionDirection());
 
-    linearTerm = shape->surface.squareCoefficients().dotProduct(ray->getPositionDirection());
-    linearTerm *= 2.0;
-    tempTerm = shape->surface.linearCoefficients().dotProduct(ray->getDirection());
-    linearTerm += tempTerm;
-    tempTerm =
-        shape->surface.mixedCoefficients().dotProduct(ray->getMixedPositionDirection());
-    linearTerm += tempTerm;
-
+    double constantTerm;
     if (ray->isPrimaryRayEnabled()) {
         if (!shape->constantCached) {
-            constantTerm = shape->surface.squareCoefficients().dotProduct(ray->getPosition2());
-            tempTerm = shape->surface.linearCoefficients().dotProduct(ray->getOrigin());
-            constantTerm += tempTerm + shape->surface.constantCoefficient();
-            shape->objectVpConstant = constantTerm;
+            shape->objectVpConstant = QuadricRayExpansion::constantTermWithoutMixed(
+                surface, ray->getPosition2(), ray->getOrigin());
             shape->constantCached = true;
-        } else {
-            constantTerm = shape->objectVpConstant;
         }
+        constantTerm = shape->objectVpConstant;
     } else {
-        constantTerm = shape->surface.squareCoefficients().dotProduct(ray->getPosition2());
-        tempTerm = shape->surface.linearCoefficients().dotProduct(ray->getOrigin());
-        constantTerm += tempTerm + shape->surface.constantCoefficient();
+        constantTerm = QuadricRayExpansion::constantTermWithoutMixed(
+            surface, ray->getPosition2(), ray->getOrigin());
     }
+    constantTerm = QuadricRayExpansion::constantTerm(surface, constantTerm,
+        ray->getMixedPositionPosition());
 
-    tempTerm = shape->surface.mixedCoefficients().dotProduct(ray->getMixedPositionPosition());
-    constantTerm += tempTerm;
-
-    if (!QuadricSurface::solve(squareTerm, linearTerm, constantTerm, *depth1, *depth2)) {
+    if (!QuadricSurface::solve(squareTerm, linearTerm, constantTerm, *depth1, *depth2) ||
+        !clipToRenderDepths(depth1, depth2)) {
         return false;
-    }
-
-    if ((*depth1 < GeometryConfig::SMALL_TOLERANCE) || (*depth1 > GeometryConfig::MAX_DISTANCE)) {
-        if ((*depth2 < GeometryConfig::SMALL_TOLERANCE) || (*depth2 > GeometryConfig::MAX_DISTANCE)) {
-            return (false);
-        }
-        *depth1 = *depth2;
-
-    } else if ((*depth2 < GeometryConfig::SMALL_TOLERANCE) || (*depth2 > GeometryConfig::MAX_DISTANCE)) {
-        *depth2 = *depth1;
     }
 
     stats.incrementRayQuadricTestsSucceeded();
     return (true);
+}
+
+bool
+Quadric::clipToRenderDepths(double *depth1, double *depth2)
+{
+    if ((*depth1 < GeometryConfig::SMALL_TOLERANCE) || (*depth1 > GeometryConfig::MAX_DISTANCE)) {
+        if ((*depth2 < GeometryConfig::SMALL_TOLERANCE) || (*depth2 > GeometryConfig::MAX_DISTANCE)) {
+            return false;
+        }
+        *depth1 = *depth2;
+    } else if ((*depth2 < GeometryConfig::SMALL_TOLERANCE) || (*depth2 > GeometryConfig::MAX_DISTANCE)) {
+        *depth2 = *depth1;
+    }
+    return true;
 }
 
 int

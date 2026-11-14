@@ -4,10 +4,12 @@
 #include "render/bakedScene/CsgContainmentTest.h"
 #include "render/bakedScene/CsgOperandTrace.h"
 #include "render/bakedScene/SingleCorePlaneCsgTrace.h"
+#include "vsdk/toolkit/environment/raycasting/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
+#include "vsdk/toolkit/environment/scene/csg/CsgSegmentClassification.txx"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 
-RaySegments
+CsgSegmentClassification<IntersectionCandidate>
 RaySegmentCsgCombiner::buildRaySegments(
     const CsgOperandRecord *operand,
     const java::ArrayList<CsgProgram *> &bakedCsgs,
@@ -26,97 +28,17 @@ RaySegmentCsgCombiner::buildRaySegments(
         localDepthQueue,
         materialOverride);
 
-    bool initialInside;
-    if (localDepthQueue->size() > 0) {
-        IntersectionCandidate firstCandidate = localDepthQueue->peek();
-        Vector3Dd samplePoint = ray->getOrigin().add(
-            ray->getDirection().multiply(0.5 * firstCandidate.getIntersection().t));
-        initialInside =
-            CsgContainmentTest::containmentTestOperand(
-                operand, bakedCsgs, samplePoint, 0.0) == RayCastingGeometry::INSIDE;
-    } else {
-        Vector3Dd samplePoint =
-            ray->getOrigin().add(ray->getDirection().multiply(2.0 * GeometryConfig::SMALL_TOLERANCE));
-        initialInside =
-            CsgContainmentTest::containmentTestOperand(
-                operand, bakedCsgs, samplePoint, 0.0) == RayCastingGeometry::INSIDE;
-    }
-
-    java::ArrayList<RaySegmentCrossing> crossings{localDepthQueue->size()};
-    bool currentlyInside = initialInside;
-    while (localDepthQueue->size() > 0) {
-        IntersectionCandidate candidate = localDepthQueue->poll();
-        currentlyInside = !currentlyInside;
-        crossings.add(RaySegmentCrossing(candidate.getIntersection().t, currentlyInside, candidate));
-    }
+    const bool initialInside =
+        CsgContainmentTest::containmentTestOperand(
+            operand,
+            bakedCsgs,
+            ConstructiveSolidGeometryByRaySegment::classificationPoint(*ray, *localDepthQueue),
+            0.0) == RayCastingGeometry::INSIDE;
+    CsgSegmentClassification<IntersectionCandidate> result =
+        ConstructiveSolidGeometryByRaySegment::segmentsFromCrossings(*localDepthQueue, initialInside);
 
     scratch.returnQueue(localDepthQueue);
-    return RaySegments(crossings, initialInside);
-}
-
-bool
-RaySegmentCsgCombiner::combineUnion(bool insideLeft, bool insideRight)
-{
-    return insideLeft || insideRight;
-}
-
-bool
-RaySegmentCsgCombiner::combineIntersection(bool insideLeft, bool insideRight)
-{
-    return insideLeft && insideRight;
-}
-
-bool
-RaySegmentCsgCombiner::combineDifference(bool insideLeft, bool insideRight)
-{
-    return insideLeft && !insideRight;
-}
-
-RaySegments
-RaySegmentCsgCombiner::mergeByMembership(
-    const RaySegments &left,
-    const RaySegments &right,
-    bool (*combine)(bool insideLeft, bool insideRight))
-{
-    const java::ArrayList<RaySegmentCrossing> &leftCrossings = left.getCrossings();
-    const java::ArrayList<RaySegmentCrossing> &rightCrossings = right.getCrossings();
-
-    java::ArrayList<RaySegmentCrossing> outCrossings{leftCrossings.size() + rightCrossings.size()};
-    bool insideLeft = left.isInitialInside();
-    bool insideRight = right.isInitialInside();
-    const bool initialCombined = combine(insideLeft, insideRight);
-
-    bool previousCombined = initialCombined;
-    long int i = 0;
-    long int j = 0;
-    while ((i < leftCrossings.size()) || (j < rightCrossings.size())) {
-        bool takeLeft;
-        if (j >= rightCrossings.size()) {
-            takeLeft = true;
-        } else if (i >= leftCrossings.size()) {
-            takeLeft = false;
-        } else {
-            takeLeft = leftCrossings[i].getT() <= rightCrossings[j].getT();
-        }
-
-        RaySegmentCrossing event;
-        if (takeLeft) {
-            event = leftCrossings[i];
-            insideLeft = event.isEntering();
-            i++;
-        } else {
-            event = rightCrossings[j];
-            insideRight = event.isEntering();
-            j++;
-        }
-
-        const bool newCombined = combine(insideLeft, insideRight);
-        if (newCombined != previousCombined) {
-            outCrossings.add(RaySegmentCrossing(event.getT(), newCombined, event.getHit()));
-            previousCombined = newCombined;
-        }
-    }
-    return RaySegments(outCrossings, initialCombined);
+    return result;
 }
 
 int
@@ -164,29 +86,20 @@ RaySegmentCsgCombiner::traceRaySegmentCsg(
             bakedCsg->getSpecializationCoreOperandIndex());
     }
 
-    RaySegments result = buildRaySegments(
+    CsgSegmentClassification<IntersectionCandidate> result = buildRaySegments(
         &bakedCsg->getOperands()[0], bakedCsgs, scratch, ray, materialOverride);
     for (long int i = 1; i < bakedCsg->getOperands().size(); i++) {
-        const RaySegments childSegments =
+        const CsgSegmentClassification<IntersectionCandidate> childSegments =
             buildRaySegments(
                 &bakedCsg->getOperands()[i], bakedCsgs, scratch, ray, materialOverride);
-        switch (bakedCsg->getGeometryType()) {
-        case BooleanSetOperations::DIFFERENCE:
-            result = mergeByMembership(result, childSegments, combineDifference);
-            break;
-        case BooleanSetOperations::INTERSECTION:
-            result = mergeByMembership(result, childSegments, combineIntersection);
-            break;
-        default:
-            result = mergeByMembership(result, childSegments, combineUnion);
-            break;
-        }
+        result = CsgSegmentClassification<IntersectionCandidate>::merge(
+            result, childSegments, bakedCsg->getGeometryType());
     }
 
     bool intersectionFound = false;
-    const java::ArrayList<RaySegmentCrossing> &resultCrossings = result.getCrossings();
-    for (long int i = 0; i < resultCrossings.size(); i++) {
-        depthQueue->offer(resultCrossings[i].getHit());
+    const java::ArrayList<CsgSegmentEvent<IntersectionCandidate> > &resultEvents = result.getEvents();
+    for (long int i = 0; i < resultEvents.size(); i++) {
+        depthQueue->offer(resultEvents[i].getPayload());
         intersectionFound = true;
     }
     return intersectionFound;

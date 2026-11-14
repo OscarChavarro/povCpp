@@ -48,6 +48,7 @@ Scene::Scene() :
 
 Scene::~Scene()
 {
+    deleteObjects();
     clearOwnedElements();
     delete defaultTexture;
 }
@@ -56,10 +57,27 @@ void
 Scene::resetForSceneParse(double antialiasThreshold)
 {
     viewPoint = defaultViewPoint();
+    deleteObjects();
     clearOwnedElements();
     delete defaultTexture;
     defaultTexture = nullptr;
     atmosphereIor = 1.0;
     this->antialiasThreshold = antialiasThreshold;
     setFog(blackFogColor(), 0.0);
+}
+
+void
+Scene::setObjects(const java::ArrayList<PovrayBody*>& newObjects)
+{
+    deleteObjects();
+    for (long int i = 0; i < newObjects.size(); i++) objects.add(newObjects.get(i));
+}
+
+void
+Scene::deleteObjects()
+{
+    for (long int i = 0; i < objects.size(); ++i) {
+        delete objects[i];
+    }
+    objects.clear();
 }
