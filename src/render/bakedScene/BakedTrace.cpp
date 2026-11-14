@@ -6,7 +6,7 @@
 #include "render/bakedScene/CsgOperandTrace.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
-#include "environment/geometry/element/PriorityQueuePool.txx"
+#include "environment/intersection/ray/PriorityQueuePool.txx"
 
 bool
 BakedTrace::finalizeSimpleBodyCandidate(
@@ -34,7 +34,7 @@ BakedTrace::finalizeSimpleBodyCandidate(
                     scene,
                     baked->getClippingObjectIndices()[i],
                     clipTestPoint,
-                    GeometryConfig::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
+                    IntersectionTolerances::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
                 return false;
             }
         }
@@ -72,7 +72,7 @@ BakedTrace::passesBoundingShapes(
                 scene,
                 boundingIndex,
                 objectRayOrigin,
-                GeometryConfig::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
+                IntersectionTolerances::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
             return false;
         }
     }
@@ -385,7 +385,7 @@ BakedTrace::traceCompositeAllCrossingsInCompositeSpace(
                 scene,
                 boundingIndex,
                 compositeRayOrigin,
-                GeometryConfig::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
+                IntersectionTolerances::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
             return false;
         }
     }
@@ -424,7 +424,7 @@ BakedTrace::traceCompositeAllCrossingsInCompositeSpace(
                     scene,
                     composite->getClippingObjectIndices()[i],
                     candidate.getIntersection().point,
-                    GeometryConfig::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
+                    IntersectionTolerances::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
                 intersectionFound = false;
                 break;
             }

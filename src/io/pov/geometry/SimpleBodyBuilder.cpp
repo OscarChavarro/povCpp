@@ -2,8 +2,8 @@
 #include "environment/material/povray/PovRayMaterial.h"
 #include "environment/scene/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "environment/scene/constructiveSolidGeometry/CsgOperand.h"
-#include "environment/scene/SurfaceTraceKernel.h"
-#include "environment/scene/ProjectedTriangleTraversal.h"
+#include "environment/intersection/SurfaceIntersector.h"
+#include "environment/intersection/ProjectedTriangleTraversal.h"
 #include "vsdk/toolkit/environment/geometry/surface/TriangleMesh.h"
 #include "java/lang/IllegalStateException.h"
 #include "vsdk/toolkit/environment/light/Light.h"
@@ -198,11 +198,11 @@ SimpleBodyBuilder::invert()
     } else if (triangleTraversal != nullptr) {
         triangleTraversal->invert();
     } else if (geometry != nullptr) {
-        const SurfaceDetailFamily family = SurfaceTraceKernel::familyOf(geometry);
-        if (SurfaceTraceKernel::invertsByState(family)) {
+        const SurfaceDetailFamily family = SurfaceIntersector::familyOf(geometry);
+        if (SurfaceIntersector::invertsByState(family)) {
             surfaceInverted = !surfaceInverted;
         } else {
-            SurfaceTraceKernel::invertGeometry(geometry, family);
+            SurfaceIntersector::invertGeometry(geometry, family);
         }
     }
     steps.add(TransformStep(TransformStep::Kind::Invert, Vector3Dd(0.0, 0.0, 0.0)));

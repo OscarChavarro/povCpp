@@ -6,19 +6,19 @@
 #include "vsdk/toolkit/environment/geometry/boundingVolumeHierarchy/AxisAlignedBoundingBox.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/environment/geometry/Geometry.h"
-#include "environment/geometry/element/RayWithTracingState.h"
+#include "environment/intersection/ray/RayWithTracingState.h"
 #include "vsdk/toolkit/environment/geometry/boundingVolumeHierarchy/BoundingVolumeHierarchy.h"
-#include "environment/geometry/element/SurfaceDetailFamily.h"
-#include "environment/geometry/SurfaceTraceState.h"
-#include "environment/geometry/element/GeometryIntersectionEmissionContext.h"
-#include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/geometry/element/RayCastingHit.h"
-#include "environment/geometry/element/RayCastingContainment.h"
-#include "environment/geometry/element/PostRayHitElement.h"
+#include "environment/intersection/hit/SurfaceDetailFamily.h"
+#include "environment/intersection/SurfaceIntersectionState.h"
+#include "environment/intersection/hit/GeometryIntersectionEmissionContext.h"
+#include "environment/intersection/hit/IntersectionCandidate.h"
+#include "environment/intersection/hit/RayCastingHit.h"
+#include "environment/intersection/hit/RayCastingContainment.h"
+#include "environment/intersection/hit/PostRayHitElement.h"
 #include "vsdk/toolkit/environment/material/Material.h"
-#include "environment/geometry/element/TransformStep.h"
-#include "environment/geometry/SurfaceTraceState.h"
-#include "environment/geometry/element/SurfaceDetailFamily.h"
+#include "environment/intersection/ray/TransformStep.h"
+#include "environment/intersection/SurfaceIntersectionState.h"
+#include "environment/intersection/hit/SurfaceDetailFamily.h"
 
 class CsgOperandView;
 class CsgTree;
@@ -86,11 +86,11 @@ class PovrayBody : public SceneSolid, public PostRayHitElement {
     // POV's projected traversal of a triangle mesh geometry (its inversion).
     ProjectedTriangleTraversal *triangleTraversal = nullptr;
     SurfaceDetailFamily surfaceFamily = SurfaceDetailFamily::None;
-    SurfaceTraceState surfaceState;
+    SurfaceIntersectionState surfaceState;
 
     // Rebinds surface, family and a fresh trace state to the geometry.
     void bindSurface();
-    // The geometry's crossings and containment through the family kernel
+    // The geometry's crossings and containment through the family intersector
     // with this body's state; a CSG is traced by its evaluator.
     int traceSurfaceCrossings(RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue, Material *materialOverride);
@@ -187,7 +187,7 @@ class PovrayBody : public SceneSolid, public PostRayHitElement {
     void setTriangleTraversal(ProjectedTriangleTraversal *value);
     ProjectedTriangleTraversal *getTriangleTraversal() const { return triangleTraversal; }
     SurfaceDetailFamily getSurfaceFamily() const { return surfaceFamily; }
-    SurfaceTraceState *getSurfaceTraceState() { return &surfaceState; }
+    SurfaceIntersectionState *getSurfaceIntersectionState() { return &surfaceState; }
     bool isSurfaceInverted() const { return surfaceState.isInverted(); }
     // Sets the inversion flag of a family that keeps it (see invertSurface).
     void setSurfaceInverted(bool value);

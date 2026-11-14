@@ -539,7 +539,7 @@ BakedSceneBuilder::pushDownStepsIntoProgram(
             // Whether this inner wrapper was itself folded earlier (matrices
             // already identity) or was never transformed (identity by
             // construction), its program is now world-space - mark it so
-            // buildCsgExecutionPlan keeps it on the compiled kernel.
+            // buildCsgExecutionPlan keeps it on the compiled plan.
             newOperands.add(cloneOperandWithPushdownBake(
                 operand, bakedBounds, bounded, operand->getKind(), operand->getHasTransform(),
                 operand->getObjectToLocal(), operand->getLocalToObject(), true,

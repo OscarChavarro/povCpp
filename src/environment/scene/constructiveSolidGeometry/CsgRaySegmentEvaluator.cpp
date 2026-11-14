@@ -1,4 +1,4 @@
-#include "environment/geometry/element/GeometryConfig.h"
+#include "environment/intersection/ray/IntersectionTolerances.h"
 #include "environment/scene/constructiveSolidGeometry/CsgRaySegmentEvaluator.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgMembershipRule.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgSegmentClassification.txx"
@@ -33,7 +33,7 @@ CsgRaySegmentEvaluator::classificationPoint(
     // A continuation ray starting exactly on this operand's surface
     // (math/trough.pov) needs a positive offset, not a negative tolerance, to
     // land reliably on the correct side.
-    return ray.getOrigin().add(ray.getDirection().multiply(2.0 * GeometryConfig::SMALL_TOLERANCE));
+    return ray.getOrigin().add(ray.getDirection().multiply(2.0 * IntersectionTolerances::SMALL_TOLERANCE));
 }
 
 CsgSegmentClassification<IntersectionCandidate>

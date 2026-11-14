@@ -2,17 +2,17 @@
 #define __CSG_OPERAND_RECORD__
 
 #include "render/bakedScene/BakedSceneKinds.h"
-#include "render/bakedScene/BakedSurfaceTrace.h"
+#include "render/bakedScene/BakedSurfaceIntersection.h"
 #include "vsdk/toolkit/environment/geometry/volume/PlanarHalfSpace.h"
 #include "vsdk/toolkit/environment/geometry/volume/QuadricSurface.h"
-#include "environment/geometry/trace/QuadricTrace.h"
-#include "environment/geometry/element/TransformStep.h"
+#include "environment/intersection/surface/QuadricIntersector.h"
+#include "environment/intersection/ray/TransformStep.h"
 #include "environment/scene/constructiveSolidGeometry/CsgOperand.h"
 #include "vsdk/toolkit/environment/material/Material.h"
 
 // Bake-time record for one CSG operand, stored **by value** in a contiguous
 // java::ArrayList<CsgOperandRecord> (CsgProgram::operands) rather than behind
-// individually heap-allocated pointers - the per-ray CSG trace kernels
+// individually heap-allocated pointers - the per-ray CSG trace routines
 // (CsgMorganUnionTrace, SingleCorePlaneCsgTrace, CsgOperandTrace,
 // BakedPlaneIntersector, CsgContainmentTest, AabbCullingSupport) index that
 // array on every ray/shadow test, and a heap-scattered layout there costs a
@@ -94,7 +94,7 @@ class CsgOperandRecord {
         selfTraced(operand->getCsg() != nullptr || operand->getLight() != nullptr),
         detailSurface(operand->getSurface()),
         detailFamily(operand->getSurfaceFamily()),
-        traceState(operand->getSurfaceTraceState()),
+        traceState(operand->getSurfaceIntersectionState()),
         intrinsicSphere(dynamic_cast<const Sphere *>(operand->getSurface())),
         originalQuadricGeometry(originalQuadricGeometry),
         material(material),
@@ -125,9 +125,9 @@ class CsgOperandRecord {
     {
         if (hasBakedQuadric) {
             bakedStorageState.setNonZeroSquareTerm(
-                QuadricTrace::hasNonZeroSquareTerm(this->bakedQuadricStorage));
+                QuadricIntersector::hasNonZeroSquareTerm(this->bakedQuadricStorage));
         }
-        quadricSquareTerm = getTraceState() != nullptr && getTraceState()->hasNonZeroSquareTerm();
+        quadricSquareTerm = getIntersectionState() != nullptr && getIntersectionState()->hasNonZeroSquareTerm();
     }
 
     BakedSceneCsgOperandKind getKind() const { return kind; }
@@ -160,36 +160,36 @@ class CsgOperandRecord {
         }
         return detailFamily;
     }
-    SurfaceTraceState *getTraceState() const
+    SurfaceIntersectionState *getIntersectionState() const
     {
         if (hasBakedQuadric || hasBakedPlane) {
-            return const_cast<SurfaceTraceState *>(&bakedStorageState);
+            return const_cast<SurfaceIntersectionState *>(&bakedStorageState);
         }
         return traceState;
     }
     int emitCrossings(RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue, Material *materialOverride) const
     {
-        return BakedSurfaceTrace::emitCrossings(getDetailSurface(), getDetailFamily(),
-            getTraceState(), csg, ray, depthQueue, materialOverride);
+        return BakedSurfaceIntersection::emitCrossings(getDetailSurface(), getDetailFamily(),
+            getIntersectionState(), csg, ray, depthQueue, materialOverride);
     }
     int emitCrossingsAnnotated(RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         const GeometryIntersectionEmissionContext &context) const
     {
-        return BakedSurfaceTrace::emitCrossingsAnnotated(getDetailSurface(), getDetailFamily(),
-            getTraceState(), csg, ray, depthQueue, context);
+        return BakedSurfaceIntersection::emitCrossingsAnnotated(getDetailSurface(), getDetailFamily(),
+            getIntersectionState(), csg, ray, depthQueue, context);
     }
     bool firstHit(RayWithTracingState *ray, IntersectionCandidate &out,
         Material *materialOverride) const
     {
-        return BakedSurfaceTrace::firstHit(getDetailSurface(), getDetailFamily(),
-            getTraceState(), csg, ray, out, materialOverride);
+        return BakedSurfaceIntersection::firstHit(getDetailSurface(), getDetailFamily(),
+            getIntersectionState(), csg, ray, out, materialOverride);
     }
     int containment(const Vector3Dd &point, double distanceTolerance) const
     {
-        return BakedSurfaceTrace::containment(getDetailSurface(), getDetailFamily(),
-            getTraceState(), csg, point, distanceTolerance);
+        return BakedSurfaceIntersection::containment(getDetailSurface(), getDetailFamily(),
+            getIntersectionState(), csg, point, distanceTolerance);
     }
     const Sphere *getIntrinsicSphere() const { return intrinsicSphere; }
     QuadricSurface *getOriginalQuadricGeometry() const { return originalQuadricGeometry; }
@@ -235,9 +235,9 @@ class CsgOperandRecord {
     bool selfTraced;
     Geometry *detailSurface;
     SurfaceDetailFamily detailFamily;
-    SurfaceTraceState *traceState;
+    SurfaceIntersectionState *traceState;
     // Trace state of the baked quadric or plane storage, owned by the record.
-    SurfaceTraceState bakedStorageState;
+    SurfaceIntersectionState bakedStorageState;
     const Sphere *intrinsicSphere;
     QuadricSurface *originalQuadricGeometry;
     Material *material;

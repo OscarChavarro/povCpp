@@ -2,7 +2,7 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 
 #include "vsdk/toolkit/environment/geometry/surface/TriangleMesh.h"
-#include "environment/scene/ProjectedTriangleTraversal.h"
+#include "environment/intersection/ProjectedTriangleTraversal.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/pov/geometry/TriangleParser.h"

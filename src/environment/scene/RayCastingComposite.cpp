@@ -1,11 +1,11 @@
-#include "environment/geometry/element/GeometryConfig.h"
-#include "environment/geometry/element/IntersectionCandidate.h"
+#include "environment/intersection/ray/IntersectionTolerances.h"
+#include "environment/intersection/hit/IntersectionCandidate.h"
 #include "environment/scene/RayCastingComposite.h"
 #include "vsdk/toolkit/environment/geometry/element/GeometryBounds.h"
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
-#include "environment/geometry/element/PriorityQueuePool.txx"
+#include "environment/intersection/ray/PriorityQueuePool.txx"
 
 void RayCastingComposite::getWorldBounds(GeometryBounds& result) const
 {
@@ -50,7 +50,7 @@ RayCastingComposite::doIntersectionForAllRayCrossings(
         {
             IntersectionCandidate _boundingHit;
             if (!boundingShape->doIntersectionFirstHitViaCrossings(compositeRay, _boundingHit) &&
-                boundingShape->doContainmentTest(rayOrigin, GeometryConfig::SMALL_TOLERANCE) ==
+                boundingShape->doContainmentTest(rayOrigin, IntersectionTolerances::SMALL_TOLERANCE) ==
                     RayCastingContainment::OUTSIDE) {
                 return (false);
             }
@@ -90,7 +90,7 @@ RayCastingComposite::doIntersectionForAllRayCrossings(
             stats.incrementClippingRegionTests();
             if (clippingShape->doContainmentTest(
                     localIntersection.getIntersection().point,
-                    GeometryConfig::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
+                    IntersectionTolerances::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
                 intersectionFound = false;
                 break;
             }

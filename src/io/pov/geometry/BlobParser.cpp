@@ -2,7 +2,7 @@
 
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "environment/geometry/element/GeometryConfig.h"
+#include "environment/intersection/ray/IntersectionTolerances.h"
 #include "io/pov/geometry/SceneBuilder.h"
 
 #include "io/pov/geometry/BlobParser.h"
@@ -110,8 +110,8 @@ BlobParser::parseBlob(ParserContext &ctx)
                 }
                 BlobSolid solid(threshold, false);
                 for (long int i = 0; i < blobComponents.size(); i++) {
-                    if (java::Math::abs(blobComponents[i].getStrength()) < GeometryConfig::INTERSECTION_EPSILON ||
-                        blobComponents[i].getRadius() < GeometryConfig::INTERSECTION_EPSILON) {
+                    if (java::Math::abs(blobComponents[i].getStrength()) < IntersectionTolerances::INTERSECTION_EPSILON ||
+                        blobComponents[i].getRadius() < IntersectionTolerances::INTERSECTION_EPSILON) {
                         Logger::reportMessage("Blob", Logger::ERROR, "", "Degenerate blob element\n");
                     }
                     solid.addComponent(blobComponents[i]);

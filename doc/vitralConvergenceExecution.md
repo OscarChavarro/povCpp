@@ -96,7 +96,7 @@ does not validate a Boolean evaluator.
   queue pool per adapter. It must disappear when shared queries are native.
 - `RayWithTracingState` combines mathematical caches with media/IOR, primary/shadow
   flags and renderer configuration. These responsibilities need separate owners.
-- `GeometryConfig` combines intersection, solver and application distance cutoffs.
+- `IntersectionTolerances` combines intersection, solver and application distance cutoffs.
 - Legacy `getMinMax()` does not express empty/unbounded/lifetime semantics as a
   typed contract. Preserve its consumers while introducing an explicit result.
 
@@ -405,7 +405,7 @@ identity until migrated.
 
 The baked CSG dispatcher recognizes the intrinsic `Sphere` and retains a
 borrowed pointer in the operand record, so its hot path does not perform a
-per-ray dynamic cast or virtual dispatch. `SphereTrace` holds the POV tracing
+per-ray dynamic cast or virtual dispatch. `SphereIntersector` holds the POV tracing
 limits and statistics and calls the VITRAL sphere root kernel, removing the
 optimized trace paths' dependency on a sphere-specific geometry adapter.
 Inversion, normal detail, ownership and scene binding still require migration;
@@ -2135,7 +2135,7 @@ and found all 161 copied base files identical to VITRAL.
 - After stages H and I, every `./raycasting` file was checked for geometric
   data or kernels of its own. The adapters hold one VITRAL geometry each and
   call `QuadricRayExpansion` and `QuadricSurface::solve`,
-  `Box::intersectBounds`, `InfinitePlane::intersectionDepth`, `SphereTrace`,
+  `Box::intersectBounds`, `InfinitePlane::intersectionDepth`, `SphereIntersector`,
   `BlobSolid::intersect`, `PolynomialSurface::intersect`,
   `HeightFieldSolid::traceFirstHit` and `SubdividedBezierPatch::intersect`;
   `HeightField` keeps PovRay 1.0's integer-truncated containment test.
@@ -2245,7 +2245,7 @@ Migration consequences, by risk:
 - `IntersectionAttributes` and `RayCastingHit` identify a hit by the VITRAL
   surface it lies on (`Geometry*`) and its `SurfaceDetailFamily`, plus the
   owning body and the detail-owner chain; the adapter pointer is gone.
-- `SurfaceDetailKernel::resolve` evaluates the normal per family (quadric,
+- `SurfaceDetailResolver::resolve` evaluates the normal per family (quadric,
   box, plane, sphere, mesh, polynomial, blob, height field, bicubic patch and
   the generic VITRAL query) with the arithmetic previously in each adapter's
   `computeSurfaceNormal`/`doExtraInformation`; `PovrayBody`, `CsgOperand`,
@@ -2268,24 +2268,24 @@ components and all 161 base files identical to VITRAL.
 ## Stage K: bake kernels for every family (K-3)
 
 - Each family's POV trace (crossing emission, first hit, containment) moved
-  verbatim from its adapter to a static kernel: `QuadricTrace`, `BoxTrace`,
-  `PlaneTrace`, `PolynomialTrace`, `BlobTrace`, `HeightFieldTrace`,
-  `BicubicPatchTrace` (`src/environment/geometry/trace`) and
-  `NativeSurfaceTrace` (spheres, generic VITRAL geometry); meshes keep
-  `ProjectedTriangleTraversal`. `SurfaceTraceKernel` dispatches by
+  verbatim from its adapter to a static kernel: `QuadricIntersector`, `BoxIntersector`,
+  `PlaneIntersector`, `PolynomialIntersector`, `BlobIntersector`, `HeightFieldIntersector`,
+  `BicubicPatchIntersector` (`src/environment/geometry/trace`) and
+  `NativeSurfaceIntersector` (spheres, generic VITRAL geometry); meshes keep
+  `ProjectedTriangleTraversal`. `SurfaceIntersector` dispatches by
   `SurfaceDetailFamily`; light geometry is the new `Empty` family.
 - The adapters' POV state (inversion, quadric nonzero square term, the
   per-viewpoint cache of the quadric constant and the plane product, the mesh
-  traversal) is a `SurfaceTraceState` value; the adapters delegate to the
+  traversal) is a `SurfaceIntersectionState` value; the adapters delegate to the
   kernels.
 - Bake records cache surface, family and state when built (baked quadric and
-  plane storage provide their own) and trace through `BakedSurfaceTrace`
+  plane storage provide their own) and trace through `BakedSurfaceIntersection`
   without adapter virtual calls; only a POV CSG traced as a generic object
   (family None) uses its own evaluator. Outside the bake, `PovrayBody`, the POV
   CSG evaluators and composites still reach the adapters; that ends with K-5
   and K-6.
 - Removed as dead: `Quadric::intersectQuadric`/`clipToRenderDepths` (now
-  `QuadricTrace`), `RayCastingBox::intersectBoxx`,
+  `QuadricIntersector`), `RayCastingBox::intersectBoxx`,
   `RayCastingInfinitePlane::intersectPlane`, `setVpNormDotOrigin`,
   `setVpCached`, `getVpNormDotOrigin`, `Quadric::setNonZeroSquareTerm`, the
   adapters' private `traceCrossings` and `NativeGeometryBinding`'s sphere and
@@ -2300,7 +2300,7 @@ components and all 161 base files identical to VITRAL.
 ## Stage K: K-4 restructured
 
 Inversion of box, polynomial, blob, sphere and generic surfaces lives in the
-adapter's `SurfaceTraceState`. The parser applies `inverse` to an adapter held
+adapter's `SurfaceIntersectionState`. The parser applies `inverse` to an adapter held
 by a `SimpleBodyBuilder` or by a temporary `PovrayBody`, and then takes the
 body apart into loose variables (`extractObjectState`, seven sites) and
 rebuilds it (`buildObject`, six sites); `CsgParser` builds operands from the
@@ -2331,19 +2331,19 @@ Gates: examples 64/64, renderAll 108/108 byte-identical (120 s), Roth 7 known
 ## Stage K: body-owned surface state (K-4.2)
 
 `PovrayBody` (and so `CsgOperand`) binds, whenever its geometry is set, the
-traced VITRAL surface, its `SurfaceDetailFamily` and a `SurfaceTraceState`
+traced VITRAL surface, its `SurfaceDetailFamily` and a `SurfaceIntersectionState`
 filled by `RayCastingGeometry::initializeTraceState` (the quadric square-term
 flag, the mesh traversal). Bodies and operands trace and test containment
-through `SurfaceTraceKernel` with that state; geometry without a family (a POV
+through `SurfaceIntersector` with that state; geometry without a family (a POV
 CSG) still traces itself. Bake records read surface, family and state from
 their body or operand; the baked quadric and plane storage keep a state of
 their own in the record. `PovrayBody::invertSurface` flips the state flag for
-the families of `SurfaceTraceKernel::invertsByState` (box, polynomial, blob,
+the families of `SurfaceIntersector::invertsByState` (box, polynomial, blob,
 sphere, generic) and otherwise inverts the geometry and drops the viewpoint
 cache. `SimpleBodyBuilder` keeps the flag until the body, region or operand is
 built; the `sturm` rebuild of blobs and polynomials carries it.
 
-The adapters no longer hold any state: `getTraceState`, the inversion flags and
+The adapters no longer hold any state: `getIntersectionState`, the inversion flags and
 accessors of box, binding, polynomial and blob, the viewpoint constructor
 arguments and cache accessors of quadric and plane, and
 `PovrayBody::queryWrappedSolid` were removed. Inverting a box, polynomial,
@@ -2361,9 +2361,9 @@ Gates: examples 64/64, renderAll 108/108 byte-identical (118 s), Roth 7 known
 `PovrayBody::getRenderGeometry` returns the `RayCastingGeometry` when the
 geometry is one (remaining adapters, POV CSG, light geometry) and null for a
 plain VITRAL geometry, whose surface is the geometry itself, its family
-`SurfaceTraceKernel::familyOf`, its state `SurfaceTraceKernel::initializeState`
+`SurfaceIntersector::familyOf`, its state `SurfaceIntersector::initializeState`
 (quadric square-term flag). Copy uses `copyGeometry` for a plain geometry,
-inversion `SurfaceTraceKernel::invertGeometry` (quadric and plane
+inversion `SurfaceIntersector::invertGeometry` (quadric and plane
 coefficients; the other families keep the body flag), and the render culling
 volume `SurfaceBoundingVolume::create`, which also serves the adapters
 (per-family code moved out of `RayCastingBox`, `Quadric`, `Blob`,
@@ -2461,7 +2461,7 @@ RMSE 0.052355), audit 17 pending/161 identical, POV ctest 333.
 containment, copy, De Morgan inversion and bounds to it; the parser builder
 keeps it apart from the geometry, the bake reads it from the body
 (`TraceableObject` and `CsgOperandRecord` keep it for the evaluator fallback of
-`BakedSurfaceTrace`), and light linking walks the body's CSG. The annotated
+`BakedSurfaceIntersection`), and light linking walks the body's CSG. The annotated
 crossings that only the CSG used moved from `RayCastingGeometry` to it, and
 `invertGeometry` was deleted. `CsgOperandBodyView` (a VITRAL `CsgBodyOperand`)
 returns the nested CSG of a leaf as its child expression, which VITRAL found

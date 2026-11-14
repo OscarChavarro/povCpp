@@ -2,11 +2,11 @@
 #define __TRACEABLE_OBJECT__
 
 #include "render/bakedScene/BakedSceneKinds.h"
-#include "render/bakedScene/BakedSurfaceTrace.h"
+#include "render/bakedScene/BakedSurfaceIntersection.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/environment/geometry/volume/PlanarHalfSpace.h"
 #include "vsdk/toolkit/environment/geometry/volume/QuadricSurface.h"
-#include "environment/geometry/trace/QuadricTrace.h"
+#include "environment/intersection/surface/QuadricIntersector.h"
 #include "environment/scene/PovrayBody.h"
 
 // One traceable object: a plain PovrayBody, a CSG-wrapping PovrayBody,
@@ -53,7 +53,7 @@ class TraceableObject {
         selfTraced(object->getCsg() != nullptr || object->getLight() != nullptr),
         detailSurface(object->getSurface()),
         detailFamily(object->getSurfaceFamily()),
-        traceState(object->getSurfaceTraceState()),
+        traceState(object->getSurfaceIntersectionState()),
         originalQuadricGeometry(originalQuadricGeometry),
         geometryMaterial(geometryMaterial),
         objectTexture(objectTexture),
@@ -84,9 +84,9 @@ class TraceableObject {
     {
         if (hasBakedQuadric) {
             bakedStorageState.setNonZeroSquareTerm(
-                QuadricTrace::hasNonZeroSquareTerm(this->bakedQuadricStorage));
+                QuadricIntersector::hasNonZeroSquareTerm(this->bakedQuadricStorage));
         }
-        quadricSquareTerm = getTraceState() != nullptr && getTraceState()->hasNonZeroSquareTerm();
+        quadricSquareTerm = getIntersectionState() != nullptr && getIntersectionState()->hasNonZeroSquareTerm();
     }
 
     BakedSceneTraceKind getKind() const { return kind; }
@@ -119,36 +119,36 @@ class TraceableObject {
         }
         return detailFamily;
     }
-    SurfaceTraceState *getTraceState() const
+    SurfaceIntersectionState *getIntersectionState() const
     {
         if (hasBakedQuadric || hasBakedPlane) {
-            return const_cast<SurfaceTraceState *>(&bakedStorageState);
+            return const_cast<SurfaceIntersectionState *>(&bakedStorageState);
         }
         return traceState;
     }
     int emitCrossings(RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue, Material *materialOverride) const
     {
-        return BakedSurfaceTrace::emitCrossings(getDetailSurface(), getDetailFamily(),
-            getTraceState(), csg, ray, depthQueue, materialOverride);
+        return BakedSurfaceIntersection::emitCrossings(getDetailSurface(), getDetailFamily(),
+            getIntersectionState(), csg, ray, depthQueue, materialOverride);
     }
     int emitCrossingsAnnotated(RayWithTracingState *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         const GeometryIntersectionEmissionContext &context) const
     {
-        return BakedSurfaceTrace::emitCrossingsAnnotated(getDetailSurface(), getDetailFamily(),
-            getTraceState(), csg, ray, depthQueue, context);
+        return BakedSurfaceIntersection::emitCrossingsAnnotated(getDetailSurface(), getDetailFamily(),
+            getIntersectionState(), csg, ray, depthQueue, context);
     }
     bool firstHit(RayWithTracingState *ray, IntersectionCandidate &out,
         Material *materialOverride) const
     {
-        return BakedSurfaceTrace::firstHit(getDetailSurface(), getDetailFamily(),
-            getTraceState(), csg, ray, out, materialOverride);
+        return BakedSurfaceIntersection::firstHit(getDetailSurface(), getDetailFamily(),
+            getIntersectionState(), csg, ray, out, materialOverride);
     }
     int containment(const Vector3Dd &point, double distanceTolerance) const
     {
-        return BakedSurfaceTrace::containment(getDetailSurface(), getDetailFamily(),
-            getTraceState(), csg, point, distanceTolerance);
+        return BakedSurfaceIntersection::containment(getDetailSurface(), getDetailFamily(),
+            getIntersectionState(), csg, point, distanceTolerance);
     }
     QuadricSurface *getOriginalQuadricGeometry() const { return originalQuadricGeometry; }
     const QuadricSurface &getBakedQuadricStorage() const { return bakedQuadricStorage; }
@@ -185,9 +185,9 @@ class TraceableObject {
     bool selfTraced;
     Geometry *detailSurface;
     SurfaceDetailFamily detailFamily;
-    SurfaceTraceState *traceState;
+    SurfaceIntersectionState *traceState;
     // Trace state of the baked quadric or plane storage, owned by the record.
-    SurfaceTraceState bakedStorageState;
+    SurfaceIntersectionState bakedStorageState;
     QuadricSurface *originalQuadricGeometry;
     Material *geometryMaterial;
     Material *objectTexture;

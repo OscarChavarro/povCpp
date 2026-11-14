@@ -1,5 +1,5 @@
-#include "environment/geometry/element/GeometryConfig.h"
-#include "environment/geometry/element/RayCastingHit.h"
+#include "environment/intersection/ray/IntersectionTolerances.h"
+#include "environment/intersection/hit/RayCastingHit.h"
 #include "render/RayShaderPipeline.h"
 #include "render/shaders/BumpNormalShader.h"
 #include "render/shaders/ExponentialFogShader.h"
@@ -52,7 +52,7 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
             &texturePoint, texture->getTextureTransformationInverse(),
             texture->getMaterialMapImage(),
             texture->getMaterialMapVariants().size(),
-            GeometryConfig::SMALL_TOLERANCE);
+            IntersectionTolerances::SMALL_TOLERANCE);
         if (index != -1) {
             texture = texture->getMaterialMapVariants().get(index);
         }
@@ -85,7 +85,7 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
             const Vector3Dd transformedPoint = SolidTexturePigment::transformToObjectSpace(
                 &texturePoint, tempTexture->getTextureTransformationInverse());
             tempTexture->getPigment()->colorAt(&transformedPoint, &surfaceColor,
-                GeometryConfig::SMALL_TOLERANCE, colorFixture, mapFixture);
+                IntersectionTolerances::SMALL_TOLERANCE, colorFixture, mapFixture);
         }
         // We don't need to compute the lighting characteristics for shadow
         // rays

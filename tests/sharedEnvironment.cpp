@@ -1,5 +1,5 @@
-#include "environment/geometry/trace/BoxTrace.h"
-#include "environment/geometry/trace/PlaneTrace.h"
+#include "environment/intersection/surface/BoxIntersector.h"
+#include "environment/intersection/surface/PlaneIntersector.h"
 #include <cmath>
 #include <cstdio>
 #include <stdexcept>
@@ -29,13 +29,13 @@
 #include "vsdk/toolkit/media/RGBPixel.h"
 #include "vsdk/toolkit/render/raytracing/SimpleRaytracer.h"
 #include "vsdk/toolkit/render/raytracing/ParallelRaytracer.h"
-#include "environment/scene/ProjectedTriangleTraversal.h"
-#include "environment/geometry/element/RayCastingQueryAdapter.h"
+#include "environment/intersection/ProjectedTriangleTraversal.h"
+#include "environment/intersection/ray/RayCastingQueryAdapter.h"
 #include "vsdk/toolkit/environment/geometry/volume/Box.h"
 #include "vsdk/toolkit/environment/geometry/volume/QuadricSurface.h"
 #include "vsdk/toolkit/environment/geometry/surface/InfinitePlane.h"
 #include "vsdk/toolkit/environment/geometry/surface/TriangleMesh.h"
-#include "environment/scene/ProjectedTriangleTraversal.h"
+#include "environment/intersection/ProjectedTriangleTraversal.h"
 #include "vsdk/toolkit/environment/geometry/volume/Torus.h"
 #include "vsdk/toolkit/environment/geometry/volume/PlanarHalfSpace.h"
 #include "java/lang/UnsupportedOperationException.h"
@@ -67,11 +67,11 @@ int main() {
     java::ArrayList<PovrayBody*> stateRegions;
     PovrayBody cachedQuadricBody(new QuadricSurface(Vector3Dd(1,1,1), Vector3Dd(), Vector3Dd(), -1),
         nullptr, nullptr, nullptr, false, stateRegions, stateRegions);
-    cachedQuadricBody.getSurfaceTraceState()->setViewpointCached(true);
+    cachedQuadricBody.getSurfaceIntersectionState()->setViewpointCached(true);
     cachedQuadricBody.invert();
-    if (cachedQuadricBody.getSurfaceTraceState()->isViewpointCached() ||
+    if (cachedQuadricBody.getSurfaceIntersectionState()->isViewpointCached() ||
         cachedQuadricBody.isSurfaceInverted() ||
-        !cachedQuadricBody.getSurfaceTraceState()->hasNonZeroSquareTerm() ||
+        !cachedQuadricBody.getSurfaceIntersectionState()->hasNonZeroSquareTerm() ||
         sharedQuadric.classifyPoint(Vector3Dd(),0) != GeometryContainment::Outside ||
         sharedQuadric.classifyRay(slabRay, RayCrossingQuery(0,10), quadricSegments) != RaySolidQueryStatus::Supported ||
         !quadricSegments.insideSegments[0] || quadricSegments.insideSegments[1] ||
@@ -261,7 +261,7 @@ int main() {
         Box::containsBounds(Vector3Dd(-2.1,0,0), boxMin, boxMax) ||
         Box::normalForBounds(Vector3Dd(4,3,1), boxMin, boxMax, 1e-8).x() != 1 ||
         Box::normalForBounds(Vector3Dd(0,-1,0), boxMin, boxMax, 1e-8).y() != -1 ||
-        BoxTrace::containment(arbitraryBox, SurfaceTraceState(), Vector3Dd(-2,0,0), 0) !=
+        BoxIntersector::containment(arbitraryBox, SurfaceIntersectionState(), Vector3Dd(-2,0,0), 0) !=
             Geometry::INSIDE) return 93;
     PovrayBody invertedBox(arbitraryBox.copyGeometry(), nullptr, nullptr, nullptr,
         false, stateRegions, stateRegions);
@@ -289,7 +289,7 @@ int main() {
     for (int i = 0; i < 4; ++i) {
         RayCastingQueryAdapter context(Ray::fromAffine(origins[i], directions[i]));
         double nearT = 0, farT = 0;
-        const bool hit = BoxTrace::intersect(&context.ray,
+        const bool hit = BoxIntersector::intersect(&context.ray,
             arbitraryBox, &nearT, &farT);
         if (hit != expectedHit[i] || (hit &&
             (nearT != expectedNear[i] || farT != expectedFar[i]))) return 39;
@@ -323,11 +323,11 @@ int main() {
         sharedPlaneSegments.boundaries[0].geometry != &sharedPlane) return 109;
     RayCastingQueryAdapter planeContext(slabRay);
     double planeDepth = 0;
-    SurfaceTraceState planeState;
-    if (!PlaneTrace::intersect(&planeContext.ray, sharedPlane, planeState, &planeDepth) ||
+    SurfaceIntersectionState planeState;
+    if (!PlaneIntersector::intersect(&planeContext.ray, sharedPlane, planeState, &planeDepth) ||
         planeDepth != 3) return 42;
     planeContext.ray.setPrimaryRay(true);
-    if (!PlaneTrace::intersect(&planeContext.ray, sharedPlane, planeState, &planeDepth) ||
+    if (!PlaneIntersector::intersect(&planeContext.ray, sharedPlane, planeState, &planeDepth) ||
         planeDepth != 3 || !planeState.isViewpointCached()) return 43;
     java::ArrayList<PovrayBody*> planeRegions(0);
     PovrayBody scaledPlane(new PlanarHalfSpace(2,0,0,-4), nullptr, nullptr, nullptr, false,
@@ -337,7 +337,7 @@ int main() {
         scaledPlane.getCsg() != nullptr || scaledPlane.getLight() != nullptr ||
         scaledSurface->getBoundaryPlane().getCoefficients().x() != 2 ||
         scaledSurface->classifyPoint(Vector3Dd(1,0,0), 0) != GeometryContainment::Inside ||
-        !PlaneTrace::intersect(&planeContext.ray, *scaledSurface, SurfaceTraceState(), &planeDepth) ||
+        !PlaneIntersector::intersect(&planeContext.ray, *scaledSurface, SurfaceIntersectionState(), &planeDepth) ||
         planeDepth != 5) return 90;
     PovrayBody independentPlane(scaledPlane);
     scaledPlane.invert();
@@ -345,7 +345,7 @@ int main() {
         scaledSurface->getBoundaryPlane().getConstantCoefficient() != 4 ||
         scaledPlane.isSurfaceInverted() ||
         scaledSurface->classifyPoint(Vector3Dd(1,0,0), 0) != GeometryContainment::Outside ||
-        !PlaneTrace::intersect(&planeContext.ray, *scaledSurface, SurfaceTraceState(), &planeDepth) ||
+        !PlaneIntersector::intersect(&planeContext.ray, *scaledSurface, SurfaceIntersectionState(), &planeDepth) ||
         planeDepth != 5) return 91;
     if (independentPlane.getSurface() == scaledPlane.getSurface() ||
         static_cast<const PlanarHalfSpace*>(independentPlane.getSurface())->

@@ -21,20 +21,20 @@ set(VITRAL_BASE_ISOLATED_OUTPUT ON CACHE BOOL "Isolate external base artifacts" 
 add_subdirectory("${VITRAL_CPP_ROOT}/base" "${CMAKE_BINARY_DIR}/vitral-base")
 
 add_library(povray_core OBJECT
-    src/environment/geometry/SurfaceDetailKernel.cpp
-    src/environment/geometry/trace/QuadricTrace.cpp
-    src/environment/geometry/trace/BoxTrace.cpp
-    src/environment/geometry/trace/PlaneTrace.cpp
-    src/environment/geometry/trace/PolynomialTrace.cpp
-    src/environment/geometry/trace/BlobTrace.cpp
-    src/environment/geometry/trace/HeightFieldTrace.cpp
-    src/environment/geometry/trace/BicubicPatchTrace.cpp
-    src/environment/scene/NativeSurfaceTrace.cpp
-    src/environment/scene/SurfaceTraceKernel.cpp
-    src/environment/scene/SurfaceBoundingVolume.cpp
-    src/environment/geometry/element/RayWithTracingState.cpp
-    src/environment/geometry/element/SphereTrace.cpp
-    src/environment/scene/BoxInvertedCrossingSink.cpp
+    src/environment/intersection/SurfaceDetailResolver.cpp
+    src/environment/intersection/surface/QuadricIntersector.cpp
+    src/environment/intersection/surface/BoxIntersector.cpp
+    src/environment/intersection/surface/PlaneIntersector.cpp
+    src/environment/intersection/surface/PolynomialIntersector.cpp
+    src/environment/intersection/surface/BlobIntersector.cpp
+    src/environment/intersection/surface/HeightFieldIntersector.cpp
+    src/environment/intersection/surface/BicubicPatchIntersector.cpp
+    src/environment/intersection/surface/NativeSurfaceIntersector.cpp
+    src/environment/intersection/SurfaceIntersector.cpp
+    src/environment/intersection/SurfaceBoundingVolume.cpp
+    src/environment/intersection/ray/RayWithTracingState.cpp
+    src/environment/intersection/surface/SphereIntersector.cpp
+    src/environment/intersection/BoxInvertedCrossingSink.cpp
     src/environment/scene/constructiveSolidGeometry/ConstructiveSolidGeometry.cpp
     src/environment/scene/constructiveSolidGeometry/CsgMorganRulesEvaluator.cpp
     src/environment/scene/constructiveSolidGeometry/CsgRaySegmentEvaluator.cpp
@@ -42,8 +42,8 @@ add_library(povray_core OBJECT
     src/environment/scene/constructiveSolidGeometry/CsgOperand.cpp
     src/environment/scene/PovrayBody.cpp
     src/environment/scene/RayCastingCoreOperand.cpp
-    src/environment/scene/NativeGeometryCrossingSink.cpp
-    src/environment/scene/ProjectedTriangleTraversal.cpp
+    src/environment/intersection/NativeGeometryCrossingSink.cpp
+    src/environment/intersection/ProjectedTriangleTraversal.cpp
     src/environment/scene/RayCastingComposite.cpp
     src/render/shaders/PovRayRenderStatistics.cpp
     src/environment/material/povray/PovRayMaterial.cpp

@@ -1,5 +1,5 @@
 
-#include "environment/geometry/trace/QuadricTrace.h"
+#include "environment/intersection/surface/QuadricIntersector.h"
 #include "render/bakedScene/SingleCorePlaneCsgTrace.h"
 
 #include <cstdlib>
@@ -37,7 +37,7 @@ SingleCorePlaneCsgTrace::candidateInsideCompiledSingleCorePlaneOperands(
                 &bakedCsg->getOperands()[coreIndex],
                 bakedCsgs,
                 point,
-                GeometryConfig::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
+                IntersectionTolerances::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
             return false;
         }
     }
@@ -52,7 +52,7 @@ SingleCorePlaneCsgTrace::candidateInsideCompiledSingleCorePlaneOperands(
                 &bakedCsg->getOperands()[operandIndex],
                 bakedCsgs,
                 point,
-                GeometryConfig::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
+                IntersectionTolerances::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
             return false;
         }
     }
@@ -79,7 +79,7 @@ SingleCorePlaneCsgTrace::candidateInsideCompiledNestedContainmentSequence(
                 &nestedCsg->getOperands()[operandIndex],
                 bakedCsgs,
                 point,
-                GeometryConfig::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
+                IntersectionTolerances::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
             return false;
         }
     }
@@ -106,7 +106,7 @@ SingleCorePlaneCsgTrace::candidateInsideDirectDescriptorOperands(
         if (BakedPlaneIntersector::planeContainmentTest(
                 &nestedCsg->getOperands()[planeIdx],
                 point,
-                GeometryConfig::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
+                IntersectionTolerances::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
             return false;
         }
     }
@@ -116,8 +116,8 @@ SingleCorePlaneCsgTrace::candidateInsideDirectDescriptorOperands(
     if (skipIndex != coreIndex) {
         QuadricSurface *quadric = nestedCsg->getOperands()[coreIndex].getQuadricGeometry();
         if (quadric == nullptr ||
-            QuadricTrace::containment(*quadric, point,
-                GeometryConfig::SMALL_TOLERANCE) ==
+            QuadricIntersector::containment(*quadric, point,
+                IntersectionTolerances::SMALL_TOLERANCE) ==
                 RayCastingContainment::OUTSIDE) {
             return false;
         }
@@ -220,7 +220,7 @@ SingleCorePlaneCsgTrace::traceCompiledCoreOperandAllCrossings(
 
         double depth1;
         double depth2;
-        if (!SphereTrace::intersect(*operand->getIntrinsicSphere(),
+        if (!SphereIntersector::intersect(*operand->getIntrinsicSphere(),
                 localOrigin, localDirection, ray->getGeometryStatistics(),
                 &depth1, &depth2)) {
             return false;
@@ -261,7 +261,7 @@ SingleCorePlaneCsgTrace::offerTransformedQuadricCoreCandidate(
     long int coreIndex,
     java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
-    if (depth <= GeometryConfig::SMALL_TOLERANCE || depth >= GeometryConfig::MAX_DISTANCE) {
+    if (depth <= IntersectionTolerances::SMALL_TOLERANCE || depth >= IntersectionTolerances::MAX_DISTANCE) {
         return false;
     }
 
@@ -404,7 +404,7 @@ SingleCorePlaneCsgTrace::makeTransformedQuadricCandidateInRaySpace(
     double depth,
     IntersectionCandidate &candidate)
 {
-    if (depth <= GeometryConfig::SMALL_TOLERANCE || depth >= GeometryConfig::MAX_DISTANCE) {
+    if (depth <= IntersectionTolerances::SMALL_TOLERANCE || depth >= IntersectionTolerances::MAX_DISTANCE) {
         return false;
     }
     candidate = IntersectionCandidate();
@@ -432,7 +432,7 @@ SingleCorePlaneCsgTrace::makeDirectQuadricCandidateInRaySpace(
     double depth,
     IntersectionCandidate &candidate)
 {
-    if (depth <= GeometryConfig::SMALL_TOLERANCE || depth >= GeometryConfig::MAX_DISTANCE) {
+    if (depth <= IntersectionTolerances::SMALL_TOLERANCE || depth >= IntersectionTolerances::MAX_DISTANCE) {
         return false;
     }
     candidate = IntersectionCandidate();
@@ -827,7 +827,7 @@ SingleCorePlaneCsgTrace::offerCompiledSingleCorePlaneFirstHitCandidate(
     IntersectionCandidate &out)
 {
     const double t = candidate.getIntersection().t;
-    if (t <= GeometryConfig::SMALL_TOLERANCE || t >= bestT) {
+    if (t <= IntersectionTolerances::SMALL_TOLERANCE || t >= bestT) {
         return false;
     }
     if (!candidateInsideCompiledSingleCorePlaneOperands(
@@ -853,7 +853,7 @@ SingleCorePlaneCsgTrace::makeTransformedQuadricCandidate(
     double depth,
     IntersectionCandidate &candidate)
 {
-    if (depth <= GeometryConfig::SMALL_TOLERANCE || depth >= GeometryConfig::MAX_DISTANCE) {
+    if (depth <= IntersectionTolerances::SMALL_TOLERANCE || depth >= IntersectionTolerances::MAX_DISTANCE) {
         return false;
     }
     candidate = IntersectionCandidate();
@@ -1012,7 +1012,7 @@ SingleCorePlaneCsgTrace::traceFirstHitCompiledSingleCorePlane(
         return false;
     }
 
-    double bestT = GeometryConfig::MAX_DISTANCE;
+    double bestT = IntersectionTolerances::MAX_DISTANCE;
     bool coreTrueMiss = false;
     bool found = traceCompiledCoreFirstHitCandidates(
         bakedCsg,

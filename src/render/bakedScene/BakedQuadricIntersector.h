@@ -2,12 +2,12 @@
 #define __BAKED_QUADRIC_INTERSECTOR__
 
 #include "vsdk/toolkit/environment/geometry/volume/QuadricSurface.h"
-#include "environment/geometry/element/RayWithTracingState.h"
+#include "environment/intersection/ray/RayWithTracingState.h"
 #include "render/raySharedCache/RaySharedCache.h"
 
 // Ray-quadric intersection for baked CSG operands, with the shared
-// QuadricRayExpansion and QuadricSurface::solve kernels and the render depth
-// window of QuadricTrace::clipToRenderDepths. The ray's cached products are used
+// QuadricRayExpansion and QuadricSurface::solve routines and the render depth
+// window of QuadricIntersector::clipToRenderDepths. The ray's cached products are used
 // when the operand shares the ray's own space, and the part of the constant
 // term without mixed products is cached per viewpoint for primary rays.
 class BakedQuadricIntersector {

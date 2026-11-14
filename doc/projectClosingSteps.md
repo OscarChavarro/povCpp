@@ -23,8 +23,8 @@ its intersection operations
 areas showed up unplanned, as by-products of decoupling/performance work rather
 than conceptual design, and will likely absorb most of the churn that follows:
 
-- **`geometry/element`** (`src/environment/geometry/element/`) — the
-  supporting types around a ray-geometry hit (`PostRayHitElement`, `DetailMask`, `GeometryConfig`,
+- **`intersection/ray` and `intersection/hit`** (`src/environment/intersection/`) — the
+  supporting types around a ray-geometry hit (`PostRayHitElement`, `DetailMask`, `IntersectionTolerances`,
   `GeometryIntersectionEmissionContext`, `IntersectionAttributes`,
   `IntersectionCandidate`, `PovRayHit`, `RayWithTracingState`,
   `TransformStep`, `PriorityQueuePool`).
@@ -46,7 +46,7 @@ than we currently have. The rest of this document works through that.
 
 ## 2. Pre-hit and post-hit concepts are now split
 
-`PostRayHitElement` (`src/environment/geometry/element/PostRayHitElement.h`)
+`PostRayHitElement` (`src/environment/intersection/hit/PostRayHitElement.h`)
 is a one-method post-hit interface:
 
 ```cpp

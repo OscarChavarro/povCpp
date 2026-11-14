@@ -1,7 +1,7 @@
 #ifndef __TRACE_SERVICE__
 #define __TRACE_SERVICE__
 
-#include "environment/geometry/element/IntersectionCandidate.h"
+#include "environment/intersection/hit/IntersectionCandidate.h"
 #include "render/raySharedCache/RaySharedCache.h"
 #include "render/shaders/PovRayRenderStatistics.h"
 

@@ -19,7 +19,7 @@ CsgFirstHitTrace::traceFirstHitByIntersectionMembership(
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue =
         scratch.borrowQueue();
     bool found = false;
-    double bestT = GeometryConfig::MAX_DISTANCE;
+    double bestT = IntersectionTolerances::MAX_DISTANCE;
 
     for (long int i = bakedCsg->getOperands().size() - 1; i >= 0; i--) {
         localDepthQueue->clear();
@@ -33,7 +33,7 @@ CsgFirstHitTrace::traceFirstHitByIntersectionMembership(
 
         for (IntersectionCandidate &candidate : *localDepthQueue) {
             const double t = candidate.getIntersection().t;
-            if (t <= GeometryConfig::SMALL_TOLERANCE || t >= bestT) {
+            if (t <= IntersectionTolerances::SMALL_TOLERANCE || t >= bestT) {
                 continue;
             }
             if (!CsgContainmentTest::candidateInsideAllOtherOperands(

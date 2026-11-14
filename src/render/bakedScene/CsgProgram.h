@@ -7,7 +7,7 @@
 #include "vsdk/toolkit/environment/scene/csg/CsgOperation.h"
 
 // One compiled CSG node: algorithm/specialization chosen once at build
-// time, plus the operand-kind bucket arrays the fused-plan kernels
+// time, plus the operand-kind bucket arrays the fused-plan routines
 // iterate (planes, direct primitives, nested CSGs, transformed
 // primitives) instead of re-deriving them per ray.
 //

@@ -1,11 +1,11 @@
 
-#include "environment/geometry/trace/QuadricTrace.h"
+#include "environment/intersection/surface/QuadricIntersector.h"
 #include "render/bakedScene/BakedQuadricIntersector.h"
 
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/environment/geometry/volume/QuadricRayExpansion.h"
 #include "vsdk/toolkit/environment/geometry/volume/QuadricSurface.h"
-#include "environment/geometry/element/GeometryConfig.h"
+#include "environment/intersection/ray/IntersectionTolerances.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 
@@ -137,11 +137,11 @@ BakedQuadricIntersector::intersectBakedQuadricWithCoeffs(
             // along the ray is -discriminant/(4*polyA), so trueMiss is safe exactly
             // when discriminant < -4*polyA*SMALL_TOLERANCE.
             trueMiss = polyB * polyB - 4.0 * polyA * polyC <
-                -4.0 * polyA * GeometryConfig::SMALL_TOLERANCE;
+                -4.0 * polyA * IntersectionTolerances::SMALL_TOLERANCE;
         }
         return false;
     }
-    if (!QuadricTrace::clipToRenderDepths(depth1, depth2)) {
+    if (!QuadricIntersector::clipToRenderDepths(depth1, depth2)) {
         return false;
     }
     stats.incrementRayQuadricTestsSucceeded();

@@ -1,7 +1,7 @@
 #include <cctype>
 #include <unistd.h>
 
-#include "environment/geometry/element/GeometryConfig.h"
+#include "environment/intersection/ray/IntersectionTolerances.h"
 #include "environment/material/normal/MaterialConfig.h"
 #include "app/options/CommandLineOptions.h"
 
@@ -43,7 +43,7 @@ CommandLineOptions::usage()
     Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     o<filename> = output file name");
     Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n  Ex: +l\\povray\\include +iscene.pov +oscene.tga +w320 "                     "+h200 +d -v +x");
     Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n  Ex: +iscene.pov +oscene.tga +w160 +h200 +v -d +x");
-    GeometryConfig::print();
+    IntersectionTolerances::print();
     MaterialConfig::print();
     Logger::reportMessage("CommandLineOptions", Logger::FATAL_ERROR, "", "\n");
 }

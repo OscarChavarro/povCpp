@@ -1,4 +1,4 @@
-#include "environment/geometry/element/GeometryConfig.h"
+#include "environment/intersection/ray/IntersectionTolerances.h"
 #include "environment/scene/constructiveSolidGeometry/CsgMorganRulesEvaluator.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgCrossingSelection.h"
 #include "java/util/ArrayList.txx"
@@ -7,7 +7,7 @@
 bool
 CsgMorganRulesEvaluator::insideOperand(const Vector3Dd &point, CsgOperand *operand)
 {
-    return operand->doContainmentTest(point, GeometryConfig::SMALL_TOLERANCE) != RayCastingContainment::OUTSIDE;
+    return operand->doContainmentTest(point, IntersectionTolerances::SMALL_TOLERANCE) != RayCastingContainment::OUTSIDE;
 }
 
 int

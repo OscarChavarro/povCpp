@@ -48,54 +48,60 @@ tanto en los evaluadores POV como en el bake.
 
 ## Código de render de PovRay
 
-`src/environment/geometry` contiene el trazado POV de las geometrías VITRAL:
-las colas de cruces y el estado por rayo (`RayWithTracingState`,
-`IntersectionCandidate`, `PriorityQueuePool`), los códigos de contención
-(`RayCastingContainment`), los kernels por familia (`trace`, con
-`PatchScratch` del parche) y el detalle de superficie (`SurfaceDetailKernel`).
+`src/environment/intersection` contiene la intersección POV de rayos con las
+geometrías VITRAL: el estado por rayo en `ray` (`RayWithTracingState`,
+`TransformStep`, `PriorityQueuePool`, las tolerancias de PovRay en
+`IntersectionTolerances`), el registro de impacto en `hit`
+(`IntersectionCandidate`, `IntersectionAttributes`, `RayCastingHit`,
+`DetailMask`, `SurfaceDetailFamily`, los códigos de contención
+`RayCastingContainment`), una clase por familia en `surface` (con
+`PatchScratch` del parche), el despacho por familia (`SurfaceIntersector`,
+`SurfaceIntersectionState`), el detalle de superficie
+(`SurfaceDetailResolver`), los volúmenes envolventes por familia
+(`SurfaceBoundingVolume`), el recorrido proyectado de triángulos
+(`ProjectedTriangleTraversal`), el orden invertido de cruces de un cuerpo
+invertido (`BoxInvertedCrossingSink`) y el paso de cruces VITRAL a la cola POV
+(`NativeGeometryCrossingSink`).
 Los volúmenes de acotación del render son el paquete VITRAL
 `environment/geometry/boundingVolumeHierarchy` (`PreRayHitElement`,
 `BoundingVolumeHierarchy`, `AabbBoundingVolume`, `AxisAlignedBoundingBox`,
 `RaySlabReciprocals`, `AabbBinHierarchy`); `RayWithTracingState` guarda los
 recíprocos de la dirección de cada rayo para la prueba de placas, y los bins
-de operandos de una unión ancha (`OperandCullBins`) son un `AabbBinHierarchy`. `src/environment/scene` contiene
-`PovrayBody`, los composites de instancias (`RayCastingComposite`), el CSG POV
-(`constructiveSolidGeometry`), el recorrido proyectado de triángulos
-(`ProjectedTriangleTraversal`), el orden invertido de cruces de un cuerpo
-invertido (`BoxInvertedCrossingSink`) y el paso de cruces VITRAL a la cola POV
-(`NativeGeometryCrossingSink`). PovRay no define subclases de `Geometry`
+de operandos de una unión ancha (`OperandCullBins`) son un `AabbBinHierarchy`.
+`src/environment/scene` contiene `PovrayBody`, los composites de instancias
+(`RayCastingComposite`) y el CSG POV (`constructiveSolidGeometry`). PovRay no define subclases de `Geometry`
 (`scripts/auditVitralConvergence.py` lo comprueba).
 
 El trazado POV de una superficie VITRAL se elige por su familia
-(`SurfaceDetailFamily`) en `SurfaceTraceKernel`: emisión de cruces, primer
-impacto y contención con el estado POV de la superficie (`SurfaceTraceState`:
+(`SurfaceDetailFamily`) en `SurfaceIntersector`: emisión de cruces, primer
+impacto y contención con el estado POV de la superficie (`SurfaceIntersectionState`:
 inversión, término cuadrado no nulo, caché por punto de vista de los rayos
 primarios y recorrido proyectado de mallas) y las tolerancias históricas de
 PovRay. Ese estado pertenece al cuerpo: `PovrayBody` (y por tanto
 `CsgOperand`) guarda la superficie VITRAL, su familia y su
-`SurfaceTraceState`, y traza con el kernel de la familia; los registros del
+`SurfaceIntersectionState`, y traza con la clase de la familia; los registros del
 bake leen el estado del cuerpo. La inversión de caja, polinomio, blob, esfera
 y geometría genérica es el indicador del estado
-(`SurfaceTraceKernel::invertsByState`); la cuádrica y el plano la codifican en
+(`SurfaceIntersector::invertsByState`); la cuádrica y el plano la codifican en
 sus coeficientes, la malla en su recorrido proyectado, el CSG POV por De
-Morgan, y PovRay la ignora en campos de altura, parches y luces. Las familias son `QuadricTrace`, `BoxTrace`, `PlaneTrace`,
-`PolynomialTrace`, `BlobTrace`, `HeightFieldTrace`, `BicubicPatchTrace`
-(`src/environment/geometry/trace`), `NativeSurfaceTrace` (esferas y geometrías
+Morgan, y PovRay la ignora en campos de altura, parches y luces. Las familias son `QuadricIntersector`, `BoxIntersector`, `PlaneIntersector`,
+`PolynomialIntersector`, `BlobIntersector`, `HeightFieldIntersector`, `BicubicPatchIntersector`
+(`src/environment/intersection/surface`), `NativeSurfaceIntersector` (esferas y geometrías
 genéricas) y `ProjectedTriangleTraversal` (mallas); la geometría de luces es la
 familia vacía. Sus núcleos numéricos son de VITRAL: `QuadricRayExpansion` y
 `QuadricSurface::solve`, `Box::intersectBounds`,
-`InfinitePlane::intersectionDepth`, `SphereTrace`, `BlobSolid::intersect`,
+`InfinitePlane::intersectionDepth`, `SphereIntersector`, `BlobSolid::intersect`,
 `PolynomialSurface::intersect`, `HeightFieldSolid::traceFirstHit` y
 `SubdividedBezierPatch::intersect`. La contención de campos de altura conserva
 la prueba truncada a enteros de PovRay 1.0. Los registros del bake guardan
-superficie, familia y estado al construirse y llaman directamente al kernel
+superficie, familia y estado al construirse y llaman directamente a la clase
 de la familia; solo un CSG POV trazado como objeto genérico usa su propio
 evaluador. El parser construye directamente las geometrías VITRAL
 (`PlanarHalfSpace`, `Box`, `Sphere`, `TriangleMesh`, `QuadricSurface`,
 `PolynomialSurface`, `BlobSolid`, `HeightFieldSolid`, `SubdividedBezierPatch`)
 y `PovrayBody` y `SimpleBodyBuilder` guardan un `Geometry`. El cuerpo elige
 por familia el volumen envolvente (`SurfaceBoundingVolume`), la copia, la
-inversión de coeficientes y el estado inicial (`SurfaceTraceKernel`); una malla
+inversión de coeficientes y el estado inicial (`SurfaceIntersector`); una malla
 de triángulos POV es un `TriangleMesh` con el `ProjectedTriangleTraversal` que
 posee el cuerpo. Las reglas de imagen de los campos de altura (borde y nivel de
 agua, alturas fraccionarias POT y TGA) y los tipos de subdivisión del parche
@@ -106,7 +112,7 @@ enlace de luces entrega a la escena una copia colocada.
 Un impacto se identifica por la superficie VITRAL en la que cae y su familia
 (`IntersectionAttributes::getHitSurface` y `SurfaceDetailFamily`), por el
 cuerpo dueño y por la cadena de dueños de detalle (cuerpos, operandos CSG y
-composites, que implementan `PostRayHitElement`). `SurfaceDetailKernel`
+composites, que implementan `PostRayHitElement`). `SurfaceDetailResolver`
 calcula la normal según la familia con las reglas de normalización y de normal
 degenerada de PovRay; los adaptadores no intervienen en el detalle. Los
 registros del bake obtienen la superficie de su almacenamiento horneado

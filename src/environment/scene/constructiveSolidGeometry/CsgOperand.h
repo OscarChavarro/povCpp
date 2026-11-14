@@ -2,12 +2,12 @@
 #define __CSG_OPERAND__
 
 #include "environment/scene/PovrayBody.h"
-#include "environment/geometry/element/RayCastingHit.h"
-#include "environment/geometry/SurfaceDetailKernel.h"
+#include "environment/intersection/hit/RayCastingHit.h"
+#include "environment/intersection/SurfaceDetailResolver.h"
 #include "vsdk/toolkit/environment/geometry/boundingVolumeHierarchy/AabbBoundingVolume.h"
 #include "vsdk/toolkit/environment/material/Material.h"
 #include "vsdk/toolkit/environment/geometry/volume/Sphere.h"
-#include "environment/geometry/element/TransformStep.h"
+#include "environment/intersection/ray/TransformStep.h"
 
 /**
 A `PovrayBody` leaf of a POV CSG: one placement layer (the body layer), the
@@ -207,7 +207,7 @@ class CsgOperand : public PovrayBody {
         if (next != nullptr) {
             next->doExtraInformation(localRay, t, hit);
         } else {
-            SurfaceDetailKernel::resolve(localRay, t, hit);
+            SurfaceDetailResolver::resolve(localRay, t, hit);
         }
         if (transformationInverse != nullptr && !bakedTransformFolded) {
             // Deferred normalization: apply the inverse-transpose but do NOT

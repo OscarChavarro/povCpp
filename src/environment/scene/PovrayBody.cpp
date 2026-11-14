@@ -1,4 +1,4 @@
-#include "environment/geometry/SurfaceDetailKernel.h"
+#include "environment/intersection/SurfaceDetailResolver.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgPointClassification.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgTree.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgRayClassification.h"
@@ -18,21 +18,21 @@
 #include "vsdk/toolkit/environment/geometry/volume/AffineEllipsoidDistanceBounds.h"
 #include "vsdk/toolkit/environment/geometry/volume/AffineEllipsoidDistance.h"
 #include "vsdk/toolkit/environment/geometry/volume/AffineEllipsoidMinimumDistance.h"
-#include "environment/geometry/element/GeometryConfig.h"
+#include "environment/intersection/ray/IntersectionTolerances.h"
 #include "environment/scene/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "vsdk/toolkit/environment/light/Light.h"
 #include "environment/scene/PovrayBody.h"
-#include "environment/scene/ProjectedTriangleTraversal.h"
+#include "environment/intersection/ProjectedTriangleTraversal.h"
 #include "vsdk/toolkit/environment/scene/InstanceRayCrossingBuffer.h"
 #include "vsdk/toolkit/environment/geometry/element/RayInstanceStep.h"
 #include "vsdk/toolkit/environment/geometry/surface/TriangleMesh.h"
-#include "environment/scene/SurfaceTraceKernel.h"
-#include "environment/scene/SurfaceBoundingVolume.h"
-#include "environment/scene/BoxInvertedCrossingSink.h"
+#include "environment/intersection/SurfaceIntersector.h"
+#include "environment/intersection/SurfaceBoundingVolume.h"
+#include "environment/intersection/BoxInvertedCrossingSink.h"
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
-#include "environment/geometry/element/PriorityQueuePool.txx"
+#include "environment/intersection/ray/PriorityQueuePool.txx"
 
 bool
 PovrayBody::doIntersectionFirstHitViaCrossings(RayWithTracingState *ray, IntersectionCandidate &out)
@@ -85,7 +85,7 @@ PovrayBody::doIntersectionForAllRayCrossings(
         {
             IntersectionCandidate _boundingHit;
             if (!boundingShape->doIntersectionFirstHitViaCrossings(objectRay, _boundingHit) &&
-                boundingShape->doContainmentTest(rayOrigin, GeometryConfig::SMALL_TOLERANCE) ==
+                boundingShape->doContainmentTest(rayOrigin, IntersectionTolerances::SMALL_TOLERANCE) ==
                     RayCastingContainment::OUTSIDE) {
                 return (false);
             }
@@ -148,7 +148,7 @@ PovrayBody::doIntersectionForAllRayCrossings(
             stats.incrementClippingRegionTests();
             if (clippingShape->doContainmentTest(
                     clipTestPoint,
-                    GeometryConfig::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
+                    IntersectionTolerances::SMALL_TOLERANCE) == RayCastingContainment::OUTSIDE) {
                 intersectionFound = false;
                 break;
             }
@@ -246,7 +246,7 @@ PovrayBody::doExtraInformation(const RayWithTracingState &ray, double t, RayCast
                 geometryLocalRay.setQuadricConstantsCached(false);
                 hit->p = geometryTransformationInverse->transformPoint(hit->p);
             }
-            SurfaceDetailKernel::resolve(geometryLocalRay, t, hit);
+            SurfaceDetailResolver::resolve(geometryLocalRay, t, hit);
             if (geometryTransformationInverse != nullptr && !bakedLeaf) {
                 hit->n = geometryNormalToObjectLocal(hit->n);
             }
@@ -979,7 +979,7 @@ PovrayBody::getAABB() const
     return AxisAlignedBoundingBox::unbounded();
 }
 
-#include "environment/geometry/element/RayCastingQueryAdapter.h"
+#include "environment/intersection/ray/RayCastingQueryAdapter.h"
 
 bool PovrayBody::doIntersectionFirstHit(const Ray& source, RayHit* out) const
 {
@@ -1087,8 +1087,8 @@ RayCrossingSupport PovrayBody::emitMeshCrossings(const Ray& source,
         getSurfaceMaterial());
     RayCastingQueryAdapter context(local);
     auto* queue = context.pool.pop(128);
-    SurfaceTraceKernel::emitCrossings(surface, surfaceFamily,
-        const_cast<SurfaceTraceState&>(surfaceState), &context.ray, queue, nullptr, nullptr);
+    SurfaceIntersector::emitCrossings(surface, surfaceFamily,
+        const_cast<SurfaceIntersectionState&>(surfaceState), &context.ray, queue, nullptr, nullptr);
     while (queue->size() > 0) {
         const IntersectionCandidate candidate = queue->poll();
         const double t = candidate.getIntersection().t;
@@ -1154,7 +1154,7 @@ void PovrayBody::setTriangleTraversal(ProjectedTriangleTraversal* value)
 
 void PovrayBody::bindSurface()
 {
-    surfaceState = SurfaceTraceState();
+    surfaceState = SurfaceIntersectionState();
     if (csg != nullptr) {
         surface = nullptr;
         surfaceFamily = SurfaceDetailFamily::None;
@@ -1167,8 +1167,8 @@ void PovrayBody::bindSurface()
         surfaceState.setTriangleTraversal(triangleTraversal);
     } else if (geometry != nullptr) {
         surface = geometry;
-        surfaceFamily = SurfaceTraceKernel::familyOf(geometry);
-        SurfaceTraceKernel::initializeState(geometry, surfaceFamily, surfaceState);
+        surfaceFamily = SurfaceIntersector::familyOf(geometry);
+        SurfaceIntersector::initializeState(geometry, surfaceFamily, surfaceState);
     } else {
         surface = nullptr;
         surfaceFamily = SurfaceDetailFamily::None;
@@ -1186,7 +1186,7 @@ int PovrayBody::traceSurfaceCrossings(RayWithTracingState* ray,
 {
     if (csg != nullptr)
         return csg->doIntersectionForAllRayCrossings(ray, depthQueue, materialOverride);
-    return SurfaceTraceKernel::emitCrossings(surface, surfaceFamily, surfaceState, ray, depthQueue,
+    return SurfaceIntersector::emitCrossings(surface, surfaceFamily, surfaceState, ray, depthQueue,
         materialOverride, nullptr);
 }
 
@@ -1194,26 +1194,26 @@ int PovrayBody::surfaceContainment(const Vector3Dd& point, double distanceTolera
 {
     if (csg != nullptr)
         return csg->doContainmentTest(point, distanceTolerance);
-    return SurfaceTraceKernel::containment(surface, surfaceFamily, surfaceState, point,
+    return SurfaceIntersector::containment(surface, surfaceFamily, surfaceState, point,
         distanceTolerance);
 }
 
 void PovrayBody::invertSurface()
 {
-    if (SurfaceTraceKernel::invertsByState(surfaceFamily)) {
+    if (SurfaceIntersector::invertsByState(surfaceFamily)) {
         surfaceState.setInverted(!surfaceState.isInverted());
         return;
     }
     // Light geometry has nothing to invert.
     if (csg != nullptr) csg->invert();
     else if (triangleTraversal != nullptr) triangleTraversal->invert();
-    else if (light == nullptr) SurfaceTraceKernel::invertGeometry(surface, surfaceFamily);
+    else if (light == nullptr) SurfaceIntersector::invertGeometry(surface, surfaceFamily);
     surfaceState.setViewpointCached(false);
 }
 
 void PovrayBody::setSurfaceInverted(bool value)
 {
-    if (value && !SurfaceTraceKernel::invertsByState(surfaceFamily))
+    if (value && !SurfaceIntersector::invertsByState(surfaceFamily))
         throw java::IllegalStateException("This surface family is not inverted by its body");
     surfaceState.setInverted(value);
 }

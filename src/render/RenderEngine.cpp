@@ -1,8 +1,8 @@
-#include "environment/geometry/SurfaceDetailKernel.h"
+#include "environment/intersection/SurfaceDetailResolver.h"
 #include "java/util/concurrent/Executors.h"
 #include "vsdk/toolkit/render/raytracing/RasterTileGenerator.h"
-#include "environment/geometry/element/RayCastingHit.h"
-#include "environment/geometry/element/PriorityQueuePool.txx"
+#include "environment/intersection/hit/RayCastingHit.h"
+#include "environment/intersection/ray/PriorityQueuePool.txx"
 #include "environment/material/povray/PovRayMaterial.h"
 #include "render/ColorOperations.h"
 #include "render/bakedScene/BakedSceneBuilder.h"
@@ -483,7 +483,7 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithTracingState *localRay, Co
                 hitBody->doExtraInformation(
                     *localRay, localIntersection.getIntersection().t, &winningHit);
             } else {
-                SurfaceDetailKernel::resolve(
+                SurfaceDetailResolver::resolve(
                     *localRay, localIntersection.getIntersection().t, &winningHit);
             }
             localIntersection.getIntersection().normal = winningHit.n;

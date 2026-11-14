@@ -1,8 +1,8 @@
 #ifndef __CSG_OPERAND_TRACE__
 #define __CSG_OPERAND_TRACE__
 
-#include "environment/geometry/element/GeometryConfig.h"
-#include "environment/geometry/element/SphereTrace.h"
+#include "environment/intersection/ray/IntersectionTolerances.h"
+#include "environment/intersection/surface/SphereIntersector.h"
 #include "environment/scene/constructiveSolidGeometry/CsgOperand.h"
 #include "render/bakedScene/AabbCullingSupport.h"
 #include "render/bakedScene/BakedPlaneIntersector.h"
@@ -157,7 +157,7 @@ public:
                         localDirection,
                         scratch.getCache(),
                         &depth) ||
-                    depth <= GeometryConfig::SMALL_TOLERANCE) {
+                    depth <= IntersectionTolerances::SMALL_TOLERANCE) {
                     return false;
                 }
 
@@ -235,7 +235,7 @@ public:
 
                 double depth1;
                 double depth2;
-                if (!SphereTrace::intersect(*operand->getIntrinsicSphere(),
+                if (!SphereIntersector::intersect(*operand->getIntrinsicSphere(),
                         localOrigin, localDirection, ray->getGeometryStatistics(),
                         &depth1, &depth2)) {
                     return false;
@@ -303,7 +303,7 @@ public:
                     ray->getDirection(),
                     scratch.getCache(),
                     &depth) ||
-                depth <= GeometryConfig::SMALL_TOLERANCE) {
+                depth <= IntersectionTolerances::SMALL_TOLERANCE) {
                 return false;
             }
 

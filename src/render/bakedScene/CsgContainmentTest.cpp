@@ -1,7 +1,7 @@
 
 #include "render/bakedScene/CsgContainmentTest.h"
 
-#include "environment/geometry/element/GeometryConfig.h"
+#include "environment/intersection/ray/IntersectionTolerances.h"
 #include "render/bakedScene/AabbCullingSupport.h"
 #include "render/bakedScene/BakedPlaneIntersector.h"
 #include "vsdk/toolkit/environment/scene/csg/CsgMembershipRule.h"
@@ -80,7 +80,7 @@ CsgContainmentTest::candidateInsideOperandsCoreFirst(
     const java::ArrayList<CsgOperandRecord> &operands = bakedCsg->getOperands();
     auto inside = [&operands, &bakedCsgs, &point](long int j) {
         return containmentTestOperand(&operands[j], bakedCsgs, point,
-            GeometryConfig::SMALL_TOLERANCE) != RayCastingContainment::OUTSIDE;
+            IntersectionTolerances::SMALL_TOLERANCE) != RayCastingContainment::OUTSIDE;
     };
     return CsgCrossingSelection<decltype(inside)>::isSelected(
         CsgOperation::INTERSECTION, skipIndex, operands.size(), coreIndex, inside);

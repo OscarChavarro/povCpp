@@ -3,7 +3,7 @@
 
 #include "vsdk/toolkit/environment/geometry/volume/PlanarHalfSpace.h"
 #include "vsdk/toolkit/environment/geometry/volume/QuadricSurface.h"
-#include "environment/geometry/element/TransformStep.h"
+#include "environment/intersection/ray/TransformStep.h"
 
 class BakedGeometryBaker {
   public:

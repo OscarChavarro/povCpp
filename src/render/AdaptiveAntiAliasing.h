@@ -3,7 +3,7 @@
 
 #include "render/RenderWorker.h"
 #include "vsdk/toolkit/render/raytracing/RasterTileArea.h"
-#include "environment/geometry/element/IntersectionCandidate.h"
+#include "environment/intersection/hit/IntersectionCandidate.h"
 
 class RenderEngine;
 

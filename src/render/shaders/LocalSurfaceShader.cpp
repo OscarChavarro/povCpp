@@ -1,5 +1,5 @@
 #include "render/PovRayRendererConfiguration.h"
-#include "environment/geometry/element/RayCastingHit.h"
+#include "environment/intersection/hit/RayCastingHit.h"
 #include "render/shaders/AmbientLightShader.h"
 #include "render/shaders/BumpNormalShader.h"
 #include "render/shaders/DirectLightShader.h"

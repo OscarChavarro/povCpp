@@ -107,7 +107,7 @@ IntersectionCandidate = Intersection + IntersectionAttributes
 
 - `hitSurface` (the VITRAL `Geometry*` the hit lies on) and
   `hitSurfaceFamily` (`SurfaceDetailFamily`, which selects the POV detail
-  kernel `SurfaceDetailKernel`)
+  resolver `SurfaceDetailResolver`)
 - `hitBody` (`PostRayHitElement*`, the interface whose single contract is
   `doExtraInformation`)
 - the detail-owner chain (up to `MAX_DETAIL_OWNERS = 8`
@@ -178,7 +178,7 @@ virtual void invertGeometry();
 ```
 
 `RayCastingGeometry` is not a detail owner: a hit names the VITRAL surface
-it lies on and that surface's family, and `SurfaceDetailKernel` evaluates the
+it lies on and that surface's family, and `SurfaceDetailResolver` evaluates the
 normal for the family. `PostRayHitElement` (one method, `doExtraInformation`)
 is implemented by the scene bodies, CSG operands and composites that form the
 detail-owner chain.
