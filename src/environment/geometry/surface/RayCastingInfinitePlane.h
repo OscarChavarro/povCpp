@@ -12,22 +12,24 @@ class RayCastingInfinitePlane : public RayCastingGeometry {
         double vpNormDotOrigin, bool vpCached);
     RayCastingInfinitePlane(const RayCastingInfinitePlane &other) :
         halfSpace(other.halfSpace),
-        vpNormDotOrigin(other.vpNormDotOrigin),
-        vpCached(other.vpCached)
+        traceState(other.traceState)
     {}
 
     Vector3Dd getNormalVector() const { return halfSpace.getBoundaryPlane().getCoefficients(); }
     void setNormalVector(const Vector3Dd& value) {
         halfSpace.getBoundaryPlane().setCoefficients(value, getDistance());
-        vpCached = false;
+        traceState.setViewpointCached(false);
     }
     double getDistance() const { return halfSpace.getBoundaryPlane().getConstantCoefficient(); }
     void setDistance(double d) {
         halfSpace.getBoundaryPlane().setCoefficients(getNormalVector(), d);
-        vpCached = false;
+        traceState.setViewpointCached(false);
     }
     const PlanarHalfSpace& getHalfSpace() const { return halfSpace; }
     const Geometry* getIntrinsicGeometry() const override { return &halfSpace; }
+    Geometry* getDetailSurface() final { return &halfSpace; }
+    SurfaceDetailFamily getDetailFamily() const final { return SurfaceDetailFamily::Plane; }
+    SurfaceTraceState* getTraceState() final { return &traceState; }
     Geometry* copyGeometry() const override { return halfSpace.copyGeometry(); }
     GeometryContainment classifyPoint(const Vector3Dd& point, double tolerance) const override;
     RayCrossingSupport emitRayCrossings(const Ray& ray, const RayCrossingQuery& query,
@@ -38,13 +40,7 @@ class RayCastingInfinitePlane : public RayCastingGeometry {
         RayHit* hit, RayBoundary* boundary = nullptr) const override;
     RaySolidQueryStatus classifyRay(const Ray& ray, const RayCrossingQuery& query,
         RaySolidClassification& result) const override;
-    double getVpNormDotOrigin() const { return vpNormDotOrigin; }
-    void setVpNormDotOrigin(double value) { vpNormDotOrigin = value; }
-    bool isVpCached() const { return vpCached; }
-    void setVpCached(bool value) { vpCached = value; }
-
-    static int intersectPlane(
-        RayWithTracingState *ray, RayCastingInfinitePlane *plane, double *depth);
+    bool isVpCached() const { return traceState.isViewpointCached(); }
 
     void getBounds(GeometryBounds& result) const override;
     int doIntersectionForAllRayCrossings(
@@ -60,12 +56,10 @@ class RayCastingInfinitePlane : public RayCastingGeometry {
     void invertGeometry() override;
 
   protected:
-    void computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
 
   private:
     PlanarHalfSpace halfSpace;
-    double vpNormDotOrigin;
-    bool vpCached;
+    SurfaceTraceState traceState;
 };
 
 #endif

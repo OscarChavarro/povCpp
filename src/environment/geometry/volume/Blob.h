@@ -9,18 +9,8 @@
 // and inversion flag.
 class Blob : public RayCastingGeometry {
   private:
-    static constexpr double INSIDE_TOLERANCE = 1.0e-6;
-    static constexpr double SHADOW_ROOT_MIN_DISTANCE = 0.05;
-    static constexpr double INFLUENCE_START = 0.01;
-
     BlobSolid solid;
-    bool inverted;
-
-    int traceCrossings(
-        RayWithTracingState *ray,
-        java::PriorityQueue<IntersectionCandidate> *depthQueue,
-        Material *materialOverride,
-        const GeometryIntersectionEmissionContext *context);
+    SurfaceTraceState traceState;
 
   public:
     explicit Blob(const BlobSolid &solidValue);
@@ -29,9 +19,12 @@ class Blob : public RayCastingGeometry {
 
     int getSturmFlag() const { return solid.usesSturmSequences() ? 1 : 0; }
     const BlobSolid &getSolid() const { return solid; }
-    bool isInverted() const { return inverted; }
+    bool isInverted() const { return traceState.isInverted(); }
     // The VITRAL solid for typed queries; inversion is reported separately.
     const Geometry *getIntrinsicGeometry() const override { return &solid; }
+    Geometry *getDetailSurface() override { return &solid; }
+    SurfaceDetailFamily getDetailFamily() const override { return SurfaceDetailFamily::Blob; }
+    SurfaceTraceState *getTraceState() override { return &traceState; }
     // Typed ray classification of the VITRAL solid, complemented when inverted.
     RaySolidQueryStatus classifyRay(const Ray& ray, const RayCrossingQuery& query,
         RaySolidClassification& result) const override;
@@ -53,7 +46,6 @@ class Blob : public RayCastingGeometry {
     void invertGeometry() override;
 
   protected:
-    void computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
 };
 
 #endif

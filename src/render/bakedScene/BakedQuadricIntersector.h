@@ -6,7 +6,7 @@
 
 // Ray-quadric intersection for baked CSG operands, with the shared
 // QuadricRayExpansion and QuadricSurface::solve kernels and the render depth
-// window of Quadric::clipToRenderDepths. The ray's cached products are used
+// window of QuadricTrace::clipToRenderDepths. The ray's cached products are used
 // when the operand shares the ray's own space, and the part of the constant
 // term without mixed products is cached per viewpoint for primary rays.
 class BakedQuadricIntersector {

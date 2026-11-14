@@ -2,6 +2,7 @@
 #define __CSG_OPERAND_RECORD__
 
 #include "render/bakedScene/BakedSceneKinds.h"
+#include "render/bakedScene/BakedSurfaceTrace.h"
 #include "environment/geometry/surface/RayCastingInfinitePlane.h"
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/geometry/element/TransformStep.h"
@@ -30,6 +31,9 @@ class CsgOperandRecord {
         kind(BakedSceneCsgOperandKind::Empty),
         operand(nullptr),
         originalGeometry(nullptr),
+        detailSurface(nullptr),
+        detailFamily(SurfaceDetailFamily::None),
+        traceState(nullptr),
         intrinsicSphere(nullptr),
         originalQuadricGeometry(nullptr),
         material(nullptr),
@@ -83,6 +87,10 @@ class CsgOperandRecord {
         kind(kind),
         operand(operand),
         originalGeometry(originalGeometry),
+        detailSurface(originalGeometry != nullptr ? originalGeometry->getDetailSurface() : nullptr),
+        detailFamily(originalGeometry != nullptr ? originalGeometry->getDetailFamily() :
+            SurfaceDetailFamily::None),
+        traceState(originalGeometry != nullptr ? originalGeometry->getTraceState() : nullptr),
         intrinsicSphere(originalGeometry != nullptr ?
             dynamic_cast<const Sphere *>(originalGeometry->getIntrinsicGeometry()) : nullptr),
         originalQuadricGeometry(originalQuadricGeometry),
@@ -129,6 +137,60 @@ class CsgOperandRecord {
     {
         return hasBakedQuadric ? const_cast<Quadric *>(&bakedQuadricStorage) : originalQuadricGeometry;
     }
+    Geometry *getDetailSurface() const
+    {
+        if (hasBakedQuadric) {
+            return const_cast<Quadric &>(bakedQuadricStorage).getDetailSurface();
+        }
+        if (hasBakedPlane) {
+            return const_cast<RayCastingInfinitePlane &>(bakedPlaneStorage).getDetailSurface();
+        }
+        return detailSurface;
+    }
+    SurfaceDetailFamily getDetailFamily() const
+    {
+        if (hasBakedQuadric) {
+            return SurfaceDetailFamily::Quadric;
+        }
+        if (hasBakedPlane) {
+            return SurfaceDetailFamily::Plane;
+        }
+        return detailFamily;
+    }
+    SurfaceTraceState *getTraceState() const
+    {
+        if (hasBakedQuadric) {
+            return const_cast<Quadric &>(bakedQuadricStorage).getTraceState();
+        }
+        if (hasBakedPlane) {
+            return const_cast<RayCastingInfinitePlane &>(bakedPlaneStorage).getTraceState();
+        }
+        return traceState;
+    }
+    int emitCrossings(RayWithTracingState *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue, Material *materialOverride) const
+    {
+        return BakedSurfaceTrace::emitCrossings(getDetailSurface(), getDetailFamily(),
+            getTraceState(), getGeometry(), ray, depthQueue, materialOverride);
+    }
+    int emitCrossingsAnnotated(RayWithTracingState *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        const GeometryIntersectionEmissionContext &context) const
+    {
+        return BakedSurfaceTrace::emitCrossingsAnnotated(getDetailSurface(), getDetailFamily(),
+            getTraceState(), getGeometry(), ray, depthQueue, context);
+    }
+    bool firstHit(RayWithTracingState *ray, IntersectionCandidate &out,
+        Material *materialOverride) const
+    {
+        return BakedSurfaceTrace::firstHit(getDetailSurface(), getDetailFamily(),
+            getTraceState(), getGeometry(), ray, out, materialOverride);
+    }
+    int containment(const Vector3Dd &point, double distanceTolerance) const
+    {
+        return BakedSurfaceTrace::containment(getDetailSurface(), getDetailFamily(),
+            getTraceState(), getGeometry(), point, distanceTolerance);
+    }
     RayCastingGeometry *getOriginalGeometry() const { return originalGeometry; }
     const Sphere *getIntrinsicSphere() const { return intrinsicSphere; }
     Quadric *getOriginalQuadricGeometry() const { return originalQuadricGeometry; }
@@ -171,6 +233,9 @@ class CsgOperandRecord {
     BakedSceneCsgOperandKind kind;
     CsgOperand *operand;
     RayCastingGeometry *originalGeometry;
+    Geometry *detailSurface;
+    SurfaceDetailFamily detailFamily;
+    SurfaceTraceState *traceState;
     const Sphere *intrinsicSphere;
     Quadric *originalQuadricGeometry;
     Material *material;

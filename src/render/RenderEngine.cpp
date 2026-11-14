@@ -1,3 +1,4 @@
+#include "environment/geometry/SurfaceDetailKernel.h"
 #include "java/util/concurrent/Executors.h"
 #include "vsdk/toolkit/render/raytracing/RasterTileGenerator.h"
 #include "environment/geometry/element/RayCastingHit.h"
@@ -470,8 +471,8 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithTracingState *localRay, Co
             winningHit.p = localIntersection.getIntersection().point;
             winningHit.n = localIntersection.getIntersection().normal;
             PostRayHitElement *hitBody = localIntersection.getAttributes().getHitBody();
-            PostRayHitElement *hitGeometry = localIntersection.getAttributes().getHitGeometry();
-            winningHit.hitGeometry = hitGeometry;
+            winningHit.hitSurface = localIntersection.getAttributes().getHitSurface();
+            winningHit.hitSurfaceFamily = localIntersection.getAttributes().getHitSurfaceFamily();
             winningHit.detailOwnerCount =
                 localIntersection.getAttributes().getDetailOwnerCount();
             for (int i = 0; i < winningHit.detailOwnerCount; i++) {
@@ -481,8 +482,8 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithTracingState *localRay, Co
             if (hitBody != nullptr) {
                 hitBody->doExtraInformation(
                     *localRay, localIntersection.getIntersection().t, &winningHit);
-            } else if (hitGeometry != nullptr) {
-                hitGeometry->doExtraInformation(
+            } else {
+                SurfaceDetailKernel::resolve(
                     *localRay, localIntersection.getIntersection().t, &winningHit);
             }
             localIntersection.getIntersection().normal = winningHit.n;

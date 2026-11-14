@@ -263,7 +263,6 @@ BakedSceneBuilder::buildCsgExecutionPlan(
             directPrimitiveOperandIndices.add((int)i);
             break;
         case BakedSceneCsgOperandKind::Empty:
-        case BakedSceneCsgOperandKind::GenericFallback:
             break;
         }
 

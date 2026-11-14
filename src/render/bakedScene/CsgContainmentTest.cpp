@@ -46,15 +46,14 @@ CsgContainmentTest::containmentTestOperand(
     case BakedScene::CsgOperandKind::TransformedQuadric:
     case BakedScene::CsgOperandKind::TransformedSphere:
     case BakedScene::CsgOperandKind::TransformedPrimitive:
-        return operand->getGeometry()->doContainmentTest(
+        return operand->containment(
             operand->getLocalToObject().transformPoint(point),
             distanceTolerance);
 
     case BakedScene::CsgOperandKind::DirectAnnotatedPrimitive:
     case BakedScene::CsgOperandKind::DirectPrimitive:
-    case BakedScene::CsgOperandKind::GenericFallback:
         return operand->getGeometry() != nullptr ?
-            operand->getGeometry()->doContainmentTest(point, distanceTolerance) :
+            operand->containment(point, distanceTolerance) :
             RayCastingGeometry::OUTSIDE;
     }
     return RayCastingGeometry::OUTSIDE;

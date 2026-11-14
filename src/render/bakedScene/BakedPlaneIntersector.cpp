@@ -91,7 +91,7 @@ BakedPlaneIntersector::tracePlaneOperandCandidate(
         candidate = IntersectionCandidate();
         candidate.getIntersection().point =
             localOrigin.add(localDirection.multiply(depth));
-        candidate.getAttributes().setHitGeometry(operand->getGeometry());
+        candidate.getAttributes().setHitSurface(operand->getDetailSurface(), operand->getDetailFamily());
         candidate.getAttributes().setMaterial(effectiveMaterial);
         candidate.getAttributes().pushDetailOwner(operand->getOperand());
         candidate.getAttributes().setMaterialUsesObjectLocalPoint(true);
@@ -121,7 +121,7 @@ BakedPlaneIntersector::tracePlaneOperandCandidate(
     candidate = IntersectionCandidate();
     candidate.getIntersection().point =
         ray->getOrigin().add(ray->getDirection().multiply(depth));
-    candidate.getAttributes().setHitGeometry(operand->getGeometry());
+    candidate.getAttributes().setHitSurface(operand->getDetailSurface(), operand->getDetailFamily());
     candidate.getAttributes().setMaterial(effectiveMaterial);
     candidate.getAttributes().pushDetailOwner(operand->getOperand());
     candidate.getAttributes().setMaterialUsesObjectLocalPoint(true);
@@ -168,7 +168,7 @@ BakedPlaneIntersector::tracePlaneOperandCandidateInRaySpace(
     candidate = IntersectionCandidate();
     candidate.getIntersection().point =
         localOrigin.add(localDirection.multiply(depth));
-    candidate.getAttributes().setHitGeometry(operand->getGeometry());
+    candidate.getAttributes().setHitSurface(operand->getDetailSurface(), operand->getDetailFamily());
     candidate.getAttributes().setMaterial(effectiveMaterial);
     candidate.getAttributes().pushDetailOwner(operand->getOperand());
     candidate.getAttributes().setMaterialUsesObjectLocalPoint(true);

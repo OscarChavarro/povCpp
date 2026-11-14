@@ -5,13 +5,14 @@
 #include "vsdk/toolkit/environment/geometry/Geometry.h"
 #include "environment/geometry/element/RayWithTracingState.h"
 #include "environment/geometry/boundingVolumeHierarchy/BoundingVolumeHierarchy.h"
-#include "environment/geometry/element/PostRayHitElement.h"
+#include "environment/geometry/element/SurfaceDetailFamily.h"
+#include "environment/geometry/SurfaceTraceState.h"
 #include "environment/geometry/element/GeometryIntersectionEmissionContext.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/RayCastingHit.h"
 #include "vsdk/toolkit/processing/Containment.h"
 
-class RayCastingGeometry : public Geometry, public PostRayHitElement {
+class RayCastingGeometry : public Geometry {
   public:
     RayCrossingSupport emitRayCrossings(const Ray& ray,
         const RayCrossingQuery& query, RayCrossingSink& sink) const override;
@@ -42,27 +43,21 @@ class RayCastingGeometry : public Geometry, public PostRayHitElement {
         return false;
     }
     virtual int doContainmentTest(const Vector3Dd &point, double distanceTolerance) { (void)point; (void)distanceTolerance; return OUTSIDE; }
-    virtual void doExtraInformation(const RayWithTracingState &ray, double t, RayCastingHit *hit) override;
     virtual BoundingVolumeHierarchy *createBoundingVolume() const;
     // The leaf used for mathematical provenance may outlive a single query,
     // but is owned by this adapter and has the same lifetime as the adapter.
     virtual const Geometry *getIntrinsicGeometry() const { return this; }
-    static const Geometry *resolveIntrinsicGeometry(const PostRayHitElement *element);
+    // The VITRAL surface a hit on this geometry is attributed to, and the
+    // family of its detail kernel; none for geometries whose hits come from
+    // their operands (CSG) or that keep the emitted normal (light geometry).
+    virtual Geometry *getDetailSurface() { return nullptr; }
+    virtual SurfaceDetailFamily getDetailFamily() const { return SurfaceDetailFamily::None; }
+    // The POV render state the family trace kernel uses for this surface.
+    virtual SurfaceTraceState *getTraceState() { return nullptr; }
     virtual void *copy() = 0;
     virtual ~RayCastingGeometry() {}
 
     virtual void invertGeometry() {}
-
-  protected:
-    virtual void computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint) {}
-    virtual void computeSurfaceNormal(
-        Vector3Dd *result,
-        Vector3Dd *intersectionPoint,
-        const RendererConfiguration *config)
-    {
-        (void)config;
-        computeSurfaceNormal(result, intersectionPoint);
-    }
 
   private:
     static void applyAnnotatedEmissionContext(

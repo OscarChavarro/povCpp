@@ -4,26 +4,21 @@
 #include <stdexcept>
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/environment/material/Material.h"
+#include "vsdk/toolkit/environment/geometry/Geometry.h"
 #include "environment/geometry/element/PostRayHitElement.h"
+#include "environment/geometry/element/SurfaceDetailFamily.h"
 
-// Per-candidate attribution gathered while a ray is matched against the scene
-// (which geometry/material produced the hit, and the shading overrides a
-// containing scene object applies) - kept apart from the candidate's own
-// geometric data (Intersection: t/point/normal) so that class can stay a
-// plain geometric record.
-//
-// hitGeometry and hitBody are both PostRayHitElement* - RayCastingGeometry implements
-// that interface precisely so a bare shape (no wrapping body) can travel
-// through the same pointer type as a CSG body, without this class (or
-// anything in element/) needing to know the concrete RayCastingGeometry class. They
-// are NOT interchangeable: a body's doExtraInformation may consult hitGeometry
-// on its own account (e.g. a baked/quadric override), so both must be kept as
-// distinct fields even though their type is now the same.
+// Per-candidate attribution gathered while a ray is matched against the scene,
+// kept apart from the candidate's geometric data (Intersection: t/point/normal).
+// The hit is identified by the VITRAL surface it lies on and that surface's
+// detail family (resolved by SurfaceDetailKernel), by the scene body that owns
+// it and by the chain of detail owners (CSG operands, composites) between
+// them; plus the shading overrides a containing scene object applies.
 class IntersectionAttributes {
   private:
     static constexpr int MAX_DETAIL_OWNERS = 8;
 
-    PostRayHitElement *hitGeometry = nullptr;
+    Geometry *hitSurface = nullptr;
     PostRayHitElement *hitBody = nullptr;
     PostRayHitElement *detailOwners[MAX_DETAIL_OWNERS] = {};
     int detailOwnerCount = 0;
@@ -31,12 +26,14 @@ class IntersectionAttributes {
     Material *material = nullptr;
     Material *objectTexture = nullptr;
     ColorRgba *objectColor = nullptr;
+    SurfaceDetailFamily hitSurfaceFamily = SurfaceDetailFamily::None;
     bool noShadowFlag = false;
     bool materialUsesObjectLocalPoint = false;
 
   public:
-    PostRayHitElement *getHitGeometry() const;
-    void setHitGeometry(PostRayHitElement *value);
+    Geometry *getHitSurface() const;
+    SurfaceDetailFamily getHitSurfaceFamily() const;
+    void setHitSurface(Geometry *surface, SurfaceDetailFamily family);
     PostRayHitElement *getHitBody() const;
     void setHitBody(PostRayHitElement *value);
     int getSurfaceIndex() const;
@@ -56,16 +53,23 @@ class IntersectionAttributes {
     void setNoShadowFlag(bool value);
 };
 
-inline PostRayHitElement *
-IntersectionAttributes::getHitGeometry() const
+inline Geometry *
+IntersectionAttributes::getHitSurface() const
 {
-    return hitGeometry;
+    return hitSurface;
+}
+
+inline SurfaceDetailFamily
+IntersectionAttributes::getHitSurfaceFamily() const
+{
+    return hitSurfaceFamily;
 }
 
 inline void
-IntersectionAttributes::setHitGeometry(PostRayHitElement *value)
+IntersectionAttributes::setHitSurface(Geometry *surface, SurfaceDetailFamily family)
 {
-    hitGeometry = value;
+    hitSurface = surface;
+    hitSurfaceFamily = family;
 }
 
 inline PostRayHitElement *

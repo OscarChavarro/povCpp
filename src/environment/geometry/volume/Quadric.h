@@ -3,6 +3,7 @@
 
 #include "environment/geometry/RayCastingGeometry.h"
 #include "vsdk/toolkit/environment/geometry/volume/QuadricSurface.h"
+#include "environment/geometry/SurfaceTraceState.h"
 
 class Quadric : public RayCastingGeometry {
   public:
@@ -14,9 +15,7 @@ class Quadric : public RayCastingGeometry {
         double objectVpConstant, bool constantCached, bool nonZeroSquareTerm);
     Quadric(const Quadric &other) :
         surface(other.surface),
-        objectVpConstant(other.objectVpConstant),
-        constantCached(other.constantCached),
-        nonZeroSquareTerm(other.nonZeroSquareTerm)
+        traceState(other.traceState)
     {}
 
     Vector3Dd &getObject2Terms() { return surface.squareCoefficients(); }
@@ -27,12 +26,14 @@ class Quadric : public RayCastingGeometry {
     const Vector3Dd &getObjectTerms() const { return surface.linearCoefficients(); }
     double getObjectConstant() const { return surface.constantCoefficient(); }
     const QuadricSurface &getSurface() const { return surface; }
-    bool isConstantCached() const { return constantCached; }
-    void setConstantCached(bool value) const { constantCached = value; }
-    bool hasNonZeroSquareTerm() const { return nonZeroSquareTerm; }
-    void setNonZeroSquareTerm(bool value) { nonZeroSquareTerm = value; }
+    bool isConstantCached() const { return traceState.isViewpointCached(); }
+    void setConstantCached(bool value) const { traceState.setViewpointCached(value); }
+    bool hasNonZeroSquareTerm() const { return traceState.hasNonZeroSquareTerm(); }
 
     const Geometry* getIntrinsicGeometry() const override { return &surface; }
+    Geometry* getDetailSurface() final { return &surface; }
+    SurfaceDetailFamily getDetailFamily() const final { return SurfaceDetailFamily::Quadric; }
+    SurfaceTraceState* getTraceState() final { return &traceState; }
     Geometry* copyGeometry() const override { return surface.copyGeometry(); }
     void getBounds(GeometryBounds& result) const override { surface.getBounds(result); }
     GeometryContainment classifyPoint(const Vector3Dd& point, double tolerance) const override {
@@ -48,12 +49,6 @@ class Quadric : public RayCastingGeometry {
         RayCrossingSink& sink) const override { return surface.emitRayCrossings(ray, query, sink); }
     RaySolidQueryStatus classifyRay(const Ray& ray, const RayCrossingQuery& query,
         RaySolidClassification& result) const override { return surface.classifyRay(ray, query, result); }
-
-    static int intersectQuadric(
-        RayWithTracingState *ray, Quadric *shape, double *depth1, double *depth2);
-    // PovRay's render depth window [SMALL_TOLERANCE, MAX_DISTANCE]: a root
-    // outside it takes the other root's value; false when both are outside.
-    static bool clipToRenderDepths(double *depth1, double *depth2);
 
     int doIntersectionForAllRayCrossings(
         RayWithTracingState *ray,
@@ -74,14 +69,11 @@ class Quadric : public RayCastingGeometry {
     void invertGeometry() override;
 
   protected:
-    void computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
 
   private:
     void updateSquareTermFlag();
 
     QuadricSurface surface;
-    mutable double objectVpConstant;
-    mutable bool constantCached;
-    bool nonZeroSquareTerm;
+    SurfaceTraceState traceState;
 };
 #endif

@@ -15,6 +15,9 @@ class RayCastingBox : public RayCastingGeometry {
     Vector3Dd* getBounds() { return box.getRawBounds(); }
     const Vector3Dd* getBounds() const { return box.getRawBounds(); }
     const Geometry* getIntrinsicGeometry() const override { return &box; }
+    Geometry* getDetailSurface() override { return &box; }
+    SurfaceDetailFamily getDetailFamily() const override { return SurfaceDetailFamily::Box; }
+    SurfaceTraceState* getTraceState() override { return &traceState; }
     Geometry* copyGeometry() const override { return box.copyGeometry(); }
     GeometryContainment classifyPoint(const Vector3Dd& point, double tolerance) const override;
     RayCrossingSupport emitRayCrossings(const Ray& ray, const RayCrossingQuery& query,
@@ -25,11 +28,8 @@ class RayCastingBox : public RayCastingGeometry {
         RayHit* hit) const override;
     RaySolidQueryStatus classifyRay(const Ray& ray, const RayCrossingQuery& query,
         RaySolidClassification& result) const override;
-    bool isInverted() const { return inverted; }
-    void setInverted(bool value) { inverted = value; }
-
-    static int intersectBoxx(const RayWithTracingState *ray, const RayCastingBox *box,
-        double *depth1, double *depth2);
+    bool isInverted() const { return traceState.isInverted(); }
+    void setInverted(bool value) { traceState.setInverted(value); }
 
     void getBounds(GeometryBounds& result) const override;
     BoundingVolumeHierarchy *createBoundingVolume() const override;
@@ -52,11 +52,10 @@ class RayCastingBox : public RayCastingGeometry {
     void invertGeometry() override;
 
   protected:
-    void computeSurfaceNormal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
 
   private:
     Box box;
-    bool inverted;
+    SurfaceTraceState traceState;
 
 };
 

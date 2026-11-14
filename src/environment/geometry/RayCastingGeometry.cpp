@@ -1,5 +1,6 @@
 #include "vsdk/toolkit/environment/scene/SceneSolid.h"
 #include "environment/geometry/RayCastingGeometry.h"
+#include "environment/geometry/SurfaceDetailKernel.h"
 #include "environment/geometry/boundingVolumeHierarchy/AabbBoundingVolume.h"
 #include "environment/geometry/element/RayCastingHit.h"
 #include "java/util/PriorityQueue.txx"
@@ -46,27 +47,10 @@ RayCastingGeometry::doIntersectionForAllRayCrossingsAnnotated(
     return found;
 }
 
-void
-RayCastingGeometry::doExtraInformation(const RayWithTracingState &ray, double t, RayCastingHit *hit)
-{
-    (void)t;
-    if (hit->needsNormal()) {
-        computeSurfaceNormal(&hit->n, &hit->p, ray.getConfig());
-    }
-}
-
 BoundingVolumeHierarchy *
 RayCastingGeometry::createBoundingVolume() const
 {
     return new AabbBoundingVolume(AxisAlignedBoundingBox::unbounded());
-}
-
-const Geometry *
-RayCastingGeometry::resolveIntrinsicGeometry(const PostRayHitElement *element)
-{
-    const RayCastingGeometry *adapter = dynamic_cast<const RayCastingGeometry *>(element);
-    return adapter != nullptr ? adapter->getIntrinsicGeometry() :
-        dynamic_cast<const Geometry *>(element);
 }
 
 #include "environment/geometry/element/RayCastingQueryAdapter.h"
@@ -87,9 +71,8 @@ bool RayCastingGeometry::doIntersectionFirstHit(const Ray& source, RayHit* out)
     RayCastingHit detail = RayCastingHit::fromCandidate(candidate,
         out ? out->getRequiredDetailMask() : RayCastingHit::DETAIL_NONE);
     PostRayHitElement* owner = detail.popDetailOwnerBack();
-    PostRayHitElement* producer = owner ? owner : detail.hitGeometry;
-    if (producer) producer->doExtraInformation(context.ray, detail.hitDistance, &detail);
-    else doExtraInformation(context.ray, detail.hitDistance, &detail);
+    if (owner) owner->doExtraInformation(context.ray, detail.hitDistance, &detail);
+    else SurfaceDetailKernel::resolve(context.ray, detail.hitDistance, &detail);
     RayCastingQueryAdapter::exportHit(source, detail, out);
     return true;
 }
@@ -102,9 +85,8 @@ void RayCastingGeometry::doExtraInformation(const Ray& source, double t, RayHit*
     if (!context.findCrossing(this, t, candidate)) return;
     RayCastingHit detail = RayCastingHit::fromCandidate(candidate, out->getRequiredDetailMask());
     PostRayHitElement* owner = detail.popDetailOwnerBack();
-    PostRayHitElement* producer = owner ? owner : detail.hitGeometry;
-    if (producer) producer->doExtraInformation(context.ray, t, &detail);
-    else doExtraInformation(context.ray, t, &detail);
+    if (owner) owner->doExtraInformation(context.ray, t, &detail);
+    else SurfaceDetailKernel::resolve(context.ray, t, &detail);
     RayCastingQueryAdapter::exportHit(source, detail, out);
 }
 
@@ -127,7 +109,7 @@ RayCrossingSupport RayCastingGeometry::emitRayCrossings(const Ray& source,
         const IntersectionCandidate candidate = queue->poll();
         const double t = candidate.getIntersection().t;
         if (t < query.minT || t > query.maxT) continue;
-        RayCrossing event(t, resolveIntrinsicGeometry(candidate.getAttributes().getHitGeometry()),
+        RayCrossing event(t, candidate.getAttributes().getHitSurface(),
             RayCrossing::Kind::Unclassified);
         event.surfaceIndex = candidate.getAttributes().getSurfaceIndex();
         event.body = dynamic_cast<const SceneSolid*>(candidate.getAttributes().getHitBody());

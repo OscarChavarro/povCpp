@@ -3,6 +3,7 @@
 
 #include "environment/scene/PovrayBody.h"
 #include "environment/geometry/element/RayCastingHit.h"
+#include "environment/geometry/SurfaceDetailKernel.h"
 #include "environment/geometry/boundingVolumeHierarchy/AabbBoundingVolume.h"
 #include "vsdk/toolkit/environment/material/Material.h"
 #include "environment/geometry/volume/Blob.h"
@@ -211,10 +212,7 @@ class CsgOperand : public PovrayBody {
         if (next != nullptr) {
             next->doExtraInformation(localRay, t, hit);
         } else {
-            PostRayHitElement *effectiveGeometry = bakedTransformFolded ? hit->hitGeometry : getGeometry();
-            if (effectiveGeometry != nullptr) {
-                effectiveGeometry->doExtraInformation(localRay, t, hit);
-            }
+            SurfaceDetailKernel::resolve(localRay, t, hit);
         }
         if (transformationInverse != nullptr && !bakedTransformFolded) {
             // Deferred normalization: apply the inverse-transpose but do NOT

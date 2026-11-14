@@ -54,7 +54,7 @@ public:
         IntersectionCandidate candidate;
         candidate.getIntersection().point =
             localOrigin.add(localDirection.multiply(depth));
-        candidate.getAttributes().setHitGeometry(operand->getGeometry());
+        candidate.getAttributes().setHitSurface(operand->getDetailSurface(), operand->getDetailFamily());
         candidate.getAttributes().setMaterial(effectiveMaterial);
         candidate.getAttributes().pushDetailOwner(operand->getOperand());
         candidate.getAttributes().setMaterialUsesObjectLocalPoint(true);
@@ -113,13 +113,13 @@ public:
         {
             GeometryIntersectionEmissionContext context(
                 effectiveMaterial, operand->getOperand(), true);
-            return operand->getGeometry()->doIntersectionForAllRayCrossingsAnnotated(
+            return operand->emitCrossingsAnnotated(
                 ray, depthQueue, context);
         }
 
         case BakedScene::CsgOperandKind::DirectPrimitive: {
             const int initialSize = depthQueue->size();
-            const bool found = operand->getGeometry()->doIntersectionForAllRayCrossings(
+            const bool found = operand->emitCrossings(
                 ray, depthQueue, effectiveMaterial);
             if (!found || depthQueue->size() == initialSize) {
                 return false;
@@ -164,7 +164,7 @@ public:
                 IntersectionCandidate candidate;
                 candidate.getIntersection().point =
                     localOrigin.add(localDirection.multiply(depth));
-                candidate.getAttributes().setHitGeometry(operand->getGeometry());
+                candidate.getAttributes().setHitSurface(operand->getDetailSurface(), operand->getDetailFamily());
                 candidate.getAttributes().setMaterial(effectiveMaterial);
                 candidate.getAttributes().pushDetailOwner(operand->getOperand());
                 candidate.getAttributes().setMaterialUsesObjectLocalPoint(true);
@@ -272,7 +272,7 @@ public:
                     localDepthQueue,
                     effectiveMaterial);
             } else {
-                found = operand->getGeometry()->doIntersectionForAllRayCrossings(
+                found = operand->emitCrossings(
                     localRayPtr, localDepthQueue, effectiveMaterial);
             }
 
@@ -310,7 +310,7 @@ public:
             IntersectionCandidate candidate;
             candidate.getIntersection().point =
                 ray->getOrigin().add(ray->getDirection().multiply(depth));
-            candidate.getAttributes().setHitGeometry(operand->getGeometry());
+            candidate.getAttributes().setHitSurface(operand->getDetailSurface(), operand->getDetailFamily());
             candidate.getAttributes().setMaterial(effectiveMaterial);
             candidate.getAttributes().pushDetailOwner(operand->getOperand());
             candidate.getAttributes().setMaterialUsesObjectLocalPoint(true);
@@ -334,7 +334,7 @@ public:
                 localDepthQueue,
                 effectiveMaterial);
         } else {
-            found = operand->getGeometry()->doIntersectionForAllRayCrossings(
+            found = operand->emitCrossings(
                 ray, localDepthQueue, effectiveMaterial);
         }
         for (IntersectionCandidate &candidate : *localDepthQueue) {

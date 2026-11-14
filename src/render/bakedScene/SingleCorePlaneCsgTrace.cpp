@@ -1,4 +1,5 @@
 
+#include "environment/geometry/trace/QuadricTrace.h"
 #include "render/bakedScene/SingleCorePlaneCsgTrace.h"
 
 #include <cstdlib>
@@ -115,7 +116,8 @@ SingleCorePlaneCsgTrace::candidateInsideDirectDescriptorOperands(
     if (skipIndex != coreIndex) {
         Quadric *quadric = nestedCsg->getOperands()[coreIndex].getQuadricGeometry();
         if (quadric == nullptr ||
-            quadric->doContainmentTest(point, GeometryConfig::SMALL_TOLERANCE) ==
+            QuadricTrace::containment(quadric->getSurface(), point,
+                GeometryConfig::SMALL_TOLERANCE) ==
                 RayCastingGeometry::OUTSIDE) {
             return false;
         }
@@ -148,14 +150,14 @@ SingleCorePlaneCsgTrace::traceCompiledCoreOperandAllCrossings(
     {
         GeometryIntersectionEmissionContext context(
             effectiveMaterial, operand->getOperand(), true);
-        return operand->getGeometry()->doIntersectionForAllRayCrossingsAnnotated(
+        return operand->emitCrossingsAnnotated(
             ray, depthQueue, context);
     }
 
     case BakedScene::CsgOperandKind::DirectPrimitive:
     {
         const int initialSize = depthQueue->size();
-        const bool found = operand->getGeometry()->doIntersectionForAllRayCrossings(
+        const bool found = operand->emitCrossings(
             ray, depthQueue, effectiveMaterial);
         if (!found || depthQueue->size() == initialSize) {
             return false;
@@ -266,7 +268,7 @@ SingleCorePlaneCsgTrace::offerTransformedQuadricCoreCandidate(
     IntersectionCandidate candidate;
     candidate.getIntersection().point =
         localOrigin.add(localDirection.multiply(depth));
-    candidate.getAttributes().setHitGeometry(coreOperand->getGeometry());
+    candidate.getAttributes().setHitSurface(coreOperand->getDetailSurface(), coreOperand->getDetailFamily());
     candidate.getAttributes().setMaterial(effectiveMaterial);
     candidate.getAttributes().pushDetailOwner(coreOperand->getOperand());
     candidate.getAttributes().setMaterialUsesObjectLocalPoint(true);
@@ -408,7 +410,7 @@ SingleCorePlaneCsgTrace::makeTransformedQuadricCandidateInRaySpace(
     candidate = IntersectionCandidate();
     candidate.getIntersection().point =
         rayOrigin.add(rayDirection.multiply(depth));
-    candidate.getAttributes().setHitGeometry(operand->getGeometry());
+    candidate.getAttributes().setHitSurface(operand->getDetailSurface(), operand->getDetailFamily());
     candidate.getAttributes().setMaterial(effectiveMaterial);
     candidate.getAttributes().pushDetailOwner(operand->getOperand());
     candidate.getAttributes().setMaterialUsesObjectLocalPoint(true);
@@ -437,7 +439,7 @@ SingleCorePlaneCsgTrace::makeDirectQuadricCandidateInRaySpace(
     candidate.getIntersection().point =
         rayOrigin.add(rayDirection.multiply(depth));
     candidate.getIntersection().t = depth;
-    candidate.getAttributes().setHitGeometry(operand->getGeometry());
+    candidate.getAttributes().setHitSurface(operand->getDetailSurface(), operand->getDetailFamily());
     candidate.getAttributes().setMaterial(effectiveMaterial);
     candidate.getAttributes().pushDetailOwner(operand->getOperand());
     candidate.getAttributes().setMaterialUsesObjectLocalPoint(true);
@@ -857,7 +859,7 @@ SingleCorePlaneCsgTrace::makeTransformedQuadricCandidate(
     candidate = IntersectionCandidate();
     candidate.getIntersection().point =
         localOrigin.add(localDirection.multiply(depth));
-    candidate.getAttributes().setHitGeometry(operand->getGeometry());
+    candidate.getAttributes().setHitSurface(operand->getDetailSurface(), operand->getDetailFamily());
     candidate.getAttributes().setMaterial(effectiveMaterial);
     candidate.getAttributes().pushDetailOwner(operand->getOperand());
     candidate.getAttributes().setMaterialUsesObjectLocalPoint(true);
