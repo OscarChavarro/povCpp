@@ -1207,25 +1207,41 @@ The plan is complete only when:
 
 ## 11. VITRAL refraction
 
-`SimpleRaytracer` and `ParallelRaytracer` shade local illumination, shadows and
-mirror reflection only. `ReaderMitScene` reads the transmission coefficient and
-refraction index of each `surface`, and `sboard.ray` and `test.ray` declare
-transmissive materials, but the renderers ignore them. Refraction is renderer
-work, outside the geometric convergence, and is done after the plan stages:
+Refraction is renderer work, outside the geometric convergence. Status:
 
-- Transmitted rays use Snell's law with total internal reflection, and a ray
-  that leaves a solid uses the inverse index ratio, so the renderer tracks
-  whether the ray is inside. Nested transmissive solids need an index stack.
-- Rays starting on a surface use the existing `VSDK::EPSILON` offset policy.
-  A `CsgBody` ray that starts inside the solid gets its next boundary from the
-  evaluator, as the Roth and hole tests already check.
-- The existing recursion limit bounds reflection and transmission together;
-  the reflected and transmitted contributions follow the material
-  coefficients.
-- Images of `sboard.ray`, `test.ray` and any other transmissive scene change,
-  so their capture references are rebaselined as a deliberate change, apart
-  from any migration change.
-- With a transmissive material, `csg_union_pov.ray` and its Roth counterpart
-  must show the internal union surfaces only with the heuristic. That is the
-  visual check of the evaluator difference that opaque first-hit shading
-  cannot show.
+| Step | Content | Status |
+|---|---|---|
+| R-1 | Snell refraction with total internal reflection in `SimpleRaytracer` and `ParallelRaytracer`; index stack; MIT `surface` index | Done |
+| R-2 | Transmissive shadow filtering in the shaders | Done |
+| R-3 | Example `glass_lens.ray`, unit tests, capture rebaseline | Done |
+| R-4 | Transmissive CSG example: heuristic against Roth | Pending |
+
+- `ReaderMitScene` passes the `surface` index of refraction to
+  `SimpleMaterial`. A material with refraction coefficient kt > 0 is
+  transmissive. The index is the absolute index of the solid, as `Ni` in MTL
+  files: glass uses 1.5 in `glass_lens.ray`, `sboard.ray`, `test.ray` and the
+  Vulkan `sphere_glass.mtl`.
+- `SnellRefraction::refract` gives the transmitted direction for
+  eta = n1/n2 and reports total internal reflection; then
+  `SnellRefraction::reflect` gives the mirror direction. A ray is entering
+  when it arrives on the side the normal points to. `TraceWorkspace::mediumIndices`
+  is the index stack: entering pushes the solid's index, leaving pops it, and
+  both are undone after the branch.
+- Transmitted rays start at the hit point offset by `VSDK::EPSILON` along the
+  new direction. The recursion limit bounds reflection and transmission
+  together; the local, reflected and transmitted contributions are added with
+  the material coefficients, as in Whitted's model.
+- `ShadowTransmittance::evaluate` gives the fraction of a light reaching a
+  point: an opaque blocker gives 0, each transmissive blocker multiplies by its
+  kt. Shadow rays are not bent. `LightingShader` and `CookTorranceShader` use it;
+  with opaque scenes the images are unchanged.
+- `glass_lens.ray` reproduces the Vulkan `WhittedRaytracer` scene in the MIT
+  format (z up): ground plane, opaque sphere, glass sphere of index 1.5 in
+  front of it, seen inverted through the glass.
+- The capture references of `test.ray` and `sboard.ray` change as a
+  deliberate rebaseline, apart from any migration change; `glass_lens.ray`
+  gets new references.
+- R-4: with a transmissive material, `csg_union_pov.ray` and its Roth
+  counterpart must show the internal union surfaces only with the heuristic.
+  That is the visual check of the evaluator difference that opaque first-hit
+  shading cannot show.

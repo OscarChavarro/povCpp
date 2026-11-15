@@ -2595,3 +2595,39 @@ The closing criteria of §10 of the plan, with the evidence of the K-8 gates:
 7. Example captures 64/64, renderAll 108/108 byte-identical, Roth 7 known;
    the public APIs and their literature are in `vitralImplementation.md`
    ("Correspondencia con la literatura").
+
+## VITRAL refraction (plan §11, R-1 to R-3)
+
+`SimpleRaytracer` follows a transmitted ray for materials with refraction
+coefficient kt > 0. `SnellRefraction::refract` gives the direction, and on
+total internal reflection `SnellRefraction::reflect` replaces it.
+`TraceWorkspace::mediumIndices` holds the indices of the solids the ray is
+inside. `ReaderMitScene` now passes the `surface` index to `SimpleMaterial`;
+before, it was dropped. `ShadowTransmittance::evaluate` replaces the shadow
+loops of `LightingShader` and `CookTorranceShader`: an opaque blocker stops the
+light and a transmissive one lets kt through. The glass sphere's shadow, black
+before, is now light.
+
+The MIT index is the absolute index of the solid, as `Ni` in MTL files. By user
+decision glass uses 1.5: `sboard.ray` and `test.ray` declared 0.666, which made
+their spheres a medium less dense than air (diverging, with total internal
+reflection near the rim). `glass_lens.ray` and the Vulkan `sphere_glass.mtl`
+went from 1.52 to 1.5.
+
+`glass_lens.ray` replicates the Vulkan `WhittedRaytracer` scene with z up. The
+dark region inside the lens is the unlit side of the opaque sphere, seen
+inverted: it disappears without that sphere and turns yellow with a second
+light.
+
+Six unit tests in `refraction_tests.cpp`: normal incidence, Snell's law at 45
+degrees, total internal reflection, shadow factors (0.9, 0.45, 0 and 1 beyond
+the light), the reader index, and a glass sphere of index 1 that renders
+invisible, with an ambient-lit control. VITRAL ctest 347/347.
+
+Gates: examples 60/64 identical; the four differing captures are `sboard` and
+`test`, sequential and parallel, and `glass_lens` is new; sequential and
+parallel are identical for the three scenes. These references were rebaselined
+by user agreement. renderAll 108/108 byte-identical (125 s, user 1454 s); Roth 7
+known discrepancies; audit 0 pending, 161 base files identical. The analyzer
+shows 1059 nodes and no backward group relation.
+
